@@ -1,0 +1,4 @@
+(fp_lib_table
+  (version 7)
+  (lib (name "CapCore")(type "KiCad")(uri "${KIPRJMOD}/CapCore.pretty")(options "")(descr "CapCore project footprints"))
+)

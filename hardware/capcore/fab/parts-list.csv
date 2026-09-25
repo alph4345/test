@@ -1,0 +1,69 @@
+Ref,Value (LIC build),Value (EDLC build),Footprint,LCSC,MPN,Assembled by JLCPCB,Notes
+BT1,LIC 3.8V,EDLC 2.7V,Supercap_Pads,,,no (you fit it),your lithium-ion capacitor (not assembled)
+C1,4.7uF,4.7uF,C_0805_2012Metric,C1779,CL21A475KAQNNNE,yes,charger input
+C2,10uF,10uF,C_0603_1608Metric,C19702,CL10A106KP8NNNC,yes,charger output
+C3,10nF,10nF,C_0402_1005Metric,C15195,CL05B103KB5NNNC,yes,ignores millisecond dips from load steps
+C5,100nF,100nF,C_0402_1005Metric,C1525,CL05B104KO5NNNC,yes,U3 supply
+C6,1uF,1uF,C_0402_1005Metric,C52923,CL05A105KA5NQNC,yes,VAON bulk
+C7,10nF,10nF,C_0402_1005Metric,C15195,CL05B103KB5NNNC,yes,soft start
+C8,2.2uF,2.2uF,C_0603_1608Metric,C23630,CL10A225KO8NNNC,yes,keeps power on ~2 s after a button press so firmware can raise HOLD
+C9,10uF,10uF,C_0805_2012Metric,C15850,CL21A106KAYNNNE,yes,regulator input
+C10,100nF,100nF,C_0402_1005Metric,C1525,CL05B104KO5NNNC,yes,VINA bypass
+C11,10uF,10uF,C_0805_2012Metric,C15850,CL21A106KAYNNNE,yes,regulator output
+C12,10uF,10uF,C_0805_2012Metric,C15850,CL21A106KAYNNNE,yes,regulator output
+C13,100nF,100nF,C_0402_1005Metric,C1525,CL05B104KO5NNNC,yes,output HF bypass
+C14,100nF,100nF,C_0402_1005Metric,C1525,CL05B104KO5NNNC,yes,ADC sample charge
+C15,100nF,100nF,C_0402_1005Metric,C1525,CL05B104KO5NNNC,yes,RTC supply
+D1,RED,RED,LED_0603_1608Metric,C2286,KT-0603R,yes,"on while charging, off when full"
+D2,1N4148WS,1N4148WS,D_SOD-323,C2128,1N4148WS,yes,USB power turns the gadget on
+D3,1N4148WS,1N4148WS,D_SOD-323,C2128,1N4148WS,yes,lets the MCU read the button
+D4,1N4148WS,1N4148WS,D_SOD-323,C2128,1N4148WS,yes,lets the MCU read the charge status without back-feeding
+J1,USB-C,USB-C,USB_C_Receptacle_HRO_TYPE-C-31-M-12,C165948,TYPE-C-31-M-12,yes,"USB-C receptacle, USB 2.0, 16 pin"
+J2,LEFT,LEFT,PinHeader_1x08_P2.54mm_Vertical,,,no (you fit it),0.1 in header (solder your own pins)
+J3,RIGHT,RIGHT,PinHeader_1x08_P2.54mm_Vertical,,,no (you fit it),0.1 in header (solder your own pins)
+JP1,USB-ON,USB-ON,SolderJumper-2_P1.3mm_Bridged_RoundedPad1.0x1.5mm,,,no (you fit it),cut to stop USB from turning the gadget on
+JP2,ALWAYS-ON,ALWAYS-ON,SolderJumper-2_P1.3mm_Open_RoundedPad1.0x1.5mm,,,no (you fit it),bridge for always-on (no power button)
+L1,1.5uH,1.5uH,L_3015_Universal,C7497056,ANR3015T1R5N,yes,"1.5 uH 3x3 mm shielded, Isat >= 1.5 A"
+Q1,AO3401A,AO3401A,SOT-23,C15127,AO3401A,yes,master switch: opens below 2.6 V or in ship mode
+Q2,AO3400A,AO3400A,SOT-23,C20917,AO3400A,yes,USB power turns Q1 on (wakes from cut-off)
+Q3,AO3400A,AO3400A,SOT-23,C20917,AO3400A,yes,keeps Q1 on while the capacitor is healthy
+Q4,AO3400A,AO3400A,SOT-23,C20917,AO3400A,yes,SHIP high forces a cut-off (storage mode)
+Q5,AO3401A,AO3401A,SOT-23,C15127,AO3401A,yes,load switch with soft start
+Q6,AO3400A,AO3400A,SOT-23,C20917,AO3400A,yes,turns the gadget on
+Q7,AO3401A,AO3401A,SOT-23,C15127,AO3401A,yes,button / RTC alarm turns the gadget on
+Q8,AO3400A,AO3400A,SOT-23,C20917,AO3400A,yes,"in series with Q6: nothing turns the gadget on below the cut-off, not even USB"
+R1,5.1k,5.1k,R_0402_1005Metric,C25905,0402WGF5101TCE,yes,CC1 sink pull-down
+R2,5.1k,5.1k,R_0402_1005Metric,C25905,0402WGF5101TCE,yes,CC2 sink pull-down
+R3,1k,1k,R_0402_1005Metric,C11702,0402WGF1001TCE,yes,charge current = 300 V / R3 = 300 mA
+R4,120k,75k,R_0402_1005Metric,C25750,0402WGF1203TCE,yes,charge voltage = 0.8 V x (1 + R4/R5) = 3.71 V
+R5,33k,33k,R_0402_1005Metric,C25779,0402WGF3302TCE,yes,returned to /PG so the divider cannot drain the capacitor without USB
+R6,1k,1k,R_0402_1005Metric,C11702,0402WGF1001TCE,yes,charge LED current
+R7,10M,10M,R_0402_1005Metric,C26082,0402WGF1005TCE,yes,Q1 off by default
+R8,10k,10k,R_0402_1005Metric,C25744,0402WGF1002TCE,yes,
+R9,100k,100k,R_0402_1005Metric,C25741,0402WGF1003TCE,yes,
+R10,1M,1M,R_0402_1005Metric,C26083,0402WGF1004TCE,yes,UVLO divider top (1/3)
+R11,470k,470k,R_0402_1005Metric,C25790,0402WGF4703TCE,yes,UVLO divider top (2/3)
+R12,330k,330k,R_0402_1005Metric,C25778,0402WGF3303TCE,yes,UVLO divider top (3/3)
+R13,330k,470k,R_0402_1005Metric,C25778,0402WGF3303TCE,yes,cut-off = 0.405 V x (1 + 1.8M/R13) = 2.61 V
+R14,1M,1M,R_0402_1005Metric,C26083,0402WGF1004TCE,yes,RESET pull-up
+R15,1M,1M,R_0402_1005Metric,C26083,0402WGF1004TCE,yes,SHIP idles low
+R16,1M,1M,R_0402_1005Metric,C26083,0402WGF1004TCE,yes,Q5 off by default
+R17,100k,100k,R_0402_1005Metric,C25741,0402WGF1003TCE,yes,soft start
+R18,1M,1M,R_0402_1005Metric,C26083,0402WGF1004TCE,yes,hold-up discharge
+R20,100k,100k,R_0402_1005Metric,C25741,0402WGF1003TCE,yes,firmware keeps power on
+R21,10k,10k,R_0402_1005Metric,C25744,0402WGF1002TCE,yes,
+R22,10k,10k,R_0402_1005Metric,C25744,0402WGF1002TCE,yes,
+R23,100k,100k,R_0402_1005Metric,C25741,0402WGF1003TCE,yes,
+R24,1M,1M,R_0402_1005Metric,C26083,0402WGF1004TCE,yes,WAKE idles high
+R25,1k,1k,R_0402_1005Metric,C11702,0402WGF1001TCE,yes,external wake input
+R26,1M,1M,R_0402_1005Metric,C26083,0402WGF1004TCE,yes,capacitor voltage / 2
+R27,1M,1M,R_0402_1005Metric,C26083,0402WGF1004TCE,yes,capacitor voltage / 2
+R28,4.7k,4.7k,R_0402_1005Metric,C25900,0402WGF4701TCE,yes,I2C pull-up
+R29,4.7k,4.7k,R_0402_1005Metric,C25900,0402WGF4701TCE,yes,I2C pull-up
+SW1,POWER,POWER,SW_TS-1187A_5.1x5.1mm,C318884,TS-1187A-B-A-B,yes,power / wake button; diagonal pads 1+4 work whichever pairs are internally joined
+U1,USBLC6-2SC6,USBLC6-2SC6,SOT-23-6,C7519,USBLC6-2SC6,yes,USB ESD protection
+U2,BQ25173DSGR,BQ25173DSGR,WSON-8-1EP_2x2mm_P0.5mm_EP0.9x1.6mm_Vias0.3,C2942216,BQ25173DSGR,yes,800 mA linear supercapacitor charger
+U3,TPS3808G01DBVR,TPS3808G01DBVR,SOT-23-6,C19653,TPS3808G01DBVR,yes,"under-voltage supervisor, 0.405 V SENSE threshold"
+U4,TPS63031DSKR,TPS63031DSKR,WSON-10-1EP_2.5x2.5mm_P0.5mm_EP1.2x2mm_Vias0.3,C15516,TPS63031DSKR,yes,"3.3 V buck-boost, 1.8-5.5 V in"
+U5,PCF8563T,PCF8563T,SOIC-8_3.9x4.9mm_P1.27mm,C7440,"PCF8563T/5,518",yes,"real-time clock, alarm wakes the gadget"
+Y1,32.768kHz,32.768kHz,Crystal_SMD_3215-2Pin_3.2x1.5mm,C32346,Q13FC1350000400,yes,"12.5 pF, 20 ppm"

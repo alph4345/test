@@ -1,0 +1,15 @@
+# Python
+__pycache__/
+*.pyc
+
+# KiCad per-user and temporary files
+*.kicad_prl
+*-backups/
+fp-info-cache
+_autosave-*
+*.lck
+
+# Autorouter scratch (capcore.ses is kept: route_pcb.py rebuilds the board from it)
+hardware/capcore/capcore.dsn
+logs/
+freerouting.json
