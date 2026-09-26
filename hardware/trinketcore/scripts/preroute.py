@@ -174,7 +174,7 @@ def rp2040(board):
     t = xy(board, ("U6", "19"))
     track(board, "GND", [t, (ep[0] + (1.0 if t[0] > ep[0] else -1.0) * 1.0, t[1])]
           if abs(t[1] - ep[1]) < 2.5 else [t, (t[0], ep[1] + (1.0 if t[1] > ep[1] else -1.0))], 0.15)
-    for pin, cap in (("1", "C18"), ("10", "C19"), ("22", "C20"), ("33", "C21"), ("42", "C22")):
+    for pin, cap in (("1", "C18"), ("10", "C19"), ("33", "C21"), ("42", "C22")):
         track(board, "3V3", [("U6", pin), (cap, "1")], 0.15)
 
 
@@ -319,6 +319,24 @@ def plane_fanout(board, net, skip=()):
     return added, failed
 
 
+def crystal(board):
+    """The 12 MHz crystal, drawn by hand so it stays short and fixed. XIN runs
+    straight to the crystal; XOUT leaves the chip below XIN and its 1 k resistor
+    sits above the crystal, so XOUT hops over XIN on In2.Cu. Pin 22's capacitor
+    (C20) sits elsewhere on the 3V3 plane to leave room for these tracks."""
+    track(board, "XIN", [("U6", "20"), (15.3, 16.9), ("Y2", "1")], 0.2)
+    track(board, "XIN", [("Y2", "1"), ("C16", "1")], 0.2)
+    track(board, "XOUT", [("U6", "21"), (15.3, 17.3), (14.9, 17.75)], 0.2)
+    via(board, "XOUT", (14.9, 17.75))
+    track(board, "XOUT", [(14.9, 17.75), (15.55, 17.1), (15.55, 13.9)], 0.2, IN2)
+    via(board, "XOUT", (15.55, 13.9))
+    track(board, "XOUT", [(15.55, 13.9), ("R31", "1")], 0.2)
+    rx, ry = xy(board, ("R31", "2"))
+    cx, cy = xy(board, ("Y2", "3"))
+    track(board, "XO", [(rx, ry), (rx, 13.3), (cx, 13.3), (cx, cy)], 0.2)
+    track(board, "XO", [("Y2", "3"), ("C17", "1")], 0.2)
+
+
 def amplifier(board):
     """The amplifier's ground pins go straight into its grounded exposed pad, so no
     fanout vias crowd the speaker outputs."""
@@ -334,7 +352,7 @@ def amplifier(board):
 
 GND_SKIP = {"J1.A1", "J1.A12", "J1.B1", "J1.B12", "U2.3", "U2.4",
             "U4.3", "U4.7", "U4.9", "C11.2", "C12.2", "U8.3", "U8.11", "U8.15"}
-VDD_SKIP = {"C18.1", "C19.1", "C20.1", "C21.1", "C22.1"}
+VDD_SKIP = {"C18.1", "C19.1", "C21.1", "C22.1"}
 
 
 def solid_ground_pads(board):
@@ -350,6 +368,7 @@ def run(board):
     charger(board)
     buckboost(board)
     rp2040(board)
+    crystal(board)
     amplifier(board)
     result = {}
     for net, skip in (("GND", GND_SKIP), ("3V3", VDD_SKIP)):
