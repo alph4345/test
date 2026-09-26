@@ -99,8 +99,6 @@ SW1,POWER/A,POWER/A,XKB Connectivity,TS-1187A-B-A-B,SW_TS-1187A_5.1x5.1mm,C31888
 SW2,B,B,XKB Connectivity,TS-1187A-B-A-B,SW_TS-1187A_5.1x5.1mm,C318884,yes,second button (GP14)
 SW3,BOOT,BOOT,Omron,B3U-1000P,SW_SPST_B3U-1000P,,yes,hold while pressing RESET for the USB bootloader
 SW4,RESET,RESET,Omron,B3U-1000P,SW_SPST_B3U-1000P,,yes,reset (also forces power-off after ~5 s)
-TP1,SWCLK,SWCLK,,,TestPoint_Pad_D1.0mm,,no (you fit it),SWD debug clock
-TP2,SWDIO,SWDIO,,,TestPoint_Pad_D1.0mm,,no (you fit it),SWD debug data
 U1,USBLC6-2SC6,USBLC6-2SC6,STMicroelectronics,USBLC6-2SC6,SOT-23-6,C7519,yes,USB ESD protection
 U2,BQ25173DSGR,BQ25173DSGR,Texas Instruments,BQ25173DSGR,WSON-8-1EP_2x2mm_P0.5mm_EP0.9x1.6mm_Vias0.3,C2942216,yes,800 mA linear supercapacitor charger
 U3,TPS3808G01DBVR,TPS3808G01DBVR,Texas Instruments,TPS3808G01DBVR,SOT-23-6,C19653,yes,"under-voltage supervisor, 0.405 V SENSE threshold"

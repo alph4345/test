@@ -238,4 +238,17 @@ python3 check_netlist.py --pcb && python3 export_fab.py && python3 render.py
 ```
 
 `netlist.py` is the single source of truth: parts, values, manufacturer part
-numbers and every connection.
+numbers and every connection. Autorouting needs Java and
+[Freerouting](https://github.com/freerouting/freerouting) 1.9.0 (under
+`xvfb-run` on a headless machine); without `--autoroute` the board is rebuilt
+from the committed `trinketcore.ses`. The crystal and the power fan-outs are
+drawn by hand in `preroute.py`, and a small grid router (`maze.py`) finishes
+whatever Freerouting leaves open.
+
+**Verification status:** the schematic and PCB are checked pin-for-pin against
+`netlist.py` (378 pins). KiCad DRC with PCBWay's limits reports no errors and
+no unconnected items, only one warning: the USB-C footprint differs from the
+library copy because its silkscreen was trimmed at the board edge. The routing
+is automatic, so some tracks take detours a hand layout wouldn't. The board
+has **not been built and tested yet**: treat the first order as a prototype run
+and follow the bring-up steps.

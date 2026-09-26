@@ -87,6 +87,9 @@ def compare(label, got, exp):
             print(f"  {label} MISMATCH {key[0]}.{key[1]}: expected {net}, got {g}")
     extra = [k for k in got if k not in exp and not k[0].startswith("#")]
     for k in extra:
+        if got[k] == "NC":      # a mechanical pad (e.g. a connector's mounting tab): no net, no risk
+            print(f"  {label} note: mechanical pad {k[0]}.{k[1]} has no net")
+            continue
         bad += 1
         print(f"  {label} EXTRA pin {k[0]}.{k[1]} on {got[k]}")
     print(f"{label}: checked {len(exp)} pins, {bad} problems")

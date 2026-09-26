@@ -45,4 +45,4 @@ Item #,Designator,Qty,Manufacturer,Mfg Part #,Description / Value,Package/Footpr
 44,Y2,1,Abracon,ABM8-272-T3,12MHz,3225 4-pad,SMD,"12 MHz, 10 pF (the RP2040 reference crystal)"
 45,"BT1,BT2",0,,,DNP,,,Do not populate: capacitors (customer fits)
 46,"J4,J5,J6,J7",0,,,DNP,,,Do not populate: sockets/headers/speaker connector (customer fits)
-47,"JP1,JP2,TP1,TP2",0,,,DNP,,,"Do not populate: solder jumpers and test pads: copper only, no part"
+47,"JP1,JP2",0,,,DNP,,,"Do not populate: solder jumpers: copper only, no part"
