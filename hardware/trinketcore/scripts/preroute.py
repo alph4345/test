@@ -167,7 +167,9 @@ def buckboost(board):
 
 # ------------------------------------------------------------- RP2040
 def rp2040(board):
-    """TESTEN into the grounded exposed pad; IOVDD pins straight to their capacitors."""
+    """TESTEN into the grounded exposed pad; IOVDD pins straight to their capacitors.
+    The capacitors share their pin's plane via (VDD_SKIP), which keeps the narrow
+    escape channels between the 0.4 mm-pitch pins free for signals."""
     ep = xy(board, ("U6", "57"))
     t = xy(board, ("U6", "19"))
     track(board, "GND", [t, (ep[0] + (1.0 if t[0] > ep[0] else -1.0) * 1.0, t[1])]
@@ -317,8 +319,22 @@ def plane_fanout(board, net, skip=()):
     return added, failed
 
 
+def amplifier(board):
+    """The amplifier's ground pins go straight into its grounded exposed pad, so no
+    fanout vias crowd the speaker outputs."""
+    ex, ey = xy(board, ("U8", "17"))
+    for pin in ("3", "11", "15"):
+        px, py = xy(board, ("U8", pin))
+        if abs(px - ex) > abs(py - ey):
+            end = (ex + (0.3 if px > ex else -0.3), py)
+        else:
+            end = (px, ey + (0.3 if py > ey else -0.3))
+        track(board, "GND", [(px, py), end], 0.25)
+
+
 GND_SKIP = {"J1.A1", "J1.A12", "J1.B1", "J1.B12", "U2.3", "U2.4",
-            "U4.3", "U4.7", "U4.9", "C11.2", "C12.2"}
+            "U4.3", "U4.7", "U4.9", "C11.2", "C12.2", "U8.3", "U8.11", "U8.15"}
+VDD_SKIP = {"C18.1", "C19.1", "C20.1", "C21.1", "C22.1"}
 
 
 def solid_ground_pads(board):
@@ -334,7 +350,8 @@ def run(board):
     charger(board)
     buckboost(board)
     rp2040(board)
+    amplifier(board)
     result = {}
-    for net, skip in (("GND", GND_SKIP), ("3V3", set())):
+    for net, skip in (("GND", GND_SKIP), ("3V3", VDD_SKIP)):
         result[net] = plane_fanout(board, net, skip)
     return result

@@ -21,22 +21,22 @@ from microcontroller import pin
 
 # Holding power comes before everything else: after a button press the board
 # stays on for only a few seconds on its own.
-_hold = digitalio.DigitalInOut(pin.GPIO22)
+_hold = digitalio.DigitalInOut(pin.GPIO26)
 _hold.switch_to_output(value=True)
 
 # --- pin map (see hardware/trinketcore/README.md) -----------------------------
 EXP = [pin.GPIO0, pin.GPIO1, pin.GPIO2, pin.GPIO3, pin.GPIO4, pin.GPIO5, pin.GPIO6, pin.GPIO7]
-EXP_ADC = [pin.GPIO26, pin.GPIO27]
+EXP_ADC = [pin.GPIO28, pin.GPIO29]      # J6 pins 10 and 9 (J6 runs GP7..GP0, GP29, GP28)
 TFT_DC, TFT_CS, TFT_SCK, TFT_MOSI, TFT_RST, TFT_BL = (
-    pin.GPIO8, pin.GPIO9, pin.GPIO10, pin.GPIO11, pin.GPIO12, pin.GPIO13)
+    pin.GPIO9, pin.GPIO8, pin.GPIO10, pin.GPIO11, pin.GPIO12, pin.GPIO13)
 BUTTON_B = pin.GPIO14
 SHIP = pin.GPIO15
 SDA, SCL = pin.GPIO16, pin.GPIO17
 I2S_DATA, I2S_BCLK, I2S_LRCLK = pin.GPIO18, pin.GPIO19, pin.GPIO20
 AMP_EN = pin.GPIO21
-HOLD, BUTTON_A, CHG = pin.GPIO22, pin.GPIO23, pin.GPIO24
+CHG, BUTTON_A, USB_DET = pin.GPIO22, pin.GPIO23, pin.GPIO24
 LED = pin.GPIO25
-USB_DET, VSENSE = pin.GPIO28, pin.GPIO29
+HOLD, VSENSE = pin.GPIO26, pin.GPIO27
 
 RTC_ADDR = 0x51          # PCF8563
 REG_CTRL2 = 0x01         # bit3 AF, bit2 TF, bit1 AIE, bit0 TIE

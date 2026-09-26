@@ -110,15 +110,17 @@ def HEADER(ref, n, value, pins, socket, desc):
                 {str(i + 1): net for i, net in enumerate(pins)}, desc=desc, assembled=False)
 
 
-# RP2040 pin -> net. GPIO use is listed in the README pinout table.
+# RP2040 pin -> net. GPIO use is listed in the README pinout table. The order follows
+# where each signal goes on the board, so the tracks leave the chip without crossing:
+# the bottom-row pins that head left come first, J6 takes GP7..GP0 top to bottom.
 RP2040_PINS = {
     "1": "3V3", "2": "GP0", "3": "GP1", "4": "GP2", "5": "GP3", "6": "GP4", "7": "GP5",
-    "8": "GP6", "9": "GP7", "10": "3V3", "11": "TFT_DC", "12": "TFT_CS", "13": "TFT_SCK",
+    "8": "GP6", "9": "GP7", "10": "3V3", "11": "TFT_CS", "12": "TFT_DC", "13": "TFT_SCK",
     "14": "TFT_MOSI", "15": "TFT_RST", "16": "TFT_BLG", "17": "BTN_B", "18": "SHIP",
     "19": "GND", "20": "XIN", "21": "XOUT", "22": "3V3", "23": "1V1", "24": "SWCLK",
     "25": "SWDIO", "26": "RUN", "27": "SDA", "28": "SCL", "29": "I2S_DIN", "30": "I2S_BCLK",
-    "31": "I2S_LRCLK", "32": "AMP_EN", "33": "3V3", "34": "HOLD", "35": "BTN", "36": "CHG",
-    "37": "USER_LED", "38": "GP26", "39": "GP27", "40": "USB_DET", "41": "VSENSE", "42": "3V3",
+    "31": "I2S_LRCLK", "32": "AMP_EN", "33": "3V3", "34": "CHG", "35": "BTN", "36": "USB_DET",
+    "37": "USER_LED", "38": "HOLD", "39": "VSENSE", "40": "GP28", "41": "GP29", "42": "3V3",
     "43": "3V3", "44": "3V3", "45": "1V1", "46": "USB_DM", "47": "USB_DP", "48": "3V3",
     "49": "3V3", "50": "1V1", "51": "QSPI_SD3", "52": "QSPI_SCLK", "53": "QSPI_SD0",
     "54": "QSPI_SD2", "55": "QSPI_SD1", "56": "QSPI_SS", "57": "GND",
@@ -323,7 +325,7 @@ PARTS = [
     HEADER("J5", 4, "I2C OLED", ["GND", "3V3", "SCL", "SDA"], True,
            "I2C OLED module socket: GND VCC SCL SDA"),
     HEADER("J6", 14, "EXPANSION",
-           ["GP0", "GP1", "GP2", "GP3", "GP4", "GP5", "GP6", "GP7", "GP26", "GP27", "WAKE",
+           ["GP7", "GP6", "GP5", "GP4", "GP3", "GP2", "GP1", "GP0", "GP29", "GP28", "WAKE",
             "VSYS", "3V3", "GND"], False, "expansion header: LEDs, buttons, sensors, lid switch"),
     Part("J8", "TrinketCore:Conn_01x04", "QWIIC",
          "Connector_JST:JST_SH_SM04B-SRSS-TB_1x04-1MP_P1.00mm_Horizontal",

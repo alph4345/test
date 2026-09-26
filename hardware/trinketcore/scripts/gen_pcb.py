@@ -179,7 +179,7 @@ def rect(board, x0, y0, x1, y1, layer=pcbnew.B_SilkS, width=0.15):
 
 J4_LABELS = ["GND", "VCC", "SCL", "SDA", "RES", "DC", "CS", "BLK"]
 J5_LABELS = ["GND", "VCC", "SCL", "SDA"]
-J6_LABELS = ["GP0", "GP1", "GP2", "GP3", "GP4", "GP5", "GP6", "GP7", "GP26", "GP27", "WAKE",
+J6_LABELS = ["GP7", "GP6", "GP5", "GP4", "GP3", "GP2", "GP1", "GP0", "GP29", "GP28", "WAKE",
              "VSYS", "3V3", "GND"]
 
 
@@ -219,7 +219,7 @@ def labels(board):
     for n, (y0, y1, lead_plus, lead_minus) in enumerate(((8.5, 21.2, 11.0, 16.0), (22.6, 38.4, 28.0, 33.0)), 1):
         rect(board, 7.6, y0, 33.0, y1)
         text(board, f"CAP {n}", 20.3, (y0 + y1) / 2 - 1.2, 1.2, thick=0.2)
-        text(board, "LIC 3.8 V (or EDLC on an EDLC build)", 20.3, (y0 + y1) / 2 + 1.0, 0.8)
+        text(board, "LIC 3.8 V (or EDLC on an EDLC build)", 21.0, (y0 + y1) / 2 + 0.7, 0.8)
         text(board, "+", 8.4, lead_plus, 1.0)
         text(board, "-", 8.4, lead_minus, 1.0)
     text(board, "TrinketCore", 20.0, 42.0, 1.6, thick=0.25)

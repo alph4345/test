@@ -52,7 +52,7 @@ BLOCKS = {
     "buck": ("3.3 V buck-boost - TI TPS63031", ["U4", "L1", "C9", "C10", "C11", "C12", "C13",
                                                 "R26", "R27", "C14"],
              "1.8-5.5 V in, 3.3 V out, ~500 mA from a 2.6 V capacitor.\n"
-             "VSENSE = VSYS / 2 for the RP2040's ADC (GP29)."),
+             "VSENSE = VSYS / 2 for the RP2040's ADC (GP27)."),
     "rtc": ("Real-time clock - NXP PCF8563", ["U5", "Y1", "C15", "R28", "R29"],
             "Runs from VAON. Its alarm pulls WAKE_N low to start\nthe gadget. I2C address 0x51."),
     "mcu": ("RP2040 + 16 MB flash", ["U6", "U7", "C31", "Y2", "R31", "C16", "C17", "R34", "SW3",
@@ -67,7 +67,7 @@ BLOCKS = {
     "io": ("Display, buttons and connectors", ["J4", "R38", "J5", "J8", "J6", "SW2", "R37", "D7"],
            "J4: SPI TFT/OLED modules (GND VCC SCL SDA RES DC CS BLK).\n"
            "J5: I2C OLED modules (GND VCC SCL SDA). J8: Qwiic.\n"
-           "J6: expansion (GP0-7, GP26-27, WAKE, VSYS, 3V3, GND)."),
+           "J6: expansion (GP7-0, GP29, GP28, WAKE, VSYS, 3V3, GND)."),
 }
 
 COLUMNS = [

@@ -41,7 +41,7 @@ inside the outlines on the back.*
 | Clock | NXP PCF8563 real-time clock: wakes the board on a timer or alarm (virtual pets, e-ink updates) |
 | Buttons | **A / POWER** (turns the board on and is readable by firmware), **B**, BOOT, RESET |
 | LEDs | red CHG, green FULL (charging), blue user LED on GP25 |
-| Expansion | **J6**, 14 pins: GP0–GP7, GP26–GP27 (analog), `WAKE`, `VSYS`, 3V3, GND |
+| Expansion | **J6**, 14 pins: GP0–GP7, GP28–GP29 (analog), `WAKE`, `VSYS`, 3V3, GND |
 | Board | 4 layers, 40 × 60 × 1.6 mm, all parts on top, PCBWay standard rules (6/6 mil, 0.3 mm holes) |
 
 ## Which display?
@@ -106,14 +106,16 @@ large cans.
 ## Pinout
 
 **J4 display socket** (top edge, pin 1 = square pad, left):
-GND · 3V3 · SCK (GP10) · MOSI (GP11) · RES (GP12) · DC (GP8) · CS (GP9) · BLK (GP13 via 100 Ω)
+GND · 3V3 · SCK (GP10) · MOSI (GP11) · RES (GP12) · DC (GP9) · CS (GP8) · BLK (GP13 via 100 Ω)
 
 **J5 I²C OLED socket**: GND · 3V3 · SCL (GP17) · SDA (GP16).
 **J8 Qwiic**: GND · 3V3 · SDA · SCL. The same bus as the clock (address 0x51),
 with 4.7 kΩ pull-ups.
 
-**J6 expansion** (right edge, pin 1 at the top): GP0 · GP1 · GP2 · GP3 · GP4 ·
-GP5 · GP6 · GP7 · GP26 · GP27 · WAKE · VSYS · 3V3 · GND
+**J6 expansion** (right edge, pin 1 at the top): GP7 · GP6 · GP5 · GP4 · GP3 ·
+GP2 · GP1 · GP0 · GP29 · GP28 · WAKE · VSYS · 3V3 · GND. The order matches the
+RP2040's pins, which keeps the tracks from crossing; the back silkscreen labels
+every pin.
 
 * `WAKE`: pull to GND to switch the board on (lid, tilt, reed or vibration
   switch). For a **lid** that may stay open, put a 1 µF capacitor in series

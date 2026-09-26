@@ -52,18 +52,18 @@ board switches itself off.
 | GPIO | Use | GPIO | Use |
 |---|---|---|---|
 | GP0–GP7 | expansion J6 (LEDs, buttons, sensors) | GP18 | I2S data |
-| GP8 | display DC | GP19 | I2S bit clock |
-| GP9 | display CS | GP20 | I2S word select |
+| GP8 | display CS | GP19 | I2S bit clock |
+| GP9 | display DC | GP20 | I2S word select |
 | GP10 | display SCK | GP21 | amplifier on (high) |
-| GP11 | display MOSI | GP22 | HOLD (high = stay on) |
+| GP11 | display MOSI | GP22 | CHG (low = charging) |
 | GP12 | display reset | GP23 | power button A (low = pressed) |
-| GP13 | backlight (PWM) | GP24 | CHG (low = charging) |
+| GP13 | backlight (PWM) | GP24 | USB power present (low) |
 | GP14 | button B | GP25 | user LED (blue) |
-| GP15 | SHIP (pulse high = storage mode) | GP26, GP27 | expansion J6, analog |
-| GP16 / GP17 | I2C SDA / SCL (RTC 0x51, OLED, Qwiic) | GP28 | USB power present (low) |
-| | | GP29 | capacitor voltage ÷ 2 (analog) |
+| GP15 | SHIP (pulse high = storage mode) | GP26 | HOLD (high = stay on) |
+| GP16 / GP17 | I2C SDA / SCL (RTC 0x51, OLED, Qwiic) | GP27 | capacitor voltage ÷ 2 (analog) |
+| | | GP28, GP29 | expansion J6, analog |
 
-GP23, GP24 and GP28 are read through diodes: enable the pull-ups (the library
+GP22, GP23 and GP24 are read through diodes: enable the pull-ups (the library
 does). The pin map works with MicroPython and Arduino-Pico too, and the logic
 is the same as in the CapCore examples in [`../micropython`](../micropython) and
 [`../arduino`](../arduino).
