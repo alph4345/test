@@ -167,14 +167,15 @@ def buckboost(board):
 
 # ------------------------------------------------------------- RP2040
 def rp2040(board):
-    """TESTEN into the grounded exposed pad; IOVDD pins straight to their capacitors.
-    The capacitors share their pin's plane via (VDD_SKIP), which keeps the narrow
-    escape channels between the 0.4 mm-pitch pins free for signals."""
+    """TESTEN into the grounded exposed pad; the bottom-row IOVDD pins straight to
+    their capacitors, which share the pin's plane via (VDD_SKIP). The top row's
+    capacitors (C18, C19) sit at the corners on their own plane vias, so the 0.4 mm
+    lanes above the pins stay free for the GPIO and display tracks."""
     ep = xy(board, ("U6", "57"))
     t = xy(board, ("U6", "19"))
     track(board, "GND", [t, (ep[0] + (1.0 if t[0] > ep[0] else -1.0) * 1.0, t[1])]
           if abs(t[1] - ep[1]) < 2.5 else [t, (t[0], ep[1] + (1.0 if t[1] > ep[1] else -1.0))], 0.15)
-    for pin, cap in (("1", "C18"), ("10", "C19"), ("33", "C21"), ("42", "C22")):
+    for pin, cap in (("33", "C21"), ("42", "C22")):
         track(board, "3V3", [("U6", pin), (cap, "1")], 0.15)
 
 
@@ -352,7 +353,7 @@ def amplifier(board):
 
 GND_SKIP = {"J1.A1", "J1.A12", "J1.B1", "J1.B12", "U2.3", "U2.4",
             "U4.3", "U4.7", "U4.9", "C11.2", "C12.2", "U8.3", "U8.11", "U8.15"}
-VDD_SKIP = {"C18.1", "C19.1", "C21.1", "C22.1"}
+VDD_SKIP = {"C21.1", "C22.1"}
 
 
 def solid_ground_pads(board):

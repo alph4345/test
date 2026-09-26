@@ -318,7 +318,7 @@ def main():
         # retries only the connections it left open, ripping up what is in the way.
         load_ses(board)
         export_dsn(board)
-        autoroute(passes=20)
+        autoroute(passes=40)
         board = prerouted_board()
     load_ses(board)
     path = gen_pcb.save(board)
@@ -403,7 +403,7 @@ def finish(path):
         for net, ref, num in todo:
             if net in done:
                 continue      # the first pad of a net may already have joined the rest
-            for radius in (None, 0.6, 1.2):
+            for radius in (None, 0.6, 1.2, 2.5):
                 if radius is not None:
                     ripped = rip_up_around(board, net, radius)
                     print(f"  ripped up {', '.join(sorted(ripped)) or 'nothing'} around {net}")
