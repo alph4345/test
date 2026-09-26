@@ -133,7 +133,7 @@ def bom(name):
         i = len(rows)
         for refs, what in ((["BT1", "BT2"], "capacitors (customer fits)"),
                            (["J4", "J5", "J6", "J7"], "sockets/headers/speaker connector (customer fits)"),
-                           (["JP1", "JP2", "TP1", "TP2"], "solder jumpers and test pads: copper only, no part")):
+                           (["JP1", "JP2"], "solder jumpers: copper only, no part")):
             i += 1
             w.writerow([i, ",".join(refs), 0, "", "", "DNP", "", "", "Do not populate: " + what])
     return path

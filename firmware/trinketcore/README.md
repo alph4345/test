@@ -8,6 +8,7 @@ CircuitPython because its built-in display (`displayio`) and sound
 |---|---|
 | [`charge_gauge`](circuitpython/charge_gauge/code.py) | Wakes, shows the charge level on the display for a few seconds, dims, switches off. Stays on and shows progress while charging. |
 | [`music_box`](circuitpython/music_box/code.py) | Opening the lid plays a short synthesised music-box tune with LEDs that pulse on each note, then switches the whole board off. |
+| [`oracle`](circuitpython/oracle/code.py) | A digital oracle: each press draws a random tarot card and shows it on an e-ink screen with a small charge icon, then switches the board off. The card stays on screen with no power. [`make_cards.py`](circuitpython/oracle/make_cards.py) turns your card art into e-ink images. |
 | [`lib/trinketcore.py`](circuitpython/lib/trinketcore.py) | Board support: power hold/off, charge level, charging and USB status, RTC wake-up timer, speaker, pin names. |
 
 ## Getting started
@@ -25,6 +26,10 @@ CircuitPython because its built-in display (`displayio`) and sound
    `adafruit_display_text`, plus your display's driver
    (`adafruit_st7789`, `adafruit_st7735r`, `adafruit_displayio_ssd1306`, or
    the community `gc9a01`). Set `DISPLAY = ...` at the top of `code.py`.
+4. For the oracle, copy `adafruit_ssd1681` and `adafruit_display_text`, and a
+   `cards` folder made with `python3 make_cards.py my_art cards` (needs
+   Pillow on your computer). A black-and-white deck of 78 cards takes about
+   0.4 MB; a black/white/red deck takes about 3 MB, so use a 16 MB build.
 
 The first line of every `code.py` is `import trinketcore`. It raises `HOLD`
 at once: after a button press the board powers itself for only about 4–6 s.
@@ -46,6 +51,15 @@ Every example follows the same four steps:
 tracks remaining runtime. `tc.low()` turns true a little above the hardware
 cut-off, so you can save state and play a "charge me" sound before the
 board switches itself off.
+
+## E-paper modules
+
+E-paper modules (1.54″ 200 × 200 with an SSD1681 controller, such as the
+Waveshare 1.54″ V2 or WeAct 1.54″) have a BUSY output instead of a
+backlight. Wire them to J4 by function: VCC → 3V3, GND → GND, DIN → MOSI,
+CLK → SCK, CS → CS, DC → DC, RST → RES, and BUSY → BLK, which the RP2040
+reads on GP13 (`trinketcore.EPD_BUSY`). Always wait for BUSY to clear
+before switching off: cutting power mid-refresh leaves a faded image.
 
 ## Pin map
 

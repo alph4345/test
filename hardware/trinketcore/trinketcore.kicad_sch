@@ -4659,83 +4659,6 @@
         )
       )
     )
-    (symbol "TrinketCore:TestPoint"
-      (pin_numbers hide)
-      (pin_names (offset 0.762) hide)
-      (in_bom yes)
-      (on_board yes)
-      (property "Reference" "TP"
-        (at 0 6.858 0)
-        (effects
-          (font (size 1.27 1.27))
-        )
-      )
-      (property "Value" "TestPoint"
-        (at 0 5.08 0)
-        (effects
-          (font (size 1.27 1.27))
-        )
-      )
-      (property "Footprint" ""
-        (at 5.08 0 0)
-        (effects
-          (font (size 1.27 1.27))
-          hide
-        )
-      )
-      (property "Datasheet" "~"
-        (at 5.08 0 0)
-        (effects
-          (font (size 1.27 1.27))
-          hide
-        )
-      )
-      (property "ki_keywords" "test point tp"
-        (at 0 0 0)
-        (effects
-          (font (size 1.27 1.27))
-          hide
-        )
-      )
-      (property "ki_description" "test point"
-        (at 0 0 0)
-        (effects
-          (font (size 1.27 1.27))
-          hide
-        )
-      )
-      (property "ki_fp_filters" "Pin* Test*"
-        (at 0 0 0)
-        (effects
-          (font (size 1.27 1.27))
-          hide
-        )
-      )
-      (symbol "TestPoint_0_1"
-        (circle
-          (center 0 3.302)
-          (radius 0.762)
-          (stroke (width 0) (type default))
-          (fill (type none))
-        )
-      )
-      (symbol "TestPoint_1_1"
-        (pin passive line
-          (at 0 0 90)
-          (length 2.54)
-          (name "1"
-            (effects
-              (font (size 1.27 1.27))
-            )
-          )
-          (number "1"
-            (effects
-              (font (size 1.27 1.27))
-            )
-          )
-        )
-      )
-    )
     (symbol "TrinketCore:Conn_01x08"
       (pin_names (offset 1.016) hide)
       (in_bom yes)
@@ -6070,7 +5993,7 @@
     (end 190.5 100.33)
     (stroke (width 0) (type dash))
     (fill (type none))
-    (uuid "c42da78a-758e-47b3-abfd-1c8678283e65")
+    (uuid "af6df61d-4902-4ed4-bbdf-c24195ca65c2")
   )
   (text "USB-C input"
     (at 13.97 24.13 0)
@@ -6078,7 +6001,7 @@
       (font (size 2 2) bold)
       (justify left bottom)
     )
-    (uuid "e7880452-f506-4633-b124-e965c3064446")
+    (uuid "4e067fc0-8d31-41d2-bfd4-c7d8aed9bedb")
   )
   (text "5.1k on CC1/CC2 asks any USB-C charger for 5 V.\nD+/D- reach the RP2040 through 27R, so one port\ncharges and programs."
     (at 13.97 91.44 0)
@@ -6086,7 +6009,7 @@
       (font (size 1.27 1.27))
       (justify left top)
     )
-    (uuid "28846bd6-cbe7-467e-a8fb-a2525f97a3f8")
+    (uuid "a878fea9-b406-4ee8-88ec-834975392c6e")
   )
   (symbol
     (lib_id "TrinketCore:USB_C_Receptacle_USB2.0_16P")
@@ -6492,7 +6415,7 @@
     (end 190.5 198.12)
     (stroke (width 0) (type dash))
     (fill (type none))
-    (uuid "0499eb47-3e7d-4a66-8254-6205e9de6bfe")
+    (uuid "cd2853d0-ca7b-4228-a714-ff450c10ffa5")
   )
   (text "Charger + charge LEDs - TI BQ25173"
     (at 13.97 111.76 0)
@@ -6500,7 +6423,7 @@
       (font (size 2 2) bold)
       (justify left bottom)
     )
-    (uuid "76693951-cd45-49ce-8f71-7c08aea7d6a4")
+    (uuid "f2c55c45-2071-4ba3-8f61-60ade9133e26")
   )
   (text "300 mA constant current, then constant voltage.\nVREG = 0.8 V x (1 + R4/R5): LIC 3.71 V (R4 120k) / EDLC 2.62 V (R4 75k).\nCHG (red) lights while STAT is low; FULL (green) when STAT lets go.\nD4/D6 let the RP2040 read charging (CHG) and USB power (USB_DET)."
     (at 13.97 187.96 0)
@@ -6508,7 +6431,7 @@
       (font (size 1.27 1.27))
       (justify left top)
     )
-    (uuid "7c937535-80dd-4a8e-9465-9a204fdf2967")
+    (uuid "03b759a4-616f-450f-9723-0c07bf8449c4")
   )
   (symbol
     (lib_id "TrinketCore:BQ25173DSG")
@@ -7346,7 +7269,7 @@
     (end 190.5 261.62)
     (stroke (width 0) (type dash))
     (fill (type none))
-    (uuid "94677b08-9be4-489f-b733-e2a598070c6f")
+    (uuid "78cc5b74-6212-45b6-96ff-060a43cf128f")
   )
   (text "Capacitors + master switch"
     (at 13.97 209.55 0)
@@ -7354,7 +7277,7 @@
       (font (size 2 2) bold)
       (justify left bottom)
     )
-    (uuid "4ac13d9b-bd3b-4811-a6e5-0a94e110ea4e")
+    (uuid "77056854-cd18-4a47-8c6e-fdcaa1400f47")
   )
   (text "BT1/BT2 in parallel, lying flat on the back.\nQ1 connects them to everything else. USB (Q2) turns it on,\nthe supervisor (Q3) keeps it on; below the cut-off it opens\nand stays open until USB returns."
     (at 13.97 251.46 0)
@@ -7362,7 +7285,7 @@
       (font (size 1.27 1.27))
       (justify left top)
     )
-    (uuid "5309defe-f11a-4c88-969d-c6f54e1ff8c2")
+    (uuid "a1c399b3-cf26-4f62-89ff-3367408e8d76")
   )
   (symbol
     (lib_id "TrinketCore:Supercap")
@@ -7840,7 +7763,7 @@
     (end 190.5 354.33)
     (stroke (width 0) (type dash))
     (fill (type none))
-    (uuid "ea52e114-3b3a-4b37-8017-4a6fa8dea93f")
+    (uuid "3c360e59-67c1-4644-acf2-12dc04548175")
   )
   (text "Cut-off + ship mode - TPS3808"
     (at 13.97 273.05 0)
@@ -7848,7 +7771,7 @@
       (font (size 2 2) bold)
       (justify left bottom)
     )
-    (uuid "cd41308c-ca33-44c9-967d-c6f60ab64467")
+    (uuid "29232fa9-43b0-40f5-9466-89cf39ff0d44")
   )
   (text "Cut-off = 0.405 V x (1 + 1.8M / R13)\nLIC 2.61 V (R13 330k) / EDLC 1.96 V (470k).\nSHIP high pulls /MR low: Q1 opens (storage mode)."
     (at 13.97 345.44 0)
@@ -7856,7 +7779,7 @@
       (font (size 1.27 1.27))
       (justify left top)
     )
-    (uuid "0b5e9148-4b9d-41ab-a389-0f7e4d1af0a8")
+    (uuid "f64ba91e-d1ac-4a90-818f-5073e8d8492a")
   )
   (symbol
     (lib_id "TrinketCore:TPS3808G01DBV")
@@ -8565,7 +8488,7 @@
     (end 388.62 144.78)
     (stroke (width 0) (type dash))
     (fill (type none))
-    (uuid "b02eea20-e1dd-4b2e-a403-6326e27d955a")
+    (uuid "c0945814-add6-4900-ad88-4486da6dc935")
   )
   (text "Power switch + wake logic"
     (at 201.93 24.13 0)
@@ -8573,7 +8496,7 @@
       (font (size 2 2) bold)
       (justify left bottom)
     )
-    (uuid "33be5709-ce8d-4718-8d16-559c285b1b5e")
+    (uuid "a2246b8b-590f-458c-a961-506f32203831")
   )
   (text "Q5 feeds VSYS while EN_SYS is high: button (SW1), RTC alarm, WAKE,\nUSB (JP1, default on), HOLD from firmware, or JP2 (always on).\nC8 holds EN_SYS ~4-6 s after a press so firmware can raise HOLD.\nQ8 (supervisor) sits under Q6: below the cut-off nothing turns it on."
     (at 201.93 134.62 0)
@@ -8581,7 +8504,7 @@
       (font (size 1.27 1.27))
       (justify left top)
     )
-    (uuid "1edd634e-8cc6-4cc2-b1a4-e87546a39411")
+    (uuid "96727300-479d-43ba-bf17-d641c8ef3e22")
   )
   (symbol
     (lib_id "TrinketCore:AO3401A")
@@ -9813,7 +9736,7 @@
     (end 388.62 209.55)
     (stroke (width 0) (type dash))
     (fill (type none))
-    (uuid "52dc32bc-6a86-4925-86e1-b9ff70e02870")
+    (uuid "590ba48c-d9aa-4d97-8828-5a8d1f7d1e90")
   )
   (text "3.3 V buck-boost - TI TPS63031"
     (at 201.93 156.21 0)
@@ -9821,7 +9744,7 @@
       (font (size 2 2) bold)
       (justify left bottom)
     )
-    (uuid "fec424cd-fd5b-4ac7-b02d-fa35d71fa415")
+    (uuid "80f59360-bb8e-42e4-be5a-288bf293e400")
   )
   (text "1.8-5.5 V in, 3.3 V out, ~500 mA from a 2.6 V capacitor.\nVSENSE = VSYS / 2 for the RP2040's ADC (GP27)."
     (at 201.93 203.2 0)
@@ -9829,7 +9752,7 @@
       (font (size 1.27 1.27))
       (justify left top)
     )
-    (uuid "9e65501f-8c02-4666-b442-abdc3afb8121")
+    (uuid "5b2c92a0-2092-4c77-a26d-505997179beb")
   )
   (symbol
     (lib_id "TrinketCore:TPS63031DSK")
@@ -10477,7 +10400,7 @@
     (end 388.62 269.24)
     (stroke (width 0) (type dash))
     (fill (type none))
-    (uuid "a9ebf824-cc0c-4520-b160-76be6408390a")
+    (uuid "b2ca2aff-74ea-4b90-8382-e63d7c1805c0")
   )
   (text "Real-time clock - NXP PCF8563"
     (at 201.93 220.98 0)
@@ -10485,7 +10408,7 @@
       (font (size 2 2) bold)
       (justify left bottom)
     )
-    (uuid "77d29060-a504-4fc1-9a9b-700c22c904dd")
+    (uuid "fd235023-dda1-4e15-8388-7034db7c3d13")
   )
   (text "Runs from VAON. Its alarm pulls WAKE_N low to start\nthe gadget. I2C address 0x51."
     (at 201.93 262.89 0)
@@ -10493,7 +10416,7 @@
       (font (size 1.27 1.27))
       (justify left top)
     )
-    (uuid "29ab189b-cd4e-420c-a7e8-0508441e2b09")
+    (uuid "25a53baf-4138-4ecf-b5be-889f936ab558")
   )
   (symbol
     (lib_id "TrinketCore:PCF8563T")
@@ -10823,7 +10746,7 @@
     (end 388.62 339.09)
     (stroke (width 0) (type dash))
     (fill (type none))
-    (uuid "4b054f99-bf0f-4bf9-bf7b-974bca6a7e27")
+    (uuid "e5412ab9-89b4-43a2-968d-018b69a9f4c2")
   )
   (text "Speaker amplifier - MAX98357A"
     (at 201.93 280.67 0)
@@ -10831,7 +10754,7 @@
       (font (size 2 2) bold)
       (justify left bottom)
     )
-    (uuid "9a69599e-ec42-487c-8686-833b85ae717b")
+    (uuid "38e053b6-6cdf-41b3-94db-65f72f827215")
   )
   (text "I2S from GP18-20. AMP_EN (GP21) high = on, mono (L+R)/2 mix;\nlow = shut down. 9 dB gain; use an 8 ohm speaker."
     (at 201.93 332.74 0)
@@ -10839,7 +10762,7 @@
       (font (size 1.27 1.27))
       (justify left top)
     )
-    (uuid "97dcaf86-cd2b-48f1-898b-4be7bd5715d4")
+    (uuid "9d4607b7-6ad9-4f54-9634-07dfe6aaa67b")
   )
   (symbol
     (lib_id "TrinketCore:MAX98357A")
@@ -11176,7 +11099,7 @@
     (end 584.2 210.82)
     (stroke (width 0) (type dash))
     (fill (type none))
-    (uuid "df94550e-2f89-4edb-8fcd-94384ebfd13e")
+    (uuid "e57b4832-a150-4bf9-a271-06642ea2f2d8")
   )
   (text "RP2040 + 16 MB flash"
     (at 400.05 24.13 0)
@@ -11184,15 +11107,15 @@
       (font (size 2 2) bold)
       (justify left bottom)
     )
-    (uuid "468a7bb8-0ed8-4819-afe4-5bcf63f21e81")
+    (uuid "e565370f-6360-4174-a95e-c8bf7e289535")
   )
-  (text "12 MHz crystal, W25Q128 flash (program, sounds, pictures).\nBOOT + RESET: USB bootloader. SWD on TP1/TP2.\nGPIO use: see the README pinout."
+  (text "12 MHz crystal, W25Q128 flash (program, sounds, pictures).\nBOOT + RESET: USB bootloader (SWD is not broken out).\nGPIO use: see the README pinout."
     (at 400.05 201.93 0)
     (effects
       (font (size 1.27 1.27))
       (justify left top)
     )
-    (uuid "6add32a5-51ef-41d4-a34c-6bc9e601c39b")
+    (uuid "6c7621e8-dd25-4105-806a-e641875f660c")
   )
   (symbol
     (lib_id "TrinketCore:RP2040")
@@ -11953,151 +11876,55 @@
     )
   )
   (symbol
-    (lib_id "TrinketCore:TestPoint")
-    (at 527.05 148.59 0)
-    (unit 1)
-    (in_bom no)
-    (on_board yes)
-    (dnp no)
-    (uuid "a423b686-ad08-560f-9317-5bc4750e4f62")
-    (property "Reference" "TP1"
-      (at 531.11 147.32 0)
-      (effects
-        (font (size 1.27 1.27))
-      )
-    )
-    (property "Value" "SWCLK"
-      (at 531.11 149.86 0)
-      (effects
-        (font (size 1.27 1.27))
-      )
-    )
-    (property "Footprint" "TestPoint:TestPoint_Pad_D1.0mm"
-      (at 527.05 148.59 0)
-      (effects
-        (font (size 1.27 1.27))
-        hide
-      )
-    )
-    (property "Datasheet" ""
-      (at 527.05 148.59 0)
-      (effects
-        (font (size 1.27 1.27))
-        hide
-      )
-    )
-    (property "Description" "SWD debug clock"
-      (at 527.05 148.59 0)
-      (effects
-        (font (size 1.27 1.27))
-        hide
-      )
-    )
-    (pin "1" (uuid "056caa78-72e8-56c9-8af8-a0941e2c1a83"))
-    (instances
-      (project "trinketcore"
-        (path "/c13d3038-5a97-5998-a0d9-49589b9b1453" (reference "TP1") (unit 1))
-      )
-    )
-  )
-  (symbol
-    (lib_id "TrinketCore:TestPoint")
-    (at 541.02 148.59 0)
-    (unit 1)
-    (in_bom no)
-    (on_board yes)
-    (dnp no)
-    (uuid "db914df5-262e-59f9-8a4d-ccc1d48fdef6")
-    (property "Reference" "TP2"
-      (at 545.08 147.32 0)
-      (effects
-        (font (size 1.27 1.27))
-      )
-    )
-    (property "Value" "SWDIO"
-      (at 545.08 149.86 0)
-      (effects
-        (font (size 1.27 1.27))
-      )
-    )
-    (property "Footprint" "TestPoint:TestPoint_Pad_D1.0mm"
-      (at 541.02 148.59 0)
-      (effects
-        (font (size 1.27 1.27))
-        hide
-      )
-    )
-    (property "Datasheet" ""
-      (at 541.02 148.59 0)
-      (effects
-        (font (size 1.27 1.27))
-        hide
-      )
-    )
-    (property "Description" "SWD debug data"
-      (at 541.02 148.59 0)
-      (effects
-        (font (size 1.27 1.27))
-        hide
-      )
-    )
-    (pin "1" (uuid "abc1580f-40c9-5b3e-9f5d-2e087b2d70c0"))
-    (instances
-      (project "trinketcore"
-        (path "/c13d3038-5a97-5998-a0d9-49589b9b1453" (reference "TP2") (unit 1))
-      )
-    )
-  )
-  (symbol
     (lib_id "TrinketCore:C")
-    (at 556.26 154.94 0)
+    (at 527.05 154.94 0)
     (unit 1)
     (in_bom yes)
     (on_board yes)
     (dnp no)
     (uuid "29eed33c-7a81-5376-82dc-a2ed07f53044")
     (property "Reference" "C18"
-      (at 561.59 153.67 0)
+      (at 532.38 153.67 0)
       (effects
         (font (size 1.27 1.27))
       )
     )
     (property "Value" "100nF"
-      (at 561.59 156.21 0)
+      (at 532.38 156.21 0)
       (effects
         (font (size 1.27 1.27))
       )
     )
     (property "Footprint" "Capacitor_SMD:C_0402_1005Metric"
-      (at 556.26 154.94 0)
+      (at 527.05 154.94 0)
       (effects
         (font (size 1.27 1.27))
         hide
       )
     )
     (property "Datasheet" ""
-      (at 556.26 154.94 0)
+      (at 527.05 154.94 0)
       (effects
         (font (size 1.27 1.27))
         hide
       )
     )
     (property "MPN" "CL05B104KO5NNNC"
-      (at 556.26 154.94 0)
+      (at 527.05 154.94 0)
       (effects
         (font (size 1.27 1.27))
         hide
       )
     )
     (property "Manufacturer" "Samsung Electro-Mechanics"
-      (at 556.26 154.94 0)
+      (at 527.05 154.94 0)
       (effects
         (font (size 1.27 1.27))
         hide
       )
     )
     (property "Description" "IOVDD pin 1"
-      (at 556.26 154.94 0)
+      (at 527.05 154.94 0)
       (effects
         (font (size 1.27 1.27))
         hide
@@ -12113,54 +11940,54 @@
   )
   (symbol
     (lib_id "TrinketCore:C")
-    (at 572.77 154.94 0)
+    (at 543.56 154.94 0)
     (unit 1)
     (in_bom yes)
     (on_board yes)
     (dnp no)
     (uuid "77e5e3b4-a9c8-5f10-a93a-72326b4e145a")
     (property "Reference" "C19"
-      (at 578.1 153.67 0)
+      (at 548.89 153.67 0)
       (effects
         (font (size 1.27 1.27))
       )
     )
     (property "Value" "100nF"
-      (at 578.1 156.21 0)
+      (at 548.89 156.21 0)
       (effects
         (font (size 1.27 1.27))
       )
     )
     (property "Footprint" "Capacitor_SMD:C_0402_1005Metric"
-      (at 572.77 154.94 0)
+      (at 543.56 154.94 0)
       (effects
         (font (size 1.27 1.27))
         hide
       )
     )
     (property "Datasheet" ""
-      (at 572.77 154.94 0)
+      (at 543.56 154.94 0)
       (effects
         (font (size 1.27 1.27))
         hide
       )
     )
     (property "MPN" "CL05B104KO5NNNC"
-      (at 572.77 154.94 0)
+      (at 543.56 154.94 0)
       (effects
         (font (size 1.27 1.27))
         hide
       )
     )
     (property "Manufacturer" "Samsung Electro-Mechanics"
-      (at 572.77 154.94 0)
+      (at 543.56 154.94 0)
       (effects
         (font (size 1.27 1.27))
         hide
       )
     )
     (property "Description" "IOVDD pin 10"
-      (at 572.77 154.94 0)
+      (at 543.56 154.94 0)
       (effects
         (font (size 1.27 1.27))
         hide
@@ -12176,13 +12003,76 @@
   )
   (symbol
     (lib_id "TrinketCore:C")
-    (at 405.13 187.96 0)
+    (at 560.07 154.94 0)
     (unit 1)
     (in_bom yes)
     (on_board yes)
     (dnp no)
     (uuid "25f0949e-759a-503a-9e99-b8794740c144")
     (property "Reference" "C20"
+      (at 565.4 153.67 0)
+      (effects
+        (font (size 1.27 1.27))
+      )
+    )
+    (property "Value" "100nF"
+      (at 565.4 156.21 0)
+      (effects
+        (font (size 1.27 1.27))
+      )
+    )
+    (property "Footprint" "Capacitor_SMD:C_0402_1005Metric"
+      (at 560.07 154.94 0)
+      (effects
+        (font (size 1.27 1.27))
+        hide
+      )
+    )
+    (property "Datasheet" ""
+      (at 560.07 154.94 0)
+      (effects
+        (font (size 1.27 1.27))
+        hide
+      )
+    )
+    (property "MPN" "CL05B104KO5NNNC"
+      (at 560.07 154.94 0)
+      (effects
+        (font (size 1.27 1.27))
+        hide
+      )
+    )
+    (property "Manufacturer" "Samsung Electro-Mechanics"
+      (at 560.07 154.94 0)
+      (effects
+        (font (size 1.27 1.27))
+        hide
+      )
+    )
+    (property "Description" "IOVDD pin 22"
+      (at 560.07 154.94 0)
+      (effects
+        (font (size 1.27 1.27))
+        hide
+      )
+    )
+    (pin "1" (uuid "b1864e3b-deaf-55c1-96ec-ef75f14f359d"))
+    (pin "2" (uuid "79b51c4c-5e3d-53e6-98c0-b2f9351760a3"))
+    (instances
+      (project "trinketcore"
+        (path "/c13d3038-5a97-5998-a0d9-49589b9b1453" (reference "C20") (unit 1))
+      )
+    )
+  )
+  (symbol
+    (lib_id "TrinketCore:C")
+    (at 405.13 187.96 0)
+    (unit 1)
+    (in_bom yes)
+    (on_board yes)
+    (dnp no)
+    (uuid "988696bd-9d28-57a5-8c29-6bfab031f759")
+    (property "Reference" "C21"
       (at 410.46 186.69 0)
       (effects
         (font (size 1.27 1.27))
@@ -12222,18 +12112,18 @@
         hide
       )
     )
-    (property "Description" "IOVDD pin 22"
+    (property "Description" "IOVDD pin 33"
       (at 405.13 187.96 0)
       (effects
         (font (size 1.27 1.27))
         hide
       )
     )
-    (pin "1" (uuid "b1864e3b-deaf-55c1-96ec-ef75f14f359d"))
-    (pin "2" (uuid "79b51c4c-5e3d-53e6-98c0-b2f9351760a3"))
+    (pin "1" (uuid "00b545ee-f074-5808-a111-c3e7bc377dea"))
+    (pin "2" (uuid "3bb0b248-4f38-53a3-aa0f-c92cc9c2881d"))
     (instances
       (project "trinketcore"
-        (path "/c13d3038-5a97-5998-a0d9-49589b9b1453" (reference "C20") (unit 1))
+        (path "/c13d3038-5a97-5998-a0d9-49589b9b1453" (reference "C21") (unit 1))
       )
     )
   )
@@ -12244,8 +12134,8 @@
     (in_bom yes)
     (on_board yes)
     (dnp no)
-    (uuid "988696bd-9d28-57a5-8c29-6bfab031f759")
-    (property "Reference" "C21"
+    (uuid "0378568b-feba-5b81-97c8-7587ee1f42c4")
+    (property "Reference" "C22"
       (at 426.97 186.69 0)
       (effects
         (font (size 1.27 1.27))
@@ -12285,18 +12175,18 @@
         hide
       )
     )
-    (property "Description" "IOVDD pin 33"
+    (property "Description" "IOVDD pin 42"
       (at 421.64 187.96 0)
       (effects
         (font (size 1.27 1.27))
         hide
       )
     )
-    (pin "1" (uuid "00b545ee-f074-5808-a111-c3e7bc377dea"))
-    (pin "2" (uuid "3bb0b248-4f38-53a3-aa0f-c92cc9c2881d"))
+    (pin "1" (uuid "028d27b0-d578-5809-85a3-2ea7ff2f060d"))
+    (pin "2" (uuid "cc39dfa7-ac0b-5610-8637-44ddaa3ec21a"))
     (instances
       (project "trinketcore"
-        (path "/c13d3038-5a97-5998-a0d9-49589b9b1453" (reference "C21") (unit 1))
+        (path "/c13d3038-5a97-5998-a0d9-49589b9b1453" (reference "C22") (unit 1))
       )
     )
   )
@@ -12307,8 +12197,8 @@
     (in_bom yes)
     (on_board yes)
     (dnp no)
-    (uuid "0378568b-feba-5b81-97c8-7587ee1f42c4")
-    (property "Reference" "C22"
+    (uuid "50e75f80-0126-5567-834d-249f762e13a7")
+    (property "Reference" "C23"
       (at 443.48 186.69 0)
       (effects
         (font (size 1.27 1.27))
@@ -12348,18 +12238,18 @@
         hide
       )
     )
-    (property "Description" "IOVDD pin 42"
+    (property "Description" "IOVDD pin 49"
       (at 438.15 187.96 0)
       (effects
         (font (size 1.27 1.27))
         hide
       )
     )
-    (pin "1" (uuid "028d27b0-d578-5809-85a3-2ea7ff2f060d"))
-    (pin "2" (uuid "cc39dfa7-ac0b-5610-8637-44ddaa3ec21a"))
+    (pin "1" (uuid "83eb27b4-502f-5bd8-9ed0-53c1f000585a"))
+    (pin "2" (uuid "d9ddd309-af1d-5287-9ff2-3cc08279bf55"))
     (instances
       (project "trinketcore"
-        (path "/c13d3038-5a97-5998-a0d9-49589b9b1453" (reference "C22") (unit 1))
+        (path "/c13d3038-5a97-5998-a0d9-49589b9b1453" (reference "C23") (unit 1))
       )
     )
   )
@@ -12370,8 +12260,8 @@
     (in_bom yes)
     (on_board yes)
     (dnp no)
-    (uuid "50e75f80-0126-5567-834d-249f762e13a7")
-    (property "Reference" "C23"
+    (uuid "e585a653-decc-55df-a26a-40107c703a38")
+    (property "Reference" "C24"
       (at 459.99 186.69 0)
       (effects
         (font (size 1.27 1.27))
@@ -12411,18 +12301,18 @@
         hide
       )
     )
-    (property "Description" "IOVDD pin 49"
+    (property "Description" "USB_VDD"
       (at 454.66 187.96 0)
       (effects
         (font (size 1.27 1.27))
         hide
       )
     )
-    (pin "1" (uuid "83eb27b4-502f-5bd8-9ed0-53c1f000585a"))
-    (pin "2" (uuid "d9ddd309-af1d-5287-9ff2-3cc08279bf55"))
+    (pin "1" (uuid "d572908f-8a9d-55ee-8883-306f2046b845"))
+    (pin "2" (uuid "53716e60-cd7a-5046-81a2-a749e429789c"))
     (instances
       (project "trinketcore"
-        (path "/c13d3038-5a97-5998-a0d9-49589b9b1453" (reference "C23") (unit 1))
+        (path "/c13d3038-5a97-5998-a0d9-49589b9b1453" (reference "C24") (unit 1))
       )
     )
   )
@@ -12433,8 +12323,8 @@
     (in_bom yes)
     (on_board yes)
     (dnp no)
-    (uuid "e585a653-decc-55df-a26a-40107c703a38")
-    (property "Reference" "C24"
+    (uuid "162a7c79-665d-5660-96b5-9d23efdef552")
+    (property "Reference" "C25"
       (at 476.5 186.69 0)
       (effects
         (font (size 1.27 1.27))
@@ -12474,71 +12364,8 @@
         hide
       )
     )
-    (property "Description" "USB_VDD"
-      (at 471.17 187.96 0)
-      (effects
-        (font (size 1.27 1.27))
-        hide
-      )
-    )
-    (pin "1" (uuid "d572908f-8a9d-55ee-8883-306f2046b845"))
-    (pin "2" (uuid "53716e60-cd7a-5046-81a2-a749e429789c"))
-    (instances
-      (project "trinketcore"
-        (path "/c13d3038-5a97-5998-a0d9-49589b9b1453" (reference "C24") (unit 1))
-      )
-    )
-  )
-  (symbol
-    (lib_id "TrinketCore:C")
-    (at 487.68 187.96 0)
-    (unit 1)
-    (in_bom yes)
-    (on_board yes)
-    (dnp no)
-    (uuid "162a7c79-665d-5660-96b5-9d23efdef552")
-    (property "Reference" "C25"
-      (at 493.01 186.69 0)
-      (effects
-        (font (size 1.27 1.27))
-      )
-    )
-    (property "Value" "100nF"
-      (at 493.01 189.23 0)
-      (effects
-        (font (size 1.27 1.27))
-      )
-    )
-    (property "Footprint" "Capacitor_SMD:C_0402_1005Metric"
-      (at 487.68 187.96 0)
-      (effects
-        (font (size 1.27 1.27))
-        hide
-      )
-    )
-    (property "Datasheet" ""
-      (at 487.68 187.96 0)
-      (effects
-        (font (size 1.27 1.27))
-        hide
-      )
-    )
-    (property "MPN" "CL05B104KO5NNNC"
-      (at 487.68 187.96 0)
-      (effects
-        (font (size 1.27 1.27))
-        hide
-      )
-    )
-    (property "Manufacturer" "Samsung Electro-Mechanics"
-      (at 487.68 187.96 0)
-      (effects
-        (font (size 1.27 1.27))
-        hide
-      )
-    )
     (property "Description" "ADC_AVDD"
-      (at 487.68 187.96 0)
+      (at 471.17 187.96 0)
       (effects
         (font (size 1.27 1.27))
         hide
@@ -12554,54 +12381,54 @@
   )
   (symbol
     (lib_id "TrinketCore:C")
-    (at 504.19 187.96 0)
+    (at 487.68 187.96 0)
     (unit 1)
     (in_bom yes)
     (on_board yes)
     (dnp no)
     (uuid "de245ccf-d2e9-5f20-adcf-bc8e74c924b9")
     (property "Reference" "C26"
-      (at 508.52 186.69 0)
+      (at 492.01 186.69 0)
       (effects
         (font (size 1.27 1.27))
       )
     )
     (property "Value" "1uF"
-      (at 508.52 189.23 0)
+      (at 492.01 189.23 0)
       (effects
         (font (size 1.27 1.27))
       )
     )
     (property "Footprint" "Capacitor_SMD:C_0402_1005Metric"
-      (at 504.19 187.96 0)
+      (at 487.68 187.96 0)
       (effects
         (font (size 1.27 1.27))
         hide
       )
     )
     (property "Datasheet" ""
-      (at 504.19 187.96 0)
+      (at 487.68 187.96 0)
       (effects
         (font (size 1.27 1.27))
         hide
       )
     )
     (property "MPN" "CL05A105KA5NQNC"
-      (at 504.19 187.96 0)
+      (at 487.68 187.96 0)
       (effects
         (font (size 1.27 1.27))
         hide
       )
     )
     (property "Manufacturer" "Samsung Electro-Mechanics"
-      (at 504.19 187.96 0)
+      (at 487.68 187.96 0)
       (effects
         (font (size 1.27 1.27))
         hide
       )
     )
     (property "Description" "VREG_IN"
-      (at 504.19 187.96 0)
+      (at 487.68 187.96 0)
       (effects
         (font (size 1.27 1.27))
         hide
@@ -12617,54 +12444,54 @@
   )
   (symbol
     (lib_id "TrinketCore:C")
-    (at 518.16 187.96 0)
+    (at 501.65 187.96 0)
     (unit 1)
     (in_bom yes)
     (on_board yes)
     (dnp no)
     (uuid "c81afab8-529b-5fa0-a71a-aa845550d92c")
     (property "Reference" "C27"
-      (at 522.49 186.69 0)
+      (at 505.98 186.69 0)
       (effects
         (font (size 1.27 1.27))
       )
     )
     (property "Value" "1uF"
-      (at 522.49 189.23 0)
+      (at 505.98 189.23 0)
       (effects
         (font (size 1.27 1.27))
       )
     )
     (property "Footprint" "Capacitor_SMD:C_0402_1005Metric"
-      (at 518.16 187.96 0)
+      (at 501.65 187.96 0)
       (effects
         (font (size 1.27 1.27))
         hide
       )
     )
     (property "Datasheet" ""
-      (at 518.16 187.96 0)
+      (at 501.65 187.96 0)
       (effects
         (font (size 1.27 1.27))
         hide
       )
     )
     (property "MPN" "CL05A105KA5NQNC"
-      (at 518.16 187.96 0)
+      (at 501.65 187.96 0)
       (effects
         (font (size 1.27 1.27))
         hide
       )
     )
     (property "Manufacturer" "Samsung Electro-Mechanics"
-      (at 518.16 187.96 0)
+      (at 501.65 187.96 0)
       (effects
         (font (size 1.27 1.27))
         hide
       )
     )
     (property "Description" "VREG_VOUT"
-      (at 518.16 187.96 0)
+      (at 501.65 187.96 0)
       (effects
         (font (size 1.27 1.27))
         hide
@@ -12680,13 +12507,76 @@
   )
   (symbol
     (lib_id "TrinketCore:C")
-    (at 532.13 187.96 0)
+    (at 515.62 187.96 0)
     (unit 1)
     (in_bom yes)
     (on_board yes)
     (dnp no)
     (uuid "0dc04ee0-3592-5c8a-ae28-011e62b1b5d3")
     (property "Reference" "C28"
+      (at 520.95 186.69 0)
+      (effects
+        (font (size 1.27 1.27))
+      )
+    )
+    (property "Value" "100nF"
+      (at 520.95 189.23 0)
+      (effects
+        (font (size 1.27 1.27))
+      )
+    )
+    (property "Footprint" "Capacitor_SMD:C_0402_1005Metric"
+      (at 515.62 187.96 0)
+      (effects
+        (font (size 1.27 1.27))
+        hide
+      )
+    )
+    (property "Datasheet" ""
+      (at 515.62 187.96 0)
+      (effects
+        (font (size 1.27 1.27))
+        hide
+      )
+    )
+    (property "MPN" "CL05B104KO5NNNC"
+      (at 515.62 187.96 0)
+      (effects
+        (font (size 1.27 1.27))
+        hide
+      )
+    )
+    (property "Manufacturer" "Samsung Electro-Mechanics"
+      (at 515.62 187.96 0)
+      (effects
+        (font (size 1.27 1.27))
+        hide
+      )
+    )
+    (property "Description" "DVDD pin 23"
+      (at 515.62 187.96 0)
+      (effects
+        (font (size 1.27 1.27))
+        hide
+      )
+    )
+    (pin "1" (uuid "13d6fa37-27f2-55e1-8431-0febd686f1ee"))
+    (pin "2" (uuid "385c3d85-b77c-5f1c-8711-1fae5fa4b4fc"))
+    (instances
+      (project "trinketcore"
+        (path "/c13d3038-5a97-5998-a0d9-49589b9b1453" (reference "C28") (unit 1))
+      )
+    )
+  )
+  (symbol
+    (lib_id "TrinketCore:C")
+    (at 532.13 187.96 0)
+    (unit 1)
+    (in_bom yes)
+    (on_board yes)
+    (dnp no)
+    (uuid "7048d259-e552-5b40-9688-10cd19ab126c")
+    (property "Reference" "C29"
       (at 537.46 186.69 0)
       (effects
         (font (size 1.27 1.27))
@@ -12726,71 +12616,8 @@
         hide
       )
     )
-    (property "Description" "DVDD pin 23"
-      (at 532.13 187.96 0)
-      (effects
-        (font (size 1.27 1.27))
-        hide
-      )
-    )
-    (pin "1" (uuid "13d6fa37-27f2-55e1-8431-0febd686f1ee"))
-    (pin "2" (uuid "385c3d85-b77c-5f1c-8711-1fae5fa4b4fc"))
-    (instances
-      (project "trinketcore"
-        (path "/c13d3038-5a97-5998-a0d9-49589b9b1453" (reference "C28") (unit 1))
-      )
-    )
-  )
-  (symbol
-    (lib_id "TrinketCore:C")
-    (at 548.64 187.96 0)
-    (unit 1)
-    (in_bom yes)
-    (on_board yes)
-    (dnp no)
-    (uuid "7048d259-e552-5b40-9688-10cd19ab126c")
-    (property "Reference" "C29"
-      (at 553.97 186.69 0)
-      (effects
-        (font (size 1.27 1.27))
-      )
-    )
-    (property "Value" "100nF"
-      (at 553.97 189.23 0)
-      (effects
-        (font (size 1.27 1.27))
-      )
-    )
-    (property "Footprint" "Capacitor_SMD:C_0402_1005Metric"
-      (at 548.64 187.96 0)
-      (effects
-        (font (size 1.27 1.27))
-        hide
-      )
-    )
-    (property "Datasheet" ""
-      (at 548.64 187.96 0)
-      (effects
-        (font (size 1.27 1.27))
-        hide
-      )
-    )
-    (property "MPN" "CL05B104KO5NNNC"
-      (at 548.64 187.96 0)
-      (effects
-        (font (size 1.27 1.27))
-        hide
-      )
-    )
-    (property "Manufacturer" "Samsung Electro-Mechanics"
-      (at 548.64 187.96 0)
-      (effects
-        (font (size 1.27 1.27))
-        hide
-      )
-    )
     (property "Description" "DVDD pin 50"
-      (at 548.64 187.96 0)
+      (at 532.13 187.96 0)
       (effects
         (font (size 1.27 1.27))
         hide
@@ -12806,54 +12633,54 @@
   )
   (symbol
     (lib_id "TrinketCore:C")
-    (at 565.15 187.96 0)
+    (at 548.64 187.96 0)
     (unit 1)
     (in_bom yes)
     (on_board yes)
     (dnp no)
     (uuid "2b00df5e-ccf5-5bf5-a4ef-7ba80c76d385")
     (property "Reference" "C30"
-      (at 569.98 186.69 0)
+      (at 553.47 186.69 0)
       (effects
         (font (size 1.27 1.27))
       )
     )
     (property "Value" "10uF"
-      (at 569.98 189.23 0)
+      (at 553.47 189.23 0)
       (effects
         (font (size 1.27 1.27))
       )
     )
     (property "Footprint" "Capacitor_SMD:C_0805_2012Metric"
-      (at 565.15 187.96 0)
+      (at 548.64 187.96 0)
       (effects
         (font (size 1.27 1.27))
         hide
       )
     )
     (property "Datasheet" ""
-      (at 565.15 187.96 0)
+      (at 548.64 187.96 0)
       (effects
         (font (size 1.27 1.27))
         hide
       )
     )
     (property "MPN" "CL21A106KAYNNNE"
-      (at 565.15 187.96 0)
+      (at 548.64 187.96 0)
       (effects
         (font (size 1.27 1.27))
         hide
       )
     )
     (property "Manufacturer" "Samsung Electro-Mechanics"
-      (at 565.15 187.96 0)
+      (at 548.64 187.96 0)
       (effects
         (font (size 1.27 1.27))
         hide
       )
     )
     (property "Description" "3V3 bulk at the RP2040"
-      (at 565.15 187.96 0)
+      (at 548.64 187.96 0)
       (effects
         (font (size 1.27 1.27))
         hide
@@ -12872,7 +12699,7 @@
     (end 584.2 295.91)
     (stroke (width 0) (type dash))
     (fill (type none))
-    (uuid "b055fef9-e8d9-4b3d-b25c-707d541fbfff")
+    (uuid "e8bf2cee-517f-4bae-bf12-1e82dfb74bb0")
   )
   (text "Display, buttons and connectors"
     (at 400.05 222.25 0)
@@ -12880,7 +12707,7 @@
       (font (size 2 2) bold)
       (justify left bottom)
     )
-    (uuid "b747e841-228d-4c91-aceb-60d97a8ecbc2")
+    (uuid "56d0d743-4f95-4731-bc09-58ac8bb675a4")
   )
   (text "J4: SPI TFT/OLED modules (GND VCC SCL SDA RES DC CS BLK).\nJ5: I2C OLED modules (GND VCC SCL SDA). J8: Qwiic.\nJ6: expansion (GP7-0, GP29, GP28, WAKE, VSYS, 3V3, GND)."
     (at 400.05 287.02 0)
@@ -12888,7 +12715,7 @@
       (font (size 1.27 1.27))
       (justify left top)
     )
-    (uuid "f49b61be-4b6b-4ec4-abf6-f6b0dfc55570")
+    (uuid "76c2ed86-5180-41a0-89b3-891f870acb88")
   )
   (symbol
     (lib_id "TrinketCore:Conn_01x08")
@@ -13379,7 +13206,7 @@
   (wire
     (pts (xy 26.67 76.2) (xy 26.67 78.74))
     (stroke (width 0) (type default))
-    (uuid "120da906-bac3-4932-9989-673b71b4e2c2")
+    (uuid "15d7546b-7789-4a33-a294-abb79fb674d9")
   )
   (symbol
     (lib_id "TrinketCore:GND")
@@ -13426,7 +13253,7 @@
   (wire
     (pts (xy 41.91 38.1) (xy 44.45 38.1))
     (stroke (width 0) (type default))
-    (uuid "a3a9f522-b5e8-4d27-945c-100ac8dc828f")
+    (uuid "4d7f6bad-0739-4581-bc06-cbee7fba0f97")
   )
   (symbol
     (lib_id "TrinketCore:VBUS")
@@ -13473,7 +13300,7 @@
   (wire
     (pts (xy 41.91 43.18) (xy 44.45 43.18))
     (stroke (width 0) (type default))
-    (uuid "095c6a6d-1c0a-44db-b727-c0daa2bb3a8f")
+    (uuid "b1cd03be-565d-44a4-b828-6a7bf821e2f1")
   )
   (label "CC1"
     (at 44.45 43.18 0)
@@ -13482,12 +13309,12 @@
       (font (size 1.27 1.27))
       (justify left bottom)
     )
-    (uuid "3b3b0be4-c683-4fdb-a741-eeaa2df6d480")
+    (uuid "07217376-3a5c-4d39-b2b9-cdc58463ae6a")
   )
   (wire
     (pts (xy 41.91 45.72) (xy 44.45 45.72))
     (stroke (width 0) (type default))
-    (uuid "bc7fc175-6f78-40e9-9ec7-de462bf9dd55")
+    (uuid "4003b30e-a277-4870-93e3-7f9d357b8f50")
   )
   (label "CC2"
     (at 44.45 45.72 0)
@@ -13496,12 +13323,12 @@
       (font (size 1.27 1.27))
       (justify left bottom)
     )
-    (uuid "1dbefc09-af83-4779-afbe-22073776856d")
+    (uuid "127033f4-d012-45de-92f6-c201f3a311cb")
   )
   (wire
     (pts (xy 41.91 55.88) (xy 44.45 55.88))
     (stroke (width 0) (type default))
-    (uuid "dc71d805-66cd-43c0-be1b-21b362e4615e")
+    (uuid "146c61d7-69cc-4287-894d-e536867525de")
   )
   (label "DP"
     (at 44.45 55.88 0)
@@ -13510,12 +13337,12 @@
       (font (size 1.27 1.27))
       (justify left bottom)
     )
-    (uuid "41abeaa4-cbb9-445c-981c-4ffc1e092a49")
+    (uuid "f0bb4f2f-1c29-4b73-ac1c-7a4a68e7bfbb")
   )
   (wire
     (pts (xy 41.91 58.42) (xy 44.45 58.42))
     (stroke (width 0) (type default))
-    (uuid "967585c8-1fcf-44fe-b857-ca35bd7237c0")
+    (uuid "b13b31c8-6dc9-49a5-9422-8c43b76797d3")
   )
   (label "DP"
     (at 44.45 58.42 0)
@@ -13524,12 +13351,12 @@
       (font (size 1.27 1.27))
       (justify left bottom)
     )
-    (uuid "76b28c30-a9e9-4a6c-8859-aaaefee815b2")
+    (uuid "ad7bac93-fc47-44e1-8aa8-9452eadc9352")
   )
   (wire
     (pts (xy 41.91 50.8) (xy 44.45 50.8))
     (stroke (width 0) (type default))
-    (uuid "f486766a-ca91-40f6-b557-e0344ba6d3af")
+    (uuid "2c9087bc-2a1e-44ed-aa76-6df18f951280")
   )
   (label "DM"
     (at 44.45 50.8 0)
@@ -13538,12 +13365,12 @@
       (font (size 1.27 1.27))
       (justify left bottom)
     )
-    (uuid "4d392700-2ef6-4e56-8c05-ef603fd36bd3")
+    (uuid "d2c3d958-4ea2-4d96-b6a2-84f6c746ad2d")
   )
   (wire
     (pts (xy 41.91 53.34) (xy 44.45 53.34))
     (stroke (width 0) (type default))
-    (uuid "e453086a-da75-43bd-b909-0fc6cc8cdf89")
+    (uuid "25997311-97fa-4f22-9dc3-31363ff973fc")
   )
   (label "DM"
     (at 44.45 53.34 0)
@@ -13552,14 +13379,14 @@
       (font (size 1.27 1.27))
       (justify left bottom)
     )
-    (uuid "527190be-01d4-48d9-80e0-70a0bdaf5b02")
+    (uuid "b9232002-33dc-45ea-99cd-b521fca923b8")
   )
-  (no_connect (at 41.91 66.04) (uuid "0ea97caa-a8a8-462c-ad2f-25ed4bce2afc"))
-  (no_connect (at 41.91 68.58) (uuid "52e7db42-eeb9-4074-a90b-64ab58cbb7de"))
+  (no_connect (at 41.91 66.04) (uuid "cf0b4865-fce2-49bc-97e6-01ad3b3bab44"))
+  (no_connect (at 41.91 68.58) (uuid "74d1b144-5609-47ae-8aad-982b7aa136e3"))
   (wire
     (pts (xy 19.05 76.2) (xy 19.05 83.82))
     (stroke (width 0) (type default))
-    (uuid "5a883f30-6f0f-4f06-8a4b-3c7a537b59cf")
+    (uuid "7121f744-18eb-4f22-b0fb-780b674c1671")
   )
   (symbol
     (lib_id "TrinketCore:GND")
@@ -13606,7 +13433,7 @@
   (wire
     (pts (xy 59.69 35.56) (xy 59.69 33.02))
     (stroke (width 0) (type default))
-    (uuid "73af6bd6-72f2-4985-8212-1794d72caf99")
+    (uuid "3ebb5212-72b6-42c9-9a87-24a5cc7a5f82")
   )
   (label "CC1"
     (at 59.69 33.02 90)
@@ -13615,12 +13442,12 @@
       (font (size 1.27 1.27))
       (justify left bottom)
     )
-    (uuid "6e126259-b2ad-481b-ad49-b532c4c97370")
+    (uuid "4ddd3871-bd0a-45b9-9fe8-0dc54c6daba3")
   )
   (wire
     (pts (xy 59.69 43.18) (xy 59.69 45.72))
     (stroke (width 0) (type default))
-    (uuid "d3de17c7-c5c3-4592-870a-a08c84e58ced")
+    (uuid "5964c33e-7a4c-4524-8294-479fd4c3fbd8")
   )
   (symbol
     (lib_id "TrinketCore:GND")
@@ -13667,7 +13494,7 @@
   (wire
     (pts (xy 73.66 35.56) (xy 73.66 33.02))
     (stroke (width 0) (type default))
-    (uuid "62ae74ec-be29-4f6f-9365-50a72c3455e2")
+    (uuid "21b4f0b3-1821-42e9-9959-d225bf3a035a")
   )
   (label "CC2"
     (at 73.66 33.02 90)
@@ -13676,12 +13503,12 @@
       (font (size 1.27 1.27))
       (justify left bottom)
     )
-    (uuid "e8c36937-ecc0-442c-b387-d95b378a2b16")
+    (uuid "7854a137-bd17-40e2-8738-1d08b04f780b")
   )
   (wire
     (pts (xy 73.66 43.18) (xy 73.66 45.72))
     (stroke (width 0) (type default))
-    (uuid "2f655b63-3462-41c7-a81f-16478eee44f9")
+    (uuid "806c2988-d801-4c56-9af0-58ca766b0d51")
   )
   (symbol
     (lib_id "TrinketCore:GND")
@@ -13728,7 +13555,7 @@
   (wire
     (pts (xy 90.17 40.64) (xy 87.63 40.64))
     (stroke (width 0) (type default))
-    (uuid "604c6566-7e9e-4793-9c41-a16cde0933c2")
+    (uuid "03b11f1a-1b93-46e4-bd28-30e256776574")
   )
   (label "DP"
     (at 87.63 40.64 180)
@@ -13737,12 +13564,12 @@
       (font (size 1.27 1.27))
       (justify right bottom)
     )
-    (uuid "dc835d7e-a41c-4841-9287-4be3bddd5676")
+    (uuid "6778ee0c-f1d5-4696-9de5-50bc7f95f7a2")
   )
   (wire
     (pts (xy 95.25 48.26) (xy 95.25 50.8))
     (stroke (width 0) (type default))
-    (uuid "67aa6085-f7ae-4d5c-bf01-f00ee66a7c10")
+    (uuid "6eab53d2-29e8-4cbb-ba53-08ff94d9c03e")
   )
   (symbol
     (lib_id "TrinketCore:GND")
@@ -13789,7 +13616,7 @@
   (wire
     (pts (xy 90.17 43.18) (xy 87.63 43.18))
     (stroke (width 0) (type default))
-    (uuid "990d0b68-6f66-4ac3-9c2d-9624385f0a28")
+    (uuid "88c26dba-ce56-418f-8006-83e7937a9ca8")
   )
   (label "DM"
     (at 87.63 43.18 180)
@@ -13798,12 +13625,12 @@
       (font (size 1.27 1.27))
       (justify right bottom)
     )
-    (uuid "8b24583f-8d66-477d-96b6-fcb9fc621896")
+    (uuid "e6f172d5-7a55-49c3-88cc-406cedfcf5f4")
   )
   (wire
     (pts (xy 100.33 43.18) (xy 102.87 43.18))
     (stroke (width 0) (type default))
-    (uuid "8a7b5b58-f6b1-461a-b1d6-f1527cd99a44")
+    (uuid "6654d905-58ce-4398-981c-096a7aa75d36")
   )
   (label "DM"
     (at 102.87 43.18 0)
@@ -13812,12 +13639,12 @@
       (font (size 1.27 1.27))
       (justify left bottom)
     )
-    (uuid "75cee224-cfbf-4bdc-9711-8cfa5350614f")
+    (uuid "7e7871a8-4225-4644-bde5-97ad6ee23210")
   )
   (wire
     (pts (xy 95.25 35.56) (xy 95.25 33.02))
     (stroke (width 0) (type default))
-    (uuid "aec7b12b-fb9b-4391-943c-84d475065512")
+    (uuid "93e4a924-6318-460b-af54-1e5b85ee00cc")
   )
   (symbol
     (lib_id "TrinketCore:VBUS")
@@ -13864,7 +13691,7 @@
   (wire
     (pts (xy 100.33 40.64) (xy 102.87 40.64))
     (stroke (width 0) (type default))
-    (uuid "61f97523-10bf-4dfb-9270-3d6759f2dd66")
+    (uuid "0dff46c6-e241-4788-bb3a-e71199c081db")
   )
   (label "DP"
     (at 102.87 40.64 0)
@@ -13873,12 +13700,12 @@
       (font (size 1.27 1.27))
       (justify left bottom)
     )
-    (uuid "faa14778-6d3a-4a7e-b2cf-9675a424f8a0")
+    (uuid "9d905638-c949-42e6-b184-829613e16da5")
   )
   (wire
     (pts (xy 114.3 34.29) (xy 114.3 31.75))
     (stroke (width 0) (type default))
-    (uuid "82e152b3-3691-4516-aba9-2a4b0ba4e566")
+    (uuid "4c525fbe-988b-4204-b670-62a9d7373d47")
   )
   (label "DP"
     (at 114.3 31.75 90)
@@ -13887,12 +13714,12 @@
       (font (size 1.27 1.27))
       (justify left bottom)
     )
-    (uuid "793dd63a-6f5e-4d23-992e-aec87bf9e8a8")
+    (uuid "b9cac895-f43d-4b4c-8fe4-d017715e5a22")
   )
   (wire
     (pts (xy 114.3 41.91) (xy 114.3 44.45))
     (stroke (width 0) (type default))
-    (uuid "c75feb57-332e-489d-99c8-16de8ee9ae04")
+    (uuid "457449c6-ddb5-4df2-b3cd-142f8b63f91e")
   )
   (label "USB_DP"
     (at 114.3 44.45 270)
@@ -13901,12 +13728,12 @@
       (font (size 1.27 1.27))
       (justify right bottom)
     )
-    (uuid "e7ee34df-7108-4a79-8d16-65eac80342fe")
+    (uuid "3d9e71f5-6200-44cc-a93b-b0d446c140ac")
   )
   (wire
     (pts (xy 127 34.29) (xy 127 31.75))
     (stroke (width 0) (type default))
-    (uuid "7659b7af-12be-4c47-aa4d-2de9298de413")
+    (uuid "d27b9f5f-e025-4b4e-b412-82d9640444f4")
   )
   (label "DM"
     (at 127 31.75 90)
@@ -13915,12 +13742,12 @@
       (font (size 1.27 1.27))
       (justify left bottom)
     )
-    (uuid "47ccf55c-4b7d-4de8-9a57-01a20c7f9b16")
+    (uuid "1d236f05-3a34-4816-89bd-0077ef924cb8")
   )
   (wire
     (pts (xy 127 41.91) (xy 127 44.45))
     (stroke (width 0) (type default))
-    (uuid "ffccc1d5-5240-4ec7-99b4-12b381275d3c")
+    (uuid "52b0558e-8758-4c43-be07-c3d1d5206d73")
   )
   (label "USB_DM"
     (at 127 44.45 270)
@@ -13929,12 +13756,12 @@
       (font (size 1.27 1.27))
       (justify right bottom)
     )
-    (uuid "693d1c60-e110-4b96-8757-f00b5e6f21d2")
+    (uuid "91b3b4e4-e7ba-4480-9689-b80f7c05eca6")
   )
   (wire
     (pts (xy 27.94 123.19) (xy 25.4 123.19))
     (stroke (width 0) (type default))
-    (uuid "5cd8fa41-50d7-4123-abef-d57371c04e6a")
+    (uuid "dd9f3301-1900-4076-af8d-5eba00386586")
   )
   (symbol
     (lib_id "TrinketCore:VBUS")
@@ -13981,7 +13808,7 @@
   (wire
     (pts (xy 34.29 139.7) (xy 34.29 142.24))
     (stroke (width 0) (type default))
-    (uuid "b7e190fc-d809-4035-aef3-58e6c532aac3")
+    (uuid "2bf9a0f6-ee82-4ecf-96cb-31e5912586e5")
   )
   (label "ISET"
     (at 34.29 142.24 270)
@@ -13990,12 +13817,12 @@
       (font (size 1.27 1.27))
       (justify right bottom)
     )
-    (uuid "6708c4c8-5360-4681-8e81-5f9b045f8b7a")
+    (uuid "0232a3de-5ca2-445e-b2a5-227b19d6aeb1")
   )
   (wire
     (pts (xy 39.37 139.7) (xy 39.37 142.24))
     (stroke (width 0) (type default))
-    (uuid "c2e66c21-0d40-4f6c-b438-9dccdac7f9d7")
+    (uuid "a7f561da-1e35-401a-9970-7478c3570040")
   )
   (symbol
     (lib_id "TrinketCore:GND")
@@ -14042,7 +13869,7 @@
   (wire
     (pts (xy 44.45 139.7) (xy 44.45 142.24))
     (stroke (width 0) (type default))
-    (uuid "a78b4ab4-74ab-4a2d-8e1d-61097ed0c617")
+    (uuid "53b3e0cf-69ee-4f8a-96ce-3a15a6a5c1b9")
   )
   (symbol
     (lib_id "TrinketCore:GND")
@@ -14089,7 +13916,7 @@
   (wire
     (pts (xy 50.8 128.27) (xy 53.34 128.27))
     (stroke (width 0) (type default))
-    (uuid "171adb8c-5050-4827-bb4e-13934365d3ce")
+    (uuid "d391273f-9802-4a88-bea3-e714940b29a1")
   )
   (label "STAT"
     (at 53.34 128.27 0)
@@ -14098,12 +13925,12 @@
       (font (size 1.27 1.27))
       (justify left bottom)
     )
-    (uuid "4e2982c7-0dfa-4711-b3fe-010b124e9694")
+    (uuid "e65f868b-756b-4885-9c68-8a19ab48ec20")
   )
   (wire
     (pts (xy 50.8 130.81) (xy 53.34 130.81))
     (stroke (width 0) (type default))
-    (uuid "29b2ecea-7603-4e20-867a-6910852d6040")
+    (uuid "67b83827-8ba2-4b62-92a1-147989a11a04")
   )
   (label "PG_N"
     (at 53.34 130.81 0)
@@ -14112,12 +13939,12 @@
       (font (size 1.27 1.27))
       (justify left bottom)
     )
-    (uuid "6c42b4f2-fb3b-4582-a74c-0f2c0f5210a5")
+    (uuid "c24a00cc-c107-4bfc-9a8b-d47e82cb5945")
   )
   (wire
     (pts (xy 50.8 125.73) (xy 53.34 125.73))
     (stroke (width 0) (type default))
-    (uuid "45af5a9e-0c02-4c97-8ece-1ee98efa45b8")
+    (uuid "239bf6f6-a3a0-4009-8963-f292d565ad9c")
   )
   (label "FB"
     (at 53.34 125.73 0)
@@ -14126,12 +13953,12 @@
       (font (size 1.27 1.27))
       (justify left bottom)
     )
-    (uuid "d8f95906-8af8-4388-a1f9-929aa57d63de")
+    (uuid "54dcfe10-72d7-427f-a9bd-709c50aa70ba")
   )
   (wire
     (pts (xy 50.8 123.19) (xy 53.34 123.19))
     (stroke (width 0) (type default))
-    (uuid "0b2a7c70-6d77-47d9-9e80-271cca151149")
+    (uuid "cfe1a988-e7cc-42e4-990f-a6554ce65b36")
   )
   (symbol
     (lib_id "TrinketCore:VCAP")
@@ -14178,7 +14005,7 @@
   (wire
     (pts (xy 69.85 123.19) (xy 69.85 120.65))
     (stroke (width 0) (type default))
-    (uuid "0f985a13-3a83-451b-935c-7b3c7831f98c")
+    (uuid "45589367-8d8c-41b8-81d4-37024cbe4e19")
   )
   (symbol
     (lib_id "TrinketCore:VBUS")
@@ -14225,7 +14052,7 @@
   (wire
     (pts (xy 69.85 130.81) (xy 69.85 133.35))
     (stroke (width 0) (type default))
-    (uuid "9ed420bf-35c6-4692-9240-3c945d0aa07a")
+    (uuid "a7d00cea-199f-4833-9f1f-62e5cce489bd")
   )
   (symbol
     (lib_id "TrinketCore:GND")
@@ -14272,7 +14099,7 @@
   (wire
     (pts (xy 85.09 124.46) (xy 85.09 121.92))
     (stroke (width 0) (type default))
-    (uuid "3295b399-b95c-4ac7-8786-89a3902c7c59")
+    (uuid "969a9093-ce56-43d1-b77c-7e9d7b78f335")
   )
   (label "ISET"
     (at 85.09 121.92 90)
@@ -14281,12 +14108,12 @@
       (font (size 1.27 1.27))
       (justify left bottom)
     )
-    (uuid "f991b467-a949-46e7-a163-03d712a46355")
+    (uuid "240100e4-1c1e-4ead-8245-b6ca44b2d2f9")
   )
   (wire
     (pts (xy 85.09 132.08) (xy 85.09 134.62))
     (stroke (width 0) (type default))
-    (uuid "c7132cda-a33b-4f23-88fb-8fa6f20b8170")
+    (uuid "b2ce5552-dad7-40b8-87d8-30c5326b8d36")
   )
   (symbol
     (lib_id "TrinketCore:GND")
@@ -14333,7 +14160,7 @@
   (wire
     (pts (xy 96.52 123.19) (xy 96.52 120.65))
     (stroke (width 0) (type default))
-    (uuid "d65f2b0e-d6b7-4e86-b59a-4cc585bfc18b")
+    (uuid "4ef752da-3d3a-4cf8-8a4e-fdf03a174de5")
   )
   (symbol
     (lib_id "TrinketCore:VCAP")
@@ -14380,7 +14207,7 @@
   (wire
     (pts (xy 96.52 130.81) (xy 96.52 133.35))
     (stroke (width 0) (type default))
-    (uuid "8b12adff-e693-43f6-be7e-a65bdacce9e0")
+    (uuid "a80944dc-fd5f-4fcb-9d2a-2219879e2f10")
   )
   (label "FB"
     (at 96.52 133.35 270)
@@ -14389,12 +14216,12 @@
       (font (size 1.27 1.27))
       (justify right bottom)
     )
-    (uuid "d86e91b5-68ef-428c-8c47-fead1f7b1617")
+    (uuid "4d40ce8e-90d7-40e2-9c52-e30faf275ac8")
   )
   (wire
     (pts (xy 110.49 121.92) (xy 110.49 119.38))
     (stroke (width 0) (type default))
-    (uuid "be6e40c8-295c-4553-b40e-23f14845f1a5")
+    (uuid "5c4925f0-5a6d-4792-8d0b-a35f23dd4de4")
   )
   (label "FB"
     (at 110.49 119.38 90)
@@ -14403,12 +14230,12 @@
       (font (size 1.27 1.27))
       (justify left bottom)
     )
-    (uuid "cc29da4a-a9f9-4f31-afd8-dbeb08418a73")
+    (uuid "fa81af98-07ae-425d-b204-5c0d7ae3c224")
   )
   (wire
     (pts (xy 110.49 129.54) (xy 110.49 132.08))
     (stroke (width 0) (type default))
-    (uuid "a54f90d9-5a33-4a5e-9170-7d86de9e3cba")
+    (uuid "71d15508-2664-498d-bc9f-6c9e2ea6d17d")
   )
   (label "PG_N"
     (at 110.49 132.08 270)
@@ -14417,12 +14244,12 @@
       (font (size 1.27 1.27))
       (justify right bottom)
     )
-    (uuid "d9ae3bc1-f738-4b88-a9f4-fd2666733298")
+    (uuid "8eacda60-ce47-49c5-afe8-bb751e0cc906")
   )
   (wire
     (pts (xy 123.19 123.19) (xy 123.19 120.65))
     (stroke (width 0) (type default))
-    (uuid "da205288-d1f7-43bb-bb0f-cb2c838e5f59")
+    (uuid "745d1363-11a7-4ef0-9b5f-320d31137a1d")
   )
   (symbol
     (lib_id "TrinketCore:VCAP")
@@ -14469,7 +14296,7 @@
   (wire
     (pts (xy 123.19 130.81) (xy 123.19 133.35))
     (stroke (width 0) (type default))
-    (uuid "3ec4b40e-14b5-423d-8cf3-d20246f659ae")
+    (uuid "6da8be28-f5bb-4b80-bc52-864e84a251eb")
   )
   (symbol
     (lib_id "TrinketCore:GND")
@@ -14516,7 +14343,7 @@
   (wire
     (pts (xy 137.16 123.19) (xy 137.16 120.65))
     (stroke (width 0) (type default))
-    (uuid "4c7b715d-de44-4751-bdf0-efdae626b358")
+    (uuid "c54d2016-5fd6-4171-bc88-08879357be2d")
   )
   (symbol
     (lib_id "TrinketCore:VBUS")
@@ -14563,7 +14390,7 @@
   (wire
     (pts (xy 137.16 130.81) (xy 137.16 133.35))
     (stroke (width 0) (type default))
-    (uuid "8c0ce149-3360-4305-b3b6-d71d9246b111")
+    (uuid "5bda7f32-285e-4284-b2a0-2862babcfd5e")
   )
   (label "LED_A"
     (at 137.16 133.35 270)
@@ -14572,12 +14399,12 @@
       (font (size 1.27 1.27))
       (justify right bottom)
     )
-    (uuid "15aa4c20-2247-48f3-8e3c-27f53e2ca288")
+    (uuid "f4df6f0e-5bc6-40d1-a397-8e4d2dcc414b")
   )
   (wire
     (pts (xy 153.67 120.65) (xy 151.13 120.65))
     (stroke (width 0) (type default))
-    (uuid "ed7c2062-8b50-497f-95ce-5ac87bbfb75f")
+    (uuid "09fb6191-1d3a-4cac-a176-0bf85d74d346")
   )
   (label "STAT"
     (at 151.13 120.65 180)
@@ -14586,12 +14413,12 @@
       (font (size 1.27 1.27))
       (justify right bottom)
     )
-    (uuid "d67cbc9a-a15b-46d9-bbbf-8af117c3f374")
+    (uuid "faa1b753-659c-4b3c-9241-3fd56fae6956")
   )
   (wire
     (pts (xy 161.29 120.65) (xy 163.83 120.65))
     (stroke (width 0) (type default))
-    (uuid "cbdcd9f5-27a6-4ce2-8fc6-0a5721f805ff")
+    (uuid "78057db7-7b12-431a-8a96-5df9c6565b7e")
   )
   (label "LED_A"
     (at 163.83 120.65 0)
@@ -14600,12 +14427,12 @@
       (font (size 1.27 1.27))
       (justify left bottom)
     )
-    (uuid "cf27143d-7176-41d6-b114-835dce67d072")
+    (uuid "310795ea-91e3-4f8a-8cbd-1bce2236c08f")
   )
   (wire
     (pts (xy 87.63 156.21) (xy 85.09 156.21))
     (stroke (width 0) (type default))
-    (uuid "4668fbcd-1514-4a0e-b210-9158f794ce26")
+    (uuid "4384d0b9-c414-4af6-9ad2-4ea67c92aec8")
   )
   (label "STAT"
     (at 85.09 156.21 180)
@@ -14614,12 +14441,12 @@
       (font (size 1.27 1.27))
       (justify right bottom)
     )
-    (uuid "4e00caa6-82af-4a3d-8fde-56a5ba1993f1")
+    (uuid "ada4d53f-f48a-4769-a85d-f74eb70b9ebf")
   )
   (wire
     (pts (xy 95.25 156.21) (xy 97.79 156.21))
     (stroke (width 0) (type default))
-    (uuid "ef108034-c092-4472-ba58-b5fc1302f44a")
+    (uuid "63b8596d-9304-4616-ac4e-8c5a2a1e3006")
   )
   (label "CHG"
     (at 97.79 156.21 0)
@@ -14628,12 +14455,12 @@
       (font (size 1.27 1.27))
       (justify left bottom)
     )
-    (uuid "a0f3c47f-d598-48d4-912a-370f3a9c3698")
+    (uuid "c347e9d6-2c2b-4115-82c4-396bc29f2b29")
   )
   (wire
     (pts (xy 176.53 123.19) (xy 176.53 120.65))
     (stroke (width 0) (type default))
-    (uuid "1a1719de-ccc5-4f18-8a5a-7bcb7f09c89c")
+    (uuid "57e7693a-a6d8-439f-aa36-1a4f1755cf3d")
   )
   (symbol
     (lib_id "TrinketCore:VBUS")
@@ -14680,7 +14507,7 @@
   (wire
     (pts (xy 176.53 130.81) (xy 176.53 133.35))
     (stroke (width 0) (type default))
-    (uuid "0efafc49-80a2-4fb2-a578-342e69d855ce")
+    (uuid "2888dd3a-3de5-4325-8630-982a84875931")
   )
   (label "LED_GA"
     (at 176.53 133.35 270)
@@ -14689,12 +14516,12 @@
       (font (size 1.27 1.27))
       (justify right bottom)
     )
-    (uuid "2b202e7d-dfcd-4c45-8ec9-c4576e8d74c7")
+    (uuid "37efdd31-96b5-41ad-ab36-9468a052e0c5")
   )
   (wire
     (pts (xy 26.67 156.21) (xy 24.13 156.21))
     (stroke (width 0) (type default))
-    (uuid "c4a10ddc-7f76-4f4e-9439-4a2afb9c1e67")
+    (uuid "e66032a2-4b66-422c-9b9e-a829cfcfe5b4")
   )
   (label "LED_GK"
     (at 24.13 156.21 180)
@@ -14703,12 +14530,12 @@
       (font (size 1.27 1.27))
       (justify right bottom)
     )
-    (uuid "30b09863-12d6-451b-bbe7-0451c3e394d2")
+    (uuid "018f7722-7acc-4b15-a391-db5d826262a1")
   )
   (wire
     (pts (xy 34.29 156.21) (xy 36.83 156.21))
     (stroke (width 0) (type default))
-    (uuid "748accc0-28d3-4b07-9803-f94372ee27ca")
+    (uuid "51ba2cac-ef06-4ddc-90ff-1867d5e23987")
   )
   (label "LED_GA"
     (at 36.83 156.21 0)
@@ -14717,12 +14544,12 @@
       (font (size 1.27 1.27))
       (justify left bottom)
     )
-    (uuid "cac2dbcf-bcc2-4e1d-8f97-e2ec5bad7881")
+    (uuid "65be8de5-e682-48e8-9a34-f47a7dc26e4d")
   )
   (wire
     (pts (xy 57.15 167.64) (xy 54.61 167.64))
     (stroke (width 0) (type default))
-    (uuid "b4fbabca-8502-4d9b-b293-751788a54ad9")
+    (uuid "a5fb9b82-b30e-4638-8975-fb4bcc48c7bd")
   )
   (label "STAT"
     (at 54.61 167.64 180)
@@ -14731,12 +14558,12 @@
       (font (size 1.27 1.27))
       (justify right bottom)
     )
-    (uuid "7b4f2f7c-ed3e-4ed0-a559-2e5cefa93c76")
+    (uuid "e5b677b1-053f-4c11-91af-1f887ff36002")
   )
   (wire
     (pts (xy 64.77 172.72) (xy 64.77 180.34))
     (stroke (width 0) (type default))
-    (uuid "bad7321c-cabd-4ce5-bc6e-05616a5dc82d")
+    (uuid "2c7dcf10-db2d-4abf-9b4c-d3cac1c67cfa")
   )
   (symbol
     (lib_id "TrinketCore:GND")
@@ -14783,7 +14610,7 @@
   (wire
     (pts (xy 64.77 162.56) (xy 64.77 160.02))
     (stroke (width 0) (type default))
-    (uuid "60140ff6-0c63-4ffd-8afc-9f6fdbf5c0f0")
+    (uuid "3d034e14-57d5-4db8-b191-05caa10398dd")
   )
   (label "LED_GK"
     (at 64.77 160.02 90)
@@ -14792,12 +14619,12 @@
       (font (size 1.27 1.27))
       (justify left bottom)
     )
-    (uuid "a2b46d9c-fea6-4a45-8d4f-0d4162a741ce")
+    (uuid "93a8ff3d-19d4-4026-94ff-0efec0dba954")
   )
   (wire
     (pts (xy 114.3 156.21) (xy 111.76 156.21))
     (stroke (width 0) (type default))
-    (uuid "74b519af-9c6f-4aaa-9d04-84ecf59b7a31")
+    (uuid "b2d49728-a653-406d-a702-8aff71db40a0")
   )
   (label "PG_N"
     (at 111.76 156.21 180)
@@ -14806,12 +14633,12 @@
       (font (size 1.27 1.27))
       (justify right bottom)
     )
-    (uuid "f8b531f7-6099-481d-9dbb-54ff14af025e")
+    (uuid "0c876658-9faa-40a8-bf1d-590fdb279784")
   )
   (wire
     (pts (xy 121.92 156.21) (xy 124.46 156.21))
     (stroke (width 0) (type default))
-    (uuid "4a83aa64-05ce-445d-991e-650839b64011")
+    (uuid "ba8dc373-34f1-40b4-bec0-2879fe2c551e")
   )
   (label "USB_DET"
     (at 124.46 156.21 0)
@@ -14820,12 +14647,12 @@
       (font (size 1.27 1.27))
       (justify left bottom)
     )
-    (uuid "4c784d84-e1f4-4ef9-b11b-a2355a681255")
+    (uuid "68ad6e81-33a3-44f0-b1b3-af681628f3bb")
   )
   (wire
     (pts (xy 19.05 220.98) (xy 19.05 218.44))
     (stroke (width 0) (type default))
-    (uuid "3f0ef588-7127-46ee-8790-fad0db83eb92")
+    (uuid "0cf3fcf2-ec56-438f-9a42-46ca20697aef")
   )
   (symbol
     (lib_id "TrinketCore:VCAP")
@@ -14872,7 +14699,7 @@
   (wire
     (pts (xy 19.05 228.6) (xy 19.05 231.14))
     (stroke (width 0) (type default))
-    (uuid "ca2e7dab-3185-48d3-b2c4-0e12b8105b40")
+    (uuid "7f68b8db-0439-4a6c-8fb1-2775b82f932f")
   )
   (symbol
     (lib_id "TrinketCore:GND")
@@ -14919,7 +14746,7 @@
   (wire
     (pts (xy 38.1 220.98) (xy 38.1 218.44))
     (stroke (width 0) (type default))
-    (uuid "2f936f67-66cd-4755-970f-1da8cc507382")
+    (uuid "7e7ad24b-aa3c-4a12-9c7a-57f6ec133bda")
   )
   (symbol
     (lib_id "TrinketCore:VCAP")
@@ -14966,7 +14793,7 @@
   (wire
     (pts (xy 38.1 228.6) (xy 38.1 231.14))
     (stroke (width 0) (type default))
-    (uuid "8590595e-0761-4cbf-a84e-1d5e0165dfa7")
+    (uuid "6314982c-7197-4d83-8b63-d4888783ac45")
   )
   (symbol
     (lib_id "TrinketCore:GND")
@@ -15013,7 +14840,7 @@
   (wire
     (pts (xy 62.23 231.14) (xy 59.69 231.14))
     (stroke (width 0) (type default))
-    (uuid "817d5f0b-4529-407f-a23a-eeb4ed4558f1")
+    (uuid "53a911ea-2cd3-44f2-b147-83d59d20e0a4")
   )
   (label "QA_G"
     (at 59.69 231.14 180)
@@ -15022,12 +14849,12 @@
       (font (size 1.27 1.27))
       (justify right bottom)
     )
-    (uuid "0ba13a56-b77b-4d57-8941-050ee9022fc9")
+    (uuid "653c659f-4309-47df-8005-f2e2dab5e73d")
   )
   (wire
     (pts (xy 69.85 236.22) (xy 69.85 243.84))
     (stroke (width 0) (type default))
-    (uuid "c33bc3e6-0a5e-4bf7-9529-fb81a152a189")
+    (uuid "aa1b099f-7f2c-489f-ab4d-adca4dc825db")
   )
   (symbol
     (lib_id "TrinketCore:VCAP")
@@ -15074,7 +14901,7 @@
   (wire
     (pts (xy 69.85 226.06) (xy 69.85 218.44))
     (stroke (width 0) (type default))
-    (uuid "1f7ed81e-835e-42ae-ab49-847dc33335ef")
+    (uuid "8c6b1dcc-5cba-4fa6-920f-2ed547c06d44")
   )
   (symbol
     (lib_id "TrinketCore:VAON")
@@ -15121,7 +14948,7 @@
   (wire
     (pts (xy 87.63 220.98) (xy 87.63 218.44))
     (stroke (width 0) (type default))
-    (uuid "327d49d4-cd3c-4456-9721-d0e09c3b9830")
+    (uuid "1a0a9bb6-cebe-400c-b324-3638b653478c")
   )
   (symbol
     (lib_id "TrinketCore:VCAP")
@@ -15168,7 +14995,7 @@
   (wire
     (pts (xy 87.63 228.6) (xy 87.63 231.14))
     (stroke (width 0) (type default))
-    (uuid "58f0aece-f830-4c03-9588-b4cae79e3562")
+    (uuid "dd502fb8-1f55-40a5-9762-63cc95314786")
   )
   (label "QA_G"
     (at 87.63 231.14 270)
@@ -15177,12 +15004,12 @@
       (font (size 1.27 1.27))
       (justify right bottom)
     )
-    (uuid "e6059f50-7ed5-43f4-aea9-3a113c58b056")
+    (uuid "07f906e6-af99-4204-97e5-ddd8589c4c51")
   )
   (wire
     (pts (xy 107.95 227.33) (xy 105.41 227.33))
     (stroke (width 0) (type default))
-    (uuid "f0634925-ad64-4ad6-a41a-8fe0249a9b1f")
+    (uuid "a43137a1-53fa-4643-84ae-2f6fa2b08373")
   )
   (label "VBUS_G"
     (at 105.41 227.33 180)
@@ -15191,12 +15018,12 @@
       (font (size 1.27 1.27))
       (justify right bottom)
     )
-    (uuid "03035bea-dbce-412e-8603-f13994a659ba")
+    (uuid "9ecc3f02-1bc4-44aa-a041-1997c2f0646e")
   )
   (wire
     (pts (xy 115.57 232.41) (xy 115.57 240.03))
     (stroke (width 0) (type default))
-    (uuid "5af688e4-fb75-43c3-becb-aa8262fabe3e")
+    (uuid "a63a78c5-1007-42f4-8ca0-1e37d98ba956")
   )
   (symbol
     (lib_id "TrinketCore:GND")
@@ -15243,7 +15070,7 @@
   (wire
     (pts (xy 115.57 222.25) (xy 115.57 219.71))
     (stroke (width 0) (type default))
-    (uuid "e04bc502-d88b-4aae-8455-2cb4affff1cb")
+    (uuid "d08ec9bf-fbb1-4277-a8a3-646d9560eb36")
   )
   (label "QA_G"
     (at 115.57 219.71 90)
@@ -15252,12 +15079,12 @@
       (font (size 1.27 1.27))
       (justify left bottom)
     )
-    (uuid "9f73722d-354c-45ec-a5f7-ab6af5567cf5")
+    (uuid "9cee01b0-39cc-4a83-9da6-0b53ff77241d")
   )
   (wire
     (pts (xy 133.35 220.98) (xy 133.35 218.44))
     (stroke (width 0) (type default))
-    (uuid "7f27f289-f941-4721-b93d-7df37e804eca")
+    (uuid "b051eb13-2ea2-46a4-bfa9-c219e95ffc0b")
   )
   (symbol
     (lib_id "TrinketCore:VBUS")
@@ -15304,7 +15131,7 @@
   (wire
     (pts (xy 133.35 228.6) (xy 133.35 231.14))
     (stroke (width 0) (type default))
-    (uuid "99716e4d-a130-477b-80f9-e6745763ae10")
+    (uuid "b4525fbe-80d1-4b19-ad2d-d0c77d1892fe")
   )
   (label "VBUS_G"
     (at 133.35 231.14 270)
@@ -15313,12 +15140,12 @@
       (font (size 1.27 1.27))
       (justify right bottom)
     )
-    (uuid "fd2454d9-c961-4947-a536-bed3ccf21c89")
+    (uuid "00ce4e40-1a9e-4732-9c9e-ea46cd03646f")
   )
   (wire
     (pts (xy 146.05 224.79) (xy 146.05 222.25))
     (stroke (width 0) (type default))
-    (uuid "5cbf1557-58cc-4f9b-a237-903dc4f2eefd")
+    (uuid "c1738bd6-4eb9-4969-8ca8-fbf7cc26853a")
   )
   (label "VBUS_G"
     (at 146.05 222.25 90)
@@ -15327,12 +15154,12 @@
       (font (size 1.27 1.27))
       (justify left bottom)
     )
-    (uuid "713438e2-8df1-4022-ae0e-c993b2647271")
+    (uuid "bf81ebd6-3f70-49b8-85d1-1f1137131428")
   )
   (wire
     (pts (xy 146.05 232.41) (xy 146.05 234.95))
     (stroke (width 0) (type default))
-    (uuid "856b28a9-102f-4fef-996c-99482de73faf")
+    (uuid "6947ec40-3e8f-46e4-b27b-6c5a83092296")
   )
   (symbol
     (lib_id "TrinketCore:GND")
@@ -15379,7 +15206,7 @@
   (wire
     (pts (xy 167.64 227.33) (xy 165.1 227.33))
     (stroke (width 0) (type default))
-    (uuid "234fecf2-9c9e-4f05-9385-082a71af3571")
+    (uuid "cdfe981d-4bab-4da1-a18d-8e163cdeea1f")
   )
   (label "UVLO_OK"
     (at 165.1 227.33 180)
@@ -15388,12 +15215,12 @@
       (font (size 1.27 1.27))
       (justify right bottom)
     )
-    (uuid "4fc7c042-1ed5-4a9e-8f67-06019bb58d75")
+    (uuid "b22647dc-a2e3-4e8a-a55f-8805be55f8d6")
   )
   (wire
     (pts (xy 175.26 232.41) (xy 175.26 240.03))
     (stroke (width 0) (type default))
-    (uuid "2f7bfe21-c4c7-4563-a0ce-56bd84bb7e75")
+    (uuid "00e61529-0124-4718-9653-86f6c024e3f1")
   )
   (symbol
     (lib_id "TrinketCore:GND")
@@ -15440,7 +15267,7 @@
   (wire
     (pts (xy 175.26 222.25) (xy 175.26 219.71))
     (stroke (width 0) (type default))
-    (uuid "5f5bc61c-77d5-45c5-8dd1-63792185e154")
+    (uuid "f097297f-2ccc-4228-bcca-31557752cc4f")
   )
   (label "QA_G"
     (at 175.26 219.71 90)
@@ -15449,12 +15276,12 @@
       (font (size 1.27 1.27))
       (justify left bottom)
     )
-    (uuid "b6dba6f8-f547-4635-8565-58ca1ade0b9e")
+    (uuid "1bb70352-3822-4ae5-b096-b090674c2934")
   )
   (wire
     (pts (xy 48.26 292.1) (xy 50.8 292.1))
     (stroke (width 0) (type default))
-    (uuid "95ca41ee-eeb3-450f-82f7-a4e4d31ff544")
+    (uuid "0d57c1cd-591a-4c82-b9c7-1319db5924b3")
   )
   (label "UVLO_OK"
     (at 50.8 292.1 0)
@@ -15463,12 +15290,12 @@
       (font (size 1.27 1.27))
       (justify left bottom)
     )
-    (uuid "fdf7d181-9456-4dc3-8d7f-3d8f489ec8cd")
+    (uuid "3504e03a-3f2e-457d-b33f-cdeaec30a4ff")
   )
   (wire
     (pts (xy 38.1 299.72) (xy 38.1 302.26))
     (stroke (width 0) (type default))
-    (uuid "356e3fa0-3d98-4ec3-bd4b-708980b276d7")
+    (uuid "319e532e-2cd9-410a-837c-a2f91db3cee7")
   )
   (symbol
     (lib_id "TrinketCore:GND")
@@ -15515,7 +15342,7 @@
   (wire
     (pts (xy 27.94 292.1) (xy 25.4 292.1))
     (stroke (width 0) (type default))
-    (uuid "4083e1ab-af6b-41a1-af64-74f86441fb08")
+    (uuid "e9b89a02-6f84-40b2-b959-dfd6ee5ffb7a")
   )
   (label "MR_N"
     (at 25.4 292.1 180)
@@ -15524,12 +15351,12 @@
       (font (size 1.27 1.27))
       (justify right bottom)
     )
-    (uuid "cdda9faa-4483-4cf5-86c7-d0c6dd012249")
+    (uuid "0038366e-f1a4-4109-a693-a8f2ea4e2328")
   )
   (wire
     (pts (xy 27.94 294.64) (xy 25.4 294.64))
     (stroke (width 0) (type default))
-    (uuid "85cfe6cc-4929-433e-8d48-a8f5dc6790a7")
+    (uuid "c1a91c89-b7d2-4ef6-bbd9-54fcf3480adc")
   )
   (symbol
     (lib_id "TrinketCore:VAON")
@@ -15576,7 +15403,7 @@
   (wire
     (pts (xy 27.94 289.56) (xy 25.4 289.56))
     (stroke (width 0) (type default))
-    (uuid "bae8dbd1-0acc-4755-9238-d12af2917994")
+    (uuid "822bd2d6-f675-4c51-bfbb-4fa6c3d5b20f")
   )
   (label "SENSE"
     (at 25.4 289.56 180)
@@ -15585,12 +15412,12 @@
       (font (size 1.27 1.27))
       (justify right bottom)
     )
-    (uuid "5400910a-6927-437d-869d-6ece5800c961")
+    (uuid "6db97a46-eb53-4972-ae8d-e7d87ec240e2")
   )
   (wire
     (pts (xy 38.1 284.48) (xy 38.1 281.94))
     (stroke (width 0) (type default))
-    (uuid "5ce28684-75de-4cac-a9bd-38dd64a96d9c")
+    (uuid "ecd77091-63ac-4583-85fe-e21ef6753b72")
   )
   (symbol
     (lib_id "TrinketCore:VAON")
@@ -15637,7 +15464,7 @@
   (wire
     (pts (xy 66.04 284.48) (xy 66.04 281.94))
     (stroke (width 0) (type default))
-    (uuid "6c0d02bd-4b5f-47fd-a229-b68f03f8c6dc")
+    (uuid "6d06bebb-2198-41ea-9a71-9fe424fac191")
   )
   (symbol
     (lib_id "TrinketCore:VAON")
@@ -15684,7 +15511,7 @@
   (wire
     (pts (xy 66.04 292.1) (xy 66.04 294.64))
     (stroke (width 0) (type default))
-    (uuid "eef3c075-0623-4615-96f6-0b4d027d3aba")
+    (uuid "10c8e802-885d-41bd-aebc-27fdedb5d265")
   )
   (symbol
     (lib_id "TrinketCore:GND")
@@ -15731,7 +15558,7 @@
   (wire
     (pts (xy 82.55 284.48) (xy 82.55 281.94))
     (stroke (width 0) (type default))
-    (uuid "1d5b01e2-977b-44b9-bb78-fa5e3789736a")
+    (uuid "81d793db-671a-4dee-a38b-ad7af0b10686")
   )
   (symbol
     (lib_id "TrinketCore:VAON")
@@ -15778,7 +15605,7 @@
   (wire
     (pts (xy 82.55 292.1) (xy 82.55 294.64))
     (stroke (width 0) (type default))
-    (uuid "460ba307-9398-48be-b3ce-faa372e7fb9e")
+    (uuid "ae90d39e-ed87-4828-b187-08919048e6ed")
   )
   (symbol
     (lib_id "TrinketCore:GND")
@@ -15825,7 +15652,7 @@
   (wire
     (pts (xy 96.52 284.48) (xy 96.52 281.94))
     (stroke (width 0) (type default))
-    (uuid "12a5c7b4-3f3d-4ede-8d2d-63f4c586f941")
+    (uuid "54e4c068-34b9-4af2-ad78-ede5c5c0e8d2")
   )
   (symbol
     (lib_id "TrinketCore:VAON")
@@ -15872,7 +15699,7 @@
   (wire
     (pts (xy 96.52 292.1) (xy 96.52 294.64))
     (stroke (width 0) (type default))
-    (uuid "c02ac8d1-fdd8-4cf8-a4f7-a46f6cfed4a5")
+    (uuid "fdca28a8-e9de-4f53-8fb6-6989f1482a21")
   )
   (label "UV_A"
     (at 96.52 294.64 270)
@@ -15881,12 +15708,12 @@
       (font (size 1.27 1.27))
       (justify right bottom)
     )
-    (uuid "36660b7f-87ca-4802-a966-c7de103945a3")
+    (uuid "7abef34f-10a1-47b1-908d-0bfc2f19b33c")
   )
   (wire
     (pts (xy 109.22 285.75) (xy 109.22 283.21))
     (stroke (width 0) (type default))
-    (uuid "0dfee69e-1780-4893-bf50-f1662e682fe7")
+    (uuid "b085935e-6de3-45fc-9ca5-332fee90b050")
   )
   (label "UV_A"
     (at 109.22 283.21 90)
@@ -15895,12 +15722,12 @@
       (font (size 1.27 1.27))
       (justify left bottom)
     )
-    (uuid "7fe9fffc-2786-4a97-9b3f-88bf91433b14")
+    (uuid "c363bbc6-f180-4545-84ec-2124148dd3de")
   )
   (wire
     (pts (xy 109.22 293.37) (xy 109.22 295.91))
     (stroke (width 0) (type default))
-    (uuid "f44ec0dd-4f29-4b2b-9a9b-f075c0c37021")
+    (uuid "9f3cbbf5-66fb-40e3-973f-f3512df32991")
   )
   (label "UV_B"
     (at 109.22 295.91 270)
@@ -15909,12 +15736,12 @@
       (font (size 1.27 1.27))
       (justify right bottom)
     )
-    (uuid "0a22fc90-75b4-4353-ab95-0f4801002a2d")
+    (uuid "0a1d5602-6221-456c-9828-9fe9f5928c03")
   )
   (wire
     (pts (xy 123.19 285.75) (xy 123.19 283.21))
     (stroke (width 0) (type default))
-    (uuid "b4eaa80a-fa91-4249-8cce-bf6e86175c85")
+    (uuid "e3bbd9bb-322e-45e4-bff1-c5d8c1d29349")
   )
   (label "UV_B"
     (at 123.19 283.21 90)
@@ -15923,12 +15750,12 @@
       (font (size 1.27 1.27))
       (justify left bottom)
     )
-    (uuid "bd1754f7-4030-4213-b88b-bb853eb7489c")
+    (uuid "c821c674-f853-490d-950d-efd5dba6a165")
   )
   (wire
     (pts (xy 123.19 293.37) (xy 123.19 295.91))
     (stroke (width 0) (type default))
-    (uuid "a6fa8892-b2dd-41ee-85fc-04be8da6838f")
+    (uuid "55d5b5aa-2b48-4bb3-93d9-060e03ac622a")
   )
   (label "SENSE"
     (at 123.19 295.91 270)
@@ -15937,12 +15764,12 @@
       (font (size 1.27 1.27))
       (justify right bottom)
     )
-    (uuid "97db4e2e-96d2-4e1a-8b46-e2bb01618c4a")
+    (uuid "c94a71e2-901b-40e8-93d1-f117a13e72a4")
   )
   (wire
     (pts (xy 137.16 287.02) (xy 137.16 284.48))
     (stroke (width 0) (type default))
-    (uuid "e7fad417-dcb9-4ea3-b0cc-701a33b45a1c")
+    (uuid "f6b252fb-1ed1-4992-a41b-4c748f712d2f")
   )
   (label "SENSE"
     (at 137.16 284.48 90)
@@ -15951,12 +15778,12 @@
       (font (size 1.27 1.27))
       (justify left bottom)
     )
-    (uuid "a4b289c9-b18b-4047-b751-cd2bcf3efc5e")
+    (uuid "8d362e6e-a722-4c4e-8f1a-bdeb0858e87e")
   )
   (wire
     (pts (xy 137.16 294.64) (xy 137.16 297.18))
     (stroke (width 0) (type default))
-    (uuid "324b82a7-34b8-485e-9f81-de4bc7feca54")
+    (uuid "8373eb93-fad5-4375-a33a-a6e0c7c655c9")
   )
   (symbol
     (lib_id "TrinketCore:GND")
@@ -16003,7 +15830,7 @@
   (wire
     (pts (xy 151.13 287.02) (xy 151.13 284.48))
     (stroke (width 0) (type default))
-    (uuid "fbebed2a-69ac-4199-80c8-3f9d2ca7f222")
+    (uuid "3512d46b-4d7d-4b22-8734-99c25b17afd5")
   )
   (label "SENSE"
     (at 151.13 284.48 90)
@@ -16012,12 +15839,12 @@
       (font (size 1.27 1.27))
       (justify left bottom)
     )
-    (uuid "8cee5391-8a87-43d7-8048-ae8edf3440f8")
+    (uuid "e3a0f285-15fc-45f1-b4e6-9821485693ab")
   )
   (wire
     (pts (xy 151.13 294.64) (xy 151.13 297.18))
     (stroke (width 0) (type default))
-    (uuid "2241841d-365e-405c-8a10-b2490f621183")
+    (uuid "8b930080-e1bf-40a1-9b53-0b8e27b12769")
   )
   (symbol
     (lib_id "TrinketCore:GND")
@@ -16064,7 +15891,7 @@
   (wire
     (pts (xy 165.1 284.48) (xy 165.1 281.94))
     (stroke (width 0) (type default))
-    (uuid "747710e1-7ef3-48d5-a385-b4f0347f6aa5")
+    (uuid "82172f91-10db-4f97-8ff7-54c11baf833d")
   )
   (symbol
     (lib_id "TrinketCore:VAON")
@@ -16111,7 +15938,7 @@
   (wire
     (pts (xy 165.1 292.1) (xy 165.1 294.64))
     (stroke (width 0) (type default))
-    (uuid "c26d34cc-623e-4a8e-94ea-c16d0d4dcfbb")
+    (uuid "34601510-b0c2-49db-9077-51983c94e290")
   )
   (label "UVLO_OK"
     (at 165.1 294.64 270)
@@ -16120,12 +15947,12 @@
       (font (size 1.27 1.27))
       (justify right bottom)
     )
-    (uuid "c5ad53bc-5a39-4643-a0ab-07f475aeca1c")
+    (uuid "1d4412eb-7b0f-4ca4-83a8-b2096144f995")
   )
   (wire
     (pts (xy 24.13 325.12) (xy 21.59 325.12))
     (stroke (width 0) (type default))
-    (uuid "4bda521c-1fa3-41db-8c4f-569d1c979198")
+    (uuid "47521bdb-71c7-4bb2-9b35-144de2860d75")
   )
   (label "SHIP"
     (at 21.59 325.12 180)
@@ -16134,12 +15961,12 @@
       (font (size 1.27 1.27))
       (justify right bottom)
     )
-    (uuid "53c605f7-d1fd-4d9a-bdb1-51a31932035e")
+    (uuid "84e89113-2689-4387-b07c-effab707cbe0")
   )
   (wire
     (pts (xy 31.75 330.2) (xy 31.75 337.82))
     (stroke (width 0) (type default))
-    (uuid "19efd6ff-41a3-4f82-a35b-38f48f4e2275")
+    (uuid "995e3b98-bdc8-431b-b146-9ca4e94deb8d")
   )
   (symbol
     (lib_id "TrinketCore:GND")
@@ -16186,7 +16013,7 @@
   (wire
     (pts (xy 31.75 320.04) (xy 31.75 317.5))
     (stroke (width 0) (type default))
-    (uuid "4634201e-db7e-49da-a9ed-17d0d9dde6e8")
+    (uuid "8a74ba93-b06e-4a57-86e5-549d7b3a1311")
   )
   (label "MR_N"
     (at 31.75 317.5 90)
@@ -16195,12 +16022,12 @@
       (font (size 1.27 1.27))
       (justify left bottom)
     )
-    (uuid "5b5c3a55-43cd-4ad9-b2cc-4ca97f40f595")
+    (uuid "62f4ea74-9f9f-49b1-b31f-b0ecbad342bb")
   )
   (wire
     (pts (xy 49.53 320.04) (xy 49.53 317.5))
     (stroke (width 0) (type default))
-    (uuid "70875bd8-d913-4bd2-9059-dabd04e2b0ce")
+    (uuid "7d3f6d42-3dcf-4ecf-881a-f97d64bd5cc5")
   )
   (label "SHIP"
     (at 49.53 317.5 90)
@@ -16209,12 +16036,12 @@
       (font (size 1.27 1.27))
       (justify left bottom)
     )
-    (uuid "21b0ee8e-4085-4e90-92e0-1b92ec15aded")
+    (uuid "448e3b0c-51cf-46bf-a925-803b8b2530a1")
   )
   (wire
     (pts (xy 49.53 327.66) (xy 49.53 330.2))
     (stroke (width 0) (type default))
-    (uuid "d0e973d4-83f8-4174-bda7-9521511ac372")
+    (uuid "76749754-5e18-4653-81fd-081c5d683f94")
   )
   (symbol
     (lib_id "TrinketCore:GND")
@@ -16261,7 +16088,7 @@
   (wire
     (pts (xy 212.09 45.72) (xy 209.55 45.72))
     (stroke (width 0) (type default))
-    (uuid "58412fbb-5640-4df2-8952-19ffe42c05cc")
+    (uuid "7966e6c0-3462-467f-aaf9-cfa1356ee3d5")
   )
   (label "Q5_G"
     (at 209.55 45.72 180)
@@ -16270,12 +16097,12 @@
       (font (size 1.27 1.27))
       (justify right bottom)
     )
-    (uuid "969c4792-fea5-4de1-a1ce-bc81313a293a")
+    (uuid "cf5130e8-2927-4d6a-b076-9f7baeaaea87")
   )
   (wire
     (pts (xy 219.71 50.8) (xy 219.71 58.42))
     (stroke (width 0) (type default))
-    (uuid "bd59d2bc-9b70-43a2-8ecf-584e1775c365")
+    (uuid "145f5ab2-08c5-485a-85d7-c51372a72928")
   )
   (symbol
     (lib_id "TrinketCore:VAON")
@@ -16322,7 +16149,7 @@
   (wire
     (pts (xy 219.71 40.64) (xy 219.71 33.02))
     (stroke (width 0) (type default))
-    (uuid "70886f24-b98e-4d28-a358-fd5bf568fd48")
+    (uuid "f2b6ead8-bc78-4fae-8a54-a1d7e3efd6ed")
   )
   (symbol
     (lib_id "TrinketCore:VSYS")
@@ -16369,7 +16196,7 @@
   (wire
     (pts (xy 237.49 35.56) (xy 237.49 33.02))
     (stroke (width 0) (type default))
-    (uuid "c52fbb93-3fff-4382-a754-9f7a31898aa8")
+    (uuid "8b725795-47d4-4149-95c7-ca0951452918")
   )
   (symbol
     (lib_id "TrinketCore:VAON")
@@ -16416,7 +16243,7 @@
   (wire
     (pts (xy 237.49 43.18) (xy 237.49 45.72))
     (stroke (width 0) (type default))
-    (uuid "083df690-721d-4d83-9898-4f9bcecf43fa")
+    (uuid "65baa87f-cd60-4c65-90da-01b99f8197fc")
   )
   (label "Q5_G"
     (at 237.49 45.72 270)
@@ -16425,12 +16252,12 @@
       (font (size 1.27 1.27))
       (justify right bottom)
     )
-    (uuid "1bb3b766-466b-423a-a8b5-9eb766a1f2d6")
+    (uuid "9bd57653-547a-42e4-8060-d2ac6e86ec1e")
   )
   (wire
     (pts (xy 250.19 35.56) (xy 250.19 33.02))
     (stroke (width 0) (type default))
-    (uuid "6772d7e5-652f-48e7-ba4f-e8062a17977f")
+    (uuid "25bee21c-da1b-4526-acce-ab490aed2245")
   )
   (symbol
     (lib_id "TrinketCore:VAON")
@@ -16477,7 +16304,7 @@
   (wire
     (pts (xy 250.19 43.18) (xy 250.19 45.72))
     (stroke (width 0) (type default))
-    (uuid "50fac1b0-a0ab-4927-b20e-fc63902c1303")
+    (uuid "d764cbbb-cf27-40ed-b849-844d15a5e009")
   )
   (label "Q5_G"
     (at 250.19 45.72 270)
@@ -16486,12 +16313,12 @@
       (font (size 1.27 1.27))
       (justify right bottom)
     )
-    (uuid "1b1c5796-5947-4e1d-a349-f4bd20f6ebae")
+    (uuid "090279ea-3c2f-4d49-8ee1-01e0cdc661c9")
   )
   (wire
     (pts (xy 264.16 36.83) (xy 264.16 34.29))
     (stroke (width 0) (type default))
-    (uuid "107a94dc-f244-49bb-a92a-03745ed5402b")
+    (uuid "0b048e31-f187-4933-964f-f6c3e5c42ba6")
   )
   (label "Q5_G"
     (at 264.16 34.29 90)
@@ -16500,12 +16327,12 @@
       (font (size 1.27 1.27))
       (justify left bottom)
     )
-    (uuid "8ae0df84-4ea8-434b-826e-9f10b02fc3d1")
+    (uuid "cc1be611-8fcc-4e57-8b72-6f09fe04166e")
   )
   (wire
     (pts (xy 264.16 44.45) (xy 264.16 46.99))
     (stroke (width 0) (type default))
-    (uuid "fc175f5e-f267-424f-9b23-ffefe41f0498")
+    (uuid "9ed9d3df-fc21-4b6e-ae4b-88aa9124f4e8")
   )
   (label "Q6_D"
     (at 264.16 46.99 270)
@@ -16514,12 +16341,12 @@
       (font (size 1.27 1.27))
       (justify right bottom)
     )
-    (uuid "9a4059f6-5c1d-4ce0-9157-c4daeab63943")
+    (uuid "3cca7858-43b5-404f-b1fb-1d74086c4648")
   )
   (wire
     (pts (xy 285.75 41.91) (xy 283.21 41.91))
     (stroke (width 0) (type default))
-    (uuid "41cddcf6-d97a-40e7-85ee-ab42784cd8f3")
+    (uuid "9a36f87b-2261-407f-a9c1-b6385c5b794f")
   )
   (label "EN_SYS"
     (at 283.21 41.91 180)
@@ -16528,12 +16355,12 @@
       (font (size 1.27 1.27))
       (justify right bottom)
     )
-    (uuid "03849bdf-f168-4845-b442-afa959613d16")
+    (uuid "906af72c-c198-4bcf-8ff7-c13db6bf0b8b")
   )
   (wire
     (pts (xy 293.37 46.99) (xy 293.37 49.53))
     (stroke (width 0) (type default))
-    (uuid "64209e2f-e65e-4aea-a775-77301e4ca1a3")
+    (uuid "05cfd390-119e-4ab9-8ba5-dd6d5564f6ca")
   )
   (label "Q6_S"
     (at 293.37 49.53 270)
@@ -16542,12 +16369,12 @@
       (font (size 1.27 1.27))
       (justify right bottom)
     )
-    (uuid "ff9e7929-62b3-45b4-96d1-5a484c7d8d6c")
+    (uuid "7f54271f-fee3-4f59-9095-883beb84d21b")
   )
   (wire
     (pts (xy 293.37 36.83) (xy 293.37 34.29))
     (stroke (width 0) (type default))
-    (uuid "eabe7d13-c5fb-4c6e-8cd8-03c656f7b18f")
+    (uuid "a6a1a65d-b5f3-4603-b7cd-580dfd856098")
   )
   (label "Q6_D"
     (at 293.37 34.29 90)
@@ -16556,12 +16383,12 @@
       (font (size 1.27 1.27))
       (justify left bottom)
     )
-    (uuid "fdaed569-e1d4-4ac8-bc61-9445f62a5a55")
+    (uuid "a6faf6a6-47eb-4d04-bb75-5120700cfec8")
   )
   (wire
     (pts (xy 318.77 41.91) (xy 316.23 41.91))
     (stroke (width 0) (type default))
-    (uuid "2aa8ecf8-1fbe-40f1-8ba8-c2857375223c")
+    (uuid "cb3434aa-c84e-4d33-ad74-5c215b4f79ba")
   )
   (label "UVLO_OK"
     (at 316.23 41.91 180)
@@ -16570,12 +16397,12 @@
       (font (size 1.27 1.27))
       (justify right bottom)
     )
-    (uuid "ba5893ad-0ba4-4a79-8317-dc7eb29dbcd2")
+    (uuid "7e5651f0-bc8e-4f43-9ce7-ccc35305e0af")
   )
   (wire
     (pts (xy 326.39 46.99) (xy 326.39 54.61))
     (stroke (width 0) (type default))
-    (uuid "7627cca6-bead-43a5-bb1b-f3226e068c27")
+    (uuid "20fc8bcf-93cc-4d54-86fa-25981edce7f5")
   )
   (symbol
     (lib_id "TrinketCore:GND")
@@ -16622,7 +16449,7 @@
   (wire
     (pts (xy 326.39 36.83) (xy 326.39 34.29))
     (stroke (width 0) (type default))
-    (uuid "73f5d869-4ee5-410c-b0c5-4eb6c8da32b9")
+    (uuid "013b402f-149a-4b30-890a-681c2be0fb56")
   )
   (label "Q6_S"
     (at 326.39 34.29 90)
@@ -16631,12 +16458,12 @@
       (font (size 1.27 1.27))
       (justify left bottom)
     )
-    (uuid "7facfe53-c626-4a37-be36-49ac375e13ff")
+    (uuid "726b6d58-81a0-49f1-82fe-ad0a429d90a3")
   )
   (wire
     (pts (xy 344.17 39.37) (xy 344.17 36.83))
     (stroke (width 0) (type default))
-    (uuid "1ba4a5a1-84d6-474e-a0ea-174db069bbe9")
+    (uuid "94b72dae-34e9-403c-ac06-92e2987702e9")
   )
   (label "EN_SYS"
     (at 344.17 36.83 90)
@@ -16645,12 +16472,12 @@
       (font (size 1.27 1.27))
       (justify left bottom)
     )
-    (uuid "fdbde075-0da0-48de-9e92-86113e78e760")
+    (uuid "d2dc0666-0b76-4d37-b562-215631cbde88")
   )
   (wire
     (pts (xy 344.17 46.99) (xy 344.17 49.53))
     (stroke (width 0) (type default))
-    (uuid "aeb462c5-d650-469e-ad86-9c616d5a9347")
+    (uuid "12bc52fb-f4b2-4b02-9b79-e231266e5426")
   )
   (symbol
     (lib_id "TrinketCore:GND")
@@ -16697,7 +16524,7 @@
   (wire
     (pts (xy 356.87 39.37) (xy 356.87 36.83))
     (stroke (width 0) (type default))
-    (uuid "4d789b0c-cab2-4f24-93c1-cf0e0caba8fd")
+    (uuid "7e313faf-8127-475e-9134-d2372e5381d4")
   )
   (label "EN_SYS"
     (at 356.87 36.83 90)
@@ -16706,12 +16533,12 @@
       (font (size 1.27 1.27))
       (justify left bottom)
     )
-    (uuid "bbbbcd5c-bdc0-4c39-96b6-6f02c3d27f1e")
+    (uuid "674933db-93ab-431b-ba5f-382fcf528ebb")
   )
   (wire
     (pts (xy 356.87 46.99) (xy 356.87 49.53))
     (stroke (width 0) (type default))
-    (uuid "d2f3d670-69eb-4c76-9e03-4e3437324c81")
+    (uuid "7c2bc3bf-f63b-41e2-977d-f6af253f6a92")
   )
   (symbol
     (lib_id "TrinketCore:GND")
@@ -16758,7 +16585,7 @@
   (wire
     (pts (xy 372.11 36.83) (xy 372.11 34.29))
     (stroke (width 0) (type default))
-    (uuid "884e42c4-cd3f-44e5-a3fb-3d723849a3bd")
+    (uuid "eb13899f-bc01-457d-803f-4d426bb566b2")
   )
   (label "HOLD"
     (at 372.11 34.29 90)
@@ -16767,12 +16594,12 @@
       (font (size 1.27 1.27))
       (justify left bottom)
     )
-    (uuid "aa37303a-a0c7-4fba-a836-fb92211487a1")
+    (uuid "8b08847b-6245-40d9-a3dc-9f5e38b871b7")
   )
   (wire
     (pts (xy 372.11 44.45) (xy 372.11 46.99))
     (stroke (width 0) (type default))
-    (uuid "2edfbf04-ea70-42e2-8ac4-da1f698b89a1")
+    (uuid "df2c5437-f42f-4a08-920b-8d4784aedfa7")
   )
   (label "EN_SYS"
     (at 372.11 46.99 270)
@@ -16781,12 +16608,12 @@
       (font (size 1.27 1.27))
       (justify right bottom)
     )
-    (uuid "09202c49-b312-497a-9c68-557ae5b2b8f2")
+    (uuid "a2a49385-f278-411e-8641-f4eed6441821")
   )
   (wire
     (pts (xy 214.63 82.55) (xy 212.09 82.55))
     (stroke (width 0) (type default))
-    (uuid "8940bc0b-9a57-4d26-9248-8c7336930383")
+    (uuid "7d720486-b656-434c-8f4e-e452439d46c6")
   )
   (label "WAKE_N"
     (at 212.09 82.55 180)
@@ -16795,12 +16622,12 @@
       (font (size 1.27 1.27))
       (justify right bottom)
     )
-    (uuid "61f4c150-b8c5-46ba-8b71-fa33b7e8448c")
+    (uuid "46e664d8-d167-42ac-968c-227b95497a17")
   )
   (wire
     (pts (xy 222.25 87.63) (xy 222.25 95.25))
     (stroke (width 0) (type default))
-    (uuid "49ca42b7-4fb7-4f5b-8913-e40d56f9e6f6")
+    (uuid "64c1ef96-4478-43c8-bfd1-5d39df38af60")
   )
   (symbol
     (lib_id "TrinketCore:VAON")
@@ -16847,7 +16674,7 @@
   (wire
     (pts (xy 222.25 77.47) (xy 222.25 74.93))
     (stroke (width 0) (type default))
-    (uuid "42ea1393-28c2-47f2-96a8-b6927a34aa29")
+    (uuid "4e19024a-d426-4375-a0de-b4882c0a8ff4")
   )
   (label "WAKE_D"
     (at 222.25 74.93 90)
@@ -16856,12 +16683,12 @@
       (font (size 1.27 1.27))
       (justify left bottom)
     )
-    (uuid "499543bf-0529-4b23-b272-7594f01665b9")
+    (uuid "b3bfcf24-1b6d-4390-85fb-f8e2f5e9e4cf")
   )
   (wire
     (pts (xy 240.03 77.47) (xy 240.03 74.93))
     (stroke (width 0) (type default))
-    (uuid "afbbde2a-d1da-45d7-9f2f-1a9cff3b30aa")
+    (uuid "1416a00c-fb7d-4a04-977c-4ed2bcafb214")
   )
   (label "WAKE_D"
     (at 240.03 74.93 90)
@@ -16870,12 +16697,12 @@
       (font (size 1.27 1.27))
       (justify left bottom)
     )
-    (uuid "b6b7c2b8-7793-425e-afca-f00a2a6c10bc")
+    (uuid "d7dd1d47-68bc-4284-980e-d7c797e6dd7e")
   )
   (wire
     (pts (xy 240.03 85.09) (xy 240.03 87.63))
     (stroke (width 0) (type default))
-    (uuid "0c547cea-b220-4a1a-9322-e3da3be46543")
+    (uuid "e98b8f20-2510-43fe-9898-ca71ec6d7559")
   )
   (label "EN_SYS"
     (at 240.03 87.63 270)
@@ -16884,12 +16711,12 @@
       (font (size 1.27 1.27))
       (justify right bottom)
     )
-    (uuid "c459b2f2-5992-4c95-b12f-29e91c330272")
+    (uuid "a39f3a3d-2e33-4780-b906-4a87f0935a7c")
   )
   (wire
     (pts (xy 351.79 71.12) (xy 349.25 71.12))
     (stroke (width 0) (type default))
-    (uuid "8a6acf44-3463-402f-ab9e-f18eba007a9d")
+    (uuid "97fbd179-ad6f-4875-bdbb-9c6c6a4a462f")
   )
   (label "USBON_K"
     (at 349.25 71.12 180)
@@ -16898,12 +16725,12 @@
       (font (size 1.27 1.27))
       (justify right bottom)
     )
-    (uuid "92bed2f7-63aa-44aa-aa00-16a4fc80a746")
+    (uuid "e23d02cf-021f-49b8-af5f-887d346caeca")
   )
   (wire
     (pts (xy 359.41 71.12) (xy 361.95 71.12))
     (stroke (width 0) (type default))
-    (uuid "87121655-6f30-414c-ae1c-d6bef38f88ba")
+    (uuid "a93389b5-60fb-49ce-bb0d-edc4912068c5")
   )
   (symbol
     (lib_id "TrinketCore:VBUS")
@@ -16950,7 +16777,7 @@
   (wire
     (pts (xy 377.19 78.74) (xy 377.19 76.2))
     (stroke (width 0) (type default))
-    (uuid "670b9d8f-fe81-47a4-9ee2-26e202c66730")
+    (uuid "a985781f-f94a-460f-b54d-97eb600cd322")
   )
   (label "USBON_K"
     (at 377.19 76.2 90)
@@ -16959,12 +16786,12 @@
       (font (size 1.27 1.27))
       (justify left bottom)
     )
-    (uuid "25f9fea5-f9bf-43b5-8f63-dd4d8fcd556f")
+    (uuid "dc2f4554-37b1-4204-99c7-ca38ea4f581b")
   )
   (wire
     (pts (xy 377.19 86.36) (xy 377.19 88.9))
     (stroke (width 0) (type default))
-    (uuid "6eea090f-2c37-4eac-9dac-92921709e2ce")
+    (uuid "15895120-42bb-459b-8bb9-63bf82060825")
   )
   (label "USBON_J"
     (at 377.19 88.9 270)
@@ -16973,12 +16800,12 @@
       (font (size 1.27 1.27))
       (justify right bottom)
     )
-    (uuid "3b945cb3-182b-464e-9c4e-0c4ce1d668d3")
+    (uuid "e5f43b4c-87f3-43f2-b9a5-69db4568d0bb")
   )
   (wire
     (pts (xy 214.63 107.95) (xy 212.09 107.95))
     (stroke (width 0) (type default))
-    (uuid "a1fae804-b00d-45d0-bd64-65d17427e1ac")
+    (uuid "cdc5dca4-64cf-44d1-8aa3-497131f94a57")
   )
   (label "USBON_J"
     (at 212.09 107.95 180)
@@ -16987,12 +16814,12 @@
       (font (size 1.27 1.27))
       (justify right bottom)
     )
-    (uuid "1e4bf6ce-7799-47e1-bb6c-c86426ba22f4")
+    (uuid "04e25651-c4b8-48e8-8033-03abdedbdeec")
   )
   (wire
     (pts (xy 222.25 107.95) (xy 224.79 107.95))
     (stroke (width 0) (type default))
-    (uuid "61669c98-a3bd-41a0-b527-eccdf17647fe")
+    (uuid "d95f60cd-34ca-42dc-b62a-bb7a3f96b396")
   )
   (label "EN_SYS"
     (at 224.79 107.95 0)
@@ -17001,12 +16828,12 @@
       (font (size 1.27 1.27))
       (justify left bottom)
     )
-    (uuid "ff03b9d9-4b60-4365-a806-eb65796df160")
+    (uuid "36b48ba5-f058-41c7-bf6e-d1063dfbce99")
   )
   (wire
     (pts (xy 247.65 107.95) (xy 245.11 107.95))
     (stroke (width 0) (type default))
-    (uuid "2e1eeed4-06a4-4702-a0b7-3af894497e6b")
+    (uuid "8a82b00b-8135-4e34-957c-f7b9bafca52f")
   )
   (symbol
     (lib_id "TrinketCore:VAON")
@@ -17053,7 +16880,7 @@
   (wire
     (pts (xy 255.27 107.95) (xy 257.81 107.95))
     (stroke (width 0) (type default))
-    (uuid "0d9ec90a-2925-4e4e-b380-efa3cfde4d6a")
+    (uuid "c2ab076e-afb5-4ddd-bba4-d765cb29e734")
   )
   (label "AON_J"
     (at 257.81 107.95 0)
@@ -17062,12 +16889,12 @@
       (font (size 1.27 1.27))
       (justify left bottom)
     )
-    (uuid "12c766b3-43ac-4244-b801-ab9fc4e66d8d")
+    (uuid "2e2d1f13-838c-4be2-ab8b-22047a4dec31")
   )
   (wire
     (pts (xy 270.51 113.03) (xy 270.51 110.49))
     (stroke (width 0) (type default))
-    (uuid "1ffd3106-861e-4114-8104-db03e2a5d01a")
+    (uuid "076a96c5-3c95-4b17-86d9-65a3b6380a0e")
   )
   (label "AON_J"
     (at 270.51 110.49 90)
@@ -17076,12 +16903,12 @@
       (font (size 1.27 1.27))
       (justify left bottom)
     )
-    (uuid "e5653ab5-2bd4-4a3d-8f21-762e449593f9")
+    (uuid "85c3d47c-3013-4d94-9b26-b489011a4f73")
   )
   (wire
     (pts (xy 270.51 120.65) (xy 270.51 123.19))
     (stroke (width 0) (type default))
-    (uuid "7dbc5277-f58f-40a2-978b-4809cb1f5bc0")
+    (uuid "af6421a7-fe5d-407e-84cf-c09f06a42518")
   )
   (label "EN_SYS"
     (at 270.51 123.19 270)
@@ -17090,12 +16917,12 @@
       (font (size 1.27 1.27))
       (justify right bottom)
     )
-    (uuid "3655d148-b2a3-4991-88fa-1bf3ae9ccfa2")
+    (uuid "858475c4-c615-4a8c-b522-b630620144ff")
   )
   (wire
     (pts (xy 252.73 74.93) (xy 252.73 72.39))
     (stroke (width 0) (type default))
-    (uuid "826a8028-a24a-4508-add3-08ab3b4d6348")
+    (uuid "eee13059-866c-4dc4-b73e-eabfb41c8eef")
   )
   (symbol
     (lib_id "TrinketCore:VAON")
@@ -17142,7 +16969,7 @@
   (wire
     (pts (xy 252.73 82.55) (xy 252.73 85.09))
     (stroke (width 0) (type default))
-    (uuid "8b785cb9-9cbd-445d-970a-7febe1572658")
+    (uuid "4de2e569-1691-4b4f-bf3d-fb46ca0f13d1")
   )
   (label "WAKE_N"
     (at 252.73 85.09 270)
@@ -17151,12 +16978,12 @@
       (font (size 1.27 1.27))
       (justify right bottom)
     )
-    (uuid "5e697e32-8447-482d-b186-47c59df1b15a")
+    (uuid "3afe29c2-d858-434d-a5d2-e36cbe1b77b0")
   )
   (wire
     (pts (xy 273.05 74.93) (xy 270.51 74.93))
     (stroke (width 0) (type default))
-    (uuid "464dd4f4-9a27-407f-9085-b1fc10576e63")
+    (uuid "50eeb25d-8627-4dc5-920b-83b4b1ee0cc6")
   )
   (label "WAKE_N"
     (at 270.51 74.93 180)
@@ -17165,14 +16992,14 @@
       (font (size 1.27 1.27))
       (justify right bottom)
     )
-    (uuid "8e81b61b-6d30-4d6a-bae5-7ad810831a27")
+    (uuid "e9329560-16dd-4e8d-a379-36fad632fdb3")
   )
-  (no_connect (at 283.21 74.93) (uuid "f634c9e0-0796-4068-a344-91983bdd5407"))
-  (no_connect (at 273.05 80.01) (uuid "a86412e3-69e1-46a5-931b-f5dc72e3dcb1"))
+  (no_connect (at 283.21 74.93) (uuid "a4fc4bdf-254a-4ca3-94c0-b52733b7dd28"))
+  (no_connect (at 273.05 80.01) (uuid "8224982c-4760-42ae-963c-70b1c4515565"))
   (wire
     (pts (xy 283.21 80.01) (xy 285.75 80.01))
     (stroke (width 0) (type default))
-    (uuid "7585443b-e491-40b1-bdc6-eb3888322d57")
+    (uuid "e582e394-3f3e-43db-a177-085836add3d9")
   )
   (symbol
     (lib_id "TrinketCore:GND")
@@ -17219,7 +17046,7 @@
   (wire
     (pts (xy 300.99 76.2) (xy 300.99 73.66))
     (stroke (width 0) (type default))
-    (uuid "7bbfa5aa-615d-4743-a701-9ca6631cb0bb")
+    (uuid "0644bd39-9cc9-43e6-a131-3fdb0d0bf923")
   )
   (label "WAKE"
     (at 300.99 73.66 90)
@@ -17228,12 +17055,12 @@
       (font (size 1.27 1.27))
       (justify left bottom)
     )
-    (uuid "67add057-1c8b-468d-a91f-1741d5c39645")
+    (uuid "3634e951-8551-4bdf-9d77-1b434cda1e67")
   )
   (wire
     (pts (xy 300.99 83.82) (xy 300.99 86.36))
     (stroke (width 0) (type default))
-    (uuid "ef10cf4f-502f-48b6-8037-540c3701ef0b")
+    (uuid "f00c3032-d5aa-45bd-9df8-5d2fbc35988a")
   )
   (label "WAKE_N"
     (at 300.99 86.36 270)
@@ -17242,12 +17069,12 @@
       (font (size 1.27 1.27))
       (justify right bottom)
     )
-    (uuid "9f749f98-d0e1-4efe-b0f6-cef9ab6c8216")
+    (uuid "834e32c3-38ab-4aa0-b186-c31b5981b3a3")
   )
   (wire
     (pts (xy 321.31 71.12) (xy 318.77 71.12))
     (stroke (width 0) (type default))
-    (uuid "630b1c2a-d9e2-4139-9bd3-2a17bf6d7259")
+    (uuid "c2302059-d729-421e-b912-19d91205ef34")
   )
   (label "WAKE_N"
     (at 318.77 71.12 180)
@@ -17256,12 +17083,12 @@
       (font (size 1.27 1.27))
       (justify right bottom)
     )
-    (uuid "abfc0569-9cd2-452b-a94f-2dec86f0c01f")
+    (uuid "9b580729-cefb-4b16-9e90-738b01e99b4d")
   )
   (wire
     (pts (xy 328.93 71.12) (xy 331.47 71.12))
     (stroke (width 0) (type default))
-    (uuid "00812f62-884a-417f-853d-96472d7277e8")
+    (uuid "9c5e5a92-542f-4c05-9533-92ffab322c28")
   )
   (label "BTN"
     (at 331.47 71.12 0)
@@ -17270,12 +17097,12 @@
       (font (size 1.27 1.27))
       (justify left bottom)
     )
-    (uuid "b067bc17-43d9-4b1c-9245-5a42529023f7")
+    (uuid "d929f969-9597-4110-9ca1-c1b46ce1aa0b")
   )
   (wire
     (pts (xy 241.3 175.26) (xy 243.84 175.26))
     (stroke (width 0) (type default))
-    (uuid "47305db4-bdb2-4acf-a18c-7e005aa4c768")
+    (uuid "f773a63a-3734-457d-82f0-214c5db7c326")
   )
   (symbol
     (lib_id "TrinketCore:3V3")
@@ -17322,7 +17149,7 @@
   (wire
     (pts (xy 232.41 167.64) (xy 232.41 165.1))
     (stroke (width 0) (type default))
-    (uuid "eb942b85-9b92-474d-baf4-0c82e6be3ba6")
+    (uuid "9d0aab27-b4f2-4d11-99ec-1ff992ec8370")
   )
   (label "LX2"
     (at 232.41 165.1 90)
@@ -17331,12 +17158,12 @@
       (font (size 1.27 1.27))
       (justify left bottom)
     )
-    (uuid "f42da7e9-88ac-4199-be89-d4d24a8dba23")
+    (uuid "8e9578e0-2d4c-4655-8830-15c6ad08016b")
   )
   (wire
     (pts (xy 233.68 193.04) (xy 233.68 195.58))
     (stroke (width 0) (type default))
-    (uuid "035c43cd-3ee2-48f6-9bf9-3293de80f095")
+    (uuid "b347e520-a688-4635-be0e-1946f8fbf7bc")
   )
   (symbol
     (lib_id "TrinketCore:GND")
@@ -17383,7 +17210,7 @@
   (wire
     (pts (xy 224.79 167.64) (xy 224.79 165.1))
     (stroke (width 0) (type default))
-    (uuid "9bf4d008-f67c-4514-9c30-595bfd28a95f")
+    (uuid "c518d372-a0f5-4040-b13f-09c74f311936")
   )
   (label "LX1"
     (at 224.79 165.1 90)
@@ -17392,12 +17219,12 @@
       (font (size 1.27 1.27))
       (justify left bottom)
     )
-    (uuid "c4b49b5c-469c-48d2-ab80-aa443e8fe8c7")
+    (uuid "fc75e74c-69ea-413f-8e72-9c3fa3e7bfd0")
   )
   (wire
     (pts (xy 215.9 175.26) (xy 213.36 175.26))
     (stroke (width 0) (type default))
-    (uuid "0f07f148-6f61-48f6-bad9-faddfd6013f6")
+    (uuid "0aed65f0-515a-42eb-a61c-795d012288a1")
   )
   (symbol
     (lib_id "TrinketCore:VSYS")
@@ -17444,7 +17271,7 @@
   (wire
     (pts (xy 215.9 182.88) (xy 213.36 182.88))
     (stroke (width 0) (type default))
-    (uuid "d88a4134-eb79-4b1f-bbb6-e06a2d81308a")
+    (uuid "e6a8dd93-9b8d-4934-a7eb-e5ecef68c53e")
   )
   (symbol
     (lib_id "TrinketCore:VSYS")
@@ -17491,7 +17318,7 @@
   (wire
     (pts (xy 215.9 185.42) (xy 213.36 185.42))
     (stroke (width 0) (type default))
-    (uuid "1fb372c5-dae9-4c49-857d-9b4e3dc9c22f")
+    (uuid "d283ccf1-a690-43b4-9324-15b97cb41b6a")
   )
   (symbol
     (lib_id "TrinketCore:GND")
@@ -17538,7 +17365,7 @@
   (wire
     (pts (xy 215.9 177.8) (xy 213.36 177.8))
     (stroke (width 0) (type default))
-    (uuid "47e35f7a-7684-4da9-92a1-637f683ce325")
+    (uuid "a30cc109-09a2-4557-bdfa-1c99d1a0b111")
   )
   (symbol
     (lib_id "TrinketCore:VSYS")
@@ -17585,7 +17412,7 @@
   (wire
     (pts (xy 228.6 193.04) (xy 228.6 195.58))
     (stroke (width 0) (type default))
-    (uuid "f512b3c4-e4ab-4551-a407-fb1e8b58fabe")
+    (uuid "88c59d21-655d-48dc-8ed7-4bf7de09a448")
   )
   (symbol
     (lib_id "TrinketCore:GND")
@@ -17632,7 +17459,7 @@
   (wire
     (pts (xy 241.3 177.8) (xy 243.84 177.8))
     (stroke (width 0) (type default))
-    (uuid "ad42f951-0a01-4f99-ac00-17bfd9e27005")
+    (uuid "2407636b-16e8-40e5-a255-ce53be7e8893")
   )
   (symbol
     (lib_id "TrinketCore:3V3")
@@ -17679,7 +17506,7 @@
   (wire
     (pts (xy 259.08 167.64) (xy 259.08 165.1))
     (stroke (width 0) (type default))
-    (uuid "7504bd49-0ba9-46c2-8e7f-bac6fb57cd27")
+    (uuid "abd6eb2e-5a93-47b5-a68c-67dd29de26ad")
   )
   (label "LX1"
     (at 259.08 165.1 90)
@@ -17688,12 +17515,12 @@
       (font (size 1.27 1.27))
       (justify left bottom)
     )
-    (uuid "81daca35-5427-48fd-a3e6-b2eda5dc8dcd")
+    (uuid "096aa882-26cb-4c32-88e8-f1c654294122")
   )
   (wire
     (pts (xy 259.08 175.26) (xy 259.08 177.8))
     (stroke (width 0) (type default))
-    (uuid "b0b1b565-867b-4a37-9457-afa8af3b5949")
+    (uuid "f69b8e23-99b8-4b07-aaee-d711c3ef6674")
   )
   (label "LX2"
     (at 259.08 177.8 270)
@@ -17702,12 +17529,12 @@
       (font (size 1.27 1.27))
       (justify right bottom)
     )
-    (uuid "066d3686-a15e-46aa-b609-82540f39e0b1")
+    (uuid "726e420e-0dcb-4837-8f66-e39d2d8de08b")
   )
   (wire
     (pts (xy 273.05 167.64) (xy 273.05 165.1))
     (stroke (width 0) (type default))
-    (uuid "ed1a12fb-59e1-4e8d-a237-502b9773df37")
+    (uuid "6f65368c-82bd-43e4-a427-d0bb04d5d8e5")
   )
   (symbol
     (lib_id "TrinketCore:VSYS")
@@ -17754,7 +17581,7 @@
   (wire
     (pts (xy 273.05 175.26) (xy 273.05 177.8))
     (stroke (width 0) (type default))
-    (uuid "0226f492-26cd-4ffd-ae32-3d262badd144")
+    (uuid "394a1695-7e37-4b90-9a33-bbdcaa459f74")
   )
   (symbol
     (lib_id "TrinketCore:GND")
@@ -17801,7 +17628,7 @@
   (wire
     (pts (xy 288.29 167.64) (xy 288.29 165.1))
     (stroke (width 0) (type default))
-    (uuid "d4711174-7b3b-4b0e-b5ad-b1c7dfd8dce2")
+    (uuid "7bdac92b-113c-4e6c-9447-e6ef36b4b007")
   )
   (symbol
     (lib_id "TrinketCore:VSYS")
@@ -17848,7 +17675,7 @@
   (wire
     (pts (xy 288.29 175.26) (xy 288.29 177.8))
     (stroke (width 0) (type default))
-    (uuid "2102f9a7-8677-44c3-83a8-7e856763c45b")
+    (uuid "012f4311-8fa2-4b86-bd2b-1f72f6af56b9")
   )
   (symbol
     (lib_id "TrinketCore:GND")
@@ -17895,7 +17722,7 @@
   (wire
     (pts (xy 304.8 167.64) (xy 304.8 165.1))
     (stroke (width 0) (type default))
-    (uuid "cf20fe7e-b407-425d-a823-d26bce6c7faa")
+    (uuid "786e5c7a-bae8-4fe1-bbd6-46c0a8e1f32f")
   )
   (symbol
     (lib_id "TrinketCore:3V3")
@@ -17942,7 +17769,7 @@
   (wire
     (pts (xy 304.8 175.26) (xy 304.8 177.8))
     (stroke (width 0) (type default))
-    (uuid "a04d8257-3573-45e5-a91e-cc1183aea03f")
+    (uuid "79be8aa5-976a-42ba-84dc-1f920ec38619")
   )
   (symbol
     (lib_id "TrinketCore:GND")
@@ -17989,7 +17816,7 @@
   (wire
     (pts (xy 320.04 167.64) (xy 320.04 165.1))
     (stroke (width 0) (type default))
-    (uuid "df8d6d03-9159-4ebb-b17c-b17cceb42c86")
+    (uuid "397b509d-b21f-4946-86b8-a21ef1a383f5")
   )
   (symbol
     (lib_id "TrinketCore:3V3")
@@ -18036,7 +17863,7 @@
   (wire
     (pts (xy 320.04 175.26) (xy 320.04 177.8))
     (stroke (width 0) (type default))
-    (uuid "08248031-c830-46a4-815e-a8257edf7280")
+    (uuid "3434df15-48cb-4a8d-b91f-b270ac83b810")
   )
   (symbol
     (lib_id "TrinketCore:GND")
@@ -18083,7 +17910,7 @@
   (wire
     (pts (xy 335.28 167.64) (xy 335.28 165.1))
     (stroke (width 0) (type default))
-    (uuid "52cebd55-4ded-4c06-8e1a-0bf7ce24f67d")
+    (uuid "dcf85fc1-cab2-4b70-9a06-27b4917b6631")
   )
   (symbol
     (lib_id "TrinketCore:3V3")
@@ -18130,7 +17957,7 @@
   (wire
     (pts (xy 335.28 175.26) (xy 335.28 177.8))
     (stroke (width 0) (type default))
-    (uuid "16b4c5a9-afc4-43e9-b491-8cde2ca8671b")
+    (uuid "ea23f8a7-92bf-41d4-8f20-993f3d60304d")
   )
   (symbol
     (lib_id "TrinketCore:GND")
@@ -18177,7 +18004,7 @@
   (wire
     (pts (xy 350.52 167.64) (xy 350.52 165.1))
     (stroke (width 0) (type default))
-    (uuid "bd309250-e135-4ef0-90ff-c06f7a8b01cf")
+    (uuid "a7739c72-e384-49ca-8126-bee0381b8a2e")
   )
   (symbol
     (lib_id "TrinketCore:VSYS")
@@ -18224,7 +18051,7 @@
   (wire
     (pts (xy 350.52 175.26) (xy 350.52 177.8))
     (stroke (width 0) (type default))
-    (uuid "1eda045d-87f0-49b9-bd8c-ad54dece5a36")
+    (uuid "14257804-8caf-41e0-8234-57721925b8d4")
   )
   (label "VSENSE"
     (at 350.52 177.8 270)
@@ -18233,12 +18060,12 @@
       (font (size 1.27 1.27))
       (justify right bottom)
     )
-    (uuid "47278c59-831d-4f01-b5bf-d425f2c9fc41")
+    (uuid "0920c67a-bb41-4534-a231-62915ca2b34d")
   )
   (wire
     (pts (xy 364.49 171.45) (xy 364.49 168.91))
     (stroke (width 0) (type default))
-    (uuid "f368df70-1d86-473e-81b1-dfac3d42ac16")
+    (uuid "99db440a-007d-454c-b9b2-7d527c651766")
   )
   (label "VSENSE"
     (at 364.49 168.91 90)
@@ -18247,12 +18074,12 @@
       (font (size 1.27 1.27))
       (justify left bottom)
     )
-    (uuid "60b69d99-dc3d-4d28-a010-a2e13837a9ea")
+    (uuid "27cdd797-eb20-48b8-bf40-065355181f3b")
   )
   (wire
     (pts (xy 364.49 179.07) (xy 364.49 181.61))
     (stroke (width 0) (type default))
-    (uuid "2a1623a4-6e70-4190-b965-748adfe96a23")
+    (uuid "293930c9-f7a4-485f-bc22-41432998faa5")
   )
   (symbol
     (lib_id "TrinketCore:GND")
@@ -18299,7 +18126,7 @@
   (wire
     (pts (xy 378.46 171.45) (xy 378.46 168.91))
     (stroke (width 0) (type default))
-    (uuid "ce4dcb60-e258-4564-ae2f-5b1e83737bbe")
+    (uuid "ee88b27a-3698-4548-ba50-ca1a7476a44a")
   )
   (label "VSENSE"
     (at 378.46 168.91 90)
@@ -18308,12 +18135,12 @@
       (font (size 1.27 1.27))
       (justify left bottom)
     )
-    (uuid "128205dd-46f7-4cce-bdbb-905654bf1622")
+    (uuid "bcc3f7e4-d451-452d-944d-a3dceb2ad2ca")
   )
   (wire
     (pts (xy 378.46 179.07) (xy 378.46 181.61))
     (stroke (width 0) (type default))
-    (uuid "4ef4ff62-749a-4d11-8659-b5b4aeb8b2e5")
+    (uuid "95e63813-1562-4e67-92cc-bff30a085393")
   )
   (symbol
     (lib_id "TrinketCore:GND")
@@ -18360,7 +18187,7 @@
   (wire
     (pts (xy 212.09 237.49) (xy 209.55 237.49))
     (stroke (width 0) (type default))
-    (uuid "34982bd6-7e0b-4e76-baeb-8dc42eb7315b")
+    (uuid "6c986e0f-180a-4ba4-b22c-895472db1f04")
   )
   (label "OSCI"
     (at 209.55 237.49 180)
@@ -18369,12 +18196,12 @@
       (font (size 1.27 1.27))
       (justify right bottom)
     )
-    (uuid "5603c691-4c5c-49a6-9c4e-22406e89e0b9")
+    (uuid "a9f68f2f-cbe9-457c-a826-fe40fc4bfa30")
   )
   (wire
     (pts (xy 212.09 247.65) (xy 209.55 247.65))
     (stroke (width 0) (type default))
-    (uuid "d222775c-7e27-41c7-9adf-18e88a773a2f")
+    (uuid "386809c1-c160-4b2c-9a3a-00fbea62a463")
   )
   (label "OSCO"
     (at 209.55 247.65 180)
@@ -18383,12 +18210,12 @@
       (font (size 1.27 1.27))
       (justify right bottom)
     )
-    (uuid "17e6f153-5080-4c6e-a62f-89a900ec54fb")
+    (uuid "7a4dd58f-f3c3-4bd3-b624-81259df7f480")
   )
   (wire
     (pts (xy 232.41 247.65) (xy 234.95 247.65))
     (stroke (width 0) (type default))
-    (uuid "d84761d4-87a8-4587-9d6f-9a43f0b7c043")
+    (uuid "bc94b221-2bc6-4f61-a842-53f9c3709466")
   )
   (label "WAKE_N"
     (at 234.95 247.65 0)
@@ -18397,12 +18224,12 @@
       (font (size 1.27 1.27))
       (justify left bottom)
     )
-    (uuid "c16125c2-80d7-4887-a061-6a66e521f4e6")
+    (uuid "5719ee33-6172-49da-9762-421da6786cf8")
   )
   (wire
     (pts (xy 222.25 252.73) (xy 222.25 255.27))
     (stroke (width 0) (type default))
-    (uuid "4e1a9b02-af40-4925-a087-88fb651e50d0")
+    (uuid "71624668-5b00-4166-954d-ed5478fd8c6d")
   )
   (symbol
     (lib_id "TrinketCore:GND")
@@ -18449,7 +18276,7 @@
   (wire
     (pts (xy 232.41 240.03) (xy 234.95 240.03))
     (stroke (width 0) (type default))
-    (uuid "aba0859a-e393-4dc6-8eda-bc0a0078f743")
+    (uuid "4aa93896-5e50-4eb4-bc1d-8be90b2c6270")
   )
   (label "SDA"
     (at 234.95 240.03 0)
@@ -18458,12 +18285,12 @@
       (font (size 1.27 1.27))
       (justify left bottom)
     )
-    (uuid "e69f3d81-f52b-493d-b7c6-0ce020563bc6")
+    (uuid "54fb480c-ea1c-461e-a686-5004a3591731")
   )
   (wire
     (pts (xy 232.41 237.49) (xy 234.95 237.49))
     (stroke (width 0) (type default))
-    (uuid "90868b04-5a5b-46e4-8b23-715fc4c5a6ce")
+    (uuid "33032fa4-1430-456c-9c03-b953f537cf4c")
   )
   (label "SCL"
     (at 234.95 237.49 0)
@@ -18472,13 +18299,13 @@
       (font (size 1.27 1.27))
       (justify left bottom)
     )
-    (uuid "cc145a2c-a595-48a4-aba1-4e1d56a49d90")
+    (uuid "622423e4-f0f9-4dc1-947f-1a73dcd4546d")
   )
-  (no_connect (at 232.41 245.11) (uuid "dfc6b535-f9fe-4934-b32e-f70fd58b9ed3"))
+  (no_connect (at 232.41 245.11) (uuid "225d59f8-84bb-4bb2-90d9-c03b05491491"))
   (wire
     (pts (xy 222.25 232.41) (xy 222.25 229.87))
     (stroke (width 0) (type default))
-    (uuid "6033272b-f096-48ba-87b3-f0f3e0b88069")
+    (uuid "e7cbd080-80ad-4939-a516-0f6265633ddf")
   )
   (symbol
     (lib_id "TrinketCore:VAON")
@@ -18525,7 +18352,7 @@
   (wire
     (pts (xy 255.27 231.14) (xy 252.73 231.14))
     (stroke (width 0) (type default))
-    (uuid "d3621460-a1d8-45c9-a6c1-c9b0168d7351")
+    (uuid "cd764bea-25f1-4ca3-9e5b-f65bfa38e892")
   )
   (label "OSCI"
     (at 252.73 231.14 180)
@@ -18534,12 +18361,12 @@
       (font (size 1.27 1.27))
       (justify right bottom)
     )
-    (uuid "67b07eab-2180-4a9c-8b52-0f2270a25f49")
+    (uuid "62c19a55-cf8f-4425-914d-7186fa1bd639")
   )
   (wire
     (pts (xy 262.89 231.14) (xy 265.43 231.14))
     (stroke (width 0) (type default))
-    (uuid "afdb186f-88cd-441b-9887-319b6c20176b")
+    (uuid "2b627bf4-0b70-4d39-8071-74465561642d")
   )
   (label "OSCO"
     (at 265.43 231.14 0)
@@ -18548,12 +18375,12 @@
       (font (size 1.27 1.27))
       (justify left bottom)
     )
-    (uuid "94695de4-c6b7-4083-82ca-d53f25382c2f")
+    (uuid "e9bda656-a685-448f-9933-8a92648ffaed")
   )
   (wire
     (pts (xy 278.13 232.41) (xy 278.13 229.87))
     (stroke (width 0) (type default))
-    (uuid "8e06e120-b70c-4c2e-b0c9-db0243661925")
+    (uuid "55755ac9-a925-45ca-9d8c-9687f18ae308")
   )
   (symbol
     (lib_id "TrinketCore:VAON")
@@ -18600,7 +18427,7 @@
   (wire
     (pts (xy 278.13 240.03) (xy 278.13 242.57))
     (stroke (width 0) (type default))
-    (uuid "c0ef646e-c9c8-47df-b59c-808c70429583")
+    (uuid "ef7f81f0-e3df-47fa-9ce2-2f87554c5425")
   )
   (symbol
     (lib_id "TrinketCore:GND")
@@ -18647,7 +18474,7 @@
   (wire
     (pts (xy 293.37 232.41) (xy 293.37 229.87))
     (stroke (width 0) (type default))
-    (uuid "105a6529-8a04-4ddc-8dbc-ec693c452270")
+    (uuid "0f637b4d-c6b4-46fe-bf6e-25a1d9914752")
   )
   (symbol
     (lib_id "TrinketCore:3V3")
@@ -18694,7 +18521,7 @@
   (wire
     (pts (xy 293.37 240.03) (xy 293.37 242.57))
     (stroke (width 0) (type default))
-    (uuid "8c23b047-4322-427c-8d5d-03c3f6c8355a")
+    (uuid "5eb6226a-0c60-499a-9b33-a1414e0823cc")
   )
   (label "SDA"
     (at 293.37 242.57 270)
@@ -18703,12 +18530,12 @@
       (font (size 1.27 1.27))
       (justify right bottom)
     )
-    (uuid "ef37339d-2dd5-443d-b213-b2016fb8421e")
+    (uuid "cc403c46-2c59-48d7-ae76-dda0924a1d8d")
   )
   (wire
     (pts (xy 307.34 232.41) (xy 307.34 229.87))
     (stroke (width 0) (type default))
-    (uuid "700a0d6a-fe68-40e1-a73b-14034153c538")
+    (uuid "7c1c3676-4311-4b78-bdfb-0ae64161b2d2")
   )
   (symbol
     (lib_id "TrinketCore:3V3")
@@ -18755,7 +18582,7 @@
   (wire
     (pts (xy 307.34 240.03) (xy 307.34 242.57))
     (stroke (width 0) (type default))
-    (uuid "b706435b-3236-4f70-b7a8-b474e94f9271")
+    (uuid "f7e8f826-4ee5-4ee9-9d32-a299fd479936")
   )
   (label "SCL"
     (at 307.34 242.57 270)
@@ -18764,12 +18591,12 @@
       (font (size 1.27 1.27))
       (justify right bottom)
     )
-    (uuid "0f117b34-e765-4eb7-ac35-c88d9b599989")
+    (uuid "020038ee-4ddd-42e2-b146-45d11a81892c")
   )
   (wire
     (pts (xy 443.23 40.64) (xy 443.23 33.02))
     (stroke (width 0) (type default))
-    (uuid "97337daf-3cf3-49b5-9187-d24f8d05a8a2")
+    (uuid "621d66fe-d12f-4753-8fa3-d237933dabd1")
   )
   (symbol
     (lib_id "TrinketCore:3V3")
@@ -18816,7 +18643,7 @@
   (wire
     (pts (xy 466.09 48.26) (xy 468.63 48.26))
     (stroke (width 0) (type default))
-    (uuid "0cf58ebb-aaec-4a08-ae21-d7c05fcac1b5")
+    (uuid "d51c9d85-9cff-488b-a0c1-e59e3a3ae3b8")
   )
   (label "GP0"
     (at 468.63 48.26 0)
@@ -18825,12 +18652,12 @@
       (font (size 1.27 1.27))
       (justify left bottom)
     )
-    (uuid "e9578a07-5412-4bdd-b6fc-217decc35595")
+    (uuid "fe14548f-1a72-45f0-8b2d-7e12efd1f7d7")
   )
   (wire
     (pts (xy 466.09 50.8) (xy 468.63 50.8))
     (stroke (width 0) (type default))
-    (uuid "24d02b79-33df-4416-9164-9d896ef33d39")
+    (uuid "caac2a37-a485-4882-9153-5f076061f58b")
   )
   (label "GP1"
     (at 468.63 50.8 0)
@@ -18839,12 +18666,12 @@
       (font (size 1.27 1.27))
       (justify left bottom)
     )
-    (uuid "afdcb552-7a08-448e-b15a-b4ff3f46204e")
+    (uuid "a4d82a16-5a4a-4e5d-b49c-596ffdcb6d09")
   )
   (wire
     (pts (xy 466.09 53.34) (xy 468.63 53.34))
     (stroke (width 0) (type default))
-    (uuid "735359e5-a5d3-4467-9a28-1c58493fbe0c")
+    (uuid "0d914a95-46ef-48b5-baeb-bdf7328e2b85")
   )
   (label "GP2"
     (at 468.63 53.34 0)
@@ -18853,12 +18680,12 @@
       (font (size 1.27 1.27))
       (justify left bottom)
     )
-    (uuid "ff977cf5-717e-4f17-a68e-f9ad8d472d1b")
+    (uuid "1c5a8eae-67b3-491d-b407-82e39a5819ea")
   )
   (wire
     (pts (xy 466.09 55.88) (xy 468.63 55.88))
     (stroke (width 0) (type default))
-    (uuid "87bb8233-4444-4015-9a6a-fe704e430292")
+    (uuid "7e34a77d-b584-4006-bae8-7bf25c82447b")
   )
   (label "GP3"
     (at 468.63 55.88 0)
@@ -18867,12 +18694,12 @@
       (font (size 1.27 1.27))
       (justify left bottom)
     )
-    (uuid "758d8fac-d579-4884-94d1-0daeffd1cca6")
+    (uuid "d08eeae9-bba6-4f5f-9da6-7a9bee3e78de")
   )
   (wire
     (pts (xy 466.09 58.42) (xy 468.63 58.42))
     (stroke (width 0) (type default))
-    (uuid "d4d53428-aec3-4738-afc1-bca4ce41f168")
+    (uuid "0ce3de00-caaa-403b-8e33-68be7a002f7d")
   )
   (label "GP4"
     (at 468.63 58.42 0)
@@ -18881,12 +18708,12 @@
       (font (size 1.27 1.27))
       (justify left bottom)
     )
-    (uuid "d01082c2-b92b-4ce5-a7c2-f3578a4431a8")
+    (uuid "473bd4db-0580-426b-93eb-7b1777b5aaf4")
   )
   (wire
     (pts (xy 466.09 60.96) (xy 468.63 60.96))
     (stroke (width 0) (type default))
-    (uuid "51ade276-7909-4f34-80d9-801d159dff17")
+    (uuid "d4eb9d25-9e2d-4b03-a7f2-04c81a3286a8")
   )
   (label "GP5"
     (at 468.63 60.96 0)
@@ -18895,12 +18722,12 @@
       (font (size 1.27 1.27))
       (justify left bottom)
     )
-    (uuid "f7fceba1-9797-4c5f-ba78-3af823f743f2")
+    (uuid "47643399-5f53-48a2-bcc8-640ddec3de08")
   )
   (wire
     (pts (xy 466.09 63.5) (xy 468.63 63.5))
     (stroke (width 0) (type default))
-    (uuid "8c23a15b-4360-466e-8c60-074447025ba7")
+    (uuid "c529955f-e4c3-43d8-87c8-9ab791100558")
   )
   (label "GP6"
     (at 468.63 63.5 0)
@@ -18909,12 +18736,12 @@
       (font (size 1.27 1.27))
       (justify left bottom)
     )
-    (uuid "ae25cba5-b781-4871-8068-1eeb1f9c4514")
+    (uuid "9f69cce0-a626-4472-b870-67de43c3039e")
   )
   (wire
     (pts (xy 466.09 66.04) (xy 468.63 66.04))
     (stroke (width 0) (type default))
-    (uuid "89f2f97a-a68a-45cd-82bf-88ed7fcb2382")
+    (uuid "d03348d4-002e-4e2c-a771-563e23da6120")
   )
   (label "GP7"
     (at 468.63 66.04 0)
@@ -18923,12 +18750,12 @@
       (font (size 1.27 1.27))
       (justify left bottom)
     )
-    (uuid "38bd2f78-93dd-4d46-bff1-2cd88ae14142")
+    (uuid "39090473-c92c-4f06-8f96-c975af25e8d2")
   )
   (wire
     (pts (xy 466.09 68.58) (xy 468.63 68.58))
     (stroke (width 0) (type default))
-    (uuid "e6201a36-7d96-4152-ae4f-ec01ffe16fbe")
+    (uuid "f9f93fcc-6d32-45c3-acf2-837eb15ed718")
   )
   (label "TFT_CS"
     (at 468.63 68.58 0)
@@ -18937,12 +18764,12 @@
       (font (size 1.27 1.27))
       (justify left bottom)
     )
-    (uuid "b0266d62-f6b6-409c-8895-8eaa5ffd3635")
+    (uuid "9df14451-547a-4803-bd4d-deefcc878382")
   )
   (wire
     (pts (xy 466.09 71.12) (xy 468.63 71.12))
     (stroke (width 0) (type default))
-    (uuid "604a2759-8eb4-4b32-b3c9-d2bd7b38658f")
+    (uuid "9d7e54e8-3ec9-4266-a410-a41d8e2f3267")
   )
   (label "TFT_DC"
     (at 468.63 71.12 0)
@@ -18951,12 +18778,12 @@
       (font (size 1.27 1.27))
       (justify left bottom)
     )
-    (uuid "0e3b129e-c743-4d5c-bf22-c2eed42a63e3")
+    (uuid "700d9747-3783-48b5-8e90-e66d31e2b671")
   )
   (wire
     (pts (xy 466.09 73.66) (xy 468.63 73.66))
     (stroke (width 0) (type default))
-    (uuid "4d856504-4d26-4490-9151-f5afa16b8be2")
+    (uuid "9470a195-4479-4757-96b7-482864272fe7")
   )
   (label "TFT_SCK"
     (at 468.63 73.66 0)
@@ -18965,12 +18792,12 @@
       (font (size 1.27 1.27))
       (justify left bottom)
     )
-    (uuid "253a2d68-ea07-44b1-a897-f2243879df75")
+    (uuid "69e3208f-04dd-44cf-8bc4-a0b84e214698")
   )
   (wire
     (pts (xy 466.09 76.2) (xy 468.63 76.2))
     (stroke (width 0) (type default))
-    (uuid "2e125835-e77e-4f16-8ab3-29e1dbbe289b")
+    (uuid "17421320-7379-422a-be76-54b5f6c0c8c0")
   )
   (label "TFT_MOSI"
     (at 468.63 76.2 0)
@@ -18979,12 +18806,12 @@
       (font (size 1.27 1.27))
       (justify left bottom)
     )
-    (uuid "81debec7-1965-46e8-86ed-0eb52991f99f")
+    (uuid "468a58e7-121a-4a60-a9fd-e68e4c5e9e94")
   )
   (wire
     (pts (xy 466.09 78.74) (xy 468.63 78.74))
     (stroke (width 0) (type default))
-    (uuid "ed431ade-6382-41af-af79-9b05883a84f4")
+    (uuid "002d5f2b-a4f9-45c0-be37-025da1448de9")
   )
   (label "TFT_RST"
     (at 468.63 78.74 0)
@@ -18993,12 +18820,12 @@
       (font (size 1.27 1.27))
       (justify left bottom)
     )
-    (uuid "72ec2cc0-3e8e-45ec-9182-31a4dc57ec46")
+    (uuid "1fe4f75e-0dd8-4944-bf98-08da615e2f48")
   )
   (wire
     (pts (xy 466.09 81.28) (xy 468.63 81.28))
     (stroke (width 0) (type default))
-    (uuid "a558c07c-a9e5-47c1-955a-0ae6086b70f2")
+    (uuid "44bd7af9-ff8f-4ff5-9a7e-894f738d32e9")
   )
   (label "TFT_BLG"
     (at 468.63 81.28 0)
@@ -19007,12 +18834,12 @@
       (font (size 1.27 1.27))
       (justify left bottom)
     )
-    (uuid "bd33026f-b624-4db8-bbe5-547a87fdc7a7")
+    (uuid "c92c789b-e55d-4afa-adef-f7bdd3d7ea24")
   )
   (wire
     (pts (xy 466.09 83.82) (xy 468.63 83.82))
     (stroke (width 0) (type default))
-    (uuid "7dd89ad5-b5f2-4372-8cab-23afd1bd0394")
+    (uuid "c8dbd24d-7b36-41ec-bf44-7f6f6bddda0c")
   )
   (label "BTN_B"
     (at 468.63 83.82 0)
@@ -19021,12 +18848,12 @@
       (font (size 1.27 1.27))
       (justify left bottom)
     )
-    (uuid "5a70140b-ceba-47d3-a733-145212722419")
+    (uuid "ad63f603-628f-4730-aa41-2c9818017e62")
   )
   (wire
     (pts (xy 466.09 86.36) (xy 468.63 86.36))
     (stroke (width 0) (type default))
-    (uuid "626164aa-2d97-49ee-9836-7ef61ca93be1")
+    (uuid "15abdd62-834a-4e62-8d8d-79ced55c74e8")
   )
   (label "SHIP"
     (at 468.63 86.36 0)
@@ -19035,12 +18862,12 @@
       (font (size 1.27 1.27))
       (justify left bottom)
     )
-    (uuid "3ab51afb-3b86-41ab-814d-ddb4c320ae4a")
+    (uuid "cc6fce62-8e80-42f9-aabe-c127597a5165")
   )
   (wire
     (pts (xy 415.29 124.46) (xy 412.75 124.46))
     (stroke (width 0) (type default))
-    (uuid "24e1ae12-81dc-40c2-a91c-daf0ad0b3f16")
+    (uuid "7289db12-cee8-4ecc-9cf9-522643ec9ccb")
   )
   (symbol
     (lib_id "TrinketCore:GND")
@@ -19087,7 +18914,7 @@
   (wire
     (pts (xy 415.29 93.98) (xy 412.75 93.98))
     (stroke (width 0) (type default))
-    (uuid "e4a9c4d5-28c4-4367-bb71-5ccf7f1f2a25")
+    (uuid "d63c8a42-6a13-482f-bd10-bcb8fb47d797")
   )
   (label "XIN"
     (at 412.75 93.98 180)
@@ -19096,12 +18923,12 @@
       (font (size 1.27 1.27))
       (justify right bottom)
     )
-    (uuid "ceb4c540-a66b-4b9d-95b9-0b1646c616d9")
+    (uuid "c3de7934-e4d2-4b82-b367-bdbec478b017")
   )
   (wire
     (pts (xy 415.29 104.14) (xy 412.75 104.14))
     (stroke (width 0) (type default))
-    (uuid "fc812a3e-8838-40ad-b798-6db80b5d2625")
+    (uuid "896132d9-c551-4f06-bccc-19742f016fc9")
   )
   (label "XOUT"
     (at 412.75 104.14 180)
@@ -19110,12 +18937,12 @@
       (font (size 1.27 1.27))
       (justify right bottom)
     )
-    (uuid "a8f01ddd-d6ab-4b1c-8938-0bd1946c353a")
+    (uuid "b7c5a6e8-f355-46ce-86ed-fe5131d8b3d7")
   )
   (wire
     (pts (xy 438.15 40.64) (xy 438.15 33.02))
     (stroke (width 0) (type default))
-    (uuid "0857b644-0283-43f9-8382-1170912cfc08")
+    (uuid "f64e263d-55d5-4be5-aafe-d051453daf88")
   )
   (symbol
     (lib_id "TrinketCore:1V1")
@@ -19162,7 +18989,7 @@
   (wire
     (pts (xy 415.29 114.3) (xy 412.75 114.3))
     (stroke (width 0) (type default))
-    (uuid "bd08aa82-31f0-4734-aa92-2f39f156d445")
+    (uuid "6d1b5c9d-540a-423d-9646-b55025be72c5")
   )
   (label "SWCLK"
     (at 412.75 114.3 180)
@@ -19171,12 +18998,12 @@
       (font (size 1.27 1.27))
       (justify right bottom)
     )
-    (uuid "ace66c22-8158-474a-bbf5-de7377584b87")
+    (uuid "619789cf-948b-402e-915f-66b0b23b522e")
   )
   (wire
     (pts (xy 415.29 116.84) (xy 412.75 116.84))
     (stroke (width 0) (type default))
-    (uuid "f6a5adb1-5045-4c57-b7d3-ab9b972a17e0")
+    (uuid "de31cc69-3c65-4067-a45c-320f6261dbe7")
   )
   (label "SWDIO"
     (at 412.75 116.84 180)
@@ -19185,12 +19012,12 @@
       (font (size 1.27 1.27))
       (justify right bottom)
     )
-    (uuid "6bb19bf2-a785-43d3-b2bd-a06e63864035")
+    (uuid "e6b2f80b-e589-44fd-aafd-f1f896383a03")
   )
   (wire
     (pts (xy 415.29 48.26) (xy 412.75 48.26))
     (stroke (width 0) (type default))
-    (uuid "38cb4d36-022d-4ee0-a08a-188cf7fc244b")
+    (uuid "4014db6c-ac3a-4735-8135-999bc57f99ec")
   )
   (label "RUN"
     (at 412.75 48.26 180)
@@ -19199,12 +19026,12 @@
       (font (size 1.27 1.27))
       (justify right bottom)
     )
-    (uuid "91793072-13ed-4cd3-b9ab-27d7e6645104")
+    (uuid "dfbf8c32-9924-4057-95e6-c6c498fb0944")
   )
   (wire
     (pts (xy 466.09 88.9) (xy 468.63 88.9))
     (stroke (width 0) (type default))
-    (uuid "23518c40-a88a-4cc1-8562-58a3fe3b0fcd")
+    (uuid "d7723cad-3940-427e-9fc0-0e94ef3f862a")
   )
   (label "SDA"
     (at 468.63 88.9 0)
@@ -19213,12 +19040,12 @@
       (font (size 1.27 1.27))
       (justify left bottom)
     )
-    (uuid "eb064c71-856a-4d62-a1c2-acaa5c9e1149")
+    (uuid "acf3ddc5-df61-47b2-ae25-7fe58a916c72")
   )
   (wire
     (pts (xy 466.09 91.44) (xy 468.63 91.44))
     (stroke (width 0) (type default))
-    (uuid "21b5fc68-0072-41eb-8ca0-5d9f3d0396fe")
+    (uuid "3c12dc64-9714-43fc-8ce1-0c67c6e56374")
   )
   (label "SCL"
     (at 468.63 91.44 0)
@@ -19227,12 +19054,12 @@
       (font (size 1.27 1.27))
       (justify left bottom)
     )
-    (uuid "64796f49-3529-43b5-9037-55a645d3f2fc")
+    (uuid "9e29c4b6-22cf-40b1-9274-351ab8c7494f")
   )
   (wire
     (pts (xy 466.09 93.98) (xy 468.63 93.98))
     (stroke (width 0) (type default))
-    (uuid "c1624471-a20d-42bb-b54d-19ff50c540b4")
+    (uuid "11a64d94-8836-468a-937f-1b903849524f")
   )
   (label "I2S_DIN"
     (at 468.63 93.98 0)
@@ -19241,12 +19068,12 @@
       (font (size 1.27 1.27))
       (justify left bottom)
     )
-    (uuid "b768a75d-63c3-442c-9dfa-c91dd32c7b06")
+    (uuid "7b662099-932b-47ec-958c-da1b5c8b9daa")
   )
   (wire
     (pts (xy 466.09 96.52) (xy 468.63 96.52))
     (stroke (width 0) (type default))
-    (uuid "9be7f5bd-6261-42cc-891b-54d9bb1bf88f")
+    (uuid "fa40cee1-80ff-4c05-bae0-39f3c14cc7d0")
   )
   (label "I2S_BCLK"
     (at 468.63 96.52 0)
@@ -19255,12 +19082,12 @@
       (font (size 1.27 1.27))
       (justify left bottom)
     )
-    (uuid "552af4d9-11d7-475a-a85c-6c9372efd3c2")
+    (uuid "977dcacb-7843-42f7-9c1c-36db8feb5608")
   )
   (wire
     (pts (xy 466.09 99.06) (xy 468.63 99.06))
     (stroke (width 0) (type default))
-    (uuid "1aa0f1ee-d6f1-4ab0-ad46-bdf8da7e55f2")
+    (uuid "d31eb1ca-f1e6-4e74-88fa-bb9c008c8dd6")
   )
   (label "I2S_LRCLK"
     (at 468.63 99.06 0)
@@ -19269,12 +19096,12 @@
       (font (size 1.27 1.27))
       (justify left bottom)
     )
-    (uuid "13da93df-61d5-4db5-acd7-54e9a2c719dd")
+    (uuid "8d5e54a3-c643-4634-b9a1-af7c16096dc9")
   )
   (wire
     (pts (xy 466.09 101.6) (xy 468.63 101.6))
     (stroke (width 0) (type default))
-    (uuid "c96d9b2c-5ef0-4cc1-8b43-e660c6b6c486")
+    (uuid "2891be57-b7cc-4251-83de-65ad202cb389")
   )
   (label "AMP_EN"
     (at 468.63 101.6 0)
@@ -19283,12 +19110,12 @@
       (font (size 1.27 1.27))
       (justify left bottom)
     )
-    (uuid "d7d75527-b55d-4cab-ab31-299078f0cafd")
+    (uuid "683786bc-fe12-4ac3-9286-2019bcbd74a0")
   )
   (wire
     (pts (xy 466.09 104.14) (xy 468.63 104.14))
     (stroke (width 0) (type default))
-    (uuid "70d9ad4a-f898-463f-8aef-f9f8560afe31")
+    (uuid "37488163-f644-46d2-b439-9c7a76f90590")
   )
   (label "CHG"
     (at 468.63 104.14 0)
@@ -19297,12 +19124,12 @@
       (font (size 1.27 1.27))
       (justify left bottom)
     )
-    (uuid "6142d850-1d24-4b5a-b8fa-5fb26fe0abff")
+    (uuid "58217865-ace1-41a9-92c6-d5f28eb2af90")
   )
   (wire
     (pts (xy 466.09 106.68) (xy 468.63 106.68))
     (stroke (width 0) (type default))
-    (uuid "7b8fd472-2505-4acd-b378-25bf25cf45a0")
+    (uuid "59104cfd-242e-49c5-83e4-8aa0e6df0681")
   )
   (label "BTN"
     (at 468.63 106.68 0)
@@ -19311,12 +19138,12 @@
       (font (size 1.27 1.27))
       (justify left bottom)
     )
-    (uuid "28de3275-7b6f-4b14-af66-852c69bba3da")
+    (uuid "3f9128eb-569d-4d44-91f3-df1e3925fd7b")
   )
   (wire
     (pts (xy 466.09 109.22) (xy 468.63 109.22))
     (stroke (width 0) (type default))
-    (uuid "f7fd6344-6603-4417-9d34-2dcd38fbf627")
+    (uuid "60e4244e-1ca9-4e99-a0d8-59649df69bf6")
   )
   (label "USB_DET"
     (at 468.63 109.22 0)
@@ -19325,12 +19152,12 @@
       (font (size 1.27 1.27))
       (justify left bottom)
     )
-    (uuid "eaa5f64a-c2a5-41eb-936c-3e5f53b62d14")
+    (uuid "0540dde6-6176-4826-8b97-9c4b6c07ca0a")
   )
   (wire
     (pts (xy 466.09 111.76) (xy 468.63 111.76))
     (stroke (width 0) (type default))
-    (uuid "ea525093-d285-4fbd-95d9-06b965604bd0")
+    (uuid "02ae9fd9-e93a-48cc-81ec-e5e9a9608bd7")
   )
   (label "USER_LED"
     (at 468.63 111.76 0)
@@ -19339,12 +19166,12 @@
       (font (size 1.27 1.27))
       (justify left bottom)
     )
-    (uuid "ecef991b-6dce-4bd3-9c8c-c8428ba28600")
+    (uuid "c15c82ff-6d79-4b25-9511-7cc5bc602cc0")
   )
   (wire
     (pts (xy 466.09 116.84) (xy 468.63 116.84))
     (stroke (width 0) (type default))
-    (uuid "65744f34-a89a-4f6c-bd84-4e657395e1b4")
+    (uuid "42d769a7-12ac-48bb-a428-93f912080dfc")
   )
   (label "HOLD"
     (at 468.63 116.84 0)
@@ -19353,12 +19180,12 @@
       (font (size 1.27 1.27))
       (justify left bottom)
     )
-    (uuid "5940bff5-1427-4a5c-8dde-2544b93f452b")
+    (uuid "c508f0be-0d63-4bd9-9076-833701d25a2d")
   )
   (wire
     (pts (xy 466.09 119.38) (xy 468.63 119.38))
     (stroke (width 0) (type default))
-    (uuid "fb614bdf-9dea-4892-ac5f-29cefc3db94a")
+    (uuid "3d6e4c89-4949-493f-973d-f15c3785debe")
   )
   (label "VSENSE"
     (at 468.63 119.38 0)
@@ -19367,12 +19194,12 @@
       (font (size 1.27 1.27))
       (justify left bottom)
     )
-    (uuid "d5cb6ebe-9cee-4d18-82f5-c30efc1a434e")
+    (uuid "f20877fa-bcab-46ea-a55e-2b3776a33f72")
   )
   (wire
     (pts (xy 466.09 121.92) (xy 468.63 121.92))
     (stroke (width 0) (type default))
-    (uuid "8bb52e4d-5392-439b-85a3-047a9f0c4098")
+    (uuid "475ee75a-9d96-49dd-95a0-0db673063145")
   )
   (label "GP28"
     (at 468.63 121.92 0)
@@ -19381,12 +19208,12 @@
       (font (size 1.27 1.27))
       (justify left bottom)
     )
-    (uuid "1eb698b5-f333-4bf9-beee-ae2a0cb89856")
+    (uuid "d305ede2-4ff9-452e-9b76-e337b69365f1")
   )
   (wire
     (pts (xy 466.09 124.46) (xy 468.63 124.46))
     (stroke (width 0) (type default))
-    (uuid "467877ce-efcf-4061-9bfe-d539cb538b79")
+    (uuid "d8b51a90-08eb-47eb-af20-f9a79781fd45")
   )
   (label "GP29"
     (at 468.63 124.46 0)
@@ -19395,12 +19222,12 @@
       (font (size 1.27 1.27))
       (justify left bottom)
     )
-    (uuid "e9ab9464-c9be-456e-852a-c995250004a8")
+    (uuid "5afc77c5-2c6a-42d2-be15-b051f7933ffb")
   )
   (wire
     (pts (xy 448.31 40.64) (xy 448.31 33.02))
     (stroke (width 0) (type default))
-    (uuid "818eca71-a6d7-4b19-80a8-8207bd76af1b")
+    (uuid "493acdd9-a086-4f50-b3fa-2b10fc1a84a0")
   )
   (symbol
     (lib_id "TrinketCore:3V3")
@@ -19447,7 +19274,7 @@
   (wire
     (pts (xy 450.85 40.64) (xy 450.85 38.1))
     (stroke (width 0) (type default))
-    (uuid "25ae917c-898e-46af-a118-0b51b3f1cc85")
+    (uuid "e1ec020a-3ccf-43f5-b629-d3b0b1e1f722")
   )
   (symbol
     (lib_id "TrinketCore:3V3")
@@ -19494,7 +19321,7 @@
   (wire
     (pts (xy 435.61 40.64) (xy 435.61 38.1))
     (stroke (width 0) (type default))
-    (uuid "4ddd3b2a-2314-4c1e-a98c-b62b2a4eea2a")
+    (uuid "236570cb-9f80-4aab-af48-a7128e9d5bdf")
   )
   (symbol
     (lib_id "TrinketCore:1V1")
@@ -19541,7 +19368,7 @@
   (wire
     (pts (xy 415.29 58.42) (xy 412.75 58.42))
     (stroke (width 0) (type default))
-    (uuid "f0e05a50-1a40-4712-8029-73d43338f607")
+    (uuid "7efd9ff3-2b92-47a7-9b90-3b14fbda215d")
   )
   (label "USB_DM"
     (at 412.75 58.42 180)
@@ -19550,12 +19377,12 @@
       (font (size 1.27 1.27))
       (justify right bottom)
     )
-    (uuid "3075c9c9-d2a7-48ec-a6bf-8ea7ab772fc6")
+    (uuid "05448530-9e3e-4e8a-bd7a-ecd00507d31e")
   )
   (wire
     (pts (xy 415.29 55.88) (xy 412.75 55.88))
     (stroke (width 0) (type default))
-    (uuid "91b024cd-d4ba-4dc9-a4ec-ac09b606e6ba")
+    (uuid "8e2f037a-ce87-45ab-b500-3193b52367b6")
   )
   (label "USB_DP"
     (at 412.75 55.88 180)
@@ -19564,12 +19391,12 @@
       (font (size 1.27 1.27))
       (justify right bottom)
     )
-    (uuid "805a8416-f8db-44a6-a274-7bfe1fae53e5")
+    (uuid "0b66867a-8235-42d1-b209-5dabba2938d0")
   )
   (wire
     (pts (xy 445.77 40.64) (xy 445.77 38.1))
     (stroke (width 0) (type default))
-    (uuid "1ff2212c-9206-4659-aed5-d5b63cd8218a")
+    (uuid "c658e3de-1aae-40c8-8d1d-3859e054e62a")
   )
   (symbol
     (lib_id "TrinketCore:3V3")
@@ -19616,7 +19443,7 @@
   (wire
     (pts (xy 415.29 78.74) (xy 412.75 78.74))
     (stroke (width 0) (type default))
-    (uuid "afcd98c7-3881-4fe4-b59b-a87bbc618b97")
+    (uuid "621954de-3e3a-4afc-bf70-d6fbed33a887")
   )
   (label "QSPI_SD3"
     (at 412.75 78.74 180)
@@ -19625,12 +19452,12 @@
       (font (size 1.27 1.27))
       (justify right bottom)
     )
-    (uuid "f861bde2-28e9-4a8b-aed2-061deadd18cd")
+    (uuid "c0d1c99c-6f6c-4813-b1a5-0b8bcdef2be3")
   )
   (wire
     (pts (xy 415.29 81.28) (xy 412.75 81.28))
     (stroke (width 0) (type default))
-    (uuid "299bb5d0-5daa-4cf7-9448-765659051167")
+    (uuid "05a71fe9-b5bf-4e6e-957a-2c5e0410c971")
   )
   (label "QSPI_SCLK"
     (at 412.75 81.28 180)
@@ -19639,12 +19466,12 @@
       (font (size 1.27 1.27))
       (justify right bottom)
     )
-    (uuid "fdd8dc25-7d40-4b69-953a-fa7eea229357")
+    (uuid "f7279a63-c5eb-484a-b6e2-a3956f38c56c")
   )
   (wire
     (pts (xy 415.29 71.12) (xy 412.75 71.12))
     (stroke (width 0) (type default))
-    (uuid "18ad43f0-3d86-404c-bcc9-4a507c5effe0")
+    (uuid "eef89097-945f-4404-8a61-7704bf8a78d5")
   )
   (label "QSPI_SD0"
     (at 412.75 71.12 180)
@@ -19653,12 +19480,12 @@
       (font (size 1.27 1.27))
       (justify right bottom)
     )
-    (uuid "a24edb03-1c6e-4118-aa6c-8202e24428dd")
+    (uuid "c6c8bd87-4a7a-4e97-b632-d63b6f2d10a4")
   )
   (wire
     (pts (xy 415.29 76.2) (xy 412.75 76.2))
     (stroke (width 0) (type default))
-    (uuid "16f877d4-f267-4efe-a535-5d42fa3e174e")
+    (uuid "d6524ff6-8c1d-4d98-bb4d-291cebbbf82b")
   )
   (label "QSPI_SD2"
     (at 412.75 76.2 180)
@@ -19667,12 +19494,12 @@
       (font (size 1.27 1.27))
       (justify right bottom)
     )
-    (uuid "705bf3c0-5617-4065-b1bf-a0e4193558dc")
+    (uuid "99a69498-dece-4b6a-a64f-6fd0b5adc0ba")
   )
   (wire
     (pts (xy 415.29 73.66) (xy 412.75 73.66))
     (stroke (width 0) (type default))
-    (uuid "0e57653b-7dee-457a-bf56-b461f1cb79ed")
+    (uuid "bc522922-65a7-4f88-b142-7184d8028836")
   )
   (label "QSPI_SD1"
     (at 412.75 73.66 180)
@@ -19681,12 +19508,12 @@
       (font (size 1.27 1.27))
       (justify right bottom)
     )
-    (uuid "8bf6c495-727e-4adc-b738-81c0b8f7a09a")
+    (uuid "809587e4-4a41-44f7-b38b-bd59435b3eda")
   )
   (wire
     (pts (xy 415.29 66.04) (xy 412.75 66.04))
     (stroke (width 0) (type default))
-    (uuid "2ab81ffc-2f71-45fb-be9d-46ba12ea392b")
+    (uuid "6431f1c6-8291-4398-a472-a1fdd238e840")
   )
   (label "QSPI_SS"
     (at 412.75 66.04 180)
@@ -19695,12 +19522,12 @@
       (font (size 1.27 1.27))
       (justify right bottom)
     )
-    (uuid "bb02191a-8745-4b98-951e-341f9bbfe983")
+    (uuid "7f3f358d-65d8-431e-8421-4b4ce22a3e29")
   )
   (wire
     (pts (xy 440.69 132.08) (xy 440.69 134.62))
     (stroke (width 0) (type default))
-    (uuid "1f05c83b-7c41-459d-8d78-8836562a0a8e")
+    (uuid "d6a31906-899e-4159-83fb-c5d81b574fc9")
   )
   (symbol
     (lib_id "TrinketCore:GND")
@@ -19747,7 +19574,7 @@
   (wire
     (pts (xy 496.57 40.64) (xy 494.03 40.64))
     (stroke (width 0) (type default))
-    (uuid "14f502e9-26f3-4069-8a4e-aa44fc975812")
+    (uuid "d10b0f3c-d57e-4703-9455-d4e061191462")
   )
   (label "QSPI_SS"
     (at 494.03 40.64 180)
@@ -19756,12 +19583,12 @@
       (font (size 1.27 1.27))
       (justify right bottom)
     )
-    (uuid "6dcb9fb9-c20d-401c-92da-a42438d054c6")
+    (uuid "297ce769-f8dd-435d-ab51-0ae6844926ee")
   )
   (wire
     (pts (xy 496.57 48.26) (xy 494.03 48.26))
     (stroke (width 0) (type default))
-    (uuid "d04c0ced-b444-4b69-96c9-7615138848ad")
+    (uuid "ef772d32-4207-4e60-8b3a-d21ee8551887")
   )
   (label "QSPI_SD1"
     (at 494.03 48.26 180)
@@ -19770,12 +19597,12 @@
       (font (size 1.27 1.27))
       (justify right bottom)
     )
-    (uuid "e27413ee-02eb-40c7-8887-4d713a353e09")
+    (uuid "b891e100-ca5f-41b1-b428-ee11fe497f1a")
   )
   (wire
     (pts (xy 496.57 50.8) (xy 494.03 50.8))
     (stroke (width 0) (type default))
-    (uuid "31be13d1-6512-43f5-9f5d-ebe63798e260")
+    (uuid "5a055082-9d0b-4d4a-bed4-7189fd73f987")
   )
   (label "QSPI_SD2"
     (at 494.03 50.8 180)
@@ -19784,12 +19611,12 @@
       (font (size 1.27 1.27))
       (justify right bottom)
     )
-    (uuid "44bff641-6caf-426f-ada3-f7400ab03601")
+    (uuid "d799dd25-39c4-4376-8ef3-f5ecc9f13a5c")
   )
   (wire
     (pts (xy 506.73 60.96) (xy 506.73 63.5))
     (stroke (width 0) (type default))
-    (uuid "14f0cf8b-6aee-444d-96ff-6ee053bea9fa")
+    (uuid "0ae9cee3-e2ca-49df-a3c4-f790d7d88a74")
   )
   (symbol
     (lib_id "TrinketCore:GND")
@@ -19836,7 +19663,7 @@
   (wire
     (pts (xy 496.57 45.72) (xy 494.03 45.72))
     (stroke (width 0) (type default))
-    (uuid "2c376a9e-0371-4bb4-adc1-3ec298200a9c")
+    (uuid "b37a6de0-d278-4c6e-b581-e9873ce79533")
   )
   (label "QSPI_SD0"
     (at 494.03 45.72 180)
@@ -19845,12 +19672,12 @@
       (font (size 1.27 1.27))
       (justify right bottom)
     )
-    (uuid "00e7bb24-230a-44d9-b124-d2b5413f2d0e")
+    (uuid "c96c63e5-f05f-4961-9f7a-7dec99c6ae59")
   )
   (wire
     (pts (xy 496.57 43.18) (xy 494.03 43.18))
     (stroke (width 0) (type default))
-    (uuid "62771bc0-4562-4976-bbc2-f51bd5d27fd9")
+    (uuid "e8949d70-fb27-4f07-a972-0ca9a773a55a")
   )
   (label "QSPI_SCLK"
     (at 494.03 43.18 180)
@@ -19859,12 +19686,12 @@
       (font (size 1.27 1.27))
       (justify right bottom)
     )
-    (uuid "95dc7e03-545e-46ce-9d57-d75451c8676d")
+    (uuid "857107a3-40db-46ff-b4e6-94014510261e")
   )
   (wire
     (pts (xy 496.57 53.34) (xy 494.03 53.34))
     (stroke (width 0) (type default))
-    (uuid "9503ff35-a9df-4ff4-a827-90c6a0bcc106")
+    (uuid "b087ee9c-b49b-4be7-909b-160f6cb2548f")
   )
   (label "QSPI_SD3"
     (at 494.03 53.34 180)
@@ -19873,12 +19700,12 @@
       (font (size 1.27 1.27))
       (justify right bottom)
     )
-    (uuid "e40a824d-f370-4660-922f-b483f3566ec1")
+    (uuid "b138b4d9-3863-4ea9-8d50-38a9ea364889")
   )
   (wire
     (pts (xy 506.73 35.56) (xy 506.73 33.02))
     (stroke (width 0) (type default))
-    (uuid "37305290-808c-4823-93f9-64e310fa218d")
+    (uuid "84bbff8e-27a4-40e4-bca2-577c1306bfda")
   )
   (symbol
     (lib_id "TrinketCore:3V3")
@@ -19925,7 +19752,7 @@
   (wire
     (pts (xy 547.37 40.64) (xy 544.83 40.64))
     (stroke (width 0) (type default))
-    (uuid "b95f8f63-4854-4a65-8084-623480b40095")
+    (uuid "af492058-6cc8-4b56-a079-1d039d030a81")
   )
   (label "XIN"
     (at 544.83 40.64 180)
@@ -19934,12 +19761,12 @@
       (font (size 1.27 1.27))
       (justify right bottom)
     )
-    (uuid "4b337e8e-6e03-4c23-a49f-4e57a159fc45")
+    (uuid "2f1e6cc9-0364-4888-9e26-df08bd18f704")
   )
   (wire
     (pts (xy 551.18 35.56) (xy 551.18 33.02))
     (stroke (width 0) (type default))
-    (uuid "58487038-e7d3-4d9a-bcc8-2e2a2f92afbb")
+    (uuid "96734028-d7e8-4176-a262-854b2bb25dc5")
   )
   (symbol
     (lib_id "TrinketCore:GND")
@@ -19986,7 +19813,7 @@
   (wire
     (pts (xy 554.99 40.64) (xy 557.53 40.64))
     (stroke (width 0) (type default))
-    (uuid "d0acf0f6-ee0f-468b-90b7-06d86babd363")
+    (uuid "c893d90f-9e42-4d63-a32d-b22503664e01")
   )
   (label "XO"
     (at 557.53 40.64 0)
@@ -19995,12 +19822,12 @@
       (font (size 1.27 1.27))
       (justify left bottom)
     )
-    (uuid "04baba9a-b68e-4a95-99ab-7b5c7531125a")
+    (uuid "d9ae9fee-8be5-4b28-8324-a0af6ff49a4d")
   )
   (wire
     (pts (xy 551.18 45.72) (xy 551.18 48.26))
     (stroke (width 0) (type default))
-    (uuid "0d732200-6b43-4e6b-8008-3ce21c60e725")
+    (uuid "f2edbd98-97b5-4950-a972-ed7eeb5f06f6")
   )
   (symbol
     (lib_id "TrinketCore:GND")
@@ -20047,7 +19874,7 @@
   (wire
     (pts (xy 567.69 36.83) (xy 567.69 34.29))
     (stroke (width 0) (type default))
-    (uuid "d2ff4e93-58c9-45c0-a1fc-da19dc94ad9b")
+    (uuid "a0bb5064-fae8-400c-ba39-16b9d51955af")
   )
   (label "XOUT"
     (at 567.69 34.29 90)
@@ -20056,12 +19883,12 @@
       (font (size 1.27 1.27))
       (justify left bottom)
     )
-    (uuid "121db2b5-829e-4124-88ec-1b8b5e1f8527")
+    (uuid "54dad722-87bf-4b0a-b3e7-6686e152091a")
   )
   (wire
     (pts (xy 567.69 44.45) (xy 567.69 46.99))
     (stroke (width 0) (type default))
-    (uuid "c1353a93-3e0e-4f47-8021-3f5ced199aff")
+    (uuid "a0ee4940-1e1c-4507-b93a-872f4dda36fb")
   )
   (label "XO"
     (at 567.69 46.99 270)
@@ -20070,12 +19897,12 @@
       (font (size 1.27 1.27))
       (justify right bottom)
     )
-    (uuid "8196abff-92e2-4710-9f5f-92e0364aab87")
+    (uuid "9b3f1c5a-227f-4346-a30d-fe572ca8dfa4")
   )
   (wire
     (pts (xy 405.13 151.13) (xy 405.13 148.59))
     (stroke (width 0) (type default))
-    (uuid "852281ef-a4af-4d7b-b408-c3da64c92741")
+    (uuid "3c7fabf1-469e-447b-b92a-1f7beab98280")
   )
   (label "XIN"
     (at 405.13 148.59 90)
@@ -20084,12 +19911,12 @@
       (font (size 1.27 1.27))
       (justify left bottom)
     )
-    (uuid "99b10cab-2845-482e-a286-673607c98d9b")
+    (uuid "ac567179-76d2-4fea-93ac-68e0cb48838f")
   )
   (wire
     (pts (xy 405.13 158.75) (xy 405.13 161.29))
     (stroke (width 0) (type default))
-    (uuid "10ae67ba-89d8-4f55-b21a-7175830a634e")
+    (uuid "f2f82704-3482-4189-8e0c-abbab829d9c9")
   )
   (symbol
     (lib_id "TrinketCore:GND")
@@ -20136,7 +19963,7 @@
   (wire
     (pts (xy 420.37 149.86) (xy 420.37 147.32))
     (stroke (width 0) (type default))
-    (uuid "e97212a7-bd39-43f9-9247-b87f20b3298a")
+    (uuid "3a3ea6f6-f63f-4118-8d72-2c0a935d376e")
   )
   (label "XO"
     (at 420.37 147.32 90)
@@ -20145,12 +19972,12 @@
       (font (size 1.27 1.27))
       (justify left bottom)
     )
-    (uuid "49363c24-b613-4464-9313-6cef8b842429")
+    (uuid "6a42ad5f-4515-4870-a649-da9844a9a797")
   )
   (wire
     (pts (xy 420.37 157.48) (xy 420.37 160.02))
     (stroke (width 0) (type default))
-    (uuid "a7a2c639-a9c9-4def-9d54-4fc9e3293169")
+    (uuid "7c2fe8f3-8b3c-451b-aa61-30065192b78b")
   )
   (symbol
     (lib_id "TrinketCore:GND")
@@ -20197,7 +20024,7 @@
   (wire
     (pts (xy 434.34 154.94) (xy 434.34 152.4))
     (stroke (width 0) (type default))
-    (uuid "11b74f24-ff34-4587-abab-e4d9a2241ae2")
+    (uuid "b1c566e2-5a39-465c-a2b2-f89e38cb47de")
   )
   (label "QSPI_SS"
     (at 434.34 152.4 90)
@@ -20206,12 +20033,12 @@
       (font (size 1.27 1.27))
       (justify left bottom)
     )
-    (uuid "4658c794-b5d3-4539-93f5-f137be174874")
+    (uuid "fd79048d-8331-4c57-bdfb-a6e457743910")
   )
   (wire
     (pts (xy 434.34 162.56) (xy 434.34 165.1))
     (stroke (width 0) (type default))
-    (uuid "ccdc5147-7456-4a47-bf25-0f3162976ff9")
+    (uuid "0fccc1da-01d7-4ee2-b9db-1a76eb32fded")
   )
   (label "BOOT_N"
     (at 434.34 165.1 270)
@@ -20220,12 +20047,12 @@
       (font (size 1.27 1.27))
       (justify right bottom)
     )
-    (uuid "afde7b51-542c-41e3-9f73-4a1e6e0a5a25")
+    (uuid "b2b69481-b7db-4e85-b6e7-1552db7c6b35")
   )
   (wire
     (pts (xy 454.66 149.86) (xy 452.12 149.86))
     (stroke (width 0) (type default))
-    (uuid "754d7eca-e12d-47a6-a64c-373476b6e3e9")
+    (uuid "06613adf-ac63-412f-ab13-4c7e6af94b84")
   )
   (label "BOOT_N"
     (at 452.12 149.86 180)
@@ -20234,12 +20061,12 @@
       (font (size 1.27 1.27))
       (justify right bottom)
     )
-    (uuid "d880f61d-75e6-464f-9dd3-7a886aaaebf6")
+    (uuid "a55d8ad8-d3ac-4dee-84d1-4b3fb8087972")
   )
   (wire
     (pts (xy 464.82 149.86) (xy 467.36 149.86))
     (stroke (width 0) (type default))
-    (uuid "e5a8b53f-171a-4151-abdf-846714265be6")
+    (uuid "84c6a3fa-18d8-493c-9665-5ddbab4e1dd5")
   )
   (symbol
     (lib_id "TrinketCore:GND")
@@ -20286,7 +20113,7 @@
   (wire
     (pts (xy 482.6 151.13) (xy 482.6 148.59))
     (stroke (width 0) (type default))
-    (uuid "3677ead6-e2e7-47ad-a20d-c263b3304924")
+    (uuid "70a56e12-ca48-4205-9ffd-6b79ad30fb97")
   )
   (symbol
     (lib_id "TrinketCore:3V3")
@@ -20333,7 +20160,7 @@
   (wire
     (pts (xy 482.6 158.75) (xy 482.6 161.29))
     (stroke (width 0) (type default))
-    (uuid "e5a9ba68-21c9-4f35-8a26-341913111079")
+    (uuid "43dd2f35-5b00-4e70-b261-5b7b37fa1292")
   )
   (label "RUN"
     (at 482.6 161.29 270)
@@ -20342,12 +20169,12 @@
       (font (size 1.27 1.27))
       (justify right bottom)
     )
-    (uuid "dc9468f1-23c5-4176-b627-4083eaa5d6e4")
+    (uuid "07d33c56-5af2-4be3-8bce-bc9e2cf2c1d7")
   )
   (wire
     (pts (xy 499.11 149.86) (xy 496.57 149.86))
     (stroke (width 0) (type default))
-    (uuid "05a11b21-672d-4f20-a8ac-466338fd15b7")
+    (uuid "ed37ce20-893b-4521-9e6e-7d5f46646630")
   )
   (label "RUN"
     (at 496.57 149.86 180)
@@ -20356,12 +20183,12 @@
       (font (size 1.27 1.27))
       (justify right bottom)
     )
-    (uuid "e21f897e-a181-448b-bde5-2f0b2b71276a")
+    (uuid "24f17ee8-262c-4a5a-b3b3-a66e454d719d")
   )
   (wire
     (pts (xy 509.27 149.86) (xy 511.81 149.86))
     (stroke (width 0) (type default))
-    (uuid "9258134e-3cc0-4dee-b83c-0b4924508983")
+    (uuid "9cd11832-7e7c-4399-a2f8-66834c2c4914")
   )
   (symbol
     (lib_id "TrinketCore:GND")
@@ -20406,40 +20233,40 @@
     )
   )
   (wire
-    (pts (xy 556.26 151.13) (xy 556.26 148.59))
+    (pts (xy 527.05 151.13) (xy 527.05 148.59))
     (stroke (width 0) (type default))
-    (uuid "2c0cac13-7053-4d17-ac4d-9eb9a86f1090")
+    (uuid "622b6521-f5dc-4023-b629-2c832e0932f9")
   )
   (symbol
     (lib_id "TrinketCore:3V3")
-    (at 556.26 148.59 0)
+    (at 527.05 148.59 0)
     (unit 1)
     (in_bom yes)
     (on_board yes)
     (dnp no)
     (uuid "fcf99da8-b41e-5091-89d0-4453fc3f4acb")
     (property "Reference" "#PWR101"
-      (at 556.26 148.59 0)
+      (at 527.05 148.59 0)
       (effects
         (font (size 1.27 1.27))
         hide
       )
     )
     (property "Value" "3V3"
-      (at 556.26 144.65 0)
+      (at 527.05 144.65 0)
       (effects
         (font (size 1.27 1.27))
       )
     )
     (property "Footprint" ""
-      (at 556.26 148.59 0)
+      (at 527.05 148.59 0)
       (effects
         (font (size 1.27 1.27))
         hide
       )
     )
     (property "Datasheet" ""
-      (at 556.26 148.59 0)
+      (at 527.05 148.59 0)
       (effects
         (font (size 1.27 1.27))
         hide
@@ -20453,40 +20280,40 @@
     )
   )
   (wire
-    (pts (xy 556.26 158.75) (xy 556.26 161.29))
+    (pts (xy 527.05 158.75) (xy 527.05 161.29))
     (stroke (width 0) (type default))
-    (uuid "f81d2712-3c9b-4875-b87e-126cb1e7a7d2")
+    (uuid "07047a46-3985-46db-939c-8e7e35a68873")
   )
   (symbol
     (lib_id "TrinketCore:GND")
-    (at 556.26 161.29 0)
+    (at 527.05 161.29 0)
     (unit 1)
     (in_bom yes)
     (on_board yes)
     (dnp no)
     (uuid "42398671-d635-5fcc-992c-2ad315b887d5")
     (property "Reference" "#PWR102"
-      (at 556.26 161.29 0)
+      (at 527.05 161.29 0)
       (effects
         (font (size 1.27 1.27))
         hide
       )
     )
     (property "Value" "GND"
-      (at 556.26 165.23 0)
+      (at 527.05 165.23 0)
       (effects
         (font (size 1.27 1.27))
       )
     )
     (property "Footprint" ""
-      (at 556.26 161.29 0)
+      (at 527.05 161.29 0)
       (effects
         (font (size 1.27 1.27))
         hide
       )
     )
     (property "Datasheet" ""
-      (at 556.26 161.29 0)
+      (at 527.05 161.29 0)
       (effects
         (font (size 1.27 1.27))
         hide
@@ -20500,40 +20327,40 @@
     )
   )
   (wire
-    (pts (xy 572.77 151.13) (xy 572.77 148.59))
+    (pts (xy 543.56 151.13) (xy 543.56 148.59))
     (stroke (width 0) (type default))
-    (uuid "539b1f14-5276-477a-9c4a-f5f9d335dfa4")
+    (uuid "fb07f190-d492-49f9-8402-3b07fb43dc11")
   )
   (symbol
     (lib_id "TrinketCore:3V3")
-    (at 572.77 148.59 0)
+    (at 543.56 148.59 0)
     (unit 1)
     (in_bom yes)
     (on_board yes)
     (dnp no)
     (uuid "21b47683-99a5-5240-b699-66484d4d874c")
     (property "Reference" "#PWR103"
-      (at 572.77 148.59 0)
+      (at 543.56 148.59 0)
       (effects
         (font (size 1.27 1.27))
         hide
       )
     )
     (property "Value" "3V3"
-      (at 572.77 144.65 0)
+      (at 543.56 144.65 0)
       (effects
         (font (size 1.27 1.27))
       )
     )
     (property "Footprint" ""
-      (at 572.77 148.59 0)
+      (at 543.56 148.59 0)
       (effects
         (font (size 1.27 1.27))
         hide
       )
     )
     (property "Datasheet" ""
-      (at 572.77 148.59 0)
+      (at 543.56 148.59 0)
       (effects
         (font (size 1.27 1.27))
         hide
@@ -20547,40 +20374,40 @@
     )
   )
   (wire
-    (pts (xy 572.77 158.75) (xy 572.77 161.29))
+    (pts (xy 543.56 158.75) (xy 543.56 161.29))
     (stroke (width 0) (type default))
-    (uuid "268793ce-0bad-4da1-9409-4ffd0c2d9901")
+    (uuid "ae288936-4d8d-4390-b6f2-47c9f66efac3")
   )
   (symbol
     (lib_id "TrinketCore:GND")
-    (at 572.77 161.29 0)
+    (at 543.56 161.29 0)
     (unit 1)
     (in_bom yes)
     (on_board yes)
     (dnp no)
     (uuid "ac1919ce-fd51-5725-9f41-d3feb4f11855")
     (property "Reference" "#PWR104"
-      (at 572.77 161.29 0)
+      (at 543.56 161.29 0)
       (effects
         (font (size 1.27 1.27))
         hide
       )
     )
     (property "Value" "GND"
-      (at 572.77 165.23 0)
+      (at 543.56 165.23 0)
       (effects
         (font (size 1.27 1.27))
       )
     )
     (property "Footprint" ""
-      (at 572.77 161.29 0)
+      (at 543.56 161.29 0)
       (effects
         (font (size 1.27 1.27))
         hide
       )
     )
     (property "Datasheet" ""
-      (at 572.77 161.29 0)
+      (at 543.56 161.29 0)
       (effects
         (font (size 1.27 1.27))
         hide
@@ -20594,9 +20421,103 @@
     )
   )
   (wire
+    (pts (xy 560.07 151.13) (xy 560.07 148.59))
+    (stroke (width 0) (type default))
+    (uuid "518dc521-1a2b-43fa-b8aa-f6b3d065615b")
+  )
+  (symbol
+    (lib_id "TrinketCore:3V3")
+    (at 560.07 148.59 0)
+    (unit 1)
+    (in_bom yes)
+    (on_board yes)
+    (dnp no)
+    (uuid "64dad22e-c8a8-5412-a27c-4f533479db99")
+    (property "Reference" "#PWR105"
+      (at 560.07 148.59 0)
+      (effects
+        (font (size 1.27 1.27))
+        hide
+      )
+    )
+    (property "Value" "3V3"
+      (at 560.07 144.65 0)
+      (effects
+        (font (size 1.27 1.27))
+      )
+    )
+    (property "Footprint" ""
+      (at 560.07 148.59 0)
+      (effects
+        (font (size 1.27 1.27))
+        hide
+      )
+    )
+    (property "Datasheet" ""
+      (at 560.07 148.59 0)
+      (effects
+        (font (size 1.27 1.27))
+        hide
+      )
+    )
+    (pin "1" (uuid "6d00c14a-93a8-5398-993b-8fbd83714283"))
+    (instances
+      (project "trinketcore"
+        (path "/c13d3038-5a97-5998-a0d9-49589b9b1453" (reference "#PWR105") (unit 1))
+      )
+    )
+  )
+  (wire
+    (pts (xy 560.07 158.75) (xy 560.07 161.29))
+    (stroke (width 0) (type default))
+    (uuid "032f5fc6-215f-470a-83f6-245d3c038497")
+  )
+  (symbol
+    (lib_id "TrinketCore:GND")
+    (at 560.07 161.29 0)
+    (unit 1)
+    (in_bom yes)
+    (on_board yes)
+    (dnp no)
+    (uuid "e96c6c8a-43da-57ba-8503-5f0584bfa44a")
+    (property "Reference" "#PWR106"
+      (at 560.07 161.29 0)
+      (effects
+        (font (size 1.27 1.27))
+        hide
+      )
+    )
+    (property "Value" "GND"
+      (at 560.07 165.23 0)
+      (effects
+        (font (size 1.27 1.27))
+      )
+    )
+    (property "Footprint" ""
+      (at 560.07 161.29 0)
+      (effects
+        (font (size 1.27 1.27))
+        hide
+      )
+    )
+    (property "Datasheet" ""
+      (at 560.07 161.29 0)
+      (effects
+        (font (size 1.27 1.27))
+        hide
+      )
+    )
+    (pin "1" (uuid "172505c5-3e5b-5719-a475-0d93f9eb724e"))
+    (instances
+      (project "trinketcore"
+        (path "/c13d3038-5a97-5998-a0d9-49589b9b1453" (reference "#PWR106") (unit 1))
+      )
+    )
+  )
+  (wire
     (pts (xy 405.13 184.15) (xy 405.13 181.61))
     (stroke (width 0) (type default))
-    (uuid "55cdba61-e283-4dc1-82fe-3eb5b5fd39ca")
+    (uuid "cd1ceaaf-d1a9-4120-b1b0-611b9ea4a251")
   )
   (symbol
     (lib_id "TrinketCore:3V3")
@@ -20605,8 +20526,8 @@
     (in_bom yes)
     (on_board yes)
     (dnp no)
-    (uuid "64dad22e-c8a8-5412-a27c-4f533479db99")
-    (property "Reference" "#PWR105"
+    (uuid "c4b1f9f7-2fed-5b09-a4f7-296bee3c7152")
+    (property "Reference" "#PWR107"
       (at 405.13 181.61 0)
       (effects
         (font (size 1.27 1.27))
@@ -20633,17 +20554,17 @@
         hide
       )
     )
-    (pin "1" (uuid "6d00c14a-93a8-5398-993b-8fbd83714283"))
+    (pin "1" (uuid "11e6d795-c30b-580a-840d-af4aed426357"))
     (instances
       (project "trinketcore"
-        (path "/c13d3038-5a97-5998-a0d9-49589b9b1453" (reference "#PWR105") (unit 1))
+        (path "/c13d3038-5a97-5998-a0d9-49589b9b1453" (reference "#PWR107") (unit 1))
       )
     )
   )
   (wire
     (pts (xy 405.13 191.77) (xy 405.13 194.31))
     (stroke (width 0) (type default))
-    (uuid "e39368d6-043c-4d16-a6a4-d32f658683ab")
+    (uuid "7d589348-ad5a-41dc-9987-d5af232d4ce6")
   )
   (symbol
     (lib_id "TrinketCore:GND")
@@ -20652,8 +20573,8 @@
     (in_bom yes)
     (on_board yes)
     (dnp no)
-    (uuid "e96c6c8a-43da-57ba-8503-5f0584bfa44a")
-    (property "Reference" "#PWR106"
+    (uuid "10e4b925-dc15-54b1-946c-7dec494a55d7")
+    (property "Reference" "#PWR108"
       (at 405.13 194.31 0)
       (effects
         (font (size 1.27 1.27))
@@ -20680,17 +20601,17 @@
         hide
       )
     )
-    (pin "1" (uuid "172505c5-3e5b-5719-a475-0d93f9eb724e"))
+    (pin "1" (uuid "1f09160b-c9a1-5bd7-bc48-1baf0c28cc9b"))
     (instances
       (project "trinketcore"
-        (path "/c13d3038-5a97-5998-a0d9-49589b9b1453" (reference "#PWR106") (unit 1))
+        (path "/c13d3038-5a97-5998-a0d9-49589b9b1453" (reference "#PWR108") (unit 1))
       )
     )
   )
   (wire
     (pts (xy 421.64 184.15) (xy 421.64 181.61))
     (stroke (width 0) (type default))
-    (uuid "3c479fda-6393-45ac-9afa-a6e0b256f495")
+    (uuid "b7c95c11-77e2-4c9a-9d72-9dc1f2d695cd")
   )
   (symbol
     (lib_id "TrinketCore:3V3")
@@ -20699,8 +20620,8 @@
     (in_bom yes)
     (on_board yes)
     (dnp no)
-    (uuid "c4b1f9f7-2fed-5b09-a4f7-296bee3c7152")
-    (property "Reference" "#PWR107"
+    (uuid "7351f3ca-1b43-5bf4-acbe-e7b85b361c98")
+    (property "Reference" "#PWR109"
       (at 421.64 181.61 0)
       (effects
         (font (size 1.27 1.27))
@@ -20727,17 +20648,17 @@
         hide
       )
     )
-    (pin "1" (uuid "11e6d795-c30b-580a-840d-af4aed426357"))
+    (pin "1" (uuid "e7192b3c-61e1-5971-bc44-fa0a80fbd105"))
     (instances
       (project "trinketcore"
-        (path "/c13d3038-5a97-5998-a0d9-49589b9b1453" (reference "#PWR107") (unit 1))
+        (path "/c13d3038-5a97-5998-a0d9-49589b9b1453" (reference "#PWR109") (unit 1))
       )
     )
   )
   (wire
     (pts (xy 421.64 191.77) (xy 421.64 194.31))
     (stroke (width 0) (type default))
-    (uuid "7ad7de41-176d-47aa-a0e5-bd634194f8f4")
+    (uuid "c84ba5be-3798-4a0a-897a-0dc59f6dfe56")
   )
   (symbol
     (lib_id "TrinketCore:GND")
@@ -20746,8 +20667,8 @@
     (in_bom yes)
     (on_board yes)
     (dnp no)
-    (uuid "10e4b925-dc15-54b1-946c-7dec494a55d7")
-    (property "Reference" "#PWR108"
+    (uuid "07fed59c-e79c-59b7-aa2e-712a061f7d1b")
+    (property "Reference" "#PWR110"
       (at 421.64 194.31 0)
       (effects
         (font (size 1.27 1.27))
@@ -20774,17 +20695,17 @@
         hide
       )
     )
-    (pin "1" (uuid "1f09160b-c9a1-5bd7-bc48-1baf0c28cc9b"))
+    (pin "1" (uuid "4c47f598-bbd9-5308-a907-60e74cdffe5e"))
     (instances
       (project "trinketcore"
-        (path "/c13d3038-5a97-5998-a0d9-49589b9b1453" (reference "#PWR108") (unit 1))
+        (path "/c13d3038-5a97-5998-a0d9-49589b9b1453" (reference "#PWR110") (unit 1))
       )
     )
   )
   (wire
     (pts (xy 438.15 184.15) (xy 438.15 181.61))
     (stroke (width 0) (type default))
-    (uuid "41f26e0d-f810-48ed-bc27-6edf09ade6cf")
+    (uuid "6eb12829-5a64-421a-b6c9-34e89abcb89b")
   )
   (symbol
     (lib_id "TrinketCore:3V3")
@@ -20793,8 +20714,8 @@
     (in_bom yes)
     (on_board yes)
     (dnp no)
-    (uuid "7351f3ca-1b43-5bf4-acbe-e7b85b361c98")
-    (property "Reference" "#PWR109"
+    (uuid "a7435538-d021-56fe-981a-3265843f28c1")
+    (property "Reference" "#PWR111"
       (at 438.15 181.61 0)
       (effects
         (font (size 1.27 1.27))
@@ -20821,17 +20742,17 @@
         hide
       )
     )
-    (pin "1" (uuid "e7192b3c-61e1-5971-bc44-fa0a80fbd105"))
+    (pin "1" (uuid "f31607eb-0c06-5ca3-a251-0898bda11b6e"))
     (instances
       (project "trinketcore"
-        (path "/c13d3038-5a97-5998-a0d9-49589b9b1453" (reference "#PWR109") (unit 1))
+        (path "/c13d3038-5a97-5998-a0d9-49589b9b1453" (reference "#PWR111") (unit 1))
       )
     )
   )
   (wire
     (pts (xy 438.15 191.77) (xy 438.15 194.31))
     (stroke (width 0) (type default))
-    (uuid "adf076d2-d7cd-4957-9060-a55dfe328c97")
+    (uuid "f6d50623-cbd3-429d-8f28-6d6cdb093209")
   )
   (symbol
     (lib_id "TrinketCore:GND")
@@ -20840,8 +20761,8 @@
     (in_bom yes)
     (on_board yes)
     (dnp no)
-    (uuid "07fed59c-e79c-59b7-aa2e-712a061f7d1b")
-    (property "Reference" "#PWR110"
+    (uuid "1dee7ee6-beeb-556b-bfe3-bd13cef26c44")
+    (property "Reference" "#PWR112"
       (at 438.15 194.31 0)
       (effects
         (font (size 1.27 1.27))
@@ -20868,17 +20789,17 @@
         hide
       )
     )
-    (pin "1" (uuid "4c47f598-bbd9-5308-a907-60e74cdffe5e"))
+    (pin "1" (uuid "3cedee61-4edd-536e-a3cb-a6effe7bc734"))
     (instances
       (project "trinketcore"
-        (path "/c13d3038-5a97-5998-a0d9-49589b9b1453" (reference "#PWR110") (unit 1))
+        (path "/c13d3038-5a97-5998-a0d9-49589b9b1453" (reference "#PWR112") (unit 1))
       )
     )
   )
   (wire
     (pts (xy 454.66 184.15) (xy 454.66 181.61))
     (stroke (width 0) (type default))
-    (uuid "19efb9ac-8fb4-4772-b00a-2618663b70f7")
+    (uuid "d12646d9-bfb7-453c-bf28-d2d0f26f93ce")
   )
   (symbol
     (lib_id "TrinketCore:3V3")
@@ -20887,8 +20808,8 @@
     (in_bom yes)
     (on_board yes)
     (dnp no)
-    (uuid "a7435538-d021-56fe-981a-3265843f28c1")
-    (property "Reference" "#PWR111"
+    (uuid "3e56f7c2-9f42-5acb-a741-7ccb9ab14e8b")
+    (property "Reference" "#PWR113"
       (at 454.66 181.61 0)
       (effects
         (font (size 1.27 1.27))
@@ -20915,17 +20836,17 @@
         hide
       )
     )
-    (pin "1" (uuid "f31607eb-0c06-5ca3-a251-0898bda11b6e"))
+    (pin "1" (uuid "0cd587bc-8daa-542d-9e16-43a71ce30fb9"))
     (instances
       (project "trinketcore"
-        (path "/c13d3038-5a97-5998-a0d9-49589b9b1453" (reference "#PWR111") (unit 1))
+        (path "/c13d3038-5a97-5998-a0d9-49589b9b1453" (reference "#PWR113") (unit 1))
       )
     )
   )
   (wire
     (pts (xy 454.66 191.77) (xy 454.66 194.31))
     (stroke (width 0) (type default))
-    (uuid "dcd79f2b-b0f4-40cb-93a0-cb95df5e7057")
+    (uuid "2050021e-9064-4004-ae01-f008cc721433")
   )
   (symbol
     (lib_id "TrinketCore:GND")
@@ -20934,8 +20855,8 @@
     (in_bom yes)
     (on_board yes)
     (dnp no)
-    (uuid "1dee7ee6-beeb-556b-bfe3-bd13cef26c44")
-    (property "Reference" "#PWR112"
+    (uuid "1de0a918-4e3a-5de6-96fc-4f32d0d57104")
+    (property "Reference" "#PWR114"
       (at 454.66 194.31 0)
       (effects
         (font (size 1.27 1.27))
@@ -20962,17 +20883,17 @@
         hide
       )
     )
-    (pin "1" (uuid "3cedee61-4edd-536e-a3cb-a6effe7bc734"))
+    (pin "1" (uuid "0fd91e70-8c69-57bb-9767-f4322534a3ef"))
     (instances
       (project "trinketcore"
-        (path "/c13d3038-5a97-5998-a0d9-49589b9b1453" (reference "#PWR112") (unit 1))
+        (path "/c13d3038-5a97-5998-a0d9-49589b9b1453" (reference "#PWR114") (unit 1))
       )
     )
   )
   (wire
     (pts (xy 471.17 184.15) (xy 471.17 181.61))
     (stroke (width 0) (type default))
-    (uuid "f0370683-9167-4986-a401-8ebf52a74f02")
+    (uuid "c77350fe-465a-4f7b-aac2-d8eba4aad7f1")
   )
   (symbol
     (lib_id "TrinketCore:3V3")
@@ -20981,8 +20902,8 @@
     (in_bom yes)
     (on_board yes)
     (dnp no)
-    (uuid "3e56f7c2-9f42-5acb-a741-7ccb9ab14e8b")
-    (property "Reference" "#PWR113"
+    (uuid "54769065-e388-55f5-aab5-5f661923c6fd")
+    (property "Reference" "#PWR115"
       (at 471.17 181.61 0)
       (effects
         (font (size 1.27 1.27))
@@ -21009,17 +20930,17 @@
         hide
       )
     )
-    (pin "1" (uuid "0cd587bc-8daa-542d-9e16-43a71ce30fb9"))
+    (pin "1" (uuid "b5bd4d2d-9a53-5780-8ff7-bdedfe01dd47"))
     (instances
       (project "trinketcore"
-        (path "/c13d3038-5a97-5998-a0d9-49589b9b1453" (reference "#PWR113") (unit 1))
+        (path "/c13d3038-5a97-5998-a0d9-49589b9b1453" (reference "#PWR115") (unit 1))
       )
     )
   )
   (wire
     (pts (xy 471.17 191.77) (xy 471.17 194.31))
     (stroke (width 0) (type default))
-    (uuid "884cd6ad-2e00-4a90-85fa-8e8f61660ca7")
+    (uuid "2a5b4695-ad10-451f-9bd8-950e19b07661")
   )
   (symbol
     (lib_id "TrinketCore:GND")
@@ -21028,8 +20949,8 @@
     (in_bom yes)
     (on_board yes)
     (dnp no)
-    (uuid "1de0a918-4e3a-5de6-96fc-4f32d0d57104")
-    (property "Reference" "#PWR114"
+    (uuid "18c98ce2-db05-54e4-a504-947062665e56")
+    (property "Reference" "#PWR116"
       (at 471.17 194.31 0)
       (effects
         (font (size 1.27 1.27))
@@ -21056,17 +20977,17 @@
         hide
       )
     )
-    (pin "1" (uuid "0fd91e70-8c69-57bb-9767-f4322534a3ef"))
+    (pin "1" (uuid "aa54172f-63f6-571c-a35f-509678d1b74f"))
     (instances
       (project "trinketcore"
-        (path "/c13d3038-5a97-5998-a0d9-49589b9b1453" (reference "#PWR114") (unit 1))
+        (path "/c13d3038-5a97-5998-a0d9-49589b9b1453" (reference "#PWR116") (unit 1))
       )
     )
   )
   (wire
     (pts (xy 487.68 184.15) (xy 487.68 181.61))
     (stroke (width 0) (type default))
-    (uuid "ee905769-a378-4654-9c7a-c92236dc0c3c")
+    (uuid "cc81f512-436a-48c8-a9de-3ded0203d8a4")
   )
   (symbol
     (lib_id "TrinketCore:3V3")
@@ -21075,8 +20996,8 @@
     (in_bom yes)
     (on_board yes)
     (dnp no)
-    (uuid "54769065-e388-55f5-aab5-5f661923c6fd")
-    (property "Reference" "#PWR115"
+    (uuid "dd46d30e-774b-5be2-8fcb-bb412848c523")
+    (property "Reference" "#PWR117"
       (at 487.68 181.61 0)
       (effects
         (font (size 1.27 1.27))
@@ -21103,17 +21024,17 @@
         hide
       )
     )
-    (pin "1" (uuid "b5bd4d2d-9a53-5780-8ff7-bdedfe01dd47"))
+    (pin "1" (uuid "c8b44220-32ab-5705-8e2c-02918db1870d"))
     (instances
       (project "trinketcore"
-        (path "/c13d3038-5a97-5998-a0d9-49589b9b1453" (reference "#PWR115") (unit 1))
+        (path "/c13d3038-5a97-5998-a0d9-49589b9b1453" (reference "#PWR117") (unit 1))
       )
     )
   )
   (wire
     (pts (xy 487.68 191.77) (xy 487.68 194.31))
     (stroke (width 0) (type default))
-    (uuid "573e5e0a-f835-4e21-9450-fd875773ec05")
+    (uuid "b7852b03-b084-40bc-ab41-e8e7be426159")
   )
   (symbol
     (lib_id "TrinketCore:GND")
@@ -21122,8 +21043,8 @@
     (in_bom yes)
     (on_board yes)
     (dnp no)
-    (uuid "18c98ce2-db05-54e4-a504-947062665e56")
-    (property "Reference" "#PWR116"
+    (uuid "a8196807-3f0d-521c-a6db-03e6960dfd4b")
+    (property "Reference" "#PWR118"
       (at 487.68 194.31 0)
       (effects
         (font (size 1.27 1.27))
@@ -21150,100 +21071,6 @@
         hide
       )
     )
-    (pin "1" (uuid "aa54172f-63f6-571c-a35f-509678d1b74f"))
-    (instances
-      (project "trinketcore"
-        (path "/c13d3038-5a97-5998-a0d9-49589b9b1453" (reference "#PWR116") (unit 1))
-      )
-    )
-  )
-  (wire
-    (pts (xy 504.19 184.15) (xy 504.19 181.61))
-    (stroke (width 0) (type default))
-    (uuid "7d1b54ec-41d4-43f0-8782-14a19e7b284a")
-  )
-  (symbol
-    (lib_id "TrinketCore:3V3")
-    (at 504.19 181.61 0)
-    (unit 1)
-    (in_bom yes)
-    (on_board yes)
-    (dnp no)
-    (uuid "dd46d30e-774b-5be2-8fcb-bb412848c523")
-    (property "Reference" "#PWR117"
-      (at 504.19 181.61 0)
-      (effects
-        (font (size 1.27 1.27))
-        hide
-      )
-    )
-    (property "Value" "3V3"
-      (at 504.19 177.67 0)
-      (effects
-        (font (size 1.27 1.27))
-      )
-    )
-    (property "Footprint" ""
-      (at 504.19 181.61 0)
-      (effects
-        (font (size 1.27 1.27))
-        hide
-      )
-    )
-    (property "Datasheet" ""
-      (at 504.19 181.61 0)
-      (effects
-        (font (size 1.27 1.27))
-        hide
-      )
-    )
-    (pin "1" (uuid "c8b44220-32ab-5705-8e2c-02918db1870d"))
-    (instances
-      (project "trinketcore"
-        (path "/c13d3038-5a97-5998-a0d9-49589b9b1453" (reference "#PWR117") (unit 1))
-      )
-    )
-  )
-  (wire
-    (pts (xy 504.19 191.77) (xy 504.19 194.31))
-    (stroke (width 0) (type default))
-    (uuid "0c2b8941-f708-4bf2-87ec-21e33208c64f")
-  )
-  (symbol
-    (lib_id "TrinketCore:GND")
-    (at 504.19 194.31 0)
-    (unit 1)
-    (in_bom yes)
-    (on_board yes)
-    (dnp no)
-    (uuid "a8196807-3f0d-521c-a6db-03e6960dfd4b")
-    (property "Reference" "#PWR118"
-      (at 504.19 194.31 0)
-      (effects
-        (font (size 1.27 1.27))
-        hide
-      )
-    )
-    (property "Value" "GND"
-      (at 504.19 198.25 0)
-      (effects
-        (font (size 1.27 1.27))
-      )
-    )
-    (property "Footprint" ""
-      (at 504.19 194.31 0)
-      (effects
-        (font (size 1.27 1.27))
-        hide
-      )
-    )
-    (property "Datasheet" ""
-      (at 504.19 194.31 0)
-      (effects
-        (font (size 1.27 1.27))
-        hide
-      )
-    )
     (pin "1" (uuid "1b2fd76e-a26a-534e-afe6-60e49bfb2a02"))
     (instances
       (project "trinketcore"
@@ -21252,40 +21079,40 @@
     )
   )
   (wire
-    (pts (xy 518.16 184.15) (xy 518.16 181.61))
+    (pts (xy 501.65 184.15) (xy 501.65 181.61))
     (stroke (width 0) (type default))
-    (uuid "178d7c72-f1c0-4345-b364-c4e3062188e4")
+    (uuid "27e920b1-2293-4cbf-a3e6-f468e3be8942")
   )
   (symbol
     (lib_id "TrinketCore:1V1")
-    (at 518.16 181.61 0)
+    (at 501.65 181.61 0)
     (unit 1)
     (in_bom yes)
     (on_board yes)
     (dnp no)
     (uuid "be037104-5906-53d2-b3ef-a7b512711e49")
     (property "Reference" "#PWR119"
-      (at 518.16 181.61 0)
+      (at 501.65 181.61 0)
       (effects
         (font (size 1.27 1.27))
         hide
       )
     )
     (property "Value" "1V1"
-      (at 518.16 177.67 0)
+      (at 501.65 177.67 0)
       (effects
         (font (size 1.27 1.27))
       )
     )
     (property "Footprint" ""
-      (at 518.16 181.61 0)
+      (at 501.65 181.61 0)
       (effects
         (font (size 1.27 1.27))
         hide
       )
     )
     (property "Datasheet" ""
-      (at 518.16 181.61 0)
+      (at 501.65 181.61 0)
       (effects
         (font (size 1.27 1.27))
         hide
@@ -21299,40 +21126,40 @@
     )
   )
   (wire
-    (pts (xy 518.16 191.77) (xy 518.16 194.31))
+    (pts (xy 501.65 191.77) (xy 501.65 194.31))
     (stroke (width 0) (type default))
-    (uuid "e9b04754-a17b-47c3-97c9-99bc66e51a84")
+    (uuid "075577dc-80eb-4222-b32c-25f70dc1e648")
   )
   (symbol
     (lib_id "TrinketCore:GND")
-    (at 518.16 194.31 0)
+    (at 501.65 194.31 0)
     (unit 1)
     (in_bom yes)
     (on_board yes)
     (dnp no)
     (uuid "7468d2b8-1424-54cd-925a-5b62c977a8f5")
     (property "Reference" "#PWR120"
-      (at 518.16 194.31 0)
+      (at 501.65 194.31 0)
       (effects
         (font (size 1.27 1.27))
         hide
       )
     )
     (property "Value" "GND"
-      (at 518.16 198.25 0)
+      (at 501.65 198.25 0)
       (effects
         (font (size 1.27 1.27))
       )
     )
     (property "Footprint" ""
-      (at 518.16 194.31 0)
+      (at 501.65 194.31 0)
       (effects
         (font (size 1.27 1.27))
         hide
       )
     )
     (property "Datasheet" ""
-      (at 518.16 194.31 0)
+      (at 501.65 194.31 0)
       (effects
         (font (size 1.27 1.27))
         hide
@@ -21346,9 +21173,103 @@
     )
   )
   (wire
+    (pts (xy 515.62 184.15) (xy 515.62 181.61))
+    (stroke (width 0) (type default))
+    (uuid "ac8ab79d-cd46-45c4-b2cb-6db4c7d831d3")
+  )
+  (symbol
+    (lib_id "TrinketCore:1V1")
+    (at 515.62 181.61 0)
+    (unit 1)
+    (in_bom yes)
+    (on_board yes)
+    (dnp no)
+    (uuid "aa4d9fdc-5953-5ef7-b2bd-ae4dedb2b642")
+    (property "Reference" "#PWR121"
+      (at 515.62 181.61 0)
+      (effects
+        (font (size 1.27 1.27))
+        hide
+      )
+    )
+    (property "Value" "1V1"
+      (at 515.62 177.67 0)
+      (effects
+        (font (size 1.27 1.27))
+      )
+    )
+    (property "Footprint" ""
+      (at 515.62 181.61 0)
+      (effects
+        (font (size 1.27 1.27))
+        hide
+      )
+    )
+    (property "Datasheet" ""
+      (at 515.62 181.61 0)
+      (effects
+        (font (size 1.27 1.27))
+        hide
+      )
+    )
+    (pin "1" (uuid "14ca6ac1-e847-5863-9d9e-9a8154196369"))
+    (instances
+      (project "trinketcore"
+        (path "/c13d3038-5a97-5998-a0d9-49589b9b1453" (reference "#PWR121") (unit 1))
+      )
+    )
+  )
+  (wire
+    (pts (xy 515.62 191.77) (xy 515.62 194.31))
+    (stroke (width 0) (type default))
+    (uuid "dec95b81-3fcd-44f7-9c66-fecd2282ff0f")
+  )
+  (symbol
+    (lib_id "TrinketCore:GND")
+    (at 515.62 194.31 0)
+    (unit 1)
+    (in_bom yes)
+    (on_board yes)
+    (dnp no)
+    (uuid "12a766dc-5563-5f9e-bdb4-ce067887aca7")
+    (property "Reference" "#PWR122"
+      (at 515.62 194.31 0)
+      (effects
+        (font (size 1.27 1.27))
+        hide
+      )
+    )
+    (property "Value" "GND"
+      (at 515.62 198.25 0)
+      (effects
+        (font (size 1.27 1.27))
+      )
+    )
+    (property "Footprint" ""
+      (at 515.62 194.31 0)
+      (effects
+        (font (size 1.27 1.27))
+        hide
+      )
+    )
+    (property "Datasheet" ""
+      (at 515.62 194.31 0)
+      (effects
+        (font (size 1.27 1.27))
+        hide
+      )
+    )
+    (pin "1" (uuid "a725f8e9-c3ea-5438-8168-6fedfffe709b"))
+    (instances
+      (project "trinketcore"
+        (path "/c13d3038-5a97-5998-a0d9-49589b9b1453" (reference "#PWR122") (unit 1))
+      )
+    )
+  )
+  (wire
     (pts (xy 532.13 184.15) (xy 532.13 181.61))
     (stroke (width 0) (type default))
-    (uuid "48587b36-f08b-4a58-b3de-ff3f462e1d2c")
+    (uuid "6b5d88e7-5c3e-4b3c-9118-942e3296ae73")
   )
   (symbol
     (lib_id "TrinketCore:1V1")
@@ -21357,8 +21278,8 @@
     (in_bom yes)
     (on_board yes)
     (dnp no)
-    (uuid "aa4d9fdc-5953-5ef7-b2bd-ae4dedb2b642")
-    (property "Reference" "#PWR121"
+    (uuid "9f04a7fa-755d-5fb2-bb06-ff5d7bf503d8")
+    (property "Reference" "#PWR123"
       (at 532.13 181.61 0)
       (effects
         (font (size 1.27 1.27))
@@ -21385,17 +21306,17 @@
         hide
       )
     )
-    (pin "1" (uuid "14ca6ac1-e847-5863-9d9e-9a8154196369"))
+    (pin "1" (uuid "eeeba41c-20d3-54d0-bd2c-0f43d8309fde"))
     (instances
       (project "trinketcore"
-        (path "/c13d3038-5a97-5998-a0d9-49589b9b1453" (reference "#PWR121") (unit 1))
+        (path "/c13d3038-5a97-5998-a0d9-49589b9b1453" (reference "#PWR123") (unit 1))
       )
     )
   )
   (wire
     (pts (xy 532.13 191.77) (xy 532.13 194.31))
     (stroke (width 0) (type default))
-    (uuid "2296f2f0-38cf-421a-b55f-528f1c91ef6f")
+    (uuid "d2a9ae51-3a88-4032-b2b0-fff1fc21b626")
   )
   (symbol
     (lib_id "TrinketCore:GND")
@@ -21404,8 +21325,8 @@
     (in_bom yes)
     (on_board yes)
     (dnp no)
-    (uuid "12a766dc-5563-5f9e-bdb4-ce067887aca7")
-    (property "Reference" "#PWR122"
+    (uuid "54ac3552-4a8f-53fd-8428-ca3986dd114b")
+    (property "Reference" "#PWR124"
       (at 532.13 194.31 0)
       (effects
         (font (size 1.27 1.27))
@@ -21432,34 +21353,34 @@
         hide
       )
     )
-    (pin "1" (uuid "a725f8e9-c3ea-5438-8168-6fedfffe709b"))
+    (pin "1" (uuid "09d59581-47e9-548f-bfc0-0708c50d011c"))
     (instances
       (project "trinketcore"
-        (path "/c13d3038-5a97-5998-a0d9-49589b9b1453" (reference "#PWR122") (unit 1))
+        (path "/c13d3038-5a97-5998-a0d9-49589b9b1453" (reference "#PWR124") (unit 1))
       )
     )
   )
   (wire
     (pts (xy 548.64 184.15) (xy 548.64 181.61))
     (stroke (width 0) (type default))
-    (uuid "ada22376-3511-4617-8f35-f6bbfe566bdf")
+    (uuid "b8e8488f-3f26-44f5-a0a1-73eead539298")
   )
   (symbol
-    (lib_id "TrinketCore:1V1")
+    (lib_id "TrinketCore:3V3")
     (at 548.64 181.61 0)
     (unit 1)
     (in_bom yes)
     (on_board yes)
     (dnp no)
-    (uuid "9f04a7fa-755d-5fb2-bb06-ff5d7bf503d8")
-    (property "Reference" "#PWR123"
+    (uuid "0a6784ef-f1c2-5cf0-ab60-51920439f413")
+    (property "Reference" "#PWR125"
       (at 548.64 181.61 0)
       (effects
         (font (size 1.27 1.27))
         hide
       )
     )
-    (property "Value" "1V1"
+    (property "Value" "3V3"
       (at 548.64 177.67 0)
       (effects
         (font (size 1.27 1.27))
@@ -21479,17 +21400,17 @@
         hide
       )
     )
-    (pin "1" (uuid "eeeba41c-20d3-54d0-bd2c-0f43d8309fde"))
+    (pin "1" (uuid "5bcdf1a6-caa9-5ab2-bb89-1bb5ebc8de89"))
     (instances
       (project "trinketcore"
-        (path "/c13d3038-5a97-5998-a0d9-49589b9b1453" (reference "#PWR123") (unit 1))
+        (path "/c13d3038-5a97-5998-a0d9-49589b9b1453" (reference "#PWR125") (unit 1))
       )
     )
   )
   (wire
     (pts (xy 548.64 191.77) (xy 548.64 194.31))
     (stroke (width 0) (type default))
-    (uuid "1c75c942-0695-46af-859e-5c8babfdb3c9")
+    (uuid "d1569bf3-73f9-41b3-b5b8-c24a1a5750f7")
   )
   (symbol
     (lib_id "TrinketCore:GND")
@@ -21498,8 +21419,8 @@
     (in_bom yes)
     (on_board yes)
     (dnp no)
-    (uuid "54ac3552-4a8f-53fd-8428-ca3986dd114b")
-    (property "Reference" "#PWR124"
+    (uuid "527c1740-b63e-5e3d-83f3-312993a7386b")
+    (property "Reference" "#PWR126"
       (at 548.64 194.31 0)
       (effects
         (font (size 1.27 1.27))
@@ -21526,100 +21447,6 @@
         hide
       )
     )
-    (pin "1" (uuid "09d59581-47e9-548f-bfc0-0708c50d011c"))
-    (instances
-      (project "trinketcore"
-        (path "/c13d3038-5a97-5998-a0d9-49589b9b1453" (reference "#PWR124") (unit 1))
-      )
-    )
-  )
-  (wire
-    (pts (xy 565.15 184.15) (xy 565.15 181.61))
-    (stroke (width 0) (type default))
-    (uuid "b9dee741-267a-471a-81ae-75081ebd9d01")
-  )
-  (symbol
-    (lib_id "TrinketCore:3V3")
-    (at 565.15 181.61 0)
-    (unit 1)
-    (in_bom yes)
-    (on_board yes)
-    (dnp no)
-    (uuid "0a6784ef-f1c2-5cf0-ab60-51920439f413")
-    (property "Reference" "#PWR125"
-      (at 565.15 181.61 0)
-      (effects
-        (font (size 1.27 1.27))
-        hide
-      )
-    )
-    (property "Value" "3V3"
-      (at 565.15 177.67 0)
-      (effects
-        (font (size 1.27 1.27))
-      )
-    )
-    (property "Footprint" ""
-      (at 565.15 181.61 0)
-      (effects
-        (font (size 1.27 1.27))
-        hide
-      )
-    )
-    (property "Datasheet" ""
-      (at 565.15 181.61 0)
-      (effects
-        (font (size 1.27 1.27))
-        hide
-      )
-    )
-    (pin "1" (uuid "5bcdf1a6-caa9-5ab2-bb89-1bb5ebc8de89"))
-    (instances
-      (project "trinketcore"
-        (path "/c13d3038-5a97-5998-a0d9-49589b9b1453" (reference "#PWR125") (unit 1))
-      )
-    )
-  )
-  (wire
-    (pts (xy 565.15 191.77) (xy 565.15 194.31))
-    (stroke (width 0) (type default))
-    (uuid "8de42f91-13f6-434b-9ab9-4adde230176a")
-  )
-  (symbol
-    (lib_id "TrinketCore:GND")
-    (at 565.15 194.31 0)
-    (unit 1)
-    (in_bom yes)
-    (on_board yes)
-    (dnp no)
-    (uuid "527c1740-b63e-5e3d-83f3-312993a7386b")
-    (property "Reference" "#PWR126"
-      (at 565.15 194.31 0)
-      (effects
-        (font (size 1.27 1.27))
-        hide
-      )
-    )
-    (property "Value" "GND"
-      (at 565.15 198.25 0)
-      (effects
-        (font (size 1.27 1.27))
-      )
-    )
-    (property "Footprint" ""
-      (at 565.15 194.31 0)
-      (effects
-        (font (size 1.27 1.27))
-        hide
-      )
-    )
-    (property "Datasheet" ""
-      (at 565.15 194.31 0)
-      (effects
-        (font (size 1.27 1.27))
-        hide
-      )
-    )
     (pin "1" (uuid "3737bb5a-5d1c-535a-b770-1f11c8eb6e3d"))
     (instances
       (project "trinketcore"
@@ -21630,7 +21457,7 @@
   (wire
     (pts (xy 527.05 35.56) (xy 527.05 33.02))
     (stroke (width 0) (type default))
-    (uuid "1f0307c7-ce21-49b9-994e-a22acd98d57f")
+    (uuid "e1e39fb6-fcaa-48ea-a467-9d7b02328869")
   )
   (symbol
     (lib_id "TrinketCore:3V3")
@@ -21677,7 +21504,7 @@
   (wire
     (pts (xy 527.05 43.18) (xy 527.05 45.72))
     (stroke (width 0) (type default))
-    (uuid "680c91f6-c4a5-42c8-b7c5-70cde98c3d2f")
+    (uuid "d35bc3f2-0e08-46bc-b0d3-beb4ada9f33c")
   )
   (symbol
     (lib_id "TrinketCore:GND")
@@ -21722,37 +21549,9 @@
     )
   )
   (wire
-    (pts (xy 527.05 148.59) (xy 527.05 151.13))
-    (stroke (width 0) (type default))
-    (uuid "88ca932d-b75e-4b23-99a8-645f1026bc07")
-  )
-  (label "SWCLK"
-    (at 527.05 151.13 270)
-    (fields_autoplaced)
-    (effects
-      (font (size 1.27 1.27))
-      (justify right bottom)
-    )
-    (uuid "47528cb9-8c63-4a96-8cbf-5fd94ea5048b")
-  )
-  (wire
-    (pts (xy 541.02 148.59) (xy 541.02 151.13))
-    (stroke (width 0) (type default))
-    (uuid "7f1cd248-7259-4ff1-81e4-ff18ebe0a983")
-  )
-  (label "SWDIO"
-    (at 541.02 151.13 270)
-    (fields_autoplaced)
-    (effects
-      (font (size 1.27 1.27))
-      (justify right bottom)
-    )
-    (uuid "2420d073-eb8d-4c90-92ef-1642d2f8dd68")
-  )
-  (wire
     (pts (xy 523.24 233.68) (xy 520.7 233.68))
     (stroke (width 0) (type default))
-    (uuid "44fc14de-be3a-4ed0-84c7-c443d2903baa")
+    (uuid "2b503446-43c7-43e1-a725-94eea8a16586")
   )
   (label "BTN_B"
     (at 520.7 233.68 180)
@@ -21761,14 +21560,14 @@
       (font (size 1.27 1.27))
       (justify right bottom)
     )
-    (uuid "f287dc47-cb58-4720-b351-95d9ecb10b32")
+    (uuid "2162834c-5fe2-41ac-87c8-41150c3c9140")
   )
-  (no_connect (at 533.4 233.68) (uuid "8888eafd-5a3d-4b00-9187-4ef1922d9197"))
-  (no_connect (at 523.24 238.76) (uuid "e8770ad6-821e-4cc1-aced-b8ada4d53688"))
+  (no_connect (at 533.4 233.68) (uuid "7994a69f-6199-47f1-9b21-4207064353ed"))
+  (no_connect (at 523.24 238.76) (uuid "9f1dcb35-5179-48f7-8127-b6037ae59e30"))
   (wire
     (pts (xy 533.4 238.76) (xy 535.94 238.76))
     (stroke (width 0) (type default))
-    (uuid "f42f40bd-92c7-4b2c-a75b-7e22e72b590c")
+    (uuid "867830b1-16fc-48b0-8b45-cb1136b4f335")
   )
   (symbol
     (lib_id "TrinketCore:GND")
@@ -21815,7 +21614,7 @@
   (wire
     (pts (xy 551.18 238.76) (xy 551.18 236.22))
     (stroke (width 0) (type default))
-    (uuid "84e16a84-9ae4-4bea-9594-2de57d1aba6a")
+    (uuid "ffde2d4b-5ffe-4d01-9718-eedd15d09ee1")
   )
   (label "USER_LED"
     (at 551.18 236.22 90)
@@ -21824,12 +21623,12 @@
       (font (size 1.27 1.27))
       (justify left bottom)
     )
-    (uuid "fd75cc70-22f4-494a-9a80-7547f02f289c")
+    (uuid "e8538c90-84e9-44a4-9330-339e7814a9f0")
   )
   (wire
     (pts (xy 551.18 246.38) (xy 551.18 248.92))
     (stroke (width 0) (type default))
-    (uuid "f3675f11-2dd4-45b2-81f3-80bf99cacea4")
+    (uuid "926a0783-1938-4ce3-8556-faafd6f68a04")
   )
   (label "ULED_A"
     (at 551.18 248.92 270)
@@ -21838,12 +21637,12 @@
       (font (size 1.27 1.27))
       (justify right bottom)
     )
-    (uuid "f7fea8d3-e228-439f-a9bc-604419f115ee")
+    (uuid "8979dc30-5151-4910-ab9a-2c047cb5b3f8")
   )
   (wire
     (pts (xy 412.75 276.86) (xy 410.21 276.86))
     (stroke (width 0) (type default))
-    (uuid "cd3d5d17-5531-46a8-96f7-025c09730a0e")
+    (uuid "2faf1484-b8ca-4e5a-bae6-520e3f74b280")
   )
   (symbol
     (lib_id "TrinketCore:GND")
@@ -21890,7 +21689,7 @@
   (wire
     (pts (xy 420.37 276.86) (xy 422.91 276.86))
     (stroke (width 0) (type default))
-    (uuid "3330dc44-9a15-4b1c-8973-c3431862aa0b")
+    (uuid "6d7f8905-fa98-4a4b-b1c0-e747acc28b7c")
   )
   (label "ULED_A"
     (at 422.91 276.86 0)
@@ -21899,12 +21698,12 @@
       (font (size 1.27 1.27))
       (justify left bottom)
     )
-    (uuid "0d5b4135-0c8d-45a7-93ef-1b06cb80fdfc")
+    (uuid "d3690bc8-607b-4392-a46e-cc400c054e73")
   )
   (wire
     (pts (xy 217.17 297.18) (xy 214.63 297.18))
     (stroke (width 0) (type default))
-    (uuid "a74fb6a6-6d32-46db-a010-d0411ed44434")
+    (uuid "574847e8-5dc5-490c-b80e-c0f69b01dac8")
   )
   (label "I2S_DIN"
     (at 214.63 297.18 180)
@@ -21913,13 +21712,13 @@
       (font (size 1.27 1.27))
       (justify right bottom)
     )
-    (uuid "3ca9c383-2cee-463d-8c47-d8c004507e58")
+    (uuid "c93b7023-f4f9-4132-9c11-be73c7a918d1")
   )
-  (no_connect (at 217.17 309.88) (uuid "b47df07f-bf42-418e-b858-05dda6b67b23"))
+  (no_connect (at 217.17 309.88) (uuid "38f52ce1-eeaf-4920-bca7-9445afe0cf65"))
   (wire
     (pts (xy 227.33 317.5) (xy 227.33 325.12))
     (stroke (width 0) (type default))
-    (uuid "412b1b33-b756-47a2-b408-271527f63fcd")
+    (uuid "73feacd6-24e3-40e9-a5ed-eaef838b59ae")
   )
   (symbol
     (lib_id "TrinketCore:GND")
@@ -21966,7 +21765,7 @@
   (wire
     (pts (xy 217.17 307.34) (xy 214.63 307.34))
     (stroke (width 0) (type default))
-    (uuid "ddfb4b71-be9c-4f6e-aad8-d2a1a7a59178")
+    (uuid "4e099b6c-296c-48e3-bbe7-6fa83e0594b1")
   )
   (label "AMP_SD"
     (at 214.63 307.34 180)
@@ -21975,12 +21774,12 @@
       (font (size 1.27 1.27))
       (justify right bottom)
     )
-    (uuid "5c80f313-3cdb-4a64-9f17-1abf3fe52075")
+    (uuid "e55cf4f0-dba2-4814-b395-e7e1177f8ca6")
   )
   (wire
     (pts (xy 229.87 292.1) (xy 229.87 289.56))
     (stroke (width 0) (type default))
-    (uuid "c6e027b5-32ba-49cc-9961-a2b638596061")
+    (uuid "fafef749-4ae9-41e2-9d4b-d8506feef867")
   )
   (symbol
     (lib_id "TrinketCore:3V3")
@@ -22027,7 +21826,7 @@
   (wire
     (pts (xy 242.57 297.18) (xy 245.11 297.18))
     (stroke (width 0) (type default))
-    (uuid "86741d98-7ffd-4c2a-aa0e-bfd7c9f52fe3")
+    (uuid "8569eaab-9580-4c98-a8aa-774169d2bcbb")
   )
   (label "SPK_P"
     (at 245.11 297.18 0)
@@ -22036,12 +21835,12 @@
       (font (size 1.27 1.27))
       (justify left bottom)
     )
-    (uuid "fb781798-2b04-4964-921a-90a33aa3bdfd")
+    (uuid "060f0005-c3fd-4265-bcf9-72800f76312e")
   )
   (wire
     (pts (xy 242.57 299.72) (xy 245.11 299.72))
     (stroke (width 0) (type default))
-    (uuid "3edb5151-0329-4260-b8e8-ddb1332f6cba")
+    (uuid "e2501f6d-aa15-4278-9f81-acd57aaa85aa")
   )
   (label "SPK_N"
     (at 245.11 299.72 0)
@@ -22050,12 +21849,12 @@
       (font (size 1.27 1.27))
       (justify left bottom)
     )
-    (uuid "cabe1300-5238-42b6-8b0c-4928a52b583c")
+    (uuid "414ca3cc-d0c5-4663-a3ea-8410654fd48b")
   )
   (wire
     (pts (xy 217.17 302.26) (xy 214.63 302.26))
     (stroke (width 0) (type default))
-    (uuid "2fd7d053-2eb5-499d-807f-ffff821383ed")
+    (uuid "e8b95a66-3bad-4c1d-8749-4ed690cc1c87")
   )
   (label "I2S_LRCLK"
     (at 214.63 302.26 180)
@@ -22064,12 +21863,12 @@
       (font (size 1.27 1.27))
       (justify right bottom)
     )
-    (uuid "f975ba92-90cf-4cb7-b56d-3b93532fa7fd")
+    (uuid "7d08b703-e5c4-47e6-a17d-d660c4e34b2a")
   )
   (wire
     (pts (xy 217.17 299.72) (xy 214.63 299.72))
     (stroke (width 0) (type default))
-    (uuid "f03e4294-bb45-4668-bd6e-c2e2dbbd9f78")
+    (uuid "6f91a381-bac1-4c9c-99da-a646da76bd88")
   )
   (label "I2S_BCLK"
     (at 214.63 299.72 180)
@@ -22078,12 +21877,12 @@
       (font (size 1.27 1.27))
       (justify right bottom)
     )
-    (uuid "f89d128e-545a-4ce0-a06e-41f611f9e980")
+    (uuid "d81219f3-3e03-4998-be41-8bd3ca7c7ea9")
   )
   (wire
     (pts (xy 232.41 317.5) (xy 232.41 325.12))
     (stroke (width 0) (type default))
-    (uuid "5fc95908-0e07-444a-959e-70543200c545")
+    (uuid "12b1bd06-1ea1-47c5-9348-e2d435d3c54c")
   )
   (symbol
     (lib_id "TrinketCore:GND")
@@ -22127,14 +21926,14 @@
       )
     )
   )
-  (no_connect (at 240.03 302.26) (uuid "3d8d161e-884b-4408-8240-9758f152e73d"))
-  (no_connect (at 240.03 304.8) (uuid "c9a93089-ce7f-4471-a731-fc7d66c13477"))
-  (no_connect (at 240.03 309.88) (uuid "158ea883-64e0-414e-b99c-08051254e665"))
-  (no_connect (at 240.03 312.42) (uuid "5b56d895-7839-47a0-af01-a91974cb7b65"))
+  (no_connect (at 240.03 302.26) (uuid "78b99e8c-a6e0-4f18-8349-cf7455f0dfbe"))
+  (no_connect (at 240.03 304.8) (uuid "7e8d5f6f-e6f0-4549-85a5-a0098c89c5fb"))
+  (no_connect (at 240.03 309.88) (uuid "90e09985-f701-470e-ad99-2121f61af107"))
+  (no_connect (at 240.03 312.42) (uuid "57523c1e-e87f-4322-b55b-8d0e82fcba69"))
   (wire
     (pts (xy 257.81 295.91) (xy 257.81 293.37))
     (stroke (width 0) (type default))
-    (uuid "fdb7c5d0-b215-4e18-bfb5-21888f48eeae")
+    (uuid "49567ca7-177b-440c-951f-dda0340168ec")
   )
   (label "AMP_EN"
     (at 257.81 293.37 90)
@@ -22143,12 +21942,12 @@
       (font (size 1.27 1.27))
       (justify left bottom)
     )
-    (uuid "24b97b4f-814b-46b2-8e37-9c728e63f747")
+    (uuid "93691562-b40f-4db7-8e65-d54bbd6a472d")
   )
   (wire
     (pts (xy 257.81 303.53) (xy 257.81 306.07))
     (stroke (width 0) (type default))
-    (uuid "16cbc01c-f275-48c6-b645-eee0e95bb60e")
+    (uuid "c0d3ecf0-3af4-4fe9-a302-0311608ac9d1")
   )
   (label "AMP_SD"
     (at 257.81 306.07 270)
@@ -22157,12 +21956,12 @@
       (font (size 1.27 1.27))
       (justify right bottom)
     )
-    (uuid "c3fc285b-b6b6-44e3-98eb-66ded422ebb8")
+    (uuid "ba485909-2063-401c-9cdd-e22fa80bd943")
   )
   (wire
     (pts (xy 270.51 292.1) (xy 270.51 289.56))
     (stroke (width 0) (type default))
-    (uuid "0a066337-23d8-4c76-9cb3-fb4aa9be49d6")
+    (uuid "399fb676-9695-48b5-b0ea-a4a24e03bc0a")
   )
   (symbol
     (lib_id "TrinketCore:3V3")
@@ -22209,7 +22008,7 @@
   (wire
     (pts (xy 270.51 299.72) (xy 270.51 302.26))
     (stroke (width 0) (type default))
-    (uuid "2bec85a9-e0ae-4543-beae-632bc4de6ef3")
+    (uuid "b07a49ce-d6d2-4367-a455-0475b3c14b33")
   )
   (symbol
     (lib_id "TrinketCore:GND")
@@ -22256,7 +22055,7 @@
   (wire
     (pts (xy 285.75 292.1) (xy 285.75 289.56))
     (stroke (width 0) (type default))
-    (uuid "1d8be9e8-e52d-4564-a54e-7ff7cc646079")
+    (uuid "29f25796-0c19-4707-b89d-fe2c33f02661")
   )
   (symbol
     (lib_id "TrinketCore:3V3")
@@ -22303,7 +22102,7 @@
   (wire
     (pts (xy 285.75 299.72) (xy 285.75 302.26))
     (stroke (width 0) (type default))
-    (uuid "6f7ef3e1-e06b-4c7d-a0ed-0e159f2f9ac5")
+    (uuid "0a154bbb-eb48-4226-87e9-58f8c53fde56")
   )
   (symbol
     (lib_id "TrinketCore:GND")
@@ -22350,7 +22149,7 @@
   (wire
     (pts (xy 307.34 289.56) (xy 304.8 289.56))
     (stroke (width 0) (type default))
-    (uuid "7e9c0f1d-a237-4eb9-b0d7-2675c06dcad1")
+    (uuid "c116f3d5-c2c6-43f8-9cda-b260b8c8903d")
   )
   (label "SPK_P"
     (at 304.8 289.56 180)
@@ -22359,12 +22158,12 @@
       (font (size 1.27 1.27))
       (justify right bottom)
     )
-    (uuid "8cc7b519-504d-4eb1-923d-93bd47221bfc")
+    (uuid "dbbfa74b-3d3d-422f-a4c7-36bb585cb874")
   )
   (wire
     (pts (xy 307.34 292.1) (xy 304.8 292.1))
     (stroke (width 0) (type default))
-    (uuid "4074085c-c0b8-4788-b03c-379e32a86e5c")
+    (uuid "e0a79ecc-5515-42e5-b404-b5ac6d6a7a7f")
   )
   (label "SPK_N"
     (at 304.8 292.1 180)
@@ -22373,12 +22172,12 @@
       (font (size 1.27 1.27))
       (justify right bottom)
     )
-    (uuid "73029882-31d3-4833-b232-1a8d1639c295")
+    (uuid "df62f4c8-c430-482a-9868-946919afa0a1")
   )
   (wire
     (pts (xy 430.53 237.49) (xy 430.53 234.95))
     (stroke (width 0) (type default))
-    (uuid "71241737-ebab-437a-b3cb-cf0aca30b72d")
+    (uuid "352e4bca-8f36-485e-be8b-b3d932454f5f")
   )
   (label "TFT_BLG"
     (at 430.53 234.95 90)
@@ -22387,12 +22186,12 @@
       (font (size 1.27 1.27))
       (justify left bottom)
     )
-    (uuid "265248e7-b3ed-477d-a707-a038bbfb5fd8")
+    (uuid "a1b48b5e-4e86-40b7-9e07-83ca9262a491")
   )
   (wire
     (pts (xy 430.53 245.11) (xy 430.53 247.65))
     (stroke (width 0) (type default))
-    (uuid "9d8d545b-f5d3-47f3-ab65-adb7f77dbc68")
+    (uuid "932f8fb9-f97f-43d9-8816-41971ca042ac")
   )
   (label "TFT_BL"
     (at 430.53 247.65 270)
@@ -22401,12 +22200,12 @@
       (font (size 1.27 1.27))
       (justify right bottom)
     )
-    (uuid "77afe851-ffaf-405e-8b17-e7077fac397d")
+    (uuid "3901f2bf-6f0b-4eaa-a026-41ca44baff77")
   )
   (wire
     (pts (xy 414.02 231.14) (xy 411.48 231.14))
     (stroke (width 0) (type default))
-    (uuid "946f2428-ec4c-423a-bca7-97152b8c3285")
+    (uuid "df9fbaa8-caa6-4cec-a086-51dcefe1453a")
   )
   (symbol
     (lib_id "TrinketCore:GND")
@@ -22453,7 +22252,7 @@
   (wire
     (pts (xy 414.02 233.68) (xy 411.48 233.68))
     (stroke (width 0) (type default))
-    (uuid "835f76e5-bb61-4af4-bee9-d98b9571c33c")
+    (uuid "f810ea40-4bf5-4b2d-a289-15523662e190")
   )
   (symbol
     (lib_id "TrinketCore:3V3")
@@ -22500,7 +22299,7 @@
   (wire
     (pts (xy 414.02 236.22) (xy 411.48 236.22))
     (stroke (width 0) (type default))
-    (uuid "de5d97c2-8e1e-40ca-a09b-c92b0922a7ef")
+    (uuid "21da4cf6-cba2-42d3-9a8f-14e427cd1d04")
   )
   (label "TFT_SCK"
     (at 411.48 236.22 180)
@@ -22509,12 +22308,12 @@
       (font (size 1.27 1.27))
       (justify right bottom)
     )
-    (uuid "9010291f-b5ea-423b-a9aa-1f64c0ad4eb2")
+    (uuid "89a0d3b1-cc86-4e0d-9f43-33946153149d")
   )
   (wire
     (pts (xy 414.02 238.76) (xy 411.48 238.76))
     (stroke (width 0) (type default))
-    (uuid "12fb6a53-50fc-476b-b59f-96a7eeeb0546")
+    (uuid "aa6f1356-8e1b-476b-a5b0-c1c5320e3ee8")
   )
   (label "TFT_MOSI"
     (at 411.48 238.76 180)
@@ -22523,12 +22322,12 @@
       (font (size 1.27 1.27))
       (justify right bottom)
     )
-    (uuid "f9e76722-c0e4-40d1-a84f-a684882298e3")
+    (uuid "24d16fb8-a371-498a-b279-a7ff51680e4f")
   )
   (wire
     (pts (xy 414.02 241.3) (xy 411.48 241.3))
     (stroke (width 0) (type default))
-    (uuid "76a1a49b-1c2b-42b8-b8c8-577b01cc5c3e")
+    (uuid "9e4db54a-72d7-4048-b36e-c75d0bdeeb41")
   )
   (label "TFT_RST"
     (at 411.48 241.3 180)
@@ -22537,12 +22336,12 @@
       (font (size 1.27 1.27))
       (justify right bottom)
     )
-    (uuid "393ee59d-50ca-4dee-9886-9195ca9dfc6e")
+    (uuid "c03143cf-226e-4f5b-b974-1d450975855a")
   )
   (wire
     (pts (xy 414.02 243.84) (xy 411.48 243.84))
     (stroke (width 0) (type default))
-    (uuid "d21cf4d2-c680-4e41-a37e-a3a62c64634c")
+    (uuid "31ca750c-a885-47a5-ae2a-4fbdac595398")
   )
   (label "TFT_DC"
     (at 411.48 243.84 180)
@@ -22551,12 +22350,12 @@
       (font (size 1.27 1.27))
       (justify right bottom)
     )
-    (uuid "9ffde212-8c56-4c48-bfdc-caace6136f52")
+    (uuid "dfe867f7-df1c-4129-88e8-79ffe8adafad")
   )
   (wire
     (pts (xy 414.02 246.38) (xy 411.48 246.38))
     (stroke (width 0) (type default))
-    (uuid "06e34160-3940-4c56-86d6-eca9acfcb2b1")
+    (uuid "1c545466-bb1e-40f0-9298-276c782462ca")
   )
   (label "TFT_CS"
     (at 411.48 246.38 180)
@@ -22565,12 +22364,12 @@
       (font (size 1.27 1.27))
       (justify right bottom)
     )
-    (uuid "8f08cb8e-c275-4820-bfd5-ac3e55636ca4")
+    (uuid "4c478b46-2564-42ce-8f68-6d97a89c0bba")
   )
   (wire
     (pts (xy 414.02 248.92) (xy 411.48 248.92))
     (stroke (width 0) (type default))
-    (uuid "d894e9ea-d777-4af9-8bc3-8a35bd69c4cf")
+    (uuid "ddcb4836-3ed6-42c1-914a-d3788478ae00")
   )
   (label "TFT_BL"
     (at 411.48 248.92 180)
@@ -22579,12 +22378,12 @@
       (font (size 1.27 1.27))
       (justify right bottom)
     )
-    (uuid "e8002cd1-77a3-4e3b-858b-62c18a7a60d1")
+    (uuid "864381d1-2ea1-4254-8733-ef9d8b3e8c06")
   )
   (wire
     (pts (xy 450.85 231.14) (xy 448.31 231.14))
     (stroke (width 0) (type default))
-    (uuid "5aac908b-c3fa-4ce4-b11b-396519132fbb")
+    (uuid "f5e688b3-bc24-4ebb-bab6-2b9eab3d3e08")
   )
   (symbol
     (lib_id "TrinketCore:GND")
@@ -22631,7 +22430,7 @@
   (wire
     (pts (xy 450.85 233.68) (xy 448.31 233.68))
     (stroke (width 0) (type default))
-    (uuid "6acc24fc-5001-4fbd-80cd-8f99b9dfbe1d")
+    (uuid "d745e126-8f99-4c3e-8f40-03a71aca7f4b")
   )
   (symbol
     (lib_id "TrinketCore:3V3")
@@ -22678,7 +22477,7 @@
   (wire
     (pts (xy 450.85 236.22) (xy 448.31 236.22))
     (stroke (width 0) (type default))
-    (uuid "d0b62e71-15d1-40fa-ba61-8b1461d147f6")
+    (uuid "43143367-38b7-47d3-827d-3ec0b8aa590a")
   )
   (label "SCL"
     (at 448.31 236.22 180)
@@ -22687,12 +22486,12 @@
       (font (size 1.27 1.27))
       (justify right bottom)
     )
-    (uuid "d5e54f97-1e16-46a1-ab01-0c4eafc3b782")
+    (uuid "de520ecf-55e8-4deb-9fe9-cc135261d811")
   )
   (wire
     (pts (xy 450.85 238.76) (xy 448.31 238.76))
     (stroke (width 0) (type default))
-    (uuid "c970fcdb-6c36-42ae-9e93-8a78807d08d6")
+    (uuid "9bb5483c-92a3-45a6-a266-ea6d90b5c963")
   )
   (label "SDA"
     (at 448.31 238.76 180)
@@ -22701,12 +22500,12 @@
       (font (size 1.27 1.27))
       (justify right bottom)
     )
-    (uuid "411ce8e8-2e60-480e-a32e-7b236c11ca2a")
+    (uuid "7f02c39c-71e9-4748-ba14-3304a0c83637")
   )
   (wire
     (pts (xy 499.11 231.14) (xy 496.57 231.14))
     (stroke (width 0) (type default))
-    (uuid "590381dd-381c-4c35-89b5-01ea22eb2bc3")
+    (uuid "ace38831-a774-4bab-b40d-5c5acda08fff")
   )
   (label "GP7"
     (at 496.57 231.14 180)
@@ -22715,12 +22514,12 @@
       (font (size 1.27 1.27))
       (justify right bottom)
     )
-    (uuid "907b86c5-59a7-48f6-aac4-d3fa7874f709")
+    (uuid "0ef62d28-d2f5-41a4-946f-557321efaff6")
   )
   (wire
     (pts (xy 499.11 233.68) (xy 496.57 233.68))
     (stroke (width 0) (type default))
-    (uuid "480c8703-eb68-42e2-a0b4-827bf6ab9250")
+    (uuid "2105a597-3435-4f39-8e00-c9e71891e372")
   )
   (label "GP6"
     (at 496.57 233.68 180)
@@ -22729,12 +22528,12 @@
       (font (size 1.27 1.27))
       (justify right bottom)
     )
-    (uuid "1406963b-dd93-40c4-84b0-6bea4797ad65")
+    (uuid "8ea0dbd3-1c44-4446-ab07-106de2a9028a")
   )
   (wire
     (pts (xy 499.11 236.22) (xy 496.57 236.22))
     (stroke (width 0) (type default))
-    (uuid "f5018814-c274-44d8-a778-3f48bbb601c9")
+    (uuid "0d83424c-867c-4228-8474-28dd17761256")
   )
   (label "GP5"
     (at 496.57 236.22 180)
@@ -22743,12 +22542,12 @@
       (font (size 1.27 1.27))
       (justify right bottom)
     )
-    (uuid "3536d553-b53d-4e24-bc1e-28d830b5a888")
+    (uuid "2958da2e-fe4a-4ca0-80e9-bbb04ac47273")
   )
   (wire
     (pts (xy 499.11 238.76) (xy 496.57 238.76))
     (stroke (width 0) (type default))
-    (uuid "d6dd1450-f7fb-44e3-a00d-b3abb6f8f623")
+    (uuid "4e466daf-4503-4527-b7cd-296a11cf7419")
   )
   (label "GP4"
     (at 496.57 238.76 180)
@@ -22757,12 +22556,12 @@
       (font (size 1.27 1.27))
       (justify right bottom)
     )
-    (uuid "6abbe77c-4e11-406f-881f-85f5bbd4fce3")
+    (uuid "98e3d3d4-e3be-4a57-a286-bdb4ee89f9c2")
   )
   (wire
     (pts (xy 499.11 241.3) (xy 496.57 241.3))
     (stroke (width 0) (type default))
-    (uuid "221bdd44-3de3-4fad-b117-f8ec1e5a44b3")
+    (uuid "d6cbb61c-2ad3-4af1-889b-380a76e54579")
   )
   (label "GP3"
     (at 496.57 241.3 180)
@@ -22771,12 +22570,12 @@
       (font (size 1.27 1.27))
       (justify right bottom)
     )
-    (uuid "12cee7d0-aa1d-4e72-b4d2-4f7ea9762d00")
+    (uuid "1934e845-c40b-43ba-9ecc-13b71b8ec563")
   )
   (wire
     (pts (xy 499.11 243.84) (xy 496.57 243.84))
     (stroke (width 0) (type default))
-    (uuid "bd44f30b-adb8-47f3-8046-152efb13086d")
+    (uuid "04638b22-7f6e-492d-9e10-b78514c6d752")
   )
   (label "GP2"
     (at 496.57 243.84 180)
@@ -22785,12 +22584,12 @@
       (font (size 1.27 1.27))
       (justify right bottom)
     )
-    (uuid "fafaa427-bde7-4081-b22d-2c9b3139aa07")
+    (uuid "37f91a12-7edb-4c19-b0bf-464863b74674")
   )
   (wire
     (pts (xy 499.11 246.38) (xy 496.57 246.38))
     (stroke (width 0) (type default))
-    (uuid "7f485649-4002-4ab0-b7df-7f712707a275")
+    (uuid "58ab5d8e-96a9-4b38-b752-3140ef4f2509")
   )
   (label "GP1"
     (at 496.57 246.38 180)
@@ -22799,12 +22598,12 @@
       (font (size 1.27 1.27))
       (justify right bottom)
     )
-    (uuid "8d24a155-8ba8-4e78-97b2-b1e23a0249c0")
+    (uuid "3d92ed43-dfb5-4443-96fd-d13078fa6a1a")
   )
   (wire
     (pts (xy 499.11 248.92) (xy 496.57 248.92))
     (stroke (width 0) (type default))
-    (uuid "dbc4ae26-94fe-4db2-b271-d8231391565b")
+    (uuid "1cf03a7f-2c3a-494d-941c-d5bdea411bb4")
   )
   (label "GP0"
     (at 496.57 248.92 180)
@@ -22813,12 +22612,12 @@
       (font (size 1.27 1.27))
       (justify right bottom)
     )
-    (uuid "7e49a735-2afb-4471-b7f6-61e551bfcd88")
+    (uuid "d7378542-5e8a-442d-8ccb-da7f86099543")
   )
   (wire
     (pts (xy 499.11 251.46) (xy 496.57 251.46))
     (stroke (width 0) (type default))
-    (uuid "3bc85f91-3ba3-495e-ad31-3b2f414f5ce3")
+    (uuid "05efe491-4a06-496d-8207-6a67ebb61cd1")
   )
   (label "GP29"
     (at 496.57 251.46 180)
@@ -22827,12 +22626,12 @@
       (font (size 1.27 1.27))
       (justify right bottom)
     )
-    (uuid "9e56b2ff-18fa-41b3-b122-6cd49bd81f53")
+    (uuid "26786564-4ac8-4c4b-b2c0-acc285d26ac4")
   )
   (wire
     (pts (xy 499.11 254) (xy 496.57 254))
     (stroke (width 0) (type default))
-    (uuid "7a043d92-be3a-486c-85ff-9cc64c2d1c0d")
+    (uuid "b62eef39-27c1-4e4d-9937-64d4902c88b5")
   )
   (label "GP28"
     (at 496.57 254 180)
@@ -22841,12 +22640,12 @@
       (font (size 1.27 1.27))
       (justify right bottom)
     )
-    (uuid "94b99de8-1c07-4df9-84df-cb5d203bfb9b")
+    (uuid "7b3f4f1b-0b2c-4628-8fa6-4f73a1caa81d")
   )
   (wire
     (pts (xy 499.11 256.54) (xy 496.57 256.54))
     (stroke (width 0) (type default))
-    (uuid "fd435d07-e4cb-48a8-b233-7365e89cd676")
+    (uuid "2a3e1309-24dc-4e42-82ff-5615b3b6fb92")
   )
   (label "WAKE"
     (at 496.57 256.54 180)
@@ -22855,12 +22654,12 @@
       (font (size 1.27 1.27))
       (justify right bottom)
     )
-    (uuid "017a5dc3-9535-40a6-ab32-fcdfed92ecbf")
+    (uuid "32355d49-b0e2-4ae4-a2fe-d0625868be6c")
   )
   (wire
     (pts (xy 499.11 259.08) (xy 496.57 259.08))
     (stroke (width 0) (type default))
-    (uuid "e9553c09-1bb4-4948-b6c3-f6a501d686a5")
+    (uuid "7906754e-608e-4af5-b23d-eb630da9fe6e")
   )
   (symbol
     (lib_id "TrinketCore:VSYS")
@@ -22907,7 +22706,7 @@
   (wire
     (pts (xy 499.11 261.62) (xy 496.57 261.62))
     (stroke (width 0) (type default))
-    (uuid "575eb346-47f0-4ce5-81cd-8afa630b2794")
+    (uuid "7de31bd1-67f5-416b-9586-4339217069b5")
   )
   (symbol
     (lib_id "TrinketCore:3V3")
@@ -22954,7 +22753,7 @@
   (wire
     (pts (xy 499.11 264.16) (xy 496.57 264.16))
     (stroke (width 0) (type default))
-    (uuid "1aa9ad4c-62e8-424b-8a94-5879d2de49ff")
+    (uuid "718474c7-bc73-4816-b345-e9c55a0c7187")
   )
   (symbol
     (lib_id "TrinketCore:GND")
@@ -23001,7 +22800,7 @@
   (wire
     (pts (xy 474.98 231.14) (xy 472.44 231.14))
     (stroke (width 0) (type default))
-    (uuid "83f4b70f-00c9-4da2-b70b-3c5b9b9c424b")
+    (uuid "2384ee1b-1083-40e6-b9da-3d625b8ed0ea")
   )
   (symbol
     (lib_id "TrinketCore:GND")
@@ -23048,7 +22847,7 @@
   (wire
     (pts (xy 474.98 233.68) (xy 472.44 233.68))
     (stroke (width 0) (type default))
-    (uuid "89fad926-ec15-4fea-beb3-d55cfed9acf7")
+    (uuid "95b703f7-ebd2-4a6b-bf29-ca9837c3dd9b")
   )
   (symbol
     (lib_id "TrinketCore:3V3")
@@ -23095,7 +22894,7 @@
   (wire
     (pts (xy 474.98 236.22) (xy 472.44 236.22))
     (stroke (width 0) (type default))
-    (uuid "374e7335-b08f-44c4-a43c-136ae23fd5ce")
+    (uuid "913624bb-4122-405a-8282-0069b53a5188")
   )
   (label "SDA"
     (at 472.44 236.22 180)
@@ -23104,12 +22903,12 @@
       (font (size 1.27 1.27))
       (justify right bottom)
     )
-    (uuid "179e9146-2981-4dbb-b9b7-be8f3cb91682")
+    (uuid "e60d5546-0f7a-451c-ad96-a9fcbc969781")
   )
   (wire
     (pts (xy 474.98 238.76) (xy 472.44 238.76))
     (stroke (width 0) (type default))
-    (uuid "08cda9a5-aa36-4b91-a77a-5c6f77f05548")
+    (uuid "5eca93c6-81af-4e38-b985-19db4e066fdc")
   )
   (label "SCL"
     (at 472.44 238.76 180)
@@ -23118,7 +22917,7 @@
       (font (size 1.27 1.27))
       (justify right bottom)
     )
-    (uuid "407aaa53-1cfa-4ef8-aeac-fe5ecf3f9edd")
+    (uuid "f72429f7-0e21-495d-95ce-3295812d59e1")
   )
   (symbol
     (lib_id "TrinketCore:PWR_FLAG")
@@ -23165,7 +22964,7 @@
   (wire
     (pts (xy 401.32 386.08) (xy 401.32 391.16))
     (stroke (width 0) (type default))
-    (uuid "0b9db17b-add4-48ed-8864-de64048c8798")
+    (uuid "4969ef9b-5d93-42fc-bc58-c661ce9c8ef5")
   )
   (symbol
     (lib_id "TrinketCore:VBUS")
@@ -23254,7 +23053,7 @@
   (wire
     (pts (xy 411.48 386.08) (xy 411.48 391.16))
     (stroke (width 0) (type default))
-    (uuid "ff9bd9a0-eb26-4e4f-8cb0-7bf1df3c4a23")
+    (uuid "1a2a5f49-7bee-4c7f-930a-d4aa4fd25c6b")
   )
   (symbol
     (lib_id "TrinketCore:GND")
@@ -23343,7 +23142,7 @@
   (wire
     (pts (xy 421.64 386.08) (xy 421.64 391.16))
     (stroke (width 0) (type default))
-    (uuid "27f2d14e-fae8-437d-be88-19f444e7f58d")
+    (uuid "6cb0e2c9-86c1-40ee-8e10-4c683180ae84")
   )
   (symbol
     (lib_id "TrinketCore:VCAP")
@@ -23432,7 +23231,7 @@
   (wire
     (pts (xy 431.8 386.08) (xy 431.8 391.16))
     (stroke (width 0) (type default))
-    (uuid "befea3eb-3a5a-4a6d-8930-a7932060c82a")
+    (uuid "6a308442-1e9f-4d70-a7a5-e62beae721d2")
   )
   (symbol
     (lib_id "TrinketCore:VAON")
@@ -23521,7 +23320,7 @@
   (wire
     (pts (xy 441.96 386.08) (xy 441.96 391.16))
     (stroke (width 0) (type default))
-    (uuid "ee0c632d-3699-40b6-b1e8-e4331046ad7e")
+    (uuid "25d0b582-cbc7-4186-ab76-d7b534416c3e")
   )
   (symbol
     (lib_id "TrinketCore:VSYS")
@@ -23610,7 +23409,7 @@
   (wire
     (pts (xy 452.12 386.08) (xy 452.12 391.16))
     (stroke (width 0) (type default))
-    (uuid "51421140-3af1-425d-91d9-063a1da019f7")
+    (uuid "ccf41a07-4dc0-4716-9988-7972979d17a8")
   )
   (symbol
     (lib_id "TrinketCore:3V3")
@@ -23699,7 +23498,7 @@
   (wire
     (pts (xy 462.28 386.08) (xy 462.28 391.16))
     (stroke (width 0) (type default))
-    (uuid "77cde86a-0e2e-4080-b123-9848e0e7204d")
+    (uuid "925c83ce-5fb0-4fcc-a567-d94fc9008002")
   )
   (symbol
     (lib_id "TrinketCore:1V1")
@@ -23749,7 +23548,7 @@
       (font (size 1.27 1.27))
       (justify left bottom)
     )
-    (uuid "3dd2bb42-3a06-4308-96c9-1a846ac69e2a")
+    (uuid "6393c932-9c53-44e8-86ba-8958291480c0")
   )
   (text "TrinketCore v1.0 - LIC build: R4 120k, R13 330k (charge 3.71 V, cut-off 2.61 V);\nEDLC build: R4 75k, R13 470k (2.62 V / 1.96 V). Never fit a 2.7 V EDLC to a LIC build."
     (at 12.7 398.78 0)
@@ -23757,7 +23556,7 @@
       (font (size 1.5 1.5))
       (justify left bottom)
     )
-    (uuid "6c85bb2c-06f2-458a-b4a8-76c723c69063")
+    (uuid "f45c8170-5c4a-44dc-8647-b06a6893b78c")
   )
   (sheet_instances
     (path "/" (page "1"))

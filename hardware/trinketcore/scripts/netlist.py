@@ -290,10 +290,6 @@ PARTS = [
     C("C29", "100nF", "1V1", "GND", desc="DVDD pin 50"),
     C("C30", "10uF", "3V3", "GND", C0805, desc="3V3 bulk at the RP2040"),
     C("C31", "100nF", "3V3", "GND", desc="flash supply"),
-    Part("TP1", "TrinketCore:TestPoint", "SWCLK", "TestPoint:TestPoint_Pad_D1.0mm",
-         {"1": "SWCLK"}, desc="SWD debug clock", assembled=False),
-    Part("TP2", "TrinketCore:TestPoint", "SWDIO", "TestPoint:TestPoint_Pad_D1.0mm",
-         {"1": "SWDIO"}, desc="SWD debug data", assembled=False),
 
     # --------------------------------------------------------- user I/O
     Part("SW2", "TrinketCore:SW_Push_Dual", "B", "TrinketCore:SW_TS-1187A_5.1x5.1mm",

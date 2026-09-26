@@ -34,7 +34,7 @@ inside the outlines on the back.*
 | Protection | disconnects at **2.61 V** (LIC) / **1.96 V** (EDLC) and stays off until USB returns; ship mode for storage |
 | Power switch | the whole board is **off between uses (about 5 µA)**. It turns on from button A, a lid/tilt switch on `WAKE`, the clock alarm, or USB. Firmware keeps it on with `HOLD` |
 | 3.3 V | TI TPS63031 buck-boost, ~500 mA even from a nearly empty capacitor |
-| Microcontroller | Raspberry Pi RP2040, 12 MHz crystal, **16 MB** Winbond flash, USB-C data for programming, BOOT and RESET buttons, SWD pads |
+| Microcontroller | Raspberry Pi RP2040, 12 MHz crystal, **16 MB** Winbond flash, USB-C data for programming, BOOT and RESET buttons (SWD is not broken out: the USB bootloader is in ROM) |
 | Display | **J4**: socket for SPI TFT/OLED modules (GND VCC SCL SDA RES DC CS BLK), backlight dimmable by PWM. **J5**: 4-pin I²C OLED socket. **J8**: Qwiic/STEMMA QT |
 | Charge reading | capacitor voltage on an ADC pin, plus "charging" and "USB present" inputs |
 | Sound | MAX98357A I²S class-D amplifier, 9 dB gain, shut down when idle; **J7** speaker connector (JST PH 2.0 or solder the wires) |
@@ -55,7 +55,7 @@ the firmware uses it in short bursts: wake, show, dim, switch off.
 | 0.96″ SSD1306 OLED, 128 × 64 (SPI on J4 or I²C on J5) | mono | ~35–40 mA; dark screens use less | games, menus, pets |
 | 1.3–1.54″ ST7789 IPS TFT, 240 × 240 | **full colour** | ~45 mA at 60 % backlight, ~30 mA dimmed | colour animations, charms, games |
 | 1.28″ GC9A01 round TFT, 240 × 240 | **full colour** | about the same as the ST7789 | keychain "digital charms" |
-| 1.54″ e-paper (via J4, 3.3 V SPI modules) | mono or 3–4 colours | nothing between updates | badges, pets, clocks: always visible for weeks |
+| 1.54″ 200 × 200 or 3.7″ 480 × 280 e-paper module (SSD1681 and similar) | black/white, 4 greys, or black/white/red | nothing between refreshes; ~30 mA for 2–3 s per black/white refresh (~14 s for three-colour) | tarot oracles, badges, pets, clocks: always visible |
 
 **Yes, colour TFTs work well.** The backlight is most of the extra power, so
 dim it and switch off after a few seconds. On two 220 F capacitors a colour
@@ -68,6 +68,14 @@ straight into J4. Seven-pin OLEDs (`GND VCC D0 D1 RES DC CS`) use the first
 seven positions. Others, including many GC9A01 modules (`VCC GND ...`), need
 short jumper wires. **Check that GND and VCC line up before plugging in.**
 
+**E-ink works too**, and suits anything that should stay visible: the image
+costs no power at all once drawn, so the board can switch fully off. E-paper
+modules have a BUSY output where TFTs have a backlight input. Wire them to J4
+by function (VCC → 3V3, GND, DIN → MOSI, CLK → SCK, CS, DC, RST → RES) with
+BUSY on the BLK pin, which the RP2040 reads on GP13. The
+[oracle example](../../firmware/trinketcore/circuitpython/oracle/code.py) shows a
+random tarot card this way.
+
 ## Runtime per charge
 
 LIC build, 85 % converter efficiency, 5 µA standby
@@ -78,6 +86,7 @@ LIC build, 85 % converter efficiency, 5 µA standby
 | Music box: 20 s tune + LEDs (~70 mA), 10 plays a day | 75 plays (8 days) | 138 plays (14 days) | 276 plays (4 weeks) |
 | Colour TFT charm: 10 s shows (45 mA), 30 a day | 8 days | 14 days | 4 weeks |
 | Virtual pet on e-paper: wakes every 30 min (30 mA × 3 s) | 3 weeks | 6 weeks | 3 months* |
+| Tarot oracle on e-paper: a card per press (30 mA × 5 s), 10 a day | 600 draws (2 months) | 1,100 draws* | 2,200 draws* |
 | OLED game, continuous (40 mA) | 45 min | 80 min | 2.7 h |
 | Colour TFT game, continuous (55 mA) | 33 min | 60 min | 2 h |
 
@@ -173,7 +182,7 @@ Everything is in [`fab/`](fab):
    **102 SMD parts (44 unique lines)**, no through-hole parts. Upload
    `pcbway-bom-lic.csv` and `pcbway-centroid.csv`.
 4. Paste this note:
-   *"BT1, BT2, J4–J7, JP1–JP2, TP1–TP2: do not populate (customer fits
+   *"BT1, BT2, J4–J7, JP1–JP2: do not populate (customer fits
    capacitors and connectors). J8 and all other parts: assemble as per BOM.
    Please confirm pin 1 of U2, U3, U4, U5, U6, U7, U8 and the LED polarity
    against the silkscreen before assembly."*

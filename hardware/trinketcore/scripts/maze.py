@@ -210,6 +210,33 @@ def net_geoms(board, net, exclude_pad=None):
     return out
 
 
+def reach(board, net, ref, num, width, limit=5000):
+    """How many grid cells a pad's net can reach from it (all route layers, through
+    vias), counting up to `limit`. A small number means the pad is boxed in."""
+    m = Maze(board)
+    blocked = [m.blocked(net, layer, width) for layer in ROUTE_LAYERS]
+    vblock = m.via_blocked(net, preroute.VIA_D, preroute.VIA_DRILL)
+    starts = m.target_cells(pad_geoms(board, ref, num))
+    seen = np.zeros((len(ROUTE_LAYERS), m.ny, m.nx), bool)
+    stack = []
+    for li in starts:
+        for j, i in zip(*np.nonzero(starts[li])):
+            seen[li, j, i] = True
+            stack.append((li, int(j), int(i)))
+    count = len(stack)
+    while stack and count < limit:
+        li, j, i = stack.pop()
+        nxt = [(li, j + dj, i + di) for dj in (-1, 0, 1) for di in (-1, 0, 1) if dj or di]
+        if not vblock[j, i]:
+            nxt += [(lj, j, i) for lj in range(len(ROUTE_LAYERS)) if lj != li]
+        for lk, jj, ii in nxt:
+            if 0 <= jj < m.ny and 0 <= ii < m.nx and not blocked[lk][jj, ii] and not seen[lk, jj, ii]:
+                seen[lk, jj, ii] = True
+                stack.append((lk, jj, ii))
+                count += 1
+    return count
+
+
 def connect(board, net, ref, num, width):
     """Route pad ref.num to the nearest other copper of its net."""
     m = Maze(board)

@@ -29,6 +29,7 @@ EXP = [pin.GPIO0, pin.GPIO1, pin.GPIO2, pin.GPIO3, pin.GPIO4, pin.GPIO5, pin.GPI
 EXP_ADC = [pin.GPIO28, pin.GPIO29]      # J6 pins 10 and 9 (J6 runs GP7..GP0, GP29, GP28)
 TFT_DC, TFT_CS, TFT_SCK, TFT_MOSI, TFT_RST, TFT_BL = (
     pin.GPIO9, pin.GPIO8, pin.GPIO10, pin.GPIO11, pin.GPIO12, pin.GPIO13)
+EPD_BUSY = TFT_BL       # e-paper modules: BUSY goes to J4's BLK pin and is read here
 BUTTON_B = pin.GPIO14
 SHIP = pin.GPIO15
 SDA, SCL = pin.GPIO16, pin.GPIO17

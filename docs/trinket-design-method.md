@@ -58,6 +58,12 @@ How to use a colour TFT well:
   pixels are free.
 * **Redraw only what changes**, at 15–20 fps for animations. The RP2040
   sends frames over SPI with DMA, so this is easy.
+* **E-ink for anything that should stay visible**, such as a tarot oracle that
+  shows the card you drew: the image costs nothing to keep, so the board
+  switches fully off after each refresh. A black/white 1.54″ refresh takes
+  ~2 s (about 0.6 J per draw including start-up, ~600 draws on one 120 F
+  capacitor); three-colour panels take ~14 s. See the
+  [oracle example](../firmware/trinketcore/circuitpython/oracle/code.py).
 * **Always-visible colour** (a pet that's always showing): use a colour e-paper
   or a memory-in-pixel LCD (JDI LPM013M126A, 8 colours). A memory LCD needs
   a microcontroller that sleeps at a few µA, such as an nRF52 or STM32L0,
@@ -112,6 +118,7 @@ To stretch it further:
 | **Keychain game** | button A | play session, auto-off after 60 s idle | OLED or colour TFT | 2–3 h of play per charge |
 | **Virtual pet** | clock timer (every 15–60 min) + buttons | update state, redraw, off | e-paper: always visible | months (e-paper) · weeks (TFT, only on button press) |
 | **Keychain animation / charm** | button or vibration switch on `WAKE` | 5–10 s animation | round GC9A01 colour TFT | ~4 weeks at 30 shows/day |
+| **Tarot oracle** | button A, or a shake (vibration switch on `WAKE`) | draw a card: one e-ink refresh, then off | e-paper: the card stays with no power | ~2,200 draws per charge |
 | **Badge / photo frame** | clock alarm (daily or hourly) | e-paper refresh | e-paper | months |
 | **Desk clock** | clock timer every 1–5 minutes | redraw the time | e-paper (partial refresh) | ~9 days (every minute) · ~6 weeks (every 5 min) |
 

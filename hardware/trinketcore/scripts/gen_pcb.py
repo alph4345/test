@@ -53,7 +53,6 @@ PLACE = {
     "C27": (23.4, 23.4, 90), "C26": (24.4, 23.4, 90), "C25": (25.4, 23.4, 90),
     "C30": (13.0, 23.2, 90),
     "SW3": (30.0, 20.6, 0), "SW4": (30.0, 24.2, 0), "R35": (26.4, 24.4, 90),
-    "TP1": (8.6, 21.0, 0), "TP2": (8.6, 23.2, 0),
     # ---- master switch (VCAP comes from the capacitor pads on the left)
     "Q1": (9.3, 26.6, 0), "R7": (12.2, 26.6, 90), "C5": (13.3, 26.6, 90),
     "Q2": (9.3, 30.1, 0), "R8": (12.2, 30.1, 90), "R9": (13.3, 30.1, 90),
@@ -206,8 +205,6 @@ def labels(board):
     text(board, "B", 34.6, 52.4, 0.8, F)
     text(board, "BOOT", 32.6, 20.6, 0.8, F, "left")
     text(board, "RST", 32.6, 24.2, 0.8, F, "left")
-    text(board, "CLK", 7.3, 21.0, 0.8, F, "right")
-    text(board, "DIO", 7.3, 23.2, 0.8, F, "right")
     # --- back: pin names, capacitor bay, build variant, jumpers
     for k, name in enumerate(J4_LABELS):
         text(board, name, 11.11 + 2.54 * k, 3.95, 0.8)

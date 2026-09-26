@@ -29,7 +29,7 @@ This repository has:
 * **[Buy or build?](docs/buy-or-build.md)**: sourcing options and costs.
 * **[Firmware examples](firmware)**: Arduino and MicroPython code for power
   button, sleep/wake, capacitor gauge and shutdown on CapCore, and
-  CircuitPython charge-gauge and music-box examples for TrinketCore.
+  CircuitPython charge-gauge, music-box and e-ink tarot-oracle examples for TrinketCore.
 
 | TrinketCore top | TrinketCore back | CapCore top | CapCore bottom |
 |---|---|---|---|

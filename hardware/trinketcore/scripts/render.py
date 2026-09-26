@@ -1,9 +1,8 @@
 """Photo-style top and bottom renders of trinketcore.kicad_pcb for the docs.
 
 KiCad 7 has no command-line 3D renderer, so this composites black-and-white
-layer plots (copper, mask, silkscreen, outline) into a green-mask, HASL-finish
-picture (blue mask, ENIG gold pads) and punches the drill holes in from the
-board data.
+layer plots (copper, mask, silkscreen, outline) into a picture with a blue
+mask and ENIG gold pads, and punches the drill holes in from the board data.
 
     python3 render.py [out_dir]     # default: ../../../docs/images
 """

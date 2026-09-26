@@ -300,7 +300,7 @@ def unconnected_pads(path):
     _, text = drc(path, out)
     pads = []
     for block in text.split("[unconnected_items]")[1:]:
-        for m in re.finditer(r"pad (\S+) \[(\S+)\] of (\S+)", block.split("\n[")[0]):
+        for m in re.finditer(r"[Pp]ad (\S+) \[(\S+)\] of (\S+)", block.split("\n[")[0]):
             key = (m.group(2), m.group(3), m.group(1))
             if key not in pads:
                 pads.append(key)

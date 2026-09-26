@@ -56,10 +56,10 @@ BLOCKS = {
     "rtc": ("Real-time clock - NXP PCF8563", ["U5", "Y1", "C15", "R28", "R29"],
             "Runs from VAON. Its alarm pulls WAKE_N low to start\nthe gadget. I2C address 0x51."),
     "mcu": ("RP2040 + 16 MB flash", ["U6", "U7", "C31", "Y2", "R31", "C16", "C17", "R34", "SW3",
-                                     "R35", "SW4", "TP1", "TP2", "C18", "C19", "C20", "C21", "C22",
+                                     "R35", "SW4", "C18", "C19", "C20", "C21", "C22",
                                      "C23", "C24", "C25", "C26", "C27", "C28", "C29", "C30"],
             "12 MHz crystal, W25Q128 flash (program, sounds, pictures).\n"
-            "BOOT + RESET: USB bootloader. SWD on TP1/TP2.\n"
+            "BOOT + RESET: USB bootloader (SWD is not broken out).\n"
             "GPIO use: see the README pinout."),
     "audio": ("Speaker amplifier - MAX98357A", ["U8", "R36", "C32", "C33", "J7"],
               "I2S from GP18-20. AMP_EN (GP21) high = on, mono (L+R)/2 mix;\n"

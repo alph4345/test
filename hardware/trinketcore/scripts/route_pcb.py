@@ -44,8 +44,9 @@ SCRATCH = os.environ.get("TRINKET_SCRATCH", "/tmp")
 
 MM = pcbnew.FromMM
 
-# Wider tracks for everything that carries real current (mm).
-POWER = {"VBUS": 0.4, "VCAP": 0.5, "VAON": 0.4, "VSYS": 0.4, "3V3": 0.4, "1V1": 0.3,
+# Wider tracks for everything that carries real current (mm). The RP2040's 1V1 core
+# supply (tens of mA) stays at the default 0.15 mm so it fits between 0.4 mm-pitch pins.
+POWER = {"VBUS": 0.4, "VCAP": 0.5, "VAON": 0.4, "VSYS": 0.4, "3V3": 0.4,
          "LX1": 0.4, "LX2": 0.4, "GND": 0.4, "SPK_P": 0.4, "SPK_N": 0.4}
 CLEARANCE = 0.2                   # DSN clearance: 0.2 from a via pad = 0.35 from its hole
 ZONE_CLEARANCE = 0.2
@@ -337,16 +338,62 @@ def unconnected_pads(path):
     _, text = drc(path, out)
     pads = []
     for block in text.split("[unconnected_items]")[1:]:
-        for m in re.finditer(r"pad (\S+) \[(\S+)\] of (\S+)", block.split("\n[")[0]):
+        for m in re.finditer(r"[Pp]ad (\S+) \[(\S+)\] of (\S+)", block.split("\n[")[0]):
             key = (m.group(2), m.group(3), m.group(1))
             if key not in pads:
                 pads.append(key)
     return pads
 
 
+def route_one(board, net, ref, num):
+    """Grid-route one pad; narrower tracks as a fallback (0.15 mm fits between the
+    RP2040's 0.4 mm-pitch pins). Returns the width used, or None."""
+    for w in ((0.3, 0.2) if net in POWER else (0.2, 0.15)):
+        try:
+            segs, vias = maze.connect(board, net, ref, num, w)
+        except RuntimeError:
+            print(f"  no {w} mm path for {net} from {ref}.{num}")
+            continue
+        print(f"  grid-routed {net} from {ref}.{num}: {segs} segments, {vias} vias ({w} mm)")
+        return w
+    return None
+
+
+def rip_up_around(board, net, radius):
+    """Remove the autorouted copper of every signal net that passes within `radius`
+    mm of a boxed-in pad of `net`. Whole nets go, so nothing is left dangling; the
+    next round of finish() routes them again, after `net`."""
+    from shapely.geometry import LineString, Point, Polygon
+    T = pcbnew.ToMM
+    boxed = []
+    for fp in board.GetFootprints():
+        for p in fp.Pads():
+            if p.GetNetname() == net and maze.reach(board, net, fp.GetReference(), p.GetNumber(), 0.15) < 5000:
+                o = p.GetEffectivePolygon().Outline(0)
+                boxed.append(Polygon([(T(o.CPoint(i).x), T(o.CPoint(i).y)) for i in range(o.PointCount())]))
+    victims = set()
+    for t in board.GetTracks():
+        other = t.GetNetname()
+        if t.IsLocked() or other == net or other in POWER:
+            continue
+        if t.GetClass() == "PCB_VIA":
+            g = Point(T(t.GetPosition().x), T(t.GetPosition().y)).buffer(T(t.GetWidth()) / 2)
+        else:
+            g = LineString([(T(t.GetStart().x), T(t.GetStart().y)),
+                            (T(t.GetEnd().x), T(t.GetEnd().y))]).buffer(T(t.GetWidth()) / 2)
+        if any(g.distance(b) < radius for b in boxed):
+            victims.add(other)
+    for t in list(board.GetTracks()):
+        if t.GetNetname() in victims and not t.IsLocked():
+            board.Remove(t)
+    return victims
+
+
 def finish(path):
-    """Route whatever Freerouting left open with the grid router (maze.py)."""
-    for _ in range(3):
+    """Route whatever Freerouting left open with the grid router (maze.py). A pad
+    that is boxed in by other tracks gets its neighbours ripped up: it is routed
+    first, and they are routed again in the next round."""
+    for _ in range(12):
         fill(path)                     # the In1.Cu plane carries GND connectivity
         todo = unconnected_pads(path)
         if not todo:
@@ -356,18 +403,17 @@ def finish(path):
         for net, ref, num in todo:
             if net in done:
                 continue      # the first pad of a net may already have joined the rest
-            # Narrower tracks as a fallback: 0.15 mm fits between the RP2040's 0.4 mm-pitch pads.
-            for w in ((0.3, 0.2) if net in POWER else (0.2, 0.15)):
-                try:
-                    segs, vias = maze.connect(board, net, ref, num, w)
+            for radius in (None, 0.6, 1.2):
+                if radius is not None:
+                    ripped = rip_up_around(board, net, radius)
+                    print(f"  ripped up {', '.join(sorted(ripped)) or 'nothing'} around {net}")
+                if route_one(board, net, ref, num):
                     break
-                except RuntimeError:
-                    print(f"  no {w} mm path for {net} from {ref}.{num}")
             else:
                 raise RuntimeError(f"no path for {net} from {ref}.{num}")
-            print(f"  grid-routed {net} from {ref}.{num}: {segs} segments, {vias} vias ({w} mm)")
             done.add(net)
         board.Save(path)
+    raise RuntimeError("connections still open after twelve rounds")
 
 
 def report(path):
