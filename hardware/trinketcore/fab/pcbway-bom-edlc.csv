@@ -1,0 +1,48 @@
+Item #,Designator,Qty,Manufacturer,Mfg Part #,Description / Value,Package/Footprint,Type,Your Instructions / Notes
+1,C1,1,Samsung Electro-Mechanics,CL21A475KAQNNNE,4.7uF 25V X5R ceramic capacitor,0805,SMD,"charger input | LCSC C1779 | any brand with the same value, size and rating"
+2,C2,1,Samsung Electro-Mechanics,CL10A106KP8NNNC,10uF 10V X5R ceramic capacitor,0603,SMD,"charger output | LCSC C19702 | any brand with the same value, size and rating"
+3,"C3,C7",2,Samsung Electro-Mechanics,CL05B103KB5NNNC,10nF 50V X7R ceramic capacitor,0402,SMD,"LCSC C15195 | any brand with the same value, size and rating"
+4,"C5,C10,C13,C14,C15,C18,C19,C20,C21,C22,C23,C24,C25,C28,C29,C31,C33",17,Samsung Electro-Mechanics,CL05B104KO5NNNC,100nF 16V X7R ceramic capacitor,0402,SMD,"LCSC C1525 | any brand with the same value, size and rating"
+5,"C6,C26,C27",3,Samsung Electro-Mechanics,CL05A105KA5NQNC,1uF 25V X5R ceramic capacitor,0402,SMD,"LCSC C52923 | any brand with the same value, size and rating"
+6,C8,1,Samsung Electro-Mechanics,CL10A475KO8NNNC,4.7uF 16V X5R ceramic capacitor,0603,SMD,"keeps power on ~4-6 s after a button press so firmware can raise HOLD | LCSC C19666 | any brand with the same value, size and rating"
+7,"C9,C11,C12,C30,C32",5,Samsung Electro-Mechanics,CL21A106KAYNNNE,10uF 25V X5R ceramic capacitor,0805,SMD,"LCSC C15850 | any brand with the same value, size and rating"
+8,"C16,C17",2,Samsung Electro-Mechanics,CL05C150JB5NNNC,15pF 50V C0G ceramic capacitor,0402,SMD,"LCSC C1548 | any brand with the same value, size and rating"
+9,D1,1,Lite-On,LTST-C191KRKT,RED,0603,SMD,CHG: on while charging
+10,"D2,D3,D4,D6",4,Diodes Incorporated,1N4148WS-7-F,1N4148WS switching diode 75 V,SOD-323,SMD,LCSC C2128
+11,D5,1,Lite-On,LTST-C191KGKT,GREEN,0603,SMD,FULL: on when charged (USB plugged in)
+12,D7,1,Lite-On,LTST-C191TBKT,BLUE,0603,SMD,"user LED (GP25, like a Pico)"
+13,J1,1,Korean Hroparts Elec,TYPE-C-31-M-12,USB-C,USB-C 16-pin SMD (HRO TYPE-C-31-M-12),SMD,"USB-C receptacle, USB 2.0, 16 pin | LCSC C165948"
+14,J8,1,JST,SM04B-SRSS-TB(LF)(SN),QWIIC,JST SH 4-pin side entry,SMD,Qwiic / STEMMA QT I2C connector
+15,L1,1,Taiyo Yuden,NR3015T1R5N,1.5uH,3.0x3.0x1.5 mm,SMD,"1.5 uH, 3 x 3 mm shielded, Isat >= 1.5 A | LCSC C7497056"
+16,"Q1,Q5,Q7",3,Alpha & Omega Semiconductor,AO3401A,AO3401A P-channel MOSFET -30 V,SOT-23,SMD,LCSC C15127
+17,"Q2,Q3,Q4,Q6,Q8,Q9",6,Alpha & Omega Semiconductor,AO3400A,AO3400A N-channel MOSFET 30 V,SOT-23,SMD,LCSC C20917
+18,"R1,R2",2,Yageo,RC0402FR-075K1L,5.1 kohm 1% resistor,0402,SMD,"LCSC C25905 | any brand with the same value, size and rating"
+19,"R3,R6,R25,R30,R31,R34",6,Yageo,RC0402FR-071KL,1 kohm 1% resistor,0402,SMD,"LCSC C11702 | any brand with the same value, size and rating"
+20,R4,1,Yageo,RC0402FR-0775KL,75 kohm 1% resistor,0402,SMD,"charge voltage = 0.8 V x (1 + R4/R5) = 2.62 V | LCSC C25798 | any brand with the same value, size and rating"
+21,R5,1,Yageo,RC0402FR-0733KL,33 kohm 1% resistor,0402,SMD,"returned to /PG so the divider cannot drain the capacitor without USB | LCSC C25779 | any brand with the same value, size and rating"
+22,R7,1,Yageo,RC0402FR-0710ML,10 Mohm 1% resistor,0402,SMD,"Q1 off by default | LCSC C26082 | any brand with the same value, size and rating"
+23,"R8,R21,R22,R35",4,Yageo,RC0402FR-0710KL,10 kohm 1% resistor,0402,SMD,"LCSC C25744 | any brand with the same value, size and rating"
+24,"R9,R17,R20,R23,R26,R27",6,Yageo,RC0402FR-07100KL,100 kohm 1% resistor,0402,SMD,"LCSC C25741 | any brand with the same value, size and rating"
+25,"R10,R14,R15,R16,R18,R24,R36",7,Yageo,RC0402FR-071ML,1 Mohm 1% resistor,0402,SMD,"LCSC C26083 | any brand with the same value, size and rating"
+26,"R11,R13",2,Yageo,RC0402FR-07470KL,470 kohm 1% resistor,0402,SMD,"LCSC C25790 | any brand with the same value, size and rating"
+27,R12,1,Yageo,RC0402FR-07330KL,330 kohm 1% resistor,0402,SMD,"UVLO divider top (3/3) | LCSC C25778 | any brand with the same value, size and rating"
+28,"R28,R29",2,Yageo,RC0402FR-074K7L,4.7 kohm 1% resistor,0402,SMD,"LCSC C25900 | any brand with the same value, size and rating"
+29,"R32,R33",2,Yageo,RC0402FR-0727RL,27 ohm 1% resistor,0402,SMD,"any brand with the same value, size and rating"
+30,"R37,R38",2,Yageo,RC0402FR-07100RL,100 ohm 1% resistor,0402,SMD,"any brand with the same value, size and rating"
+31,SW1,1,XKB Connectivity,TS-1187A-B-A-B,POWER/A,5.1x5.1 mm SMD tact switch,SMD,"power / wake button, also readable as BTN; diagonal pads 1+4 | LCSC C318884"
+32,SW2,1,XKB Connectivity,TS-1187A-B-A-B,B,5.1x5.1 mm SMD tact switch,SMD,second button (GP14) | LCSC C318884
+33,SW3,1,Omron,B3U-1000P,BOOT,3.0x2.5 mm SMD tact switch,SMD,hold while pressing RESET for the USB bootloader
+34,SW4,1,Omron,B3U-1000P,RESET,3.0x2.5 mm SMD tact switch,SMD,reset (also forces power-off after ~5 s)
+35,U1,1,STMicroelectronics,USBLC6-2SC6,USBLC6-2SC6,SOT-23-6,SMD,USB ESD protection | LCSC C7519
+36,U2,1,Texas Instruments,BQ25173DSGR,BQ25173DSGR,WSON-8 2x2 mm (DSG),SMD,800 mA linear supercapacitor charger | LCSC C2942216
+37,U3,1,Texas Instruments,TPS3808G01DBVR,TPS3808G01DBVR,SOT-23-6,SMD,"under-voltage supervisor, 0.405 V SENSE threshold | LCSC C19653"
+38,U4,1,Texas Instruments,TPS63031DSKR,TPS63031DSKR,WSON-10 2.5x2.5 mm (DSK),SMD,"3.3 V buck-boost, 1.8-5.5 V in | LCSC C15516"
+39,U5,1,NXP,"PCF8563T/5,518",PCF8563T,SOIC-8 (150 mil),SMD,real-time clock; its alarm wakes the gadget | LCSC C7440
+40,U6,1,Raspberry Pi,RP2040,RP2040,QFN-56 7x7 mm,SMD,dual Cortex-M0+ microcontroller | LCSC C2040
+41,U7,1,Winbond,W25Q128JVSIQ,W25Q128JVS,SOIC-8 (208 mil),SMD,"16 MB QSPI flash (program, sounds, images) | LCSC C97521"
+42,U8,1,Analog Devices,MAX98357AETE+T,MAX98357A,TQFN-16 3x3 mm,SMD,"I2S class-D speaker amplifier, 9 dB gain"
+43,Y1,1,Epson,Q13FC1350000400,32.768kHz,3215 (FC-135),SMD,"32.768 kHz, 12.5 pF, 20 ppm | LCSC C32346"
+44,Y2,1,Abracon,ABM8-272-T3,12MHz,3225 4-pad,SMD,"12 MHz, 10 pF (the RP2040 reference crystal)"
+45,"BT1,BT2",0,,,DNP,,,Do not populate: capacitors (customer fits)
+46,"J4,J5,J6,J7",0,,,DNP,,,Do not populate: sockets/headers/speaker connector (customer fits)
+47,"JP1,JP2,TP1,TP2",0,,,DNP,,,"Do not populate: solder jumpers and test pads: copper only, no part"

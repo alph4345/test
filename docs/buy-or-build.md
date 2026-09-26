@@ -4,7 +4,25 @@ You want a board that charges from USB, stores energy in a capacitor
 instead of a LiPo, and powers small games, e-ink gadgets and music toys. Here
 are your options, cheapest effort first.
 
-## 1. Order CapCore from JLCPCB (recommended)
+## 1. Order TrinketCore from PCBWay (all-in-one, recommended for trinkets)
+
+[`hardware/trinketcore`](../hardware/trinketcore) is a complete gadget board:
+two capacitor positions, USB-C charging with charge LEDs, an RP2040 with
+16 MB of flash, a display socket, a speaker amplifier, buttons and a wake-up
+clock. Upload the Gerber zip, BOM and centroid file to PCBWay and it arrives
+assembled. You fit the capacitors, a display module and a speaker.
+
+* **Cost:** roughly US$100–180 for five assembled boards before shipping.
+  Most of that is setup and parts; ten boards cost little more in total. Trust
+  the live quote.
+* **Skill:** soldering two capacitor leads each and a pin socket. Then
+  CircuitPython: copy two files to a USB drive.
+* **Why:** one board covers the music box, games, pets and charms, so you
+  prototype every idea on the same hardware and firmware.
+
+See [ordering from PCBWay](../hardware/trinketcore/README.md#ordering-from-pcbway).
+
+## 2. Order CapCore from JLCPCB (bring your own microcontroller)
 
 This repository contains a complete, ready-to-order design:
 [`hardware/capcore`](../hardware/capcore). Upload the Gerber zip, BOM and
@@ -28,7 +46,7 @@ pin headers.
 See [`hardware/capcore/README.md`](../hardware/capcore/README.md) for the
 ordering steps.
 
-## 2. Off-the-shelf modules
+## 3. Off-the-shelf modules
 
 There is no common, cheap, off-the-shelf equivalent for lithium-ion
 capacitors. What you will find:
@@ -46,14 +64,14 @@ capacitors. What you will find:
   built-in chargers): **not suitable**. They charge to 4.2 V, which ruins a
   3.8 V LIC.
 
-## 3. Buy the finished jewellery
+## 4. Buy the finished jewellery
 
 The [Fibonacci earrings](https://lectronz.com/products/rechargeable-supercapacitor-fibonacci-earrings-2)
 that inspired this are a finished product: an ATtiny microcontroller, LEDs
 and a 40 F lithium-ion capacitor for many hours per charge. Great as a
 reference for what's possible, but not a platform for your own designs.
 
-## 4. Design your own
+## 5. Design your own
 
 Everything here is generated from Python scripts
 ([`hardware/capcore/scripts`](../hardware/capcore/scripts)), so changing the

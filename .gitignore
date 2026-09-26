@@ -9,7 +9,8 @@ fp-info-cache
 _autosave-*
 *.lck
 
-# Autorouter scratch (capcore.ses is kept: route_pcb.py rebuilds the board from it)
+# Autorouter scratch (the .ses files are kept: route_pcb.py rebuilds each board from it)
 hardware/capcore/capcore.dsn
+hardware/trinketcore/trinketcore.dsn
 logs/
 freerouting.json

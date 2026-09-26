@@ -7,21 +7,33 @@ idea comes from the
 
 This repository has:
 
+* **[TrinketCore](hardware/trinketcore)**: an all-in-one 40 × 60 mm trinket
+  board with PCBWay order files. It has:
+  * pads for two capacitors lying flat on the back;
+  * USB-C charging with red "charging" and green "full" LEDs;
+  * an RP2040 with 16 MB of flash;
+  * a socket for OLED or colour TFT modules (the board reads its charge
+    level and can show it);
+  * a speaker amplifier, buttons, a wake-up clock and an expansion header.
 * **[CapCore](hardware/capcore)**: an open, ready-to-order 21 × 48 mm power
   module (KiCad 7). It has a USB-C charger, capacitor protection, a power
   button, a wake-up clock and a 3.3 V output for your microcontroller.
   Gerbers and JLCPCB assembly files are included.
+* **[The burst method](docs/trinket-design-method.md)**: how music boxes,
+  games, pets and charms last days to weeks on a capacitor, and how colour
+  TFT screens fit in.
 * **[Energy budget](docs/energy-budget.md)**: how long a capacitor actually
   runs each kind of gadget, plus a [calculator](tools/energy_calc.py).
 * **[Choosing a capacitor](docs/choosing-a-capacitor.md)**: lithium-ion
   capacitors vs. ordinary supercapacitors, part numbers, safety rules.
 * **[Buy or build?](docs/buy-or-build.md)**: sourcing options and costs.
 * **[Firmware examples](firmware)**: Arduino and MicroPython code for power
-  button, sleep/wake, capacitor gauge and shutdown.
+  button, sleep/wake, capacitor gauge and shutdown on CapCore, and
+  CircuitPython charge-gauge and music-box examples for TrinketCore.
 
-| CapCore top | CapCore bottom |
-|---|---|
-| ![top](docs/images/capcore-front.png) | ![bottom](docs/images/capcore-back.png) |
+| TrinketCore top | TrinketCore back | CapCore top | CapCore bottom |
+|---|---|---|---|
+| ![TrinketCore top](docs/images/trinketcore-front.png) | ![TrinketCore back](docs/images/trinketcore-back.png) | ![CapCore top](docs/images/capcore-front.png) | ![CapCore bottom](docs/images/capcore-back.png) |
 
 ## The short answer
 
@@ -44,29 +56,33 @@ This repository has:
 ## Quick start
 
 1. Pick a capacitor: [choosing a capacitor](docs/choosing-a-capacitor.md).
-2. Order CapCore assembled from JLCPCB with the files in
-   [`hardware/capcore/fab`](hardware/capcore/fab): see
-   [ordering](hardware/capcore/README.md#ordering-from-jlcpcb).
-3. Solder on the capacitor and headers, run the
+2. **For a complete trinket:** order TrinketCore assembled from PCBWay with the
+   files in [`hardware/trinketcore/fab`](hardware/trinketcore/fab). See
+   [ordering](hardware/trinketcore/README.md#ordering-from-pcbway). Plug in a
+   display module, fit the capacitors, and load the
+   [CircuitPython examples](firmware/trinketcore).
+3. **For your own microcontroller board:** order CapCore from JLCPCB with the
+   files in [`hardware/capcore/fab`](hardware/capcore/fab) (see
+   [ordering](hardware/capcore/README.md#ordering-from-jlcpcb)), run the
    [bring-up checks](hardware/capcore/README.md#bring-up), and wire it to your
    microcontroller ([Pico, Feather, bare chips](hardware/capcore/README.md#connecting-a-microcontroller)).
-4. Start from the [firmware examples](firmware).
 
 ## Status
 
-The design is complete and machine-checked: the schematic and PCB match the
-netlist pin for pin, and KiCad DRC is clean apart from three cosmetic
-footprint warnings. **The boards have not been manufactured and tested yet.**
-Order a small first batch and follow the bring-up steps before building
-anything you depend on.
+Both designs are complete and machine-checked: each schematic and PCB matches
+its netlist pin for pin, and KiCad DRC is clean apart from cosmetic footprint
+warnings. **Neither board has been manufactured and tested yet.** Order a
+small first batch and follow the bring-up steps before building anything you
+depend on.
 
 ## Repository layout
 
 ```
-docs/                 guides and board renders
-firmware/             Arduino + MicroPython examples
-hardware/capcore/     KiCad project, fab outputs, generator scripts
-tools/energy_calc.py  runtime calculator
+docs/                   guides and board renders
+firmware/               Arduino + MicroPython (CapCore), CircuitPython (TrinketCore)
+hardware/trinketcore/   all-in-one board: KiCad project, PCBWay files, generator scripts
+hardware/capcore/       power module: KiCad project, JLCPCB files, generator scripts
+tools/energy_calc.py    runtime calculator
 ```
 
 No license file yet. Pick one before sharing the design: for example

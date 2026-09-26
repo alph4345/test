@@ -69,6 +69,9 @@ recharge now and then.
   instead of an MP3 player. For long listening, a supercapacitor is the wrong
   storage.
 
+For colour TFT screens, the music box and the same pattern for every other
+trinket, see [the burst method](trinket-design-method.md).
+
 ## Try your own numbers
 
 ```
