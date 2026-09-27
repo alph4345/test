@@ -69,7 +69,7 @@ ErrorDocument 404 /
   <FilesMatch "\.(html|css|js)$">
     Header set Cache-Control "no-cache"
   </FilesMatch>
-  <FilesMatch "\.(png|jpe?g|gif|webp|svg|ico|woff2)$">
+  <FilesMatch "\.(png|jpe?g|gif|webp|svg|ico|woff2|pmtiles)$">
     Header set Cache-Control "public, max-age=86400"
   </FilesMatch>
 </IfModule>

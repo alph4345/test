@@ -15,14 +15,7 @@
 (function () {
   "use strict";
 
-  /* Carto ships the ground and the lettering as separate layers. Keeping them
-     apart is the whole trick: the ground can stay a neutral dark while the
-     street names get pushed to white, instead of one filter dragging both
-     into the same red. Filters live on the panes, in drops.html. */
-  var TILE_BASE   = "https://{s}.basemaps.cartocdn.com/dark_nolabels/{z}/{x}/{y}{r}.png";
-  var TILE_LABELS = "https://{s}.basemaps.cartocdn.com/dark_only_labels/{z}/{x}/{y}{r}.png";
-  var ATTR = '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>' +
-             ' contributors &copy; <a href="https://carto.com/attributions">CARTO</a>';
+  /* Streets: pn0vaBasemap() in drops-map.js, from maps/drops.pmtiles. */
 
   /* Search rings, in metres. A drop is somewhere inside the smallest one you
      can stand in, so these are information, not decoration. */
@@ -161,6 +154,7 @@
     home = { lat: lat, lng: lng, zoom: zoom };
     map = L.map("dp-map", {
       scrollWheelZoom:false, attributionControl:false,
+      minZoom:8, maxZoom:18,   // the map file holds zooms 8-15; above that it is scaled up
       fadeAnimation:false, zoomAnimation:false, markerZoomAnimation:false
     }).setView([lat, lng], zoom);
     L.control.attribution({ position:"bottomright", prefix:false }).addTo(map);
@@ -178,8 +172,7 @@
     map.getPane("labels").style.zIndex = 350;
     map.getPane("labels").style.pointerEvents = "none";
 
-    L.tileLayer(TILE_BASE,   { pane:"base",   subdomains:"abcd", maxZoom:20, attribution:ATTR }).addTo(map);
-    L.tileLayer(TILE_LABELS, { pane:"labels", subdomains:"abcd", maxZoom:20 }).addTo(map);
+    if (window.pn0vaBasemap) pn0vaBasemap(map);
 
     RINGS.forEach(function(r, i){
       rings.push(L.circle([lat, lng], {

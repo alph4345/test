@@ -432,3 +432,33 @@ html:not(.js) .dp-entry{ display:contents; }   /* no JS: show them all, stacked 
 @media (max-width:380px){
   .dp-meta .dp-readout:nth-of-type(2){ display:none; }
 }
+
+/* Laptops (901-1340px): the one-row bar needs ~1,100px, so it overlapped
+   itself by up to 175px here too. Same two rows as on phones; the readouts
+   wrap inside their cell rather than run into the designation. */
+@media (min-width:901px) and (max-width:1340px){
+  .dp-bar .dp-panel__body{
+    grid-template-columns:auto minmax(0,1fr);
+    grid-template-areas:"desig meta" "freq freq";
+    row-gap:2px;
+  }
+  .dp-desig{ grid-area:desig; }
+  .dp-meta { grid-area:meta; }
+  .dp-freq { grid-area:freq; }
+}
+
+/* --------------------------------------------------------------------------
+   SELF-HOSTED MAP — added by build.py
+   drops-map.js paints the streets in the site palette itself, so the filters
+   that bent Carto's tiles toward it (inline in drops.html) must not touch
+   the new ones.
+   -------------------------------------------------------------------------- */
+.dp-mapcanvas .dp-pane-base, .dp-mapcanvas .dp-pane-labels{ filter:none; }
+
+/* No map file yet: rings and marker on plain ground, plus the way out to a
+   full map, instead of a grid of error tiles. */
+.dp-nomap .dp-map-fallback{
+  display:block; position:absolute; left:50%; bottom:26px; transform:translateX(-50%);
+  z-index:480; padding:10px 14px; white-space:nowrap;
+  background:rgba(0,0,0,.85); border:1px solid var(--pn-hairline);
+}

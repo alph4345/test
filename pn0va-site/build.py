@@ -590,7 +590,82 @@ DROPS_PHONE_CSS = """
 @media (max-width:380px){
   .dp-meta .dp-readout:nth-of-type(2){ display:none; }
 }
+
+/* Laptops (901-1340px): the one-row bar needs ~1,100px, so it overlapped
+   itself by up to 175px here too. Same two rows as on phones; the readouts
+   wrap inside their cell rather than run into the designation. */
+@media (min-width:901px) and (max-width:1340px){
+  .dp-bar .dp-panel__body{
+    grid-template-columns:auto minmax(0,1fr);
+    grid-template-areas:"desig meta" "freq freq";
+    row-gap:2px;
+  }
+  .dp-desig{ grid-area:desig; }
+  .dp-meta { grid-area:meta; }
+  .dp-freq { grid-area:freq; }
+}
 """
+
+
+# --- the street map: served by this site, not by Carto ----------------------
+# Carto began answering keyless tile requests with "API key required", which
+# blanked the Drops map. The streets now come from maps/drops.pmtiles (cut from
+# OpenStreetMap by tools/make-map.py) and are painted by drops-map.js.
+MAP_SRC = ROOT / "_source/map"
+
+DROPS_MAP_CSS = """
+/* --------------------------------------------------------------------------
+   SELF-HOSTED MAP — added by build.py
+   drops-map.js paints the streets in the site palette itself, so the filters
+   that bent Carto's tiles toward it (inline in drops.html) must not touch
+   the new ones.
+   -------------------------------------------------------------------------- */
+.dp-mapcanvas .dp-pane-base, .dp-mapcanvas .dp-pane-labels{ filter:none; }
+
+/* No map file yet: rings and marker on plain ground, plus the way out to a
+   full map, instead of a grid of error tiles. */
+.dp-nomap .dp-map-fallback{
+  display:block; position:absolute; left:50%; bottom:26px; transform:translateX(-50%);
+  z-index:480; padding:10px 14px; white-space:nowrap;
+  background:rgba(0,0,0,.85); border:1px solid var(--pn-hairline);
+}
+"""
+
+
+def self_hosted_map_js(js: str) -> str:
+    """drops.js: swap Carto's two tile layers for pn0vaBasemap()."""
+    js, n = re.subn(r"  /\* Carto ships the ground.*?carto\.com/attributions\">CARTO</a>';\n",
+                    "  /* Streets: pn0vaBasemap() in drops-map.js, from maps/drops.pmtiles. */\n",
+                    js, count=1, flags=re.S)
+    subs = [
+        ('    L.tileLayer(TILE_BASE,   { pane:"base",   subdomains:"abcd", maxZoom:20, attribution:ATTR }).addTo(map);\n'
+         '    L.tileLayer(TILE_LABELS, { pane:"labels", subdomains:"abcd", maxZoom:20 }).addTo(map);\n',
+         '    if (window.pn0vaBasemap) pn0vaBasemap(map);\n'),
+        ('      scrollWheelZoom:false, attributionControl:false,\n',
+         '      scrollWheelZoom:false, attributionControl:false,\n'
+         '      minZoom:8, maxZoom:18,   // the map file holds zooms 8-15; above that it is scaled up\n'),
+    ]
+    for old, new in subs:
+        n += old in js
+        js = js.replace(old, new, 1)
+    if n != 3 or "cartocdn" in js:
+        sys.exit("drops.js changed; update self_hosted_map_js() in build.py")
+    return js
+
+
+def self_hosted_map_html(html: str) -> str:
+    """drops.html: load the map renderer and drops-map.js ahead of drops.js."""
+    old = '<script src="drops.js'
+    if old not in html or "Carto dark · OSM" not in html:
+        sys.exit("drops.html changed; update self_hosted_map_html() in build.py")
+    # no map file yet: say nothing, so the page doesn't ask for one and 404
+    has_map = (MAP_SRC / "drops.pmtiles").exists()
+    html = html.replace(old,
+        '<script src="vendor/protomaps-leaflet/protomaps-leaflet.js?v=' + VER + '"></script>\n'
+        '<script src="drops-map.js?v=' + VER + '"'
+        + (' data-map="maps/drops.pmtiles"' if has_map else '') + '></script>\n'
+        + old, 1)
+    return html.replace("Carto dark · OSM", "OpenStreetMap", 1)
 
 
 # Appended to style.css (home page only).
@@ -698,6 +773,7 @@ def build(with_shop: bool):
     drops = drops.replace('<link rel="stylesheet" href="drops.css',
                           '<link rel="stylesheet" href="page-style.css?v=' + VER +
                           '">\n<link rel="stylesheet" href="drops.css')
+    drops = self_hosted_map_html(drops)
     (out / "drops.html").write_text(drops, encoding="utf-8", newline=NL)
 
     # No FIREFLY_CSS here: the living layer belongs to the home page only.
@@ -705,8 +781,18 @@ def build(with_shop: bool):
     # are trying to read is atmosphere in the wrong place.
     shutil.copy(BRAND / "drops/drops.css", out / "drops.css")
     (out / "drops.css").write_text((out / "drops.css").read_text(encoding="utf-8")
-                                   + DROPS_PHONE_CSS, encoding="utf-8", newline=NL)
-    shutil.copy(BRAND / "drops/drops.js", out / "drops.js")
+                                   + DROPS_PHONE_CSS + DROPS_MAP_CSS, encoding="utf-8", newline=NL)
+    (out / "drops.js").write_text(
+        self_hosted_map_js((BRAND / "drops/drops.js").read_text(encoding="utf-8")),
+        encoding="utf-8", newline=NL)
+    shutil.copy(MAP_SRC / "drops-map.js", out / "drops-map.js")
+    (out / "vendor/protomaps-leaflet").mkdir(parents=True, exist_ok=True)
+    for f in ("protomaps-leaflet.js", "protomaps-leaflet.LICENSE"):
+        shutil.copy(MAP_SRC / "vendor" / f, out / "vendor/protomaps-leaflet" / f)
+    # the map itself exists once tools/make-map.py has been run
+    if (MAP_SRC / "drops.pmtiles").exists():
+        (out / "maps").mkdir(exist_ok=True)
+        shutil.copy(MAP_SRC / "drops.pmtiles", out / "maps/drops.pmtiles")
     for img in (BRAND / "drops/images").glob("*.svg"):
         shutil.copy(img, out / "images")
     shutil.rmtree(out / "images/geocache", ignore_errors=True)   # page is gone
@@ -1560,7 +1646,7 @@ ErrorDocument 404 /
   <FilesMatch "\\.(html|css|js)$">
     Header set Cache-Control "no-cache"
   </FilesMatch>
-  <FilesMatch "\\.(png|jpe?g|gif|webp|svg|ico|woff2)$">
+  <FilesMatch "\\.(png|jpe?g|gif|webp|svg|ico|woff2|pmtiles)$">
     Header set Cache-Control "public, max-age=86400"
   </FilesMatch>
 </IfModule>
@@ -1592,7 +1678,7 @@ def build_clean(flat: pathlib.Path, with_shop: bool) -> pathlib.Path:
     pages = ["blog", "projects", "drops", "about"] + (["store"] if with_shop else [])
     assets = ("style.css", "page-style.css", "drops.css", "reader.css", "tokens.css",
               "script.js", "page-script.js", "reader.js", "drops.js", "store.js",
-              "favicon.ico", "favicon.svg", "apple-touch-icon.png")
+              "drops-map.js", "favicon.ico", "favicon.svg", "apple-touch-icon.png")
 
     def rootify(html: str) -> str:
         # assets -> /asset
@@ -1679,8 +1765,8 @@ def stamp_assets(folder: pathlib.Path):
             js.write_text(atlas.sub(sub, text), encoding="utf-8", newline=NL)
 
     pat = re.compile(r'((?:href|src)=")([^"?]+\.(?:css|js))\?v=[^"]*(")')
-    img = re.compile(r'((?:href|src|content|data-hint|data-item)=")'
-                     r'((?:' + re.escape(SITE_URL) + r')?[^":?#]+\.(?:png|svg|ico|jpe?g|webp|gif))'
+    img = re.compile(r'((?:href|src|content|data-hint|data-item|data-map)=")'
+                     r'((?:' + re.escape(SITE_URL) + r')?[^":?#]+\.(?:png|svg|ico|jpe?g|webp|gif|pmtiles))'
                      r'(?:\?v=[^"]*)?(")')
     for html in folder.rglob("*.html"):
         text = html.read_text(encoding="utf-8")

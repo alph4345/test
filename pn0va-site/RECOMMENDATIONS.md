@@ -7,10 +7,14 @@ is what's left, and the answers to the security questions.
 
 ## Do these first
 
-1. **Upload the new `with-store-clean` (or `no-store-clean`) folder.** The old
-   `.htaccess` sends every page into a redirect loop on a standard Apache
-   server ("too many redirects"). If pn0va.com loads fine today, your host
-   behaves differently from stock Apache, but the new file works either way.
+1. **Make the map file, then upload the new `with-store-clean` (or
+   `no-store-clean`) folder.** The live Drops map says "API key required"
+   because Carto now wants a key. `python tools/make-map.py` then
+   `python build.py` creates the self-hosted replacement (README, *The Drops
+   map*). The upload also replaces the old `.htaccess`, which sends every page
+   into a redirect loop on a standard Apache server ("too many redirects"). If
+   pn0va.com loads fine today, your host behaves differently from stock
+   Apache, but the new file works either way.
 2. **Turn on HTTPS**, then force it (see README, *The server*). This matters
    most for the store: over plain HTTP, someone on the same public Wi-Fi can
    change the page on its way to a buyer, including where Checkout sends them.
@@ -89,9 +93,10 @@ your host offers it.
   National Park Service land. Leaving items there generally needs permission,
   and many parks have rules on caches.
 
-**The map** loads street tiles from Carto. Their free basemaps are licensed for
-non-commercial use. With a store on the same site, check their terms or move to
-a provider whose free tier allows commercial use.
+**The map** no longer depends on anyone. Carto now answers keyless requests
+with "API key required" tiles, so the streets come from a file on your own
+server instead (README, *The Drops map*). Visitors' browsers ask no map
+company for anything, and no one can change its terms or switch it off.
 
 ### Store: how safe is it?
 

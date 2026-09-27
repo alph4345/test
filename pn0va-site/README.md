@@ -52,6 +52,41 @@ and the two rules redirected each other forever.
 of `.htaccess` (and the `Strict-Transport-Security` line). It ships switched off
 only because forcing HTTPS on a site with no certificate takes the site down.
 
+### The Drops map
+
+The street map is **served by the site itself**. Carto began answering
+keyless requests with "API key required" tiles, which blanked the map; the
+site no longer asks Carto (or anyone else) for anything.
+
+- `maps/drops.pmtiles` holds OpenStreetMap streets, water, parks and names
+  around the drops: close-up detail within 4 km of each drop and a wider view
+  30 km out. One file, read in small pieces, so a visitor downloads only what
+  they look at.
+- `drops-map.js` paints it in the site palette with protomaps-leaflet
+  (`vendor/protomaps-leaflet/`, BSD licence), inside the same Leaflet map, so
+  the rings, marker, graticule and recenter button are unchanged.
+- No key, no usage limits, no account. The data is © OpenStreetMap
+  contributors (ODbL); the attribution on the map is required and in place.
+
+**Make or refresh the map** (the first time, and after adding a drop
+somewhere new):
+
+```bash
+pip install pmtiles requests
+python tools/make-map.py     # writes _source/map/drops.pmtiles
+python build.py
+```
+
+It downloads only your area from the newest daily world map published by
+Protomaps (build.protomaps.com). Until the file exists, the page shows the
+rings and marker on plain ground plus a link to the location on
+OpenStreetMap, not error tiles.
+
+**The server must send parts of files** (HTTP "range requests"). Apache,
+LiteSpeed, Netlify, GitHub Pages and Cloudflare all do. Python's
+`http.server` does not, so for local previews of the map use
+`npx http-server with-store -p 8940` instead.
+
 ## 2026.09.27 update
 
 **Fixed**
@@ -71,6 +106,9 @@ only because forcing HTTPS on a site with no certificate takes the site down.
   customers; cart lines rendered saved text as HTML. See STORE-SETUP.md.
 
 **Added**
+- **The Drops map is self-hosted.** Carto's tiles now say "API key required";
+  the streets come from `maps/drops.pmtiles` on your own server instead. Run
+  `tools/make-map.py` once to create it (see *The Drops map*).
 - A favicon (the P and the sword, cut from the logo), an iPhone home-screen
   icon, and link previews: a shared link to any page shows the full logo.
   Per-page descriptions and canonical URLs; `robots.txt` and `sitemap.xml`.
@@ -109,8 +147,8 @@ only because forcing HTTPS on a site with no certificate takes the site down.
 - `geocache.html` → **`drops.html`**, and ~550 lines of dead `geo-*` CSS
   stripped out. Nav and home menu rewritten on every page.
 
-**No more CDNs.** The site makes **no external requests** apart from the Drops
-map tiles, which come from Carto:
+**No more CDNs.** The site makes **no external requests** (since 2026.09.27 the
+Drops map is served by the site too; see *The Drops map*):
 - Press Start 2P is self-hosted from `fonts/` — which also removes the
   `@import`-ordering trap that once stopped the pixel font loading at all.
 - CreateJS is vendored to `vendor/` — `index.html` already carried fallback
@@ -167,6 +205,8 @@ python -m http.server 8940 --directory with-store
 Both variants are also registered in `.claude/launch.json` as `site-shop`
 (8940) and `site-noshop` (8941). That server ignores `.htaccess`, so check
 clean-URL changes on the real host (or a local Apache) before relying on them.
+It also cannot send parts of files, so the Drops map falls back to its plain
+ground there; `npx http-server with-store -p 8940` shows the real map.
 
 ## Verified
 
