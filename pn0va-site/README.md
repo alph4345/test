@@ -84,8 +84,13 @@ OpenStreetMap, not error tiles.
 
 **The server must send parts of files** (HTTP "range requests"). Apache,
 LiteSpeed, Netlify, GitHub Pages and Cloudflare all do. Python's
-`http.server` does not, so for local previews of the map use
-`npx http-server with-store -p 8940` instead.
+`http.server` does not, so to preview the map on your own computer:
+
+```bash
+pip install rangehttpserver
+cd with-store
+python -m RangeHTTPServer 8940     # then open http://localhost:8940/drops.html
+```
 
 ## 2026.09.27 update
 
@@ -207,7 +212,8 @@ Both variants are also registered in `.claude/launch.json` as `site-shop`
 (8940) and `site-noshop` (8941). That server ignores `.htaccess`, so check
 clean-URL changes on the real host (or a local Apache) before relying on them.
 It also cannot send parts of files, so the Drops map falls back to its plain
-ground there; `npx http-server with-store -p 8940` shows the real map.
+ground there; `python -m RangeHTTPServer 8940` from inside `with-store`
+shows the real map (see *The Drops map*).
 
 ## Verified
 
