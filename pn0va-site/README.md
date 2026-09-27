@@ -34,11 +34,59 @@ It needs two things, and finds both on its own:
 | | Where |
 |---|---|
 | The 2026-07-06 build it derives from | `_source/website-fixed/` (bundled here) |
-| The brand kit | `Desktop\PN0VA` — the sibling folder |
+| The brand kit | `Desktop\PN0VA` — the sibling folder. If it isn't there, the snapshot in `_source/brand-kit/` is used |
 
 Change anything in `PN0VA` and re-run; both variants pick it up. The source is
 bundled rather than referenced so this folder stays self-contained and the
 script keeps working years from now.
+
+### The server
+
+The `.htaccess` needs Apache or LiteSpeed with `AllowOverride All`, the usual
+shared-hosting setup. It turns off Apache's own trailing-slash redirect
+(`DirectorySlash Off`): the pages are folders served at URLs without a slash,
+and the two rules redirected each other forever.
+
+**Turn on HTTPS.** Once `https://pn0va.com` opens with a padlock, use the host's
+*Force HTTPS* switch, or uncomment the three lines under `# HTTPS.` near the top
+of `.htaccess` (and the `Strict-Transport-Security` line). It ships switched off
+only because forcing HTTPS on a site with no certificate takes the site down.
+
+## 2026.09.27 update
+
+**Fixed**
+- **The clean builds' `.htaccess` looped on Apache.** Every page, and `/`,
+  redirected until the browser gave up ("too many redirects"). Now tested on
+  Apache 2.4; see *The server* above.
+- **Phones.** Blog and Projects were wider than the screen, so text was cut off
+  at the right edge. Drops drew `DROP #003`, the coordinates and the status on
+  top of each other, and hid the only "What is a drop?" button.
+- **JavaScript off.** Blog and Projects showed two empty frames; they now show
+  every entry as one long page.
+- **Keyboard.** `TAP TO START` only answered clicks, so the home menu could
+  not be reached without a mouse or touch screen. Enter and Space work now.
+- **Projects** shipped with 10 unclosed `<div>`s (a regex in `build_reader`).
+- **Store.** Saved carts kept old prices after a price change; buyers came back
+  from Square to a full cart; checkout panels showed developer instructions to
+  customers; cart lines rendered saved text as HTML. See STORE-SETUP.md.
+
+**Added**
+- A favicon (the P and the sword, cut from the logo), an iPhone home-screen
+  icon, and link previews: a shared link to any page shows the full logo.
+  Per-page descriptions and canonical URLs; `robots.txt` and `sitemap.xml`.
+- Every image link carries a `?v=` stamp taken from the file, so new logo art
+  reaches returning visitors at once instead of waiting out their cache.
+- Security headers, no folder listings, gzip and cache rules in `.htaccess`.
+
+**Build**
+- `_source/brand-kit/` is a snapshot of the PN0VA brand kit, rebuilt from the
+  2026-08-19 output. Your real `PN0VA` folder still wins when it sits beside
+  this one; the snapshot only lets the build run anywhere else.
+- Files are always written with Windows line endings, so a build on any OS is
+  byte-identical to a build on yours.
+- `tools/make-icons.js` regenerates the icons from `logo/pn0va-logo.svg`.
+- `README.pdf` and `STORE-SETUP.pdf` are older than their `.md` files. Run
+  `python tools/md2pdf.py` on your PC to refresh them (it uses Windows fonts).
 
 ## What changed from the 2026-07-06 build
 
@@ -61,7 +109,8 @@ script keeps working years from now.
 - `geocache.html` → **`drops.html`**, and ~550 lines of dead `geo-*` CSS
   stripped out. Nav and home menu rewritten on every page.
 
-**No more CDNs.** The site now makes **zero external requests**:
+**No more CDNs.** The site makes **no external requests** apart from the Drops
+map tiles, which come from Carto:
 - Press Start 2P is self-hosted from `fonts/` — which also removes the
   `@import`-ordering trap that once stopped the pixel font loading at all.
 - CreateJS is vendored to `vendor/` — `index.html` already carried fallback
@@ -93,13 +142,16 @@ returning customers' saved carts will mismatch.
 
 ## Before deploying
 
-1. Replace the placeholder art in `images/shop/`, `images/blog/`,
-   `images/about/`, and the two drop placeholders in `images/`.
+1. Replace the placeholder art in `images/store/`, `images/blog/`,
+   `images/about/`, and the two drop placeholders in `images/`. Put it in the
+   source (`_source/website-fixed/images/`, the brand kit's `drops/images/`;
+   the store placeholders are written by `build.py`), not in the build
+   folders, which the next build wipes.
 2. Wire up Square — see **STORE-SETUP.md**, which covers the three checkout
    modes, a working serverless endpoint, and what else you need before listing
    anything for real.
-3. Regenerate the clean-URL build (`build-clean.py` from the old repo) and add
-   `/drops` to `.htaccess`, with a 301 from `geocache.html` → `/drops`.
+3. ~~Regenerate the clean-URL build and add `/drops` to `.htaccess`.~~ **Done:**
+   `build.py` writes the `-clean` folders and their `.htaccess`.
 4. ~~Fix the stale line in the site's own `CLAUDE.md`.~~ **Done 2026-08-19.**
    `CLAUDE.md`, the blog and projects copy, the `index.html` menu comment and
    the `page-script.js` / `page-style.css` headers all read **JRPG** now. The
@@ -109,11 +161,12 @@ returning customers' saved carts will mismatch.
 ## Local preview
 
 ```bash
-python -m http.server 8940 --directory with-shop
+python -m http.server 8940 --directory with-store
 ```
 
 Both variants are also registered in `.claude/launch.json` as `site-shop`
-(8940) and `site-noshop` (8941).
+(8940) and `site-noshop` (8941). That server ignores `.htaccess`, so check
+clean-URL changes on the real host (or a local Apache) before relying on them.
 
 ## Verified
 
@@ -121,3 +174,9 @@ Zero external requests · all six pages parse clean · no yellow anywhere ·
 prose at 16.3:1 on black · nav single-line at 360px · drops map tiles and
 labels both rendering · cart add/decrement/remove/persist/Esc all working ·
 no console errors on any page.
+
+**2026.09.27**, in Chromium through Apache 2.4 with the shipped `.htaccess`:
+every page at 1440 and 390 px wide, with JavaScript on and off, and no
+horizontal overflow or console errors · every clean URL, old URL and trailing
+slash resolves in at most one redirect · all pages' tags balance · cart:
+re-pricing, removed items, `?paid=1`, and the demo, link and api checkout paths.

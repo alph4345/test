@@ -177,8 +177,8 @@ they issue a separate token and card numbers that never move money.
   The cheapest fix is one `data-id` per variant.
 - **Real photos.** The placeholders are obviously placeholders and will kill
   trust faster than anything else on this list.
-- **`og:` tags** so a link to the store previews with the logo instead of
-  nothing. Currently missing sitewide.
+- ~~**`og:` tags** so a link to the store previews with the logo instead of
+  nothing.~~ **Done 2026.09.27** on every page.
 
 ---
 
