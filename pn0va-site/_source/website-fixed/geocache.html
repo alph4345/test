@@ -1,0 +1,245 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>P_N0VA - Geocache</title>
+  <!-- Progressive enhancement: mark the document when JavaScript is available -->
+  <script>document.documentElement.classList.add('js');</script>
+  <link rel="stylesheet" href="vendor/leaflet/leaflet.css?v=20260706a">
+  <link rel="stylesheet" href="page-style.css?v=20260706a">
+</head>
+
+<body>
+  <nav>
+    <ul>
+      <li><a href="index.html">Home</a></li>
+      <li><a href="blog.html">Blog</a></li>
+      <li><a href="projects.html">Projects</a></li>
+      <li><a href="geocache.html" class="active">Geocache</a></li>
+      <li><a href="about.html">About</a></li>
+    </ul>
+  </nav>
+
+  <main id="geo-container">
+
+    <!-- ============ NEWEST ENTRY FIRST ============ -->
+    <!-- Cache #002 - newest, still out there -->
+    <div class="geo-entry current" data-entry="1" id="cache-2"
+         data-lat="37.826977" data-lng="-122.422955" data-zoom="14">
+
+      <div class="geo-header">
+        <div class="geo-date-block">
+          <span class="geo-date">2026.07.04</span>
+          <span class="geo-status unclaimed">UNCLAIMED</span>
+        </div>
+      </div>
+
+      <div class="geo-top">
+        <div class="text-window geo-hint">
+          <h2>Hint</h2>
+          <img class="geo-photo" src="images/geocache/hint-placeholder.svg" alt="Photo hint for cache #002">
+          <p class="geo-caption">LOOK PAST THE WATER</p>
+        </div>
+
+        <div class="text-window geo-desc">
+          <h2>Cache #002 — Island Signal</h2>
+          <p>This one required a boat ride to place. The cache sits within
+             sight of one of the most photographed views around, tucked
+             where thousands of people walk past every week without a
+             second glance. Hidden in plain sight, exactly the way I
+             like it.</p>
+          <p>Bring a pen. Take the item, leave something of equal or
+             greater mystery, and log your find in the notebook inside.</p>
+        </div>
+
+        <div class="text-window geo-item">
+          <h2>The Item</h2>
+          <img class="geo-photo" src="images/geocache/item-placeholder.svg" alt="Photo of the item hidden in cache #002">
+          <p class="geo-caption">WHAT YOU'RE LOOKING FOR</p>
+        </div>
+      </div>
+
+      <div class="geo-bottom">
+        <a href="#" class="nav-arrow geo-arrow geo-prev">&#8592; Older</a>
+        <div class="text-window geo-map-window">
+          <div class="geo-window-head">
+            <h2>Location</h2>
+            <span class="geo-coords">37.826977, -122.422955</span>
+          </div>
+          <div class="geo-map" id="geo-map-1"></div>
+          <a class="geo-map-fallback"
+             href="https://www.openstreetmap.org/?mlat=37.826977&amp;mlon=-122.422955#map=15/37.826977/-122.422955"
+             target="_blank" rel="noopener">&#9670; VIEW LOCATION ON OPENSTREETMAP &#9670;</a>
+        </div>
+        <a href="#" class="nav-arrow geo-arrow geo-next disabled">Newer &#8594;</a>
+      </div>
+    </div>
+
+    <!-- Cache #001 - the first one, already found -->
+    <div class="geo-entry" data-entry="2" id="cache-1"
+         data-lat="37.769420" data-lng="-122.486214" data-zoom="14">
+
+      <div class="geo-header">
+        <div class="geo-date-block">
+          <span class="geo-date">2026.06.15</span>
+          <span class="geo-status claimed">CLAIMED</span>
+        </div>
+      </div>
+
+      <div class="geo-top">
+        <div class="text-window geo-hint">
+          <h2>Hint</h2>
+          <img class="geo-photo" src="images/geocache/hint-placeholder.svg" alt="Photo hint for cache #001">
+          <p class="geo-caption">WHERE THE PATH SPLITS</p>
+        </div>
+
+        <div class="text-window geo-desc">
+          <h2>Cache #001 — The First Drop</h2>
+          <p>Somewhere among the trees west of the city, a small container
+             waited beneath a landmark that has watched over this spot for
+             more than a century. I hid it here because this is where the
+             whole idea started — the first place I ever went looking for
+             something that wasn't on any map.</p>
+          <p>Claimed on 2026.06.28 — congratulations to the finder! The
+             logbook stays behind for the next visitor to sign.</p>
+        </div>
+
+        <div class="text-window geo-item">
+          <h2>The Item</h2>
+          <img class="geo-photo" src="images/geocache/item-placeholder.svg" alt="Photo of the item that was hidden in cache #001">
+          <p class="geo-caption">FOUND &amp; CLAIMED</p>
+        </div>
+      </div>
+
+      <div class="geo-bottom">
+        <a href="#" class="nav-arrow geo-arrow geo-prev disabled">&#8592; Older</a>
+        <div class="text-window geo-map-window">
+          <div class="geo-window-head">
+            <h2>Location</h2>
+            <span class="geo-coords">37.769420, -122.486214</span>
+          </div>
+          <div class="geo-map" id="geo-map-2"></div>
+          <a class="geo-map-fallback"
+             href="https://www.openstreetmap.org/?mlat=37.769420&amp;mlon=-122.486214#map=16/37.769420/-122.486214"
+             target="_blank" rel="noopener">&#9670; VIEW LOCATION ON OPENSTREETMAP &#9670;</a>
+        </div>
+        <a href="#" class="nav-arrow geo-arrow geo-next">Newer &#8594;</a>
+      </div>
+    </div>
+
+  </main>
+
+  <script src="page-script.js?v=20260706a"></script>
+  <script src="vendor/leaflet/leaflet.js?v=20260706a"></script>
+  <script>
+    // ------------------------------------------------------------
+    // Geocache entry navigation + themed Leaflet maps
+    // Entries are ordered newest-first in the HTML.
+    // "Older" moves down the list, "Newer" moves back up.
+    // ------------------------------------------------------------
+    const entries = Array.from(document.querySelectorAll('.geo-entry'));
+    const totalEntries = entries.length;
+    let currentEntry = 1;
+    let animating = false;
+    const maps = {};
+
+    // build the themed map for an entry (once, on first view)
+    function initMap(entryEl) {
+      const n = entryEl.dataset.entry;
+      if (maps[n] || typeof L === 'undefined') return;
+
+      const lat = parseFloat(entryEl.dataset.lat);
+      const lng = parseFloat(entryEl.dataset.lng);
+      const zoom = parseInt(entryEl.dataset.zoom || '14', 10);
+      const el = entryEl.querySelector('.geo-map');
+      if (!el || isNaN(lat) || isNaN(lng)) return;
+
+      const map = L.map(el, { scrollWheelZoom: false, attributionControl: false }).setView([lat, lng], zoom);
+      L.control.attribution({ position: 'topright', prefix: 'Leaflet' }).addTo(map);
+
+      // Carto "Dark Matter" basemap: free to use with attribution,
+      // no API key and no referer requirement (unlike the OSM
+      // volunteer tile servers), and already dark so it suits the
+      // site's theme. Data (c) OpenStreetMap contributors.
+      L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {
+        subdomains: 'abcd',
+        maxZoom: 20,
+        attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors &copy; <a href="https://carto.com/attributions">CARTO</a>'
+      }).addTo(map);
+
+      // glowing red diamond marker (styled in page-style.css)
+      const marker = L.divIcon({
+        className: '',
+        html: '<div class="geo-marker"></div>',
+        iconSize: [18, 18],
+        iconAnchor: [9, 9]
+      });
+      L.marker([lat, lng], { icon: marker }).addTo(map);
+
+      maps[n] = map;
+    }
+
+    function currentMap() {
+      const el = entries[currentEntry - 1];
+      return maps[el.dataset.entry];
+    }
+
+    function showEntry(target, direction) {
+      if (animating || target < 1 || target > totalEntries || target === currentEntry) return;
+      animating = true;
+
+      const from = entries[currentEntry - 1];
+      const to = entries[target - 1];
+      const forward = direction === 'older';
+
+      from.classList.add(forward ? 'flip-out-left' : 'flip-out-right');
+
+      setTimeout(() => {
+        from.classList.remove('current', 'flip-out-left', 'flip-out-right');
+        to.classList.add('current', forward ? 'flip-in-right' : 'flip-in-left');
+
+        // create or refresh the map now that its container is visible
+        initMap(to);
+        if (maps[to.dataset.entry]) maps[to.dataset.entry].invalidateSize();
+
+        setTimeout(() => {
+          to.classList.remove('flip-in-right', 'flip-in-left');
+          animating = false;
+        }, 450);
+      }, 350);
+
+      currentEntry = target;
+    }
+
+    // arrows exist inside every entry; wire them all
+    document.querySelectorAll('.geo-prev').forEach(a => {
+      a.addEventListener('click', e => {
+        e.preventDefault();
+        if (!a.classList.contains('disabled')) showEntry(currentEntry + 1, 'older');
+      });
+    });
+    document.querySelectorAll('.geo-next').forEach(a => {
+      a.addEventListener('click', e => {
+        e.preventDefault();
+        if (!a.classList.contains('disabled')) showEntry(currentEntry - 1, 'newer');
+      });
+    });
+
+    // disable the dead-end arrows on the first/last entries
+    entries[0].querySelector('.geo-next').classList.add('disabled');
+    entries[totalEntries - 1].querySelector('.geo-prev').classList.add('disabled');
+
+    // the single-screen layout resizes the map with the window
+    window.addEventListener('resize', () => {
+      const m = currentMap();
+      if (m) m.invalidateSize();
+    });
+
+    // first map (after layout settles)
+    initMap(entries[0]);
+    setTimeout(() => { const m = currentMap(); if (m) m.invalidateSize(); }, 300);
+  </script>
+</body>
+
+</html>

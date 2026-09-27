@@ -1,0 +1,214 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="P_N0VA - Portfolio and Blog">
+  <title>P_N0VA</title>
+
+  <!-- Progressive enhancement: mark the document when JavaScript is available -->
+  <script>document.documentElement.classList.add('js');</script>
+  <link rel="stylesheet" href="tokens.css?v=cf68e78a">
+  <link rel="stylesheet" href="style.css?v=399edf82">
+  <script src="vendor/createjs-1.0.0.min.js?v=c67dc881"></script>
+  <script src="script.js?v=099f00d6"></script>
+
+  <script defer>
+  // Fix for mobile viewport height
+  function setVH() {
+    let vh = window.innerHeight * 0.01;
+    document.documentElement.style.setProperty('--vh', `${vh}px`);
+  }
+  
+  setVH();
+  window.addEventListener('resize', setVH);
+  window.addEventListener('orientationchange', setVH);
+
+  window.addEventListener('load', function()
+  {
+    const startOverlay = document.getElementById('start-overlay');
+    const menu = document.getElementById('menu-container');
+
+    if (!startOverlay || !menu)
+    {
+      console.error('Missing overlay or menu element.');
+      return;
+    }
+
+    startOverlay.addEventListener('click', function()
+    {
+      console.log('Overlay clicked. Starting animation...');
+      startOverlay.classList.add('fade-out');
+
+      setTimeout(function()
+      {
+        startOverlay.style.display = 'none';
+
+        try
+        {
+          if (typeof init === 'function')
+          {
+            console.log('Running init()...');
+            init();
+          }
+          else
+          {
+            console.warn('init() not found – animation may not start.');
+            // CreateJS CDN failed to load: show the static logo instead
+            const staticLogo = document.getElementById('static-logo');
+            if (staticLogo) staticLogo.style.display = 'flex';
+          }
+        }
+        catch (err)
+        {
+          console.error('Error running init():', err);
+          const staticLogo = document.getElementById('static-logo');
+          if (staticLogo) staticLogo.style.display = 'flex';
+        }
+
+        // Show the menu after animation plays for a while
+        setTimeout(function()
+        {
+          console.log('Displaying menu...');
+          menu.classList.add('show');
+        }, 1000); // 1-second delay after animation starts
+      }, 500); // fade-out wait
+    }); // end of click
+  }); // end of window load
+  </script>
+</head>
+
+<body style="margin:0px;">
+  <!-- Animation container -->
+  <div id="animation_container" style="background-color:rgba(255,255,255,0); width:375px; height:384px">
+    <canvas id="canvas" width="375" height="384" style="position: absolute; display: block; background-color:rgba(255,255,255,0);"></canvas>
+    <div id="dom_overlay_container" style="pointer-events:none; overflow:hidden; width:375px; height:384px; position: absolute; left: 0px; top: 0px; display: block;"></div>
+  </div>
+
+  <!-- Static fallback logo (shown only when JavaScript is disabled) -->
+  <div id="static-logo">
+    <img src="images/logo2.png" alt="P_N0VA logo">
+  </div>
+
+  <!-- CSS-only fireflies (shown only when JavaScript is disabled) -->
+  <div id="css-fireflies" aria-hidden="true">
+    <span></span><span></span><span></span><span></span>
+    <span></span><span></span><span></span><span></span>
+  </div>
+
+  <!-- Tap-to-start overlay -->
+  <div id="start-overlay">
+    <div id="start-text">TAP TO START</div>
+  </div>
+
+  <!-- JRPG-style menu -->
+  <div id="menu-container">
+    <a href="blog.html" class="menu-item">Blog</a>
+    <a href="projects.html" class="menu-item">Projects</a>
+    <a href="drops.html" class="menu-item">Drops</a>
+    <a href="store.html" class="menu-item">Store</a>
+    <a href="about.html" class="menu-item">About</a>
+  </div>
+
+  <!-- Firefly container -->
+  <div id="firefly-container"></div>
+
+  <script>
+    // Firefly effect - always on
+    let fireflies = [];
+    let fireflyInterval = null;
+
+    function createFirefly() {
+      const firefly = document.createElement('div');
+      firefly.className = 'firefly';
+      
+      // Random starting position
+      let currentX = Math.random() * 100;
+      let currentY = Math.random() * 100;
+      
+      firefly.style.cssText = `
+        position: fixed;
+        width: 3px;
+        height: 3px;
+        background: #ff1609;
+        pointer-events: none;
+        z-index: 10;
+        opacity: 0;
+        border-radius: 50%;
+        box-shadow: 0 0 8px 2px #ff1609, 0 0 12px 4px rgba(255, 22, 9, 0.5);
+        left: ${currentX}vw;
+        top: ${currentY}vh;
+        transition: opacity 2000ms ease-in-out, left 4000ms cubic-bezier(0.4, 0.0, 0.6, 1.0), top 4000ms cubic-bezier(0.4, 0.0, 0.6, 1.0);
+      `;
+      
+      document.getElementById('firefly-container').appendChild(firefly);
+      
+      // Animation settings
+      const totalLifetime = 5000 + Math.random() * 5000; // 5-10 seconds total
+      const fadeInTime = 2000; // 2 seconds to fade in
+      const fadeOutTime = 2500; // 2.5 seconds to fade out
+      
+      // Animate with smoother, slower movement
+      let movementInterval;
+      
+      function animateFirefly() {
+        // Small drift for organic movement (2-6vw in random direction)
+        const driftAmount = 2 + Math.random() * 4;
+        const angle = Math.random() * Math.PI * 2; // Random direction
+        const newX = currentX + (Math.cos(angle) * driftAmount);
+        const newY = currentY + (Math.sin(angle) * driftAmount);
+        
+        // Keep within bounds
+        currentX = Math.max(5, Math.min(95, newX));
+        currentY = Math.max(5, Math.min(95, newY));
+        
+        firefly.style.left = `${currentX}vw`;
+        firefly.style.top = `${currentY}vh`;
+      }
+      
+      // Start with slow fade in
+      setTimeout(() => {
+        firefly.style.opacity = Math.random() * 0.4 + 0.3; // 0.3-0.7 opacity
+        
+        // Start continuous slow movement
+        animateFirefly(); // First movement
+        movementInterval = setInterval(animateFirefly, 4000); // Move every 4 seconds
+        
+        // Begin fade out well before removal
+        setTimeout(() => {
+          clearInterval(movementInterval);
+          firefly.style.opacity = 0;
+          
+          // Remove after fade completes
+          setTimeout(() => {
+            if (firefly.parentNode) {
+              firefly.parentNode.removeChild(firefly);
+            }
+            const index = fireflies.indexOf(firefly);
+            if (index > -1) {
+              fireflies.splice(index, 1);
+            }
+          }, fadeOutTime);
+        }, totalLifetime - fadeOutTime);
+        
+      }, Math.random() * 1000); // Random delay before fade in starts
+      
+      fireflies.push(firefly);
+    }
+
+    function startFireflies() {
+      // Create fireflies continuously
+      fireflyInterval = setInterval(() => {
+        if (fireflies.length < 50) { // Max 50 fireflies at once
+          createFirefly();
+        }
+      }, 250); // Create new firefly every 250ms
+    }
+
+    // Start fireflies automatically on page load
+    startFireflies();
+  </script>
+</body>
+
+</html>

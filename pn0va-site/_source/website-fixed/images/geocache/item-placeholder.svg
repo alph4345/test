@@ -1,0 +1,11 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 300">
+  <rect width="400" height="300" fill="#0a0000"/>
+  <rect x="6" y="6" width="388" height="288" fill="none" stroke="#ff1609" stroke-width="2" stroke-dasharray="14 8"/>
+  <g transform="translate(200,120)">
+    <path d="M -42 0 L -42 30 L 42 30 L 42 0 Z" fill="none" stroke="#ff1609" stroke-width="4"/>
+    <path d="M -42 0 Q -42 -26 0 -26 Q 42 -26 42 0 Z" fill="#ff1609"/>
+    <rect x="-8" y="-4" width="16" height="18" fill="#ffff00"/>
+  </g>
+  <text x="200" y="195" fill="#ffff00" font-family="monospace" font-size="18" text-anchor="middle" letter-spacing="4">ITEM PHOTO</text>
+  <text x="200" y="225" fill="#883333" font-family="monospace" font-size="12" text-anchor="middle">replace with your image</text>
+</svg>

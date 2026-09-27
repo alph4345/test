@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>P_N0VA - Blog</title>
+  <!-- Progressive enhancement: mark the document when JavaScript is available -->
+  <script>document.documentElement.classList.add('js');</script>
+  <link rel="stylesheet" href="tokens.css?v=cf68e78a">
+  <link rel="stylesheet" href="page-style.css?v=0aa5eb3f">
+  <link rel="stylesheet" href="reader.css?v=58593767">
+</head>
+<body>
+  <nav id="navbar">
+    <ul>
+      
+      <li><a href="index.html">Home</a></li>
+      <li><a href="blog.html" class="active">Blog</a></li>
+      <li><a href="projects.html">Projects</a></li>
+      <li><a href="drops.html">Drops</a></li>
+      <li><a href="store.html">Store</a></li>
+      <li><a href="about.html">About</a></li>
+    
+    </ul>
+  </nav>
+
+    <main class="rd-shell">
+    <section class="rd-panel rd-manifest" aria-label="Posts">
+      <div class="rd-panel__head"><span>Posts</span><span class="rd-idx" id="rd-count">--</span></div>
+      <div class="rd-panel__body" id="rd-rows"></div>
+    </section>
+    <section class="rd-panel rd-reader" aria-label="Post">
+      <div class="rd-panel__head"><span id="rd-title">--</span><span class="rd-idx" id="rd-date"></span></div>
+      <div class="rd-panel__body" id="rd-body"></div>
+    </section>
+  </main>
+
+  <!-- ============================================================
+       ADD A POST
+       Copy an <article class="rd-entry">. data-title and data-date
+       feed the list on the left; everything inside is the body and
+       it scrolls on its own. No sub-pages, no arrows to wire up.
+       ============================================================ -->
+  <div hidden id="rd-data">
+  <article class="rd-entry" data-title="My First Blog Post" data-date="January 12, 2026">
+<h2>My First Blog Post</h2>
+        <img class="photo-cover" src="images/blog/post-placeholder.svg" alt="Illustration for blog post 1">
+        <h3>Welcome to My Blog</h3>
+        <p class="date">January 12, 2026</p>
+        <p>Welcome to my blog! This is where I'll be sharing my thoughts on development, creative projects, and everything in between.</p>
+<img class="photo-right" src="images/blog/post-placeholder.svg" alt="Inline illustration">
+        <p>I've been working on some exciting new projects lately, including this retro-styled website inspired by late-90s JRPGs. The aesthetic really speaks to me – there's something special about combining modern web technologies with nostalgic design.</p>
+        <p>In future posts, I'll dive deeper into the technical details of building this site, share tutorials, and document my creative journey. Stay tuned for more updates!</p>
+        <p>Feel free to browse through the archive on the right to see all my posts.</p>
+  </article>
+  <article class="rd-entry" data-title="Building with CreateJS" data-date="January 10, 2026">
+<h2>Building with CreateJS</h2>
+        <img class="photo-cover" src="images/blog/post-placeholder.svg" alt="Illustration for blog post 2">
+        <h3>Animation Framework Deep Dive</h3>
+        <p class="date">January 10, 2026</p>
+        <p>CreateJS has been an incredible tool for building animated web experiences. In this post, I explore the core concepts and share some practical tips for getting started.</p>
+<p>The framework provides a familiar API similar to Flash's display list, making it easy for developers to create rich interactive content. Key features include sprite sheets, tweening, and sound management.</p>
+        <img class="photo-inset" src="images/blog/post-placeholder.svg" alt="Inline illustration">
+        <p>One of my favorite aspects is the ease of integration with Adobe Animate exports, which allows designers and developers to collaborate seamlessly on complex animations.</p>
+  </article>
+  <article class="rd-entry" data-title="Web Animation Tips" data-date="January 8, 2026">
+<h2>Web Animation Tips</h2>
+        <img class="photo-cover" src="images/blog/post-placeholder.svg" alt="Illustration for blog post 3">
+        <h3>Performance &amp; Best Practices</h3>
+        <p class="date">January 8, 2026</p>
+        <p>Creating smooth web animations requires careful consideration of performance. Here are some key principles I've learned through experience.</p>
+<p>Always prefer CSS transforms over changing position properties directly. Use requestAnimationFrame for JavaScript animations. Limit the number of simultaneous animations, and be mindful of paint and layout operations.</p>
+        <p>Testing across different devices is crucial – what runs smoothly on a desktop might struggle on mobile. Profile your animations and optimize accordingly!</p>
+  </article>
+  </div>
+  <script src="reader.js?v=1946441d"></script>
+</body>
+</html>

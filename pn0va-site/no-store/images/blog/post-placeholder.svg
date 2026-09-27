@@ -1,0 +1,11 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 300">
+  <rect width="800" height="300" fill="#0a0000"/>
+  <rect x="6" y="6" width="788" height="288" fill="none" stroke="#ff1609" stroke-width="2" stroke-dasharray="14 8"/>
+  <g stroke="#ff1609" stroke-width="3" fill="none">
+    <rect x="330" y="95" width="140" height="100"/>
+    <circle cx="368" cy="128" r="12"/>
+    <path d="M 336 189 L 380 145 L 408 170 L 438 135 L 464 189"/>
+  </g>
+  <text x="400" y="235" fill="#B0A49B" font-family="monospace" font-size="17" text-anchor="middle" letter-spacing="4">POST IMAGE</text>
+  <text x="400" y="262" fill="#883333" font-family="monospace" font-size="12" text-anchor="middle">replace with your image</text>
+</svg>

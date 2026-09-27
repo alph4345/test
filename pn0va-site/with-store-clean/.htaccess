@@ -1,0 +1,29 @@
+# Clean URLs — serve /drops from /drops/index.html
+Options -MultiViews
+RewriteEngine On
+
+# strip a trailing slash: /drops/ -> /drops
+RewriteCond %{REQUEST_FILENAME} -d
+RewriteCond %{REQUEST_URI} ^(.+)/$
+RewriteRule ^ %1 [R=301,L]
+
+# /drops -> /drops/index.html
+RewriteCond %{REQUEST_FILENAME} !-f
+RewriteCond %{REQUEST_FILENAME}/index.html -f
+RewriteRule ^(.*)$ $1/index.html [L]
+
+# old URLs keep working
+RewriteRule ^index\.html$      /            [R=301,L]
+RewriteRule ^blog\.html$       /blog        [R=301,L]
+RewriteRule ^projects\.html$   /projects    [R=301,L]
+RewriteRule ^about\.html$      /about       [R=301,L]
+RewriteRule ^store\.html$      /store       [R=301,L]
+RewriteRule ^drops\.html$      /drops       [R=301,L]
+
+# these two were renamed, not just re-pathed
+RewriteRule ^geocache\.html$   /drops       [R=301,L]
+RewriteRule ^geocache/?$        /drops       [R=301,L]
+RewriteRule ^shop\.html$       /store       [R=301,L]
+RewriteRule ^shop/?$            /store       [R=301,L]
+
+ErrorDocument 404 /

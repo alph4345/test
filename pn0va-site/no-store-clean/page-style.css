@@ -1,0 +1,1161 @@
+/* JRPG Style Page
+   ------------------------------------------------------------
+   The final layout lives entirely in CSS (flexbox), so window
+   placement is identical whether JavaScript runs or not, and
+   consistent across desktop / tablet / mobile.
+
+   JavaScript ("html.js") only adds the fly-in animation on top.
+   Without JavaScript, CSS keyframes replicate the entrance.
+   ------------------------------------------------------------ */
+
+/* @import must come before all other rules (it was previously
+   below a rule and therefore ignored, so the pixel font never
+   loaded on these pages) */
+/* Self-hosted — no Google Fonts request, and no @import ordering trap.
+   The face MUST still be declared before anything that uses it. */
+@font-face{
+  font-family:'Press Start 2P';
+  src:url('/fonts/press-start-2p-latin-400-normal.woff2') format('woff2');
+  font-weight:400; font-style:normal; font-display:block;
+}
+
+*, *::before, *::after
+{
+  box-sizing: border-box;
+}
+
+html
+{
+  /* prevent Android Chrome font boosting from inflating text and
+     breaking the fixed layouts */
+  -webkit-text-size-adjust: 100%;
+  text-size-adjust: 100%;
+}
+
+body
+{
+  margin: 0;
+  padding: 0;
+  min-height: 100vh;
+  min-height: 100dvh;
+  background: var(--pn-ground);
+  font-family: 'Press Start 2P', monospace;
+  color: var(--pn-ink);
+  /* pages scroll vertically when content is taller than the
+     screen (important on phones); no sideways scroll */
+  overflow-x: hidden;
+  overflow-y: auto;
+}
+
+/* ---------------------------------------------------------- */
+/* Navigation bar                                              */
+/* ---------------------------------------------------------- */
+
+nav
+{
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  text-align: center;
+  z-index: 100;
+  background: rgba(0, 0, 0, 0.85);
+  border-bottom: 2px solid #ff1609;
+  padding: 8px 0;
+  /* entrance: slide down from above (pure CSS, works with or
+     without JavaScript) */
+  animation: nav-drop 0.9s ease-out both;
+}
+
+@keyframes nav-drop
+{
+  from { transform: translateY(-100%); }
+  to   { transform: translateY(0); }
+}
+
+nav ul
+{
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+nav ul li
+{
+  display: inline-block;
+  margin: 0 12px;
+}
+
+nav ul li a
+{
+  color: var(--pn-ink);
+  font-size: 16px;
+  text-decoration: none;
+  transition: color 0.2s ease;
+  padding: 10px 15px;
+  display: inline-block;
+  text-shadow: 0 0 8px rgba(255, 22, 9, 0.5);
+}
+
+nav ul li a:hover
+{
+  color: var(--pn-signal);
+  text-shadow: 0 0 12px rgba(255,255,255,.7);
+}
+
+nav ul li a:focus-visible
+{
+  outline: 2px solid var(--pn-signal);
+  outline-offset: 2px;
+}
+
+nav ul li a.active
+{
+  color: #ff1609;
+  text-shadow: 0 0 12px rgba(255, 22, 9, 0.9);
+  background: rgba(255, 22, 9, 0.2);
+  border-radius: 3px;
+}
+
+/* ---------------------------------------------------------- */
+/* Window layout — flexbox, single source of truth             */
+/* ---------------------------------------------------------- */
+
+#windows
+{
+  display: flex;
+  flex-direction: row;
+  justify-content: center;
+  align-items: flex-start;
+  gap: 40px;
+  /* clear the fixed nav, breathe at the edges */
+  padding: 110px 20px 40px;
+  max-width: 1320px;
+  margin: 0 auto;
+}
+
+.text-window
+{
+  padding: 20px;
+  background: rgba(0, 0, 0, 0.95);
+  border: 2px solid #ff1609;
+  color: var(--pn-ink);
+  overflow-y: auto;
+  box-shadow: 0 0 30px rgba(255, 22, 9, 0.4),
+              inset 0 0 20px rgba(0, 0, 0, 0.5);
+  border-radius: 4px;
+}
+
+/* Main content window (left) - larger */
+#window-left
+{
+  flex: 1 1 680px;
+  max-width: 780px;
+  max-height: calc(100vh - 150px);
+  max-height: calc(100dvh - 150px);
+  padding: 28px 32px;
+}
+
+/* Navigation/TOC window (right) - smaller */
+#window-right
+{
+  flex: 0 1 330px;
+  max-height: calc(100vh - 150px);
+  max-height: calc(100dvh - 150px);
+  padding: 24px;
+}
+
+/* Entrance animations (pure CSS): left window rises from the
+   bottom, right window slides in from the side, both with the
+   little overshoot "impact" the JS version has */
+#window-left  { animation: window-from-bottom 1.3s cubic-bezier(.22,.9,.21,1) 0.15s both; }
+#window-right { animation: window-from-left   1.3s cubic-bezier(.16,.84,.44,1) 0.3s both; }
+
+@keyframes window-from-bottom
+{
+  0%   { transform: translateY(90px); opacity: 0; }
+  100% { transform: translateY(0); opacity: 1; }
+}
+
+@keyframes window-from-left
+{
+  0%   { transform: translateX(-120vw); opacity: 0; }
+  75%  { opacity: 1; }
+  100% { transform: translateX(0); opacity: 1; }
+}
+
+/* When JavaScript is running it takes over the entrance
+   (fly-in with motion trails), so suppress the CSS keyframes
+   and start hidden; page-script.js reveals and animates. */
+html.js #window-left,
+html.js #window-right
+{
+  animation: none;
+  opacity: 0;
+}
+
+html.js #window-left.landed,
+html.js #window-right.landed
+{
+  opacity: 1;
+}
+
+/* ---------------------------------------------------------- */
+/* Typography inside windows                                   */
+/* ---------------------------------------------------------- */
+
+.text-window h2
+{
+  color: var(--pn-ink-strong);
+  font-size: 18px;
+  margin-top: 0;
+  margin-bottom: 15px;
+  text-shadow: 0 0 8px rgba(255, 22, 9, 0.5);
+  border-bottom: 1px solid rgba(255, 22, 9, 0.5);
+  padding-bottom: 8px;
+}
+
+.text-window h3
+{
+  color: var(--pn-red);
+  font-size: 12px;
+  margin-top: 15px;
+  margin-bottom: 8px;
+}
+
+.text-window p
+{
+  font-size: 12.5px;
+  line-height: 1.7;
+  margin: 8px 0;
+  font-family: Arial, sans-serif;
+}
+
+.text-window ul
+{
+  list-style: none;
+  padding-left: 0;
+  font-size: 12px;
+  line-height: 1.8;
+}
+
+.text-window ul li
+{
+  padding: 5px 0;
+  border-bottom: 1px solid rgba(255, 22, 9, 0.3);
+}
+
+.text-window ul li:before
+{
+  content: "▸ ";
+  color: #ff1609;
+  font-size: 10px;
+  margin-right: 8px;
+}
+
+.text-window a
+{
+  color: var(--pn-ink);
+  text-decoration: none;
+  transition: color 0.2s ease;
+}
+
+.text-window a:hover
+{
+  color: var(--pn-signal);
+}
+
+.text-window a:focus-visible
+{
+  outline: 2px solid var(--pn-signal);
+  outline-offset: 2px;
+}
+
+/* Blog specific styles */
+.blog-entry
+{
+  margin-bottom: 20px;
+  padding-bottom: 15px;
+  border-bottom: 1px solid rgba(255, 22, 9, 0.3);
+}
+
+.blog-entry:last-child
+{
+  border-bottom: none;
+}
+
+.date
+{
+  color: var(--pn-ink-faint);
+  font-size: 9px !important;
+  margin: 5px 0 !important;
+  font-style: italic;
+}
+
+/* Project specific styles */
+.project
+{
+  margin-bottom: 20px;
+}
+
+.project-link
+{
+  display: inline-block;
+  margin-top: 10px;
+  padding: 8px 15px;
+  background: rgba(255, 22, 9, 0.3);
+  border: 1px solid #ff1609;
+  color: var(--pn-signal);
+  font-size: 10px;
+  text-decoration: none;
+  transition: all 0.2s ease;
+}
+
+.project-link:hover
+{
+  background: rgba(255, 22, 9, 0.5);
+  box-shadow: 0 0 10px rgba(255, 22, 9, 0.5);
+}
+
+/* ---------------------------------------------------------- */
+/* Multi-post pages (blog / projects)                          */
+/* ---------------------------------------------------------- */
+
+/* With JavaScript: one post shown at a time, flipped by the
+   arrows. Without JavaScript: every post is simply stacked in
+   the window and the archive links act as anchor links. */
+html.js .page-content
+{
+  display: none;
+}
+
+html.js .page-content.current
+{
+  display: block;
+}
+
+/* stacked no-JS posts get a divider between them */
+html:not(.js) .page-content + .page-content
+{
+  margin-top: 25px;
+  padding-top: 20px;
+  border-top: 2px solid rgba(255, 22, 9, 0.5);
+}
+
+/* anchor jumps inside the scrollable window shouldn't hide the
+   heading under the window's padding */
+.page-content
+{
+  scroll-margin-top: 10px;
+}
+
+/* Navigation arrows for content pages */
+.nav-arrows
+{
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-top: 20px;
+  padding-top: 15px;
+  border-top: 1px solid rgba(255, 22, 9, 0.3);
+}
+
+/* the arrows do nothing without JavaScript, so hide them and
+   let the stacked posts + anchor links do the job */
+html:not(.js) .nav-arrows
+{
+  display: none;
+}
+
+.nav-arrow
+{
+  padding: 10px 20px;
+  background: rgba(255, 22, 9, 0.3);
+  border: 1px solid #ff1609;
+  color: var(--pn-ink);
+  font-size: 11px;
+  text-decoration: none;
+  transition: all 0.2s ease;
+  cursor: pointer;
+  font-family: 'Press Start 2P', monospace;
+}
+
+.nav-arrow:hover:not(.disabled)
+{
+  background: rgba(255, 22, 9, 0.6);
+  color: var(--pn-signal);
+  box-shadow: 0 0 10px rgba(255, 22, 9, 0.5);
+  transform: scale(1.05);
+}
+
+.nav-arrow:active
+{
+  transform: scale(0.95);
+}
+
+.nav-arrow.disabled
+{
+  opacity: 0.3;
+  cursor: not-allowed;
+  pointer-events: none;
+}
+
+.page-indicator
+{
+  color: var(--pn-ink);
+  font-size: 10px;
+  font-family: 'Press Start 2P', monospace;
+  letter-spacing: 1px;
+  text-shadow: 0 0 8px rgba(255, 22, 9, 0.5);
+}
+
+/* ---------------------------------------------------------- */
+/* Responsive breakpoints                                      */
+/* ---------------------------------------------------------- */
+
+/* Tablets / narrow desktops: keep two columns but tighten */
+@media screen and (max-width: 960px)
+{
+  #windows
+  {
+    gap: 24px;
+    padding: 100px 16px 32px;
+  }
+
+  #window-left  { flex-basis: 520px; padding: 22px; }
+  #window-right { flex-basis: 270px; }
+}
+
+/* Phones and small tablets: stack the windows */
+@media screen and (max-width: 700px)
+{
+  #windows
+  {
+    flex-direction: column;
+    align-items: center;
+    gap: 24px;
+    padding: 96px 12px 32px;
+  }
+
+  #window-left,
+  #window-right
+  {
+    flex: 0 1 auto;
+    width: 100%;
+    max-width: 560px;
+    max-height: none;      /* the page scrolls instead */
+    overflow-y: visible;
+    padding: 15px;
+  }
+
+  /* on small screens the right window slides up from the
+     bottom too, matching the JS behaviour */
+  #window-right { animation-name: window-from-bottom; }
+
+  nav ul
+  {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    flex-wrap: nowrap;
+    gap: 2px;
+    padding: 0 4px;
+  }
+
+  nav ul li
+  {
+    margin: 0;
+    flex: 0 1 auto;
+    min-width: 0;
+  }
+
+  nav ul li a
+  {
+    font-size: clamp(8px, 2.5vw, 11px);
+    padding: 12px 5px;
+    letter-spacing: 0;
+    white-space: nowrap;
+  }
+
+  .text-window h2 { font-size: 13px; }
+  .text-window h3 { font-size: 11px; }
+  .text-window p  { font-size: 10px; }
+
+  .nav-arrow
+  {
+    padding: 12px 16px;
+    font-size: 10px;
+  }
+}
+
+/* Very small screens */
+@media screen and (max-width: 420px)
+{
+  nav ul li a
+  {
+    font-size: clamp(7px, 2.4vw, 9px);
+    padding: 10px 4px;
+  }
+
+  #windows
+  {
+    padding: 84px 10px 24px;
+  }
+
+  .nav-arrow
+  {
+    padding: 10px 12px;
+    font-size: 9px;
+  }
+
+  .page-indicator
+  {
+    font-size: 9px;
+  }
+}
+
+/* Short landscape phones: give the nav less room */
+@media screen and (max-height: 500px) and (orientation: landscape)
+{
+  #windows
+  {
+    padding-top: 76px;
+  }
+
+  nav ul li a
+  {
+    font-size: 11px;
+    padding: 8px 10px;
+  }
+}
+
+/* ---------------------------------------------------------- */
+/* Page flip animations (JS-driven post flipping)              */
+/* ---------------------------------------------------------- */
+
+.text-window.flipping {
+  overflow: hidden;
+  perspective: 1200px;
+}
+
+.page-content {
+  width: 100%;
+  transform-style: preserve-3d;
+  backface-visibility: hidden;
+}
+
+html.js .page-content {
+  min-height: 300px;
+}
+
+.flip-out-left {
+  animation: flipOutLeft 350ms cubic-bezier(0.55, 0.085, 0.68, 0.53) forwards;
+}
+
+.flip-out-right {
+  animation: flipOutRight 350ms cubic-bezier(0.55, 0.085, 0.68, 0.53) forwards;
+}
+
+.flip-in-left {
+  animation: flipInLeft 450ms cubic-bezier(0.25, 0.46, 0.45, 0.94) forwards;
+}
+
+.flip-in-right {
+  animation: flipInRight 450ms cubic-bezier(0.25, 0.46, 0.45, 0.94) forwards;
+}
+
+@keyframes flipOutLeft {
+  0% {
+    transform: perspective(1200px) rotateY(0deg) scale(1);
+    opacity: 1;
+    filter: brightness(1);
+  }
+  50% {
+    filter: brightness(0.8);
+  }
+  100% {
+    transform: perspective(1200px) rotateY(-100deg) scale(0.9);
+    opacity: 0;
+    filter: brightness(0.5);
+  }
+}
+
+@keyframes flipOutRight {
+  0% {
+    transform: perspective(1200px) rotateY(0deg) scale(1);
+    opacity: 1;
+    filter: brightness(1);
+  }
+  50% {
+    filter: brightness(0.8);
+  }
+  100% {
+    transform: perspective(1200px) rotateY(100deg) scale(0.9);
+    opacity: 0;
+    filter: brightness(0.5);
+  }
+}
+
+@keyframes flipInLeft {
+  0% {
+    transform: perspective(1200px) rotateY(100deg) scale(0.9);
+    opacity: 0;
+    filter: brightness(0.5);
+  }
+  50% {
+    filter: brightness(0.8);
+  }
+  100% {
+    transform: perspective(1200px) rotateY(0deg) scale(1);
+    opacity: 1;
+    filter: brightness(1);
+  }
+}
+
+@keyframes flipInRight {
+  0% {
+    transform: perspective(1200px) rotateY(-100deg) scale(0.9);
+    opacity: 0;
+    filter: brightness(0.5);
+  }
+  50% {
+    filter: brightness(0.8);
+  }
+  100% {
+    transform: perspective(1200px) rotateY(0deg) scale(1);
+    opacity: 1;
+    filter: brightness(1);
+  }
+}
+
+.archive-link {
+  transition: color 0.2s ease;
+  font-weight: normal;
+}
+
+/* ---------------------------------------------------------- */
+/* Scrollbar styling for JRPG theme                            */
+/* ---------------------------------------------------------- */
+
+.text-window::-webkit-scrollbar
+{
+  width: 8px;
+}
+
+.text-window::-webkit-scrollbar-track
+{
+  background: rgba(0, 0, 0, 0.3);
+}
+
+.text-window::-webkit-scrollbar-thumb
+{
+  background: #ff1609;
+  border-radius: 4px;
+}
+
+.text-window::-webkit-scrollbar-thumb:hover
+{
+  background: var(--pn-signal);
+}
+
+/* ---------------------------------------------------------- */
+/* Reduced motion                                              */
+/* ---------------------------------------------------------- */
+
+@media (prefers-reduced-motion: reduce)
+{
+  nav,
+  #window-left,
+  #window-right
+  {
+    animation: none;
+  }
+
+  html.js #window-left,
+  html.js #window-right
+  {
+    opacity: 1;
+    transition: none;
+  }
+
+  .flip-out-left, .flip-out-right,
+  .flip-in-left, .flip-in-right
+  {
+    animation-duration: 1ms;
+  }
+}
+
+/* ---------------------------------------------------------- */
+/* Bookmark jump animation (archive/sidebar links)             */
+/* Distinct from the arrow page-turn: instead of a 3D flip,    */
+/* the current post dissolves upward and the target            */
+/* materializes from below with a brief red energize flash.    */
+/* ---------------------------------------------------------- */
+
+.bookmark-out
+{
+  animation: bookmarkOut 240ms cubic-bezier(0.55, 0.085, 0.68, 0.53) forwards;
+}
+
+.bookmark-in
+{
+  animation: bookmarkIn 460ms cubic-bezier(0.22, 0.9, 0.3, 1) forwards;
+}
+
+@keyframes bookmarkOut
+{
+  0%
+  {
+    opacity: 1;
+    transform: translateY(0);
+    filter: blur(0) brightness(1);
+  }
+  100%
+  {
+    opacity: 0;
+    transform: translateY(-18px);
+    filter: blur(3px) brightness(1.8);
+  }
+}
+
+@keyframes bookmarkIn
+{
+  0%
+  {
+    opacity: 0;
+    transform: translateY(26px);
+    filter: blur(3px) brightness(2.2);
+  }
+  55%
+  {
+    opacity: 1;
+    filter: blur(0.5px) brightness(1.35);
+  }
+  100%
+  {
+    opacity: 1;
+    transform: translateY(0);
+    filter: blur(0) brightness(1);
+  }
+}
+
+/* red energize glow on the window frame during a bookmark jump */
+.text-window.bookmarking
+{
+  overflow: hidden;
+  box-shadow: 0 0 45px rgba(255, 22, 9, 0.75),
+              inset 0 0 30px rgba(255, 22, 9, 0.25);
+  transition: box-shadow 200ms ease;
+}
+
+/* ---------------------------------------------------------- */
+/* Single-screen variant of the two-window layout (About)      */
+/* ---------------------------------------------------------- */
+
+html.js body:has(#windows.single-screen)
+{
+  overflow: hidden;
+  height: 100vh;
+  height: 100dvh;
+}
+
+#windows.single-screen
+{
+  min-height: 100vh;
+  min-height: 100dvh;
+  box-sizing: border-box;
+  align-items: center;          /* vertically centered pair */
+  padding-top: 70px;
+  padding-bottom: 24px;
+}
+
+#windows.single-screen .text-window
+{
+  max-height: calc(100vh - 120px);
+  max-height: calc(100dvh - 120px);
+}
+
+.about-portrait
+{
+  display: block;
+  width: 100%;
+  max-height: 46vh;
+  object-fit: cover;
+  border: 1px solid rgba(255, 22, 9, 0.6);
+  border-radius: 3px;
+  background: #0a0000;
+}
+
+@media screen and (max-width: 700px)
+{
+  /* the portrait shrinks so both windows share one phone screen */
+  #windows.single-screen
+  {
+    justify-content: center;
+    gap: 16px;
+    padding-top: 64px;
+  }
+
+  #windows.single-screen #window-right
+  {
+    width: min(220px, 62vw);
+    flex: 0 0 auto;
+  }
+
+  #windows.single-screen #window-right h2
+  {
+    font-size: 11px;
+  }
+
+  .about-portrait { max-height: 20vh; }
+}
+
+/* short screens fall back to scrolling instead of clipping */
+@media screen and (max-height: 560px)
+{
+  html.js body:has(#windows.single-screen)
+  {
+    overflow-y: auto;
+    height: auto;
+  }
+}
+
+/* ---------------------------------------------------------- */
+/* Paged content windows (Blog / Projects)                     */
+/* The main window has a FIXED height: content never scrolls,  */
+/* the reader turns pages instead.                             */
+/* ---------------------------------------------------------- */
+
+html.js #windows.paged #window-left
+{
+  height: calc(100vh - 190px);
+  height: calc(100dvh - 190px);
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  position: relative;
+  /* breathing room so text never sits under the edge arrows */
+  padding-left: 52px;
+  padding-right: 52px;
+}
+
+html.js #windows.paged .page-content
+{
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow-y: auto;   /* long pages scroll inside the window */
+  overflow-x: hidden;
+}
+
+html.js #windows.paged .nav-arrows
+{
+  flex: 0 0 auto;
+}
+
+/* phones: the whole page locks to the viewport too; the content
+   window flexes and scrolls internally, the sidebar gets a capped,
+   scrollable strip below it */
+@media screen and (max-width: 700px)
+{
+  html.js body:has(#windows.paged)
+  {
+    overflow: hidden;
+    height: 100vh;
+    height: 100dvh;
+  }
+
+  html.js #windows.paged
+  {
+    height: 100vh;
+    height: 100dvh;
+    box-sizing: border-box;
+    flex-direction: column;
+    align-items: stretch;
+    gap: 12px;
+    padding: 58px 10px 10px;
+  }
+
+  html.js #windows.paged #window-left
+  {
+    flex: 1 1 auto;
+    min-height: 0;
+    height: auto;
+    width: 100%;
+    max-width: none;
+  }
+
+  html.js #windows.paged #window-right
+  {
+    flex: 0 0 auto;
+    width: 100%;
+    max-width: none;
+    max-height: 24vh;
+    overflow-y: auto;   /* many posts/projects -> the list scrolls */
+  }
+}
+
+/* --- sub-pages (pages within a project) --- */
+
+html.js .sub-page { display: none; }
+html.js .sub-page.current { display: block; }
+
+.sub-page
+{
+  width: 100%;
+  backface-visibility: hidden;
+}
+
+/* without JS every page of every project is stacked */
+html:not(.js) .sub-page + .sub-page
+{
+  margin-top: 18px;
+  padding-top: 14px;
+  border-top: 1px dashed rgba(255, 22, 9, 0.35);
+}
+
+html:not(.js) .sub-page + .sub-page h2
+{
+  display: none;   /* don't repeat the project title per page */
+}
+
+/* --- the two arrow families --- */
+
+.nav-arrows
+{
+  gap: 8px;
+}
+
+.page-indicator
+{
+  text-align: center;
+  flex: 1 1 auto;
+}
+
+@media screen and (max-width: 700px)
+{
+  .nav-arrows { flex-wrap: wrap; justify-content: center; }
+  .page-indicator { flex-basis: 100%; order: -1; margin-bottom: 8px; }
+}
+
+/* ---------------------------------------------------------- */
+/* Photo templates for blog posts & project pages              */
+/* Pick per image, like placing pictures in a book:            */
+/*   photo-cover   - large lead image for a first page         */
+/*   photo-wide    - shallow full-width banner                 */
+/*   photo-left    - floats left, text wraps around it         */
+/*   photo-right   - floats right, text wraps around it        */
+/*   photo-inset   - centered plate between paragraphs         */
+/* ---------------------------------------------------------- */
+
+.photo-cover, .photo-wide, .photo-left, .photo-right, .photo-inset,
+.blog-photo
+{
+  border: 1px solid rgba(255, 22, 9, 0.6);
+  border-radius: 3px;
+  background: #0a0000;
+  object-fit: cover;
+}
+
+.photo-cover
+{
+  display: block;
+  width: 100%;
+  height: clamp(150px, 30vh, 300px);
+  margin-bottom: 14px;
+}
+
+.photo-wide, .blog-photo
+{
+  display: block;
+  width: 100%;
+  height: clamp(90px, 14vh, 150px);
+  margin-bottom: 12px;
+}
+
+.photo-left
+{
+  float: left;
+  width: min(42%, 260px);
+  height: auto;
+  max-height: 34vh;
+  margin: 4px 16px 10px 0;
+}
+
+.photo-right
+{
+  float: right;
+  width: min(42%, 260px);
+  height: auto;
+  max-height: 34vh;
+  margin: 4px 0 10px 16px;
+}
+
+.photo-inset
+{
+  display: block;
+  width: min(62%, 380px);
+  height: auto;
+  max-height: 32vh;
+  margin: 14px auto;
+}
+
+/* floated photos release before headings/nav so pages end clean */
+.sub-page::after
+{
+  content: "";
+  display: block;
+  clear: both;
+}
+
+@media screen and (max-width: 700px)
+{
+  .photo-cover { height: clamp(110px, 20vh, 200px); }
+  .photo-left, .photo-right { width: 46%; max-height: 22vh; }
+  .photo-inset { width: 76%; max-height: 22vh; }
+}
+
+/* ---------------------------------------------------------- */
+/* Edge arrows: stylized page-turn chevrons on the sides of    */
+/* the content window. On load they nudge back and forth (with */
+/* a hint label that fades away) to signal the swipe/turn.     */
+/* ---------------------------------------------------------- */
+
+.edge-arrow
+{
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 38px;
+  height: 56px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(0, 0, 0, 0.7);
+  border: 1px solid #ff1609;
+  border-radius: 3px;
+  cursor: pointer;
+  z-index: 6;
+  padding: 0;
+  transition: background 0.2s ease, box-shadow 0.2s ease,
+              opacity 0.25s ease, visibility 0.25s ease;
+}
+
+.edge-prev { left: 8px; }
+.edge-next { right: 8px; }
+
+.edge-chevron
+{
+  display: block;
+  width: 13px;
+  height: 13px;
+  border-top: 3px solid #ff1609;
+  border-right: 3px solid #ff1609;
+  filter: drop-shadow(0 0 4px rgba(255, 22, 9, 0.8));
+  transition: border-color 0.2s ease;
+}
+
+.edge-prev .edge-chevron
+{
+  transform: rotate(-135deg);
+  margin-left: 5px;
+}
+
+.edge-next .edge-chevron
+{
+  transform: rotate(45deg);
+  margin-right: 5px;
+}
+
+.edge-arrow:hover
+{
+  background: rgba(255, 22, 9, 0.35);
+  box-shadow: 0 0 14px rgba(255, 22, 9, 0.7);
+}
+
+.edge-arrow:hover .edge-chevron
+{
+  border-color: var(--pn-signal);
+}
+
+.edge-arrow:focus-visible
+{
+  outline: 2px solid var(--pn-signal);
+  outline-offset: 2px;
+}
+
+/* no page in that direction: keep the layout, hide the arrow */
+.edge-arrow.edge-off
+{
+  opacity: 0;
+  visibility: hidden;
+  pointer-events: none;
+}
+
+/* intro nudge: side-to-side beckoning motion */
+.edge-nudge
+{
+  animation: edge-nudge 0.9s ease-in-out 3;
+}
+
+.edge-prev.edge-nudge { animation-name: edge-nudge-left; }
+
+@keyframes edge-nudge
+{
+  0%, 100% { transform: translateY(-50%) translateX(0); }
+  50%      { transform: translateY(-50%) translateX(7px); }
+}
+
+@keyframes edge-nudge-left
+{
+  0%, 100% { transform: translateY(-50%) translateX(0); }
+  50%      { transform: translateY(-50%) translateX(-7px); }
+}
+
+/* "TURN PAGE" label under the right arrow, fades on its own */
+.edge-hint
+{
+  position: absolute;
+  right: 2px;
+  top: calc(50% + 36px);
+  width: 50px;
+  text-align: center;
+  font-family: 'Press Start 2P', monospace;
+  font-size: 7px;
+  line-height: 1.6;
+  color: var(--pn-signal);
+  text-shadow: 0 0 6px rgba(255,255,255,.6);
+  letter-spacing: 1px;
+  z-index: 6;
+  pointer-events: none;
+  animation: edge-hint-fade 4.4s ease forwards;
+}
+
+@keyframes edge-hint-fade
+{
+  0%, 65%  { opacity: 1; }
+  100%     { opacity: 0; }
+}
+
+@media screen and (max-width: 700px)
+{
+  html.js #windows.paged #window-left
+  {
+    padding-left: 44px;
+    padding-right: 44px;
+  }
+
+  .edge-arrow
+  {
+    width: 30px;
+    height: 48px;
+  }
+
+  .edge-prev { left: 5px; }
+  .edge-next { right: 5px; }
+}
+
+@media (prefers-reduced-motion: reduce)
+{
+  .edge-nudge { animation: none; }
+  .edge-hint { animation: none; opacity: 0; }
+}

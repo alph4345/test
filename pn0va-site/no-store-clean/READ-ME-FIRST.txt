@@ -1,0 +1,4 @@
+This build uses root-relative paths so the URLs can be pn0va.com/drops.
+It MUST be served by a web server. Opening index.html by double-clicking
+will show an unstyled page, because /style.css resolves to your drive
+root. Use the flat build next door for local double-click previews.

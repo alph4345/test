@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>P_N0VA - Store</title>
+  <script>document.documentElement.classList.add('js');</script>
+  <link rel="stylesheet" href="tokens.css?v=cf68e78a">
+  <link rel="stylesheet" href="page-style.css?v=0aa5eb3f">
+</head>
+
+<body>
+  <nav id="navbar">
+    <ul>
+      <li><a href="index.html">Home</a></li>
+      <li><a href="blog.html">Blog</a></li>
+      <li><a href="projects.html">Projects</a></li>
+      <li><a href="drops.html">Drops</a></li>
+      <li><a href="store.html" class="active">Store</a></li>
+      <li><a href="about.html">About</a></li>
+    </ul>
+  </nav>
+
+  <!-- ============================================================
+       HOW TO ADD A PRODUCT
+       ------------------------------------------------------------
+       Copy one <article class="store-item"> block. Everything the
+       cart needs lives in its data-* attributes:
+           data-id     unique, stable. Never reuse an old id.
+           data-name   shown in the cart
+           data-price  number only, no currency symbol
+       Swap the image and the copy. Descriptions can be any length —
+       the card stretches and ADD TO CART stays pinned to the bottom.
+       Then bump ?v= on the stylesheet and script links.
+       ============================================================ -->
+
+  <main id="store-shell">
+    <div id="store-grid">
+
+    <article class="store-item" data-id="pin-gameboy" data-name="Game Boy Pin" data-price="18">
+      <img src="images/store/item-1.svg" alt="Layered wood and acrylic Game Boy pin">
+      <div class="body">
+        <h2>Game Boy Pin</h2>
+        <div class="price">$18.00</div>
+        <p>Four layers of Baltic birch and clear acrylic over an engraved
+           anodized plate. Cut and assembled by hand, so no two are identical.
+           Rubber clutch backing.</p>
+        <button type="button">Add to cart</button>
+      </div>
+    </article>
+
+    <article class="store-item" data-id="key-digivice" data-name="Digivice Keychain" data-price="22">
+      <img src="images/store/item-2.svg" alt="Digivice keychain">
+      <div class="body">
+        <h2>Digivice Keychain</h2>
+        <div class="price">$22.00</div>
+        <p>The same layered build as the pins, fused into a solid loop tab so
+           there is no narrow neck to snap. Ships on a split ring.</p>
+        <button type="button">Add to cart</button>
+      </div>
+    </article>
+
+    <article class="store-item" data-id="plate-custom" data-name="Custom Art Plate" data-price="30">
+      <img src="images/store/item-3.svg" alt="Custom engraved metal art plate">
+      <div class="body">
+        <h2>Custom Art Plate</h2>
+        <div class="price">$30.00</div>
+        <p>Send your own artwork and it gets engraved onto an anodized aluminium
+           plate, then set behind the acrylic window of any pin or keychain in
+           the store. Allow two weeks.</p>
+        <button type="button">Add to cart</button>
+      </div>
+    </article>
+
+    </div>
+    <nav id="store-pager" aria-label="Store pages">
+      <button class="store-page-btn" id="store-prev" type="button">&#171; Prev</button>
+      <span id="store-count">--</span>
+      <button class="store-page-btn" id="store-next" type="button">Next &#187;</button>
+    </nav>
+  </main>
+
+  <button id="cart-toggle" type="button" aria-haspopup="dialog">
+    Cart <span id="cart-count">0</span>
+  </button>
+
+  <div id="cart-backdrop" hidden></div>
+
+  <aside id="cart-panel" role="dialog" aria-modal="true" aria-label="Cart" hidden>
+    <header>
+      <span>Cart</span>
+      <button id="cart-close" type="button" aria-label="Close cart">X</button>
+    </header>
+    <ul id="cart-lines"></ul>
+    <div id="cart-empty">Nothing in the cart yet.</div>
+    <div id="checkout-preview" role="status" hidden></div>
+    <div id="cart-foot">
+      <div id="cart-total"><span>Subtotal</span><span id="cart-sum">$0.00</span></div>
+      <button id="checkout" type="button">Checkout</button>
+    </div>
+  </aside>
+
+  <script src="store.js?v=d0a22725"></script>
+</body>
+</html>

@@ -1,0 +1,181 @@
+/* ==========================================================================
+   P_N0VA — DESIGN TOKENS
+   rev 2026.07.30 · derived from website-fixed 20260706b
+   --------------------------------------------------------------------------
+   Variables only. No selectors beyond :root. Import first, then
+   components.css, then page-specific styles.
+
+   TWO REGISTERS. The identity shares one chroma between hardware and
+   fireflies; what separates them is motion. Tokens are grouped accordingly —
+   don't borrow an --pn-org-* value for an instrument, or vice versa.
+
+   RULE: never write a brand literal in a stylesheet again. The shipping CSS
+   drifted to #ff1608 and rgba(255,22,8,.5). Use the token.
+   ========================================================================== */
+
+:root{
+
+  /* --- the one chroma ----------------------------------------------------- */
+  --pn-red:       #FF1609;   /* borders, rules, the mark, AND the fireflies  */
+  --pn-void:      #000000;   /* the ground. true black — the glows need it   */
+  --pn-ember:     #0A0000;   /* raised surface. black with a red bias        */
+
+  /* --- signal ------------------------------------------------------------
+     Bone is NOT part of the red world. It is the operator: focus, position,
+     what is live. It only works because it is scarce — see --pn-ink below. */
+  --pn-bone:      #FFFFFF;
+
+  /* --- warm neutral ramp (the reading surface) ---------------------------- */
+  --pn-linen:     #E8E2DC;   /* body copy. warm off-white, 16.4:1 on black   */
+  --pn-taupe:     #B0A49B;   /* labels, captions, units. 8.6:1               */
+  --pn-ash:       #7A716B;   /* muted, disabled, closed. 4.4:1               */
+  --pn-slate:     #3A3532;   /* dividers and inert borders. 1.7:1 — never text */
+
+  /* --- red at working opacities (use these, don't hand-roll rgba) --------- */
+  --pn-red-90:    rgba(255,22,9,.90);
+  --pn-red-60:    rgba(255,22,9,.60);
+  --pn-red-50:    rgba(255,22,9,.50);
+  --pn-red-40:    rgba(255,22,9,.40);
+  --pn-red-30:    rgba(255,22,9,.30);
+  --pn-red-20:    rgba(255,22,9,.20);
+  --pn-red-07:    rgba(255,22,9,.07);
+
+  /* --- semantic roles (dark = native ground) ------------------------------ */
+  --pn-ground:      var(--pn-void);
+  --pn-surface:     rgba(0,0,0,.95);
+  --pn-surface-alt: var(--pn-ember);
+
+  /* CRITICAL: body copy is linen, NOT bone. If everything is #FFFFFF then a
+     hover that goes to #FFFFFF says nothing. This one line is what makes the
+     whole signal scheme function. */
+  --pn-ink:         var(--pn-linen);
+  --pn-ink-strong:  var(--pn-bone);   /* signal only — see --pn-signal       */
+  --pn-ink-muted:   var(--pn-taupe);
+  --pn-ink-faint:   var(--pn-ash);
+
+  --pn-signal:      var(--pn-bone);
+  --pn-focus:       var(--pn-bone);
+  --pn-hover:       var(--pn-bone);
+  --pn-border:      var(--pn-red);
+  --pn-hairline:    var(--pn-red-30);
+  --pn-divider:     var(--pn-slate);
+
+  /* --- type --------------------------------------------------------------- */
+  /* Press Start 2P must be loaded by the page. Its @import has to be the
+     FIRST rule in whichever file loads it — it was once placed below another
+     rule and silently ignored, so the pixel font never loaded at all. */
+  --pn-face-logo:    'OPTI Enge Etienne', Georgia, serif;  /* LOGOTYPE ONLY  */
+  --pn-face-display: 'Press Start 2P', ui-monospace, monospace;
+  --pn-face-body:    Arial, Helvetica, sans-serif;
+  --pn-face-kana:    'Yu Gothic', 'Hiragino Kaku Gothic ProN', 'MS Gothic', sans-serif;
+
+  /* bitmap face — integer sizes only. fractional px turns it to mush. */
+  --pn-size-nav:    16px;
+  --pn-size-title:  18px;
+  --pn-size-sub:    12px;
+  --pn-size-list:   12px;
+  --pn-size-data:   14px;
+  --pn-size-body:   12.5px;   /* Arial, not the pixel face */
+  --pn-lh-body:     1.7;
+  --pn-lh-list:     1.8;
+  --pn-track:       .12em;
+
+  /* --- space -------------------------------------------------------------- */
+  --pn-pad-window:  20px;
+  --pn-pad-main:    28px 32px;
+  --pn-gap-window:  40px;
+  --pn-pad-nav:     8px 0;
+  --pn-nav-gap:     12px;
+
+  /* --- form --------------------------------------------------------------- */
+  --pn-radius:      4px;   /* maximum. nothing in this system is friendlier. */
+  --pn-radius-sm:   3px;
+  --pn-border-w:    2px;
+  --pn-hairline-w:  1px;
+
+  /* --- elevation ---------------------------------------------------------- */
+  --pn-glow-window: 0 0 30px var(--pn-red-40), inset 0 0 20px rgba(0,0,0,.5);
+  --pn-glow-text:   0 0 8px var(--pn-red-50);
+  --pn-glow-active: 0 0 12px var(--pn-red-90);
+  --pn-glow-hover:  0 0 14px rgba(255,22,9,1);   /* the red gets HOTTER, and
+                                                    the ink goes bone */
+
+  /* ==== REGISTER A · mechanical ===========================================
+     Arrives on cue, lands where CSS already put it, holds still. */
+  --pn-ease-land:   cubic-bezier(.22,.9,.21,1);
+  --pn-ease-slide:  cubic-bezier(.16,.84,.44,1);
+  --pn-dur-window:  1.3s;
+  --pn-dur-nav:     .9s;
+  --pn-dur-state:   .2s;
+  --pn-delay-main:  .15s;
+  --pn-delay-side:  .30s;
+
+  /* ==== REGISTER B · organic ==============================================
+     Never triggered, never synchronized, never lands. Seconds, not ms.
+     Every instance must randomize duration and delay per element. */
+  --pn-org-color:     var(--pn-red);            /* same red as the hardware —
+                                                   this is the thesis        */
+  --pn-org-core:      3px;
+  --pn-org-halo:      0 0 8px 2px var(--pn-red), 0 0 12px 4px var(--pn-red-50);
+  --pn-org-ease:      cubic-bezier(.4,0,.6,1);  /* eased at BOTH ends        */
+  --pn-org-drift:     4s;                       /* per drift step            */
+  --pn-org-life-min:  5s;
+  --pn-org-life-max:  10s;
+  --pn-org-fade-in:   2s;
+  --pn-org-fade-out:  2.5s;
+  --pn-org-opacity-min: .3;
+  --pn-org-opacity-max: .7;                     /* never full strength       */
+  --pn-org-spawn:     250ms;
+  --pn-org-max:       50;
+
+  /* --- laser / fabrication ------------------------------------------------
+     NOT brand colors. The cutter matches these exactly; brand red is close
+     enough to look identical and will not be recognized as a cut path. */
+  --pn-cut:       #FF0000;
+  --pn-engrave:   #0000FF;
+  --pn-reference: #00FF00;
+}
+
+/* ==========================================================================
+   LIGHT GROUND — the print / packaging expression.
+   Not an inversion. Two things change beyond the swap:
+     · the mark goes BLACK, not red (red on white is only 3.9:1)
+     · bone has nowhere to go on white, so RED takes over the signal job
+       at large sizes only
+   ========================================================================== */
+:root[data-theme="light"]{
+  --pn-ground:      #FAF7F7;
+  --pn-surface:     #FFFFFF;
+  --pn-surface-alt: #F2EFEF;
+  --pn-ink:         #241F1D;
+  --pn-ink-strong:  #0A0000;
+  --pn-ink-muted:   #6E6462;
+  --pn-ink-faint:   #8A807B;
+
+  --pn-signal:      var(--pn-red);
+  --pn-focus:       var(--pn-red);
+  --pn-hover:       var(--pn-red);
+  --pn-border:      #0A0000;
+  --pn-hairline:    rgba(10,0,0,.22);
+  --pn-divider:     rgba(10,0,0,.14);
+
+  --pn-glow-window: 0 0 0 1px rgba(255,22,9,.10), 0 2px 18px rgba(10,0,0,.07);
+  --pn-glow-text:   none;
+  --pn-glow-active: none;
+  --pn-glow-hover:  none;
+}
+
+/* Reduced motion is not a variant — it is the layout with the entrance
+   removed. Final positions are pure CSS, so this is always correct. The
+   organic register holds still at partial opacity rather than vanishing, so
+   the living layer survives even here. */
+@media (prefers-reduced-motion:reduce){
+  :root{
+    --pn-dur-window: 0s;
+    --pn-dur-nav:    0s;
+    --pn-dur-state:  0s;
+    --pn-delay-main: 0s;
+    --pn-delay-side: 0s;
+    --pn-org-drift:  0s;
+  }
+}

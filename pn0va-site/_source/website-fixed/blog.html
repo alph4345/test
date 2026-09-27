@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>P_N0VA - Blog</title>
+  <!-- Progressive enhancement: mark the document when JavaScript is available -->
+  <script>document.documentElement.classList.add('js');</script>
+  <link rel="stylesheet" href="page-style.css?v=20260706a">
+</head>
+<body>
+  <nav id="navbar">
+    <ul>
+      <li><a href="index.html">Home</a></li>
+      <li><a href="blog.html" class="active">Blog</a></li>
+      <li><a href="projects.html">Projects</a></li>
+      <li><a href="geocache.html">Geocache</a></li>
+      <li><a href="about.html">About</a></li>
+    </ul>
+  </nav>
+
+  <main id="windows" class="paged" data-unit="Post">
+  <div id="window-left" class="text-window">
+
+    <div class="page-content current" data-page="1" id="post-1">
+      <div class="sub-page current" data-sub="1">
+        <h2>My First Blog Post</h2>
+        <img class="photo-cover" src="images/blog/post-placeholder.svg" alt="Illustration for blog post 1">
+        <h3>Welcome to My Blog</h3>
+        <p class="date">January 12, 2026</p>
+        <p>Welcome to my blog! This is where I'll be sharing my thoughts on development, creative projects, and everything in between.</p>
+      </div>
+      <div class="sub-page" data-sub="2">
+        <h2>My First Blog Post</h2>
+        <img class="photo-right" src="images/blog/post-placeholder.svg" alt="Inline illustration">
+        <p>I've been working on some exciting new projects lately, including this retro-styled website inspired by late-90s JRPGs. The aesthetic really speaks to me – there's something special about combining modern web technologies with nostalgic design.</p>
+        <p>In future posts, I'll dive deeper into the technical details of building this site, share tutorials, and document my creative journey. Stay tuned for more updates!</p>
+        <p>Feel free to browse through the archive on the right to see all my posts.</p>
+      </div>
+    </div>
+
+    <div class="page-content" data-page="2" id="post-2">
+      <div class="sub-page current" data-sub="1">
+        <h2>Building with CreateJS</h2>
+        <img class="photo-cover" src="images/blog/post-placeholder.svg" alt="Illustration for blog post 2">
+        <h3>Animation Framework Deep Dive</h3>
+        <p class="date">January 10, 2026</p>
+        <p>CreateJS has been an incredible tool for building animated web experiences. In this post, I explore the core concepts and share some practical tips for getting started.</p>
+      </div>
+      <div class="sub-page" data-sub="2">
+        <h2>Building with CreateJS</h2>
+        <p>The framework provides a familiar API similar to Flash's display list, making it easy for developers to create rich interactive content. Key features include sprite sheets, tweening, and sound management.</p>
+        <img class="photo-inset" src="images/blog/post-placeholder.svg" alt="Inline illustration">
+        <p>One of my favorite aspects is the ease of integration with Adobe Animate exports, which allows designers and developers to collaborate seamlessly on complex animations.</p>
+      </div>
+    </div>
+
+    <div class="page-content" data-page="3" id="post-3">
+      <div class="sub-page current" data-sub="1">
+        <h2>Web Animation Tips</h2>
+        <img class="photo-cover" src="images/blog/post-placeholder.svg" alt="Illustration for blog post 3">
+        <h3>Performance &amp; Best Practices</h3>
+        <p class="date">January 8, 2026</p>
+        <p>Creating smooth web animations requires careful consideration of performance. Here are some key principles I've learned through experience.</p>
+      </div>
+      <div class="sub-page" data-sub="2">
+        <h2>Web Animation Tips</h2>
+        <p>Always prefer CSS transforms over changing position properties directly. Use requestAnimationFrame for JavaScript animations. Limit the number of simultaneous animations, and be mindful of paint and layout operations.</p>
+        <p>Testing across different devices is crucial – what runs smoothly on a desktop might struggle on mobile. Profile your animations and optimize accordingly!</p>
+      </div>
+    </div>
+
+    <div class="nav-arrows">
+      <button class="nav-arrow" id="prev-item">&#171; Post</button>
+      <span class="page-indicator" id="page-indicator">Post 1/3 &#183; Page 1/2</span>
+      <button class="nav-arrow" id="next-item">Post &#187;</button>
+    </div>
+  </div>
+
+  <div id="window-right" class="text-window">
+    <h2>Archive</h2>
+    <ul>
+      <li><a href="#post-1" class="archive-link" data-page="1">My First Blog Post <span style="color: #999; font-size: 9px;">(Jan 12)</span></a></li>
+      <li><a href="#post-2" class="archive-link" data-page="2">Building with CreateJS <span style="color: #999; font-size: 9px;">(Jan 10)</span></a></li>
+      <li><a href="#post-3" class="archive-link" data-page="3">Web Animation Tips <span style="color: #999; font-size: 9px;">(Jan 8)</span></a></li>
+    </ul>
+  </div>
+
+  </main>
+
+  <script src="page-script.js?v=20260706a"></script>
+  <script src="paged-window.js?v=20260706a"></script>
+</body>
+</html>

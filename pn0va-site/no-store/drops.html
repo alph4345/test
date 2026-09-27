@@ -1,0 +1,321 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>P_N0VA — DROPS</title>
+
+<!-- Progressive enhancement: mark the document when JavaScript is available -->
+<script>document.documentElement.classList.add('js');</script>
+
+<link rel="stylesheet" href="vendor/leaflet/leaflet.css?v=ec929f11">
+<link rel="stylesheet" href="tokens.css?v=cf68e78a">
+<link rel="stylesheet" href="page-style.css?v=f8caa6ac">
+<link rel="stylesheet" href="drops.css?v=708e272e">
+<style>
+/* Self-hosted faces — no Google Fonts request, no CDN failure mode. */
+@font-face{
+  font-family:'Press Start 2P';
+  src:url('fonts/press-start-2p-latin-400-normal.woff2') format('woff2');
+  font-weight:400; font-style:normal; font-display:block;
+}
+/* ------------------------------------------------------------------
+   Leaflet, themed to the instrument register.
+
+   The terrain is NOT red. Red is the equipment drawn on top of it —
+   marker, range rings, crosshair, graticule. Carto serves the base and
+   the labels as separate tile layers, so each gets its own treatment:
+   the ground stays a neutral warm dark, and the labels are pushed to
+   white so street names actually read.
+   ------------------------------------------------------------------ */
+.leaflet-container{ background:#050505; font-family:var(--pn-face-display); }
+
+/* Ground. Carto's dark tiles are ~#26 land / ~#3d road — only 23 levels
+   apart, so darkening at all buries the street network. Brightness goes UP,
+   which lifts both and widens the gap in absolute terms; saturation stays
+   low so it reads neutral, with a whisper of warmth toward the taupe ramp. */
+.dp-pane-base{ filter:saturate(.42) brightness(2.05) contrast(.92) sepia(.16) hue-rotate(-6deg); }
+
+/* Labels: stripped of colour and pushed hard, so street names sit white on
+   top of the ground rather than dissolving into it. */
+.dp-pane-labels{ filter:grayscale(1) brightness(2.4) contrast(1.35); }
+.leaflet-control-attribution{
+  background:rgba(0,0,0,.75)!important; color:var(--pn-ink-faint)!important;
+  font-size:8px!important; letter-spacing:.06em; border:1px solid var(--pn-hairline);
+}
+.leaflet-control-attribution a{ color:var(--pn-ink-muted)!important; }
+/* Zoom buttons: the glyphs are DRAWN, not typed. Press Start 2P's "+" and
+   "−" are misshapen at button size — the plus reads as an arrowhead. Two
+   crisp bars are exact at any size and need no font at all. */
+.leaflet-control-zoom{ border:none!important; }
+.leaflet-control-zoom a{
+  position:relative;
+  width:28px!important; height:28px!important;
+  background:rgba(0,0,0,.85)!important; color:var(--pn-red)!important;
+  border:1px solid var(--pn-hairline)!important;
+  font-size:0!important;                    /* hide the "+" / "−" text */
+  text-indent:-9999px; overflow:hidden;
+}
+.leaflet-control-zoom a + a{ border-top:none!important; }
+.leaflet-control-zoom a::before,
+.leaflet-control-zoom a::after{
+  content:""; position:absolute; left:50%; top:50%;
+  background:currentColor; text-indent:0;
+}
+.leaflet-control-zoom a::before{ width:11px; height:2px; margin:-1px 0 0 -5.5px; }
+.leaflet-control-zoom-in::after { width:2px; height:11px; margin:-5.5px 0 0 -1px; }
+.leaflet-control-zoom-out::after{ display:none; }   /* minus is one bar only */
+.leaflet-control-zoom a:hover{ color:var(--pn-signal)!important; }
+.leaflet-control-zoom a.leaflet-disabled{ color:var(--pn-ink-faint)!important; }
+
+/* Recenter: a reticle, drawn the same way the +/- bars are so it sits in the
+   same stack without a font or an icon file. Dimmed while already centred. */
+.dp-recenter{ border:none!important; margin-top:6px!important; }
+.dp-recenter a{
+  position:relative; display:block;
+  width:28px!important; height:28px!important;
+  background:rgba(0,0,0,.85)!important; color:var(--pn-red)!important;
+  border:1px solid var(--pn-hairline)!important;
+  font-size:0!important; text-indent:-9999px; overflow:hidden;
+}
+.dp-recenter a::before,
+.dp-recenter a::after{
+  content:""; position:absolute; left:50%; top:50%; text-indent:0;
+}
+/* ring */
+.dp-recenter a::before{
+  width:12px; height:12px; margin:-6px 0 0 -6px;
+  border:1.5px solid currentColor; border-radius:50%;
+}
+/* centre dot */
+.dp-recenter a::after{
+  width:3px; height:3px; margin:-1.5px 0 0 -1.5px;
+  background:currentColor; border-radius:50%;
+}
+.dp-recenter a:hover{ color:var(--pn-signal)!important; }
+.dp-recenter a:focus-visible{ outline:2px solid var(--pn-focus); outline-offset:2px; }
+.dp-recenter.is-home a{ color:var(--pn-ink-faint)!important; }
+/* marker: the diamond you liked, now with a targeting crosshair through it */
+.dp-marker{ position:relative; width:14px; height:14px; }
+.dp-marker i{
+  position:absolute; inset:0; transform:rotate(45deg);
+  background:var(--pn-red);
+  box-shadow:0 0 10px 3px var(--pn-red), 0 0 18px 6px var(--pn-red-50);
+}
+.dp-marker::before,
+.dp-marker::after{
+  content:""; position:absolute; background:var(--pn-red); opacity:.55;
+}
+.dp-marker::before{ left:50%; top:-26px; width:1px; height:74px; margin-left:-.5px; }
+.dp-marker::after { top:50%; left:-26px; height:1px; width:74px; margin-top:-.5px; }
+/* the crosshair breathes — the only organic thing in the instrument */
+@media (prefers-reduced-motion:no-preference){
+  .dp-marker i{ animation:dp-ping 3.4s var(--pn-org-ease) infinite; }
+}
+@keyframes dp-ping{
+  0%,100%{ box-shadow:0 0 10px 3px var(--pn-red), 0 0 18px 6px var(--pn-red-50) }
+  50%    { box-shadow:0 0 14px 5px var(--pn-red), 0 0 30px 11px var(--pn-red-50) }
+}
+
+/* range rings — vector overlay, so they scale with the map */
+.dp-ring{ pointer-events:none; }
+.dp-ring-label{
+  font-size:8px; letter-spacing:.16em; color:var(--pn-red);
+  white-space:nowrap; text-shadow:0 0 6px #000, 0 0 3px #000;
+}
+
+/* graticule: edge ticks + live bounds, the mm-ruler habit applied to a map */
+.dp-grat{ position:absolute; inset:0; pointer-events:none; z-index:450; }
+.dp-grat svg{ width:100%; height:100%; display:block; color:var(--pn-red); }
+.dp-bounds{
+  position:absolute; right:6px; top:6px; z-index:460; pointer-events:none;
+  font-size:7.5px; letter-spacing:.14em; line-height:1.7; text-align:right;
+  color:var(--pn-ink-faint); text-shadow:0 0 5px #000;
+}
+.dp-bounds b{ color:var(--pn-ink-muted); font-weight:400; font-variant-numeric:tabular-nums; }
+</style>
+</head>
+
+<body>
+
+<!-- ============================================================
+     HOW TO ADD A DROP
+     ------------------------------------------------------------
+     The SECTION is "Drops" (plural). A single record is "DROP #001".
+     ------------------------------------------------------------
+     1. Copy one <article class="dp-entry"> block below.
+     2. Put the NEWEST first — the manifest and the tally are both
+        built by counting these blocks at runtime, top to bottom.
+     3. Set the data-* attributes on the <article>:
+          data-n        designation number, e.g. "003"
+          data-placed   YYYY.MM.DD
+          data-status   "open" or "recovered"
+          data-lat / data-lng    decimal degrees, signed
+          data-zoom     leaflet zoom, 13-16 is usually right
+          data-place    short place label for the readout bar
+     4. Swap the two images and the caption text.
+     5. Write the brief. Two or three short paragraphs.
+     6. Bump ?v= on every stylesheet and script link above.
+     Nothing else needs touching — no CSS, no JS.
+     ============================================================ -->
+
+<nav id="navbar">
+    <ul>
+      
+      <li><a href="index.html">Home</a></li>
+      <li><a href="blog.html">Blog</a></li>
+      <li><a href="projects.html">Projects</a></li>
+      <li><a href="drops.html" class="active">Drops</a></li>
+      <li><a href="about.html">About</a></li>
+    
+    </ul>
+  </nav>
+
+
+<main class="dp-shell">
+
+  <!-- ============ MANIFEST RAIL ============ -->
+  <section class="dp-panel dp-manifest" aria-label="Drops manifest">
+    <div class="dp-panel__head">
+      <span>Drops</span>
+      <span class="dp-idx" id="dp-count">—</span>
+    </div>
+    <div class="dp-panel__body" id="dp-rows"></div>
+    <div class="dp-tally">
+      <span>Open <b id="dp-open">—</b></span>
+      <span>Recovered <b id="dp-done">—</b></span>
+    </div>
+  </section>
+
+  <!-- ============ DETAIL ============ -->
+  <div class="dp-detail">
+
+    <!-- FREQUENCY BAR — the codec's tuned readout. The coordinates are the
+         frequency: they are what you tune to in order to reach a drop. -->
+    <section class="dp-panel dp-codec dp-bar" aria-label="Drop frequency">
+      <div class="dp-panel__head">
+        <span>Frequency</span>
+        <span class="dp-headgroup">
+          <!-- <details> so the explainer opens with no JavaScript at all, and
+               gets keyboard support and Esc from the browser for free. It
+               lives in the frequency bar because that panel is the top row in
+               BOTH layouts — in the phone layout the manifest drops to the
+               bottom, so an explainer parked there would never be found. -->
+          <details class="dp-help" id="dp-help">
+            <summary title="What is a drop?">
+              <span class="q" aria-hidden="true">?</span>
+              <span class="lbl">What is a drop?</span>
+            </summary>
+            <div class="dp-help__panel" role="note">
+              <h3>What is a drop?</h3>
+              <p>Loot left by the operator at a real location. You get the
+                 coordinates, a photo of the item and a hint to its hiding
+                 place &mdash; enough to go and find it. Each one carries a
+                 short piece of lore too.</p>
+            </div>
+          </details>
+          <span class="dp-idx" id="dp-rev">Memory · <span id="r-place">—</span></span>
+        </span>
+      </div>
+      <div class="dp-panel__body">
+        <span class="dp-desig"><span class="hash">DROP&nbsp;#</span><span id="r-n">—</span></span>
+
+        <span class="dp-freq">
+          <span class="v"><span id="r-lat">—</span><span class="u">°N</span></span>
+          <span class="v"><span id="r-lng">—</span><span class="u">°W</span></span>
+        </span>
+
+        <span class="dp-meta">
+          <dl class="dp-readout"><dt>Placed</dt><dd id="r-placed">—</dd></dl>
+          <dl class="dp-readout"><dt>Elapsed</dt><dd><span id="r-days">—</span><span class="u">d</span></dd></dl>
+          <span class="dp-status dp-status--open" id="r-status">—</span>
+        </span>
+      </div>
+    </section>
+
+    <!-- map -->
+    <section class="dp-panel dp-map dp-scan" aria-label="Drop location">
+      <div class="dp-panel__head">
+        <span>Location</span>
+        <span class="dp-idx">Carto dark · OSM</span>
+      </div>
+      <div class="dp-panel__body dp-panel__body--flush">
+        <div class="dp-mapcanvas" id="dp-map"></div>
+        <div class="dp-grat" id="dp-grat" aria-hidden="true"></div>
+        <div class="dp-bounds" id="dp-bounds" aria-hidden="true"></div>
+        <a class="dp-map-fallback" id="dp-osm" href="#" target="_blank" rel="noopener">&#9670; VIEW LOCATION ON OPENSTREETMAP &#9670;</a>
+      </div>
+    </section>
+
+    <!-- BOTTOM STRIP — the codec's two portrait frames sitting with the
+         dialogue box, which is what frees the whole upper area for the map. -->
+    <div class="dp-strip">
+      <figure class="dp-panel dp-slot dp-slot--hint" style="margin:0">
+        <div class="dp-panel__head"><span>Hint</span><span class="dp-idx">IMG-A</span></div>
+        <div class="dp-panel__body dp-panel__body--flush"><img id="s-hint" src="images/hint-placeholder.svg" alt=""></div>
+        <figcaption id="s-hintcap">—</figcaption>
+      </figure>
+
+      <section class="dp-panel dp-codec dp-brief" aria-label="Drop brief">
+        <div class="dp-panel__head"><span>Transmission</span><span class="dp-idx" id="r-title">—</span></div>
+        <div class="dp-panel__body" id="dp-brief"></div>
+      </section>
+
+      <figure class="dp-panel dp-slot dp-slot--item" style="margin:0">
+        <div class="dp-panel__head"><span>Item</span><span class="dp-idx">IMG-B</span></div>
+        <div class="dp-panel__body dp-panel__body--flush"><img id="s-item" src="images/item-placeholder.svg" alt=""></div>
+        <figcaption id="s-itemcap">—</figcaption>
+      </figure>
+    </div>
+
+  </div>
+</main>
+
+<!-- ============================================================
+     DROP RECORDS — newest first. Content only; no styling here.
+     ============================================================ -->
+<div hidden id="dp-data">
+
+  <article class="dp-entry" data-n="003" data-placed="2026.07.20" data-status="open"
+           data-lat="37.802139" data-lng="-122.4058" data-zoom="15"
+           data-place="Telegraph Hill"
+           data-title="Stairs and Parrots"
+           data-hint="images/hint-placeholder.svg" data-hintcap="Count the landings"
+           data-item="images/item-placeholder.svg" data-itemcap="Enamel pin — Game Boy">
+    <p>Placed at dusk, halfway up a staircase most people take at a jog. If you
+       hear the flock before you see it, you have gone too far.</p>
+    <p>Take the item, leave something of equal or greater mystery, and sign the
+       logbook. Bring your own pen — the last one walked off.</p>
+  </article>
+
+  <article class="dp-entry" data-n="002" data-placed="2026.07.04" data-status="open"
+           data-lat="37.826977" data-lng="-122.422955" data-zoom="14"
+           data-place="Island Signal"
+           data-title="Island Signal"
+           data-hint="images/hint-placeholder.svg" data-hintcap="Look past the water"
+           data-item="images/item-placeholder.svg" data-itemcap="What you're looking for">
+    <p>This one required a boat ride to place. It sits within sight of one of the
+       most photographed views around, tucked where thousands of people walk past
+       every week without a second glance.</p>
+    <p>Hidden in plain sight, exactly the way I like it.</p>
+  </article>
+
+  <article class="dp-entry" data-n="001" data-placed="2026.06.15" data-status="recovered"
+           data-lat="37.769420" data-lng="-122.486214" data-zoom="14"
+           data-place="West Woods"
+           data-title="The First Drop"
+           data-hint="images/hint-placeholder.svg" data-hintcap="Where the path splits"
+           data-item="images/item-placeholder.svg" data-itemcap="Found &amp; claimed">
+    <p>Somewhere among the trees west of the city, beneath a landmark that has
+       watched over the spot for more than a century. I hid it here because this
+       is where the whole idea started — the first place I ever went looking for
+       something that wasn't on any map.</p>
+    <p>Recovered 2026.06.28. The logbook stays behind for the next visitor.</p>
+  </article>
+
+</div>
+
+<script src="vendor/leaflet/leaflet.js?v=5a640ff8"></script>
+<script src="drops.js?v=1d4141f0"></script>
+</body>
+</html>

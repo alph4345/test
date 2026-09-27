@@ -1,0 +1,360 @@
+/* Self-hosted — no Google Fonts request, and no @import ordering trap.
+   The face MUST still be declared before anything that uses it. */
+@font-face{
+  font-family:'Press Start 2P';
+  src:url('fonts/press-start-2p-latin-400-normal.woff2') format('woff2');
+  font-weight:400; font-style:normal; font-display:block;
+}
+
+html
+{
+  /* prevent Android Chrome font boosting from inflating text and
+     breaking the fixed layouts */
+  -webkit-text-size-adjust: 100%;
+  text-size-adjust: 100%;
+}
+
+body
+{
+  width: 100vw;
+  height: 100dvh;
+  height: calc(var(--vh, 1vh) * 100);
+  margin: 0;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  background-color: #000;
+  font-family: 'Press Start 2P', monospace;
+  overflow: hidden;
+}
+
+#animation_container
+{
+  position: absolute;
+  margin: auto;
+  left: 0; right: 0;
+  top: 0; bottom: 0;
+  max-width: 100%;
+  max-height: 100%;
+}
+
+#canvas
+{
+  max-width: 100%;
+  max-height: 100%;
+  width: auto;
+  height: auto;
+}
+
+/* Tap-to-start overlay */
+#start-overlay
+{
+  position: fixed;
+  top: 0; left: 0;
+  width: 100vw;
+  height: 100vh;
+  background-color: rgba(0,0,0,0.85);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 999;
+  transition: opacity 0.5s ease;
+  cursor: pointer;
+}
+
+#start-overlay.fade-out
+{
+  opacity: 0;
+}
+
+#start-text
+{
+  color: red;
+  font-size: 14px;
+  text-align: center;
+  letter-spacing: 2px;
+  animation: pulse 1.2s infinite alternate;
+  padding: 20px;
+}
+
+@keyframes pulse
+{
+  from { opacity: 0.4; }
+  to { opacity: 1; }
+}
+
+/* Menu styling */
+#menu-container
+{
+  margin: auto;
+  position: absolute;
+  bottom: 40px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 200px;
+  max-width: 90vw;
+  padding: 10px;
+  background: linear-gradient(to bottom right, var(--pn-red), #450401);
+  border: 1px solid #fff;
+  border-radius: 3px;
+  display: none;
+  opacity: 0;
+  transition: opacity 1s ease;
+  box-shadow: 0 0 20px var(--pn-red-50);
+}
+
+#menu-container.show
+{
+  display: block;
+  opacity: 1;
+}
+
+.menu-item
+{
+  background-color: rgba(255,255,255,0.1);
+  color: white;
+  padding: 12px;
+  margin: 8px 0;
+  border: 1px solid #fff;
+  cursor: pointer;
+  text-align: center;
+  font-size: 10px;
+  transition: all 0.2s ease;
+  text-decoration: none;
+  display: block;
+}
+
+.menu-item:hover
+{
+  background-color: rgba(255,255,255,0.3);
+  color: var(--pn-signal);
+  transform: scale(1.05);
+  box-shadow: 0 0 10px rgba(255, 255, 255, 0.5);
+}
+
+.menu-item:active
+{
+  transform: scale(0.98);
+}
+
+/* Mobile responsiveness */
+@media screen and (max-width: 480px)
+{
+  #start-text
+  {
+    font-size: 12px;
+    letter-spacing: 1px;
+  }
+
+  #menu-container
+  {
+    bottom: 15px;
+    width: 180px;
+    padding: 6px;
+  }
+
+  .menu-item
+  {
+    font-size: 9px;
+    padding: 6px;
+    margin: 5px 0;
+  }
+}
+
+@media screen and (max-width: 375px)
+{
+  #menu-container
+  {
+    bottom: 12px;
+    width: 160px;
+  }
+
+  .menu-item
+  {
+    font-size: 8px;
+    padding: 6px;
+  }
+}
+
+/* Landscape mobile orientation */
+@media screen and (max-height: 500px) and (orientation: landscape)
+{
+  #menu-container
+  {
+    bottom: 10px;
+    width: 180px;
+    padding: 5px;
+  }
+
+  .menu-item
+  {
+    font-size: 8px;
+    padding: 5px;
+    margin: 3px 0;
+  }
+
+  #start-text
+  {
+    font-size: 11px;
+  }
+}
+
+/* Tablet responsiveness */
+@media screen and (min-width: 481px) and (max-width: 768px)
+{
+  #menu-container
+  {
+    width: 220px;
+    bottom: 25px;
+  }
+
+  .menu-item
+  {
+    font-size: 11px;
+  }
+}
+
+/* Large screens */
+@media screen and (min-width: 1200px)
+{
+  #menu-container
+  {
+    width: 240px;
+    bottom: 30px;
+  }
+
+  .menu-item
+  {
+    font-size: 11px;
+    padding: 9px;
+  }
+}
+
+/* ============================================================
+   Progressive enhancement — states for JavaScript on/off.
+   The <html> element gets class "js" from a tiny inline script;
+   without JavaScript that class is never added and the rules
+   below provide a fully working, styled fallback.
+   ============================================================ */
+
+/* Static fallback logo: hidden whenever JS is running */
+#static-logo
+{
+  display: none;
+}
+
+html:not(.js) #static-logo
+{
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  position: absolute;
+  inset: 0;
+  padding: 24px;
+  animation: logo-fade-in 1.2s ease-out both;
+}
+
+html:not(.js) #static-logo img
+{
+  max-width: min(90vw, 500px);
+  max-height: 60vh;
+  width: auto;
+  height: auto;
+}
+
+@keyframes logo-fade-in
+{
+  from { opacity: 0; transform: translateY(8px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+/* Without JS: no tap-to-start (nothing to start), no canvas */
+html:not(.js) #start-overlay,
+html:not(.js) #animation_container
+{
+  display: none;
+}
+
+/* Without JS: the menu is simply visible, with a CSS fade-in
+   standing in for the scripted reveal */
+html:not(.js) #menu-container
+{
+  display: block;
+  opacity: 1;
+  animation: menu-fade-in 1s ease-out 0.6s both;
+}
+
+@keyframes menu-fade-in
+{
+  from { opacity: 0; transform: translateX(-50%) translateY(10px); }
+  to   { opacity: 1; transform: translateX(-50%) translateY(0); }
+}
+
+/* CSS-only fireflies: a lightweight stand-in for the scripted
+   particle effect, shown only when JS is disabled */
+#css-fireflies
+{
+  display: none;
+}
+
+html:not(.js) #css-fireflies
+{
+  display: block;
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 10;
+  overflow: hidden;
+}
+
+html:not(.js) #css-fireflies span
+{
+  position: absolute;
+  width: 3px;
+  height: 3px;
+  background: #ff1609;
+  border-radius: 50%;
+  box-shadow: 0 0 8px 2px #ff1609, 0 0 12px 4px rgba(255, 22, 9, 0.5);
+  opacity: 0;
+  animation: css-firefly 9s ease-in-out infinite;
+}
+
+html:not(.js) #css-fireflies span:nth-child(1) { left: 12%; top: 25%; animation-delay: 0s;   animation-duration: 8s; }
+html:not(.js) #css-fireflies span:nth-child(2) { left: 78%; top: 18%; animation-delay: 1.2s; animation-duration: 10s; }
+html:not(.js) #css-fireflies span:nth-child(3) { left: 30%; top: 70%; animation-delay: 2.4s; animation-duration: 9s; }
+html:not(.js) #css-fireflies span:nth-child(4) { left: 88%; top: 62%; animation-delay: 3.1s; animation-duration: 7.5s; }
+html:not(.js) #css-fireflies span:nth-child(5) { left: 55%; top: 12%; animation-delay: 4.3s; animation-duration: 8.5s; }
+html:not(.js) #css-fireflies span:nth-child(6) { left: 8%;  top: 82%; animation-delay: 5.0s; animation-duration: 9.5s; }
+html:not(.js) #css-fireflies span:nth-child(7) { left: 65%; top: 85%; animation-delay: 6.2s; animation-duration: 8s; }
+html:not(.js) #css-fireflies span:nth-child(8) { left: 42%; top: 40%; animation-delay: 7.4s; animation-duration: 10s; }
+
+@keyframes css-firefly
+{
+  0%   { opacity: 0;   transform: translate(0, 0); }
+  20%  { opacity: 0.6; }
+  50%  { opacity: 0.4; transform: translate(4vw, -3vh); }
+  80%  { opacity: 0.6; transform: translate(-2vw, 2vh); }
+  100% { opacity: 0;   transform: translate(1vw, -1vh); }
+}
+
+/* Respect users who prefer reduced motion */
+@media (prefers-reduced-motion: reduce)
+{
+  html:not(.js) #css-fireflies { display: none; }
+  html:not(.js) #static-logo,
+  html:not(.js) #menu-container { animation: none; }
+  #start-text { animation: none; opacity: 1; }
+}
+
+
+/* On tall/portrait screens the canvas is width-limited, so a
+   bottom-anchored menu strands itself far below the logo. Anchor
+   it just under the canvas instead (canvas height = 100vw * 384/375). */
+@media (orientation: portrait)
+{
+  html.js #menu-container
+  {
+    bottom: auto;
+    top: min(calc(100vw * 1.024 + 28px), calc(100vh - 250px));
+  }
+}

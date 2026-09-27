@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>P_N0VA - Projects</title>
+  <!-- Progressive enhancement: mark the document when JavaScript is available -->
+  <script>document.documentElement.classList.add('js');</script>
+  <link rel="stylesheet" href="tokens.css?v=cf68e78a">
+  <link rel="stylesheet" href="page-style.css?v=0aa5eb3f">
+  <link rel="stylesheet" href="reader.css?v=58593767">
+</head>
+<body>
+  <nav id="navbar">
+    <ul>
+      
+      <li><a href="index.html">Home</a></li>
+      <li><a href="blog.html">Blog</a></li>
+      <li><a href="projects.html" class="active">Projects</a></li>
+      <li><a href="drops.html">Drops</a></li>
+      <li><a href="store.html">Store</a></li>
+      <li><a href="about.html">About</a></li>
+    
+    </ul>
+  </nav>
+
+    <main class="rd-shell">
+    <section class="rd-panel rd-manifest" aria-label="Projects">
+      <div class="rd-panel__head"><span>Projects</span><span class="rd-idx" id="rd-count">--</span></div>
+      <div class="rd-panel__body" id="rd-rows"></div>
+    </section>
+    <section class="rd-panel rd-reader" aria-label="Project">
+      <div class="rd-panel__head"><span id="rd-title">--</span><span class="rd-idx" id="rd-date"></span></div>
+      <div class="rd-panel__body" id="rd-body"></div>
+    </section>
+  </main>
+
+  <!-- ============================================================
+       ADD A PROJECT
+       Copy an <article class="rd-entry">. data-title and data-date
+       feed the list on the left; everything inside is the body and
+       it scrolls on its own. No sub-pages, no arrows to wire up.
+       ============================================================ -->
+  <div hidden id="rd-data">
+  <article class="rd-entry" data-title="P_N0VA Portfolio Site" data-date="">
+<img class="photo-cover" src="images/blog/post-placeholder.svg" alt="Cover image for project 1">
+        <h2>P_N0VA Portfolio Site</h2>
+        <div class="project">
+          <h3>Retro-Themed Web Experience</h3>
+          <p><strong>Technologies:</strong> HTML5, CSS3, JavaScript, CreateJS</p>
+          <p>A retro-themed portfolio website inspired by late-90s JRPG menu systems. Features include animated sliding windows, motion trails, and impact effects that create a nostalgic gaming experience while showcasing modern web development skills.</p>
+<div class="project">
+          <h3>Key Features</h3>
+          <ul>
+            <li>Custom CreateJS animation system</li>
+            <li>JRPG-inspired UI design</li>
+            <li>Responsive layout for all devices</li>
+            <li>Smooth page transitions with cardinal movement</li>
+            <li>Interactive firefly particle effects</li>
+          </ul>
+<div class="project">
+          <h3>Development Notes</h3>
+          <img class="photo-left" src="images/blog/post-placeholder.svg" alt="Development screenshot">
+          <p>The animated logo was authored in Adobe Animate and exported to CreateJS, with the runtime driving a sprite-sheet timeline. The window system is pure CSS flexbox with a JavaScript animation layer on top, so the site stays fully functional even with scripts disabled.</p>
+          <p><strong>Live Demo:</strong> <a href="#">View Project →</a></p>
+  </article>
+  <article class="rd-entry" data-title="Task Manager App" data-date="">
+<img class="photo-cover" src="images/blog/post-placeholder.svg" alt="Cover image for project 2">
+        <h2>Task Manager App</h2>
+        <div class="project">
+          <h3>Productivity Tool</h3>
+          <p><strong>Technologies:</strong> React, Node.js, MongoDB</p>
+          <p>A full-stack task management application with real-time updates and collaborative features. Users can create, organize, and track tasks with an intuitive interface.</p>
+<div class="project">
+          <h3>Key Features</h3>
+          <ul>
+            <li>Real-time collaboration</li>
+            <li>Drag-and-drop task organization</li>
+            <li>Priority and deadline management</li>
+            <li>Team workspace support</li>
+          </ul>
+          <p><strong>Live Demo:</strong> <a href="#">View Project →</a></p>
+  </article>
+  <article class="rd-entry" data-title="Weather Dashboard" data-date="">
+<img class="photo-cover" src="images/blog/post-placeholder.svg" alt="Cover image for project 3">
+        <h2>Weather Dashboard</h2>
+        <div class="project">
+          <h3>Real-Time Weather Application</h3>
+          <p><strong>Technologies:</strong> Vue.js, Weather API, Chart.js</p>
+          <p>An elegant weather dashboard that provides detailed forecasts with beautiful data visualizations. Features location-based detection and 7-day forecasts.</p>
+<div class="project">
+          <h3>Key Features</h3>
+          <ul>
+            <li>Geolocation auto-detection</li>
+            <li>Interactive weather charts</li>
+            <li>Hourly and weekly forecasts</li>
+            <li>Multiple location tracking</li>
+          </ul>
+          <p><strong>Live Demo:</strong> <a href="#">View Project →</a></p>
+  </article>
+  <article class="rd-entry" data-title="Game Prototype" data-date="">
+<img class="photo-cover" src="images/blog/post-placeholder.svg" alt="Cover image for project 4">
+        <h2>Game Prototype</h2>
+        <div class="project">
+          <h3>2D Platformer Experiment</h3>
+          <p><strong>Technologies:</strong> Phaser.js, JavaScript, Tiled</p>
+          <p>An experimental 2D platformer showcasing physics-based gameplay and retro pixel art aesthetics. Built as a learning project to explore game development fundamentals.</p>
+<div class="project">
+          <h3>Key Features</h3>
+          <ul>
+            <li>Physics-based movement</li>
+            <li>Tile-based level design</li>
+            <li>Collectibles and power-ups</li>
+            <li>Boss battle mechanics</li>
+          </ul>
+<div class="project">
+          <h3>Development Notes</h3>
+          <p>Levels are painted in Tiled and imported at runtime; the physics tuning went through a dozen iterations to make wall-jumps feel right. A post-mortem write-up is planned for the blog.</p>
+          <p><strong>Live Demo:</strong> <a href="#">View Project →</a></p>
+  </article>
+  </div>
+  <script src="reader.js?v=1946441d"></script>
+</body>
+</html>
