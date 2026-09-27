@@ -71,7 +71,8 @@ transactions, with three shipping fees. That is the moment to move to `api`.
 Needs one server endpoint. Netlify Functions, Vercel, Cloudflare Workers — all
 have free tiers that comfortably cover a maker store.
 
-It receives `{ lines, currency }` and returns `{ url }`:
+It receives `{ lines, currency }`, where each line is just `{ id, qty }`, and
+returns `{ url }`:
 
 ```js
 // netlify/functions/checkout.js
@@ -79,29 +80,39 @@ const { randomUUID } = require("crypto");
 
 // PRICES LIVE HERE, NOT IN THE BROWSER. Never trust a price the client sends —
 // anyone can edit data-price in devtools and buy a $30 plate for $0.01.
+// store.js sends only ids and quantities, but anyone can call this URL
+// directly with any body they like, so everything is checked below.
 const PRICES = {
   "pin-gameboy":  { name: "Game Boy Pin",     cents: 1800 },
   "key-digivice": { name: "Digivice Keychain", cents: 2200 },
   "plate-custom": { name: "Custom Art Plate",  cents: 3000 }
 };
 
+const reply = (statusCode, body) => ({ statusCode, body: JSON.stringify(body) });
+
 exports.handler = async (event) => {
-  const { lines } = JSON.parse(event.body);
+  if (event.httpMethod !== "POST") return reply(405, { error: "POST only" });
+
+  let lines;
+  try { ({ lines } = JSON.parse(event.body || "{}")); }
+  catch { return reply(400, { error: "bad request" }); }
+  if (!Array.isArray(lines) || lines.length === 0 || lines.length > 20)
+    return reply(400, { error: "bad cart" });
+
+  const line_items = [];
+  for (const l of lines) {
+    const p = PRICES[l && l.id];
+    if (!p) return reply(400, { error: "unknown product" });
+    line_items.push({
+      name: p.name,
+      quantity: String(Math.max(1, Math.min(99, l.qty | 0))),
+      base_price_money: { amount: p.cents, currency: "USD" }
+    });
+  }
 
   const order = {
     idempotency_key: randomUUID(),
-    order: {
-      location_id: process.env.SQUARE_LOCATION_ID,
-      line_items: lines.map(l => {
-        const p = PRICES[l.id];
-        if (!p) throw new Error("unknown product " + l.id);
-        return {
-          name: p.name,
-          quantity: String(Math.max(1, Math.min(99, l.qty | 0))),
-          base_price_money: { amount: p.cents, currency: "USD" }
-        };
-      })
-    },
+    order: { location_id: process.env.SQUARE_LOCATION_ID, line_items },
     checkout_options: {
       redirect_url: "https://pn0va.com/store?paid=1",
       ask_for_shipping_address: true
@@ -120,11 +131,20 @@ exports.handler = async (event) => {
     });
 
   const data = await res.json();
-  if (!res.ok) return { statusCode: 502, body: JSON.stringify(data) };
-
-  return { statusCode: 200, body: JSON.stringify({ url: data.payment_link.url }) };
+  if (!res.ok) {
+    console.error("Square error:", JSON.stringify(data));   // your function logs
+    return reply(502, { error: "checkout unavailable" });   // not Square's details
+  }
+  return reply(200, { url: data.payment_link.url });
 };
 ```
+
+**`?paid=1`.** After payment Square sends the buyer back to `redirect_url`.
+The store page sees `?paid=1`, empties that buyer's cart and thanks them. It is
+**not** proof of payment: anyone can type it into the address bar. Ship orders
+from Square's order notifications or dashboard, never from that page. In `link`
+mode, if a payment link lets you choose where buyers land after paying, use the
+same URL so their cart clears too.
 
 Then set `mode: "api"`. Test against Square's **sandbox** credentials first —
 they issue a separate token and card numbers that never move money.

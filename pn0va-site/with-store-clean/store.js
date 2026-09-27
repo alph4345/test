@@ -11,6 +11,17 @@
   "use strict";
 
   var KEY = "pn0va-cart";          // same storage key as the original
+
+  /* The products on THIS page are the only source of names and prices. A
+     saved cart is reduced to ids and quantities and re-priced from the page
+     on every load, so a price change reaches returning visitors (who were
+     otherwise shown the old price while Square charged the new one), items
+     since removed from the page drop out, and nothing typed into
+     localStorage ever reaches the page as markup. */
+  var products = {};
+  [].forEach.call(document.querySelectorAll(".store-item"), function (it) {
+    products[it.dataset.id] = { name: it.dataset.name, price: parseFloat(it.dataset.price) };
+  });
   var cart = load();
 
   var el = {
@@ -26,8 +37,14 @@
   };
 
   function load() {
-    try { return JSON.parse(localStorage.getItem(KEY)) || {}; }
-    catch (e) { return {}; }
+    var saved, clean = {};
+    try { saved = JSON.parse(localStorage.getItem(KEY)) || {}; }
+    catch (e) { saved = {}; }
+    Object.keys(saved).forEach(function (id) {
+      var p = products[id], qty = parseInt(saved[id] && saved[id].qty, 10);
+      if (p && qty > 0) clean[id] = { name: p.name, price: p.price, qty: Math.min(qty, 99) };
+    });
+    return clean;
   }
   function save() {
     try { localStorage.setItem(KEY, JSON.stringify(cart)); } catch (e) {}
@@ -61,23 +78,32 @@
     el.lines.innerHTML = "";
     lines.forEach(function (l) {
       var li = document.createElement("li");
+      // fixed markup only; every value goes in as text
       li.innerHTML =
-        '<span class="nm">' + l.name + '</span>' +
-        '<span class="ln">' + money(l.price * l.qty) + '</span>' +
+        '<span class="nm"></span><span class="ln"></span>' +
         '<span class="qty">' +
-          '<button type="button" data-act="dec" aria-label="One fewer">-</button>' +
-          '<span>' + l.qty + '</span>' +
-          '<button type="button" data-act="inc" aria-label="One more">+</button>' +
+          '<button type="button" data-act="dec">-</button>' +
+          '<span></span>' +
+          '<button type="button" data-act="inc">+</button>' +
           '<button type="button" class="rm" data-act="rm">Remove</button>' +
         '</span>';
+      li.querySelector(".nm").textContent = l.name;
+      li.querySelector(".ln").textContent = money(l.price * l.qty);
+      li.querySelector(".qty span").textContent = l.qty;
+      // name the product, or a screen reader hears "One more" on every line
+      li.querySelector('[data-act="dec"]').setAttribute("aria-label", "One fewer " + l.name);
+      li.querySelector('[data-act="inc"]').setAttribute("aria-label", "One more " + l.name);
+      li.querySelector(".rm").setAttribute("aria-label", "Remove " + l.name);
       li.dataset.id = l.id;
       el.lines.appendChild(li);
     });
   }
 
-  function add(id, name, price) {
-    if (!cart[id]) cart[id] = { name: name, price: price, qty: 0 };
-    cart[id].qty++;
+  function add(id) {
+    var p = products[id];
+    if (!p) return;
+    if (!cart[id]) cart[id] = { name: p.name, price: p.price, qty: 0 };
+    if (cart[id].qty < 99) cart[id].qty++;
     save(); render();
     el.toggle.classList.remove("bump");
     void el.toggle.offsetWidth;          // restart the pulse
@@ -136,8 +162,7 @@
   /* --- wiring ------------------------------------------------------------ */
   document.querySelectorAll(".store-item button").forEach(function (b) {
     b.addEventListener("click", function () {
-      var card = b.closest(".store-item");
-      add(card.dataset.id, card.dataset.name, parseFloat(card.dataset.price));
+      add(b.closest(".store-item").dataset.id);
     });
   });
 
@@ -145,7 +170,7 @@
     var b = ev.target.closest("button[data-act]");
     if (!b) return;
     var id = b.closest("li").dataset.id;
-    if (b.dataset.act === "inc") cart[id].qty++;
+    if (b.dataset.act === "inc") { if (cart[id].qty < 99) cart[id].qty++; }
     else if (b.dataset.act === "dec" && --cart[id].qty < 1) delete cart[id];
     else if (b.dataset.act === "rm") delete cart[id];
     save(); render();
@@ -197,12 +222,20 @@
 
   function money(n){ return "$" + n.toFixed(2); }
 
+  function esc(s){
+    var d = document.createElement("div");
+    d.textContent = String(s);
+    return d.innerHTML;
+  }
+
   function preview(title, body){
     var box = document.getElementById("checkout-preview");
-    box.innerHTML = "<h3>" + title + "</h3>" + body;
+    box.innerHTML = "<h3>" + esc(title) + "</h3>" + body;
     box.hidden = false;
   }
 
+  /* Customers see these panels, so they speak to customers. Notes meant for
+     the owner (which mode is on, what to configure) go to the console. */
   function checkout(){
     var lines = cartLines();
     if (!lines.length) return;
@@ -210,16 +243,18 @@
     if (CHECKOUT.mode === "link"){
       if (lines.length > 1 || lines[0].qty > 1){
         preview("One item at a time",
-          "<p>Payment links are per product, so this mode can only check out a " +
-          "single item. Switch <code>CHECKOUT.mode</code> to <code>&quot;api&quot;</code> " +
-          "for a real multi-item cart.</p>");
+          "<p>Checkout takes one product per order for now. Remove the others " +
+          "(and set the quantity to 1) to continue.</p>");
+        console.info("store.js: payment links check out one product at a time; " +
+                     "CHECKOUT.mode 'api' takes the whole cart. See STORE-SETUP.md.");
         return;
       }
       var url = CHECKOUT.links[lines[0].id];
       if (!url){
-        preview("No link set for this product",
-          "<p>Add a Square payment link for <code>" + lines[0].id +
-          "</code> in <code>CHECKOUT.links</code>.</p>");
+        preview("Not available yet",
+          "<p>This item can't be bought online just yet. Nothing was charged.</p>");
+        console.warn("store.js: no Square payment link for '" + lines[0].id +
+                     "' in CHECKOUT.links.");
         return;
       }
       window.location.href = url;
@@ -232,7 +267,12 @@
       fetch(CHECKOUT.endpoint, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ lines: lines, currency: CHECKOUT.currency })
+        // Ids and quantities only. The server prices every line from its own
+        // list, so a price edited in the browser has nothing to travel in.
+        body: JSON.stringify({
+          lines: lines.map(function(l){ return { id: l.id, qty: l.qty }; }),
+          currency: CHECKOUT.currency
+        })
       })
       .then(function(r){ if (!r.ok) throw new Error("HTTP " + r.status); return r.json(); })
       .then(function(d){
@@ -242,28 +282,46 @@
       .catch(function(err){
         el.pay.disabled = false;
         el.pay.textContent = "Checkout";
+        console.error("store.js: checkout failed:", err);
         preview("Checkout could not start",
-          "<p>" + err.message + "</p><p>The cart is untouched — nothing was charged.</p>");
+          "<p>Please try again in a moment. Your cart is untouched and nothing " +
+          "was charged.</p>");
       });
       return;
     }
 
-    /* ---- demo ---- */
+    /* ---- demo: no payment provider connected yet ---- */
     var rows = lines.map(function(l){
-      return "<tr><td>" + l.qty + " &times;</td><td>" + l.name +
+      return "<tr><td>" + l.qty + " &times;</td><td>" + esc(l.name) +
              "</td><td>" + money(l.price * l.qty) + "</td></tr>";
     }).join("");
-    preview("This is what would be sent",
+    preview("Checkout opens soon",
       "<table>" + rows +
       "<tr class='tot'><td></td><td>Total</td><td>" + money(total()) + "</td></tr></table>" +
-      "<p>In <b>link</b> mode the browser would go straight to that product’s " +
-      "Square payment page. In <b>api</b> mode this cart is POSTed to " +
-      "<code>" + CHECKOUT.endpoint + "</code>, which creates a Square order and " +
-      "returns a hosted checkout URL to redirect to.</p>" +
-      "<p>Nothing was charged. Set <code>CHECKOUT.mode</code> in " +
-      "<code>store.js</code> when you are ready.</p>");
+      "<p>The store isn't taking orders yet. Nothing was charged.</p>");
+    console.info("store.js: CHECKOUT.mode is 'demo', so nothing was sent. In 'link' " +
+                 "mode this goes to the product's Square payment page; in 'api' mode " +
+                 "the cart is POSTed to " + CHECKOUT.endpoint + ". See STORE-SETUP.md.");
   }
   el.pay.addEventListener("click", checkout);
+
+  /* Back from Square after paying: the redirect URL in STORE-SETUP.md ends
+     in ?paid=1. Empty the cart, which otherwise still held everything just
+     bought and invited paying twice, and say thanks. Anyone can type ?paid=1,
+     so all it can ever do is clear that visitor's own cart; Square's order
+     notifications, not this page, are the record of what was paid. */
+  if (new URLSearchParams(window.location.search).get("paid") === "1"){
+    cart = {};
+    save();
+    var thanks = document.getElementById("store-thanks");
+    if (thanks){
+      thanks.hidden = false;
+      document.getElementById("store-thanks-close").addEventListener("click", function(){
+        thanks.hidden = true;
+      });
+    }
+    if (window.history.replaceState) window.history.replaceState(null, "", window.location.pathname);
+  }
 
   render();
 })();

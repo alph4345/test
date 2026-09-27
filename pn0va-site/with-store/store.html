@@ -22,7 +22,7 @@
   <meta name="twitter:card" content="summary_large_image">
   <script>document.documentElement.classList.add('js');</script>
   <link rel="stylesheet" href="tokens.css?v=cf68e78a">
-  <link rel="stylesheet" href="page-style.css?v=0aa5eb3f">
+  <link rel="stylesheet" href="page-style.css?v=6f4a5120">
 </head>
 
 <body>
@@ -96,6 +96,12 @@
     </nav>
   </main>
 
+  <!-- shown by store.js when Square sends the buyer back with ?paid=1 -->
+  <div id="store-thanks" role="status" hidden>
+    <p>Thank you! Your payment went through. Square will email your receipt.</p>
+    <button id="store-thanks-close" type="button" aria-label="Dismiss">X</button>
+  </div>
+
   <button id="cart-toggle" type="button" aria-haspopup="dialog">
     Cart <span id="cart-count">0</span>
   </button>
@@ -116,6 +122,6 @@
     </div>
   </aside>
 
-  <script src="store.js?v=d0a22725"></script>
+  <script src="store.js?v=e7fdf619"></script>
 </body>
 </html>

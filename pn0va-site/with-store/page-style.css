@@ -1359,6 +1359,27 @@ html.js body:has(#store-shell){ overflow:hidden; }
 html:not(.js) #cart-toggle, html:not(.js) #cart-panel,
 html:not(.js) #cart-backdrop, html:not(.js) .store-item button{ display:none; }
 
+/* back from Square: a notice over the grid, so pagination is not disturbed */
+#store-thanks{
+  position:fixed; top:66px; left:50%; transform:translateX(-50%); z-index:125;
+  width:min(560px, calc(100vw - 24px));
+  display:flex; align-items:center; gap:12px; padding:12px 14px;
+  background:var(--pn-surface-alt); border:2px solid var(--pn-red);
+  border-radius:var(--pn-radius-sm); box-shadow:var(--pn-glow-window);
+}
+#store-thanks[hidden]{ display:none; }
+#store-thanks p{
+  flex:1 1 auto; margin:0; font-family:Arial, sans-serif; font-size:12.5px;
+  line-height:1.5; color:var(--pn-ink-strong);
+}
+#store-thanks button{
+  flex:0 0 auto; background:none; border:1px solid var(--pn-red); border-radius:2px;
+  color:var(--pn-red); font-family:'Press Start 2P', monospace; font-size:10px;
+  padding:6px 9px; cursor:pointer;
+}
+#store-thanks button:hover{ color:var(--pn-signal); border-color:var(--pn-signal); }
+#store-thanks button:focus-visible{ outline:2px solid var(--pn-focus); outline-offset:2px; }
+
 @media screen and (max-width:700px){
   #store-shell{ padding:66px 12px 10px; gap:9px; }
   #store-grid{ gap:14px; grid-template-columns:repeat(auto-fit, minmax(230px, 340px)); }
