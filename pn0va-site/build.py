@@ -1490,8 +1490,24 @@ STORE_JS = """/* ===============================================================
 # MUST be served and can never be opened by double-clicking a file.
 
 HTACCESS = """# Clean URLs — serve /drops from /drops/index.html
-Options -MultiViews
+# -Indexes: never list a folder's files. Without it, /images/ could show
+# every image uploaded, including photos for a drop not published yet.
+Options -MultiViews -Indexes
+# Every page is a folder (drops/index.html) served at a URL with no trailing
+# slash. Apache's own habit is to redirect folder URLs to add the slash; the
+# rule below strips it again, and the two bounced every page back and forth
+# until the browser gave up ("too many redirects"). Tested on Apache 2.4.
+DirectorySlash Off
 RewriteEngine On
+
+# HTTPS. Uncomment the three lines below once https://pn0va.com opens with a
+# padlock (or use the host's "Force HTTPS" switch, which does the same). They
+# ship switched off because forcing HTTPS on a site with no certificate takes
+# the whole site down. The X-Forwarded-Proto line stops a redirect loop on
+# hosts that sit behind Cloudflare or a similar proxy.
+# RewriteCond %{HTTPS} off
+# RewriteCond %{HTTP:X-Forwarded-Proto} !https
+# RewriteRule ^ https://%{HTTP_HOST}%{REQUEST_URI} [R=301,L]
 
 # strip a trailing slash: /drops/ -> /drops
 RewriteCond %{REQUEST_FILENAME} -d
@@ -1503,7 +1519,9 @@ RewriteCond %{REQUEST_FILENAME} !-f
 RewriteCond %{REQUEST_FILENAME}/index.html -f
 RewriteRule ^(.*)$ $1/index.html [L]
 
-# old URLs keep working
+# old URLs keep working. index.html only when the visitor typed it: Apache
+# serves / from index.html internally, and redirecting that looped forever.
+RewriteCond %{THE_REQUEST} \\s/+index\\.html[\\s?]
 RewriteRule ^index\\.html$      /            [R=301,L]
 RewriteRule ^blog\\.html$       /blog        [R=301,L]
 RewriteRule ^projects\\.html$   /projects    [R=301,L]
@@ -1518,7 +1536,52 @@ RewriteRule ^shop\\.html$       /store       [R=301,L]
 RewriteRule ^shop/?$            /store       [R=301,L]
 
 ErrorDocument 404 /
+
+# Security headers. Nothing on this site is meant to be shown inside another
+# site's page, and it uses no camera, microphone or location.
+<IfModule mod_headers.c>
+  Header always set X-Content-Type-Options "nosniff"
+  Header always set Referrer-Policy "strict-origin-when-cross-origin"
+  # stops another site loading the store invisibly and steering clicks
+  Header always set X-Frame-Options "SAMEORIGIN"
+  Header always set Content-Security-Policy "frame-ancestors 'self'"
+  Header always set Permissions-Policy "camera=(), microphone=(), geolocation=()"
+  # With HTTPS forced (above), also uncomment this so browsers refuse plain
+  # HTTP for a year, even on a first click from a public Wi-Fi network.
+  # Header always set Strict-Transport-Security "max-age=31536000"
+</IfModule>
+
+# Caching. Pages, stylesheets and scripts are re-checked on every visit (a
+# cheap "not modified" reply when nothing changed), so an edit shows up at
+# once, even one made to store.js directly on the server. Images and fonts
+# keep for a day; the build gives every image link a ?v= stamp that changes
+# with the file, so rebuilt art shows at once too.
+<IfModule mod_headers.c>
+  <FilesMatch "\\.(html|css|js)$">
+    Header set Cache-Control "no-cache"
+  </FilesMatch>
+  <FilesMatch "\\.(png|jpe?g|gif|webp|svg|ico|woff2)$">
+    Header set Cache-Control "public, max-age=86400"
+  </FilesMatch>
+</IfModule>
+
+<IfModule mod_deflate.c>
+  AddOutputFilterByType DEFLATE text/html text/css text/plain text/xml application/xml application/javascript text/javascript image/svg+xml
+</IfModule>
 """
+
+
+def robots_and_sitemap(out: pathlib.Path, pages: list[str]):
+    """Tell search engines where the pages are (clean builds only: those are
+    the ones that go on the server)."""
+    (out / "robots.txt").write_text(
+        "User-agent: *\nAllow: /\n\nSitemap: " + SITE_URL + "/sitemap.xml\n",
+        encoding="utf-8", newline=NL)
+    urls = "".join(f"  <url><loc>{SITE_URL}/{p}</loc></url>\n" for p in [""] + pages)
+    (out / "sitemap.xml").write_text(
+        '<?xml version="1.0" encoding="UTF-8"?>\n'
+        '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n'
+        + urls + "</urlset>\n", encoding="utf-8", newline=NL)
 
 
 def build_clean(flat: pathlib.Path, with_shop: bool) -> pathlib.Path:
@@ -1569,6 +1632,7 @@ def build_clean(flat: pathlib.Path, with_shop: bool) -> pathlib.Path:
                   encoding="utf-8", newline=NL)
 
     (out / ".htaccess").write_text(HTACCESS, encoding="utf-8", newline=NL)
+    robots_and_sitemap(out, pages)
     (out / "READ-ME-FIRST.txt").write_text(
         "This build uses root-relative paths so the URLs can be pn0va.com/drops.\n"
         "It MUST be served by a web server. Opening index.html by double-clicking\n"
