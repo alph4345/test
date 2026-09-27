@@ -36,11 +36,16 @@ SRC = next((c for c in [
                  "/8d1c7ee0-d41c-4cda-8511-6ed506731efb/scratchpad/site/website-fixed"),
 ] if c.exists()), None)
 
-# The brand kit — wherever it happens to live.
+# The brand kit — wherever it happens to live. The real kit always wins; the
+# bundled snapshot is only the fallback, so this folder still builds on a
+# machine (or in a fresh checkout) that has never seen Desktop\PN0VA.
+# The snapshot was reconstructed from the 2026-08-19 build output and rebuilds
+# that output byte-for-byte.
 BRAND = next((c for c in [
     ROOT.parent / "PN0VA",
     ROOT.parent / "pn0va-brand",
     pathlib.Path("C:/Users/N0VA/claude/pn0va-brand"),
+    ROOT / "_source/brand-kit",
 ] if (c / "tokens.css").exists()), None)
 
 if SRC is None:
@@ -51,6 +56,11 @@ if BRAND is None:
              "(or pn0va-brand) containing tokens.css.")
 
 PAGES = ["index.html", "blog.html", "projects.html", "about.html"]
+
+# Every generated file is written with Windows line endings, whichever OS
+# runs the build. The ?v= stamps hash the bytes, so without this a build on
+# Linux or macOS changed every stamp (and every line) for no reason.
+NL = "\r\n"
 
 
 # ---------------------------------------------------------------- palette ---
@@ -483,7 +493,7 @@ def build(with_shop: bool):
     drops = drops.replace('<link rel="stylesheet" href="drops.css',
                           '<link rel="stylesheet" href="page-style.css?v=' + VER +
                           '">\n<link rel="stylesheet" href="drops.css')
-    (out / "drops.html").write_text(drops, encoding="utf-8")
+    (out / "drops.html").write_text(drops, encoding="utf-8", newline=NL)
 
     # No FIREFLY_CSS here: the living layer belongs to the home page only.
     # Interior pages are pure instrument — a firefly drifting over a map you
@@ -499,21 +509,21 @@ def build(with_shop: bool):
             continue
         t = svg.read_text(encoding="utf-8")
         svg.write_text(t.replace("#ffff00", "#B0A49B").replace("#FFFF00", "#B0A49B")
-                        .replace("#999", "#7A716B"), encoding="utf-8")
+                        .replace("#999", "#7A716B"), encoding="utf-8", newline=NL)
 
     # --- reader: blog & projects lose the nested paged-window navigation ----
-    (out / "reader.css").write_text(READER_CSS, encoding="utf-8")
-    (out / "reader.js").write_text(READER_JS, encoding="utf-8")
+    (out / "reader.css").write_text(READER_CSS, encoding="utf-8", newline=NL)
+    (out / "reader.js").write_text(READER_JS, encoding="utf-8", newline=NL)
     (out / "paged-window.js").unlink(missing_ok=True)
     for page, unit in (("blog.html", "Post"), ("projects.html", "Project")):
         f = out / page
-        f.write_text(build_reader(f.read_text(encoding="utf-8"), unit), encoding="utf-8")
+        f.write_text(build_reader(f.read_text(encoding="utf-8"), unit), encoding="utf-8", newline=NL)
 
     # --- stylesheets --------------------------------------------------------
     ps = migrate_css(strip_geo_css((out / "page-style.css").read_text(encoding="utf-8")))
-    (out / "page-style.css").write_text(ps, encoding="utf-8")
+    (out / "page-style.css").write_text(ps, encoding="utf-8", newline=NL)
     (out / "style.css").write_text(
-        migrate_css((out / "style.css").read_text(encoding="utf-8")), encoding="utf-8")
+        migrate_css((out / "style.css").read_text(encoding="utf-8")), encoding="utf-8", newline=NL)
 
     # --- pages --------------------------------------------------------------
     for page in PAGES + ["drops.html"]:
@@ -539,18 +549,18 @@ def build(with_shop: bool):
         html = re.sub(r'(href|src)="(reader\.(?:css|js))"',
                       lambda m: m.group(1) + '="' + m.group(2)
                                 + '?v=' + VER + '"', html)
-        f.write_text(html, encoding="utf-8")
+        f.write_text(html, encoding="utf-8", newline=NL)
 
     if with_shop:
         (out / "store.html").write_text(
             STORE.replace("__NAV__", nav_html("store.html", True)).replace("__VER__", VER),
-            encoding="utf-8")
-        (out / "store.js").write_text(STORE_JS, encoding="utf-8")
+            encoding="utf-8", newline=NL)
+        (out / "store.js").write_text(STORE_JS, encoding="utf-8", newline=NL)
         (out / "page-style.css").write_text(
-            (out / "page-style.css").read_text(encoding="utf-8") + STORE_CSS, encoding="utf-8")
+            (out / "page-style.css").read_text(encoding="utf-8") + STORE_CSS, encoding="utf-8", newline=NL)
         (out / "images/store").mkdir(parents=True, exist_ok=True)
         for n in ("1", "2", "3"):
-            (out / f"images/store/item-{n}.svg").write_text(PLACEHOLDER, encoding="utf-8")
+            (out / f"images/store/item-{n}.svg").write_text(PLACEHOLDER, encoding="utf-8", newline=NL)
 
     return out
 
@@ -1231,13 +1241,13 @@ def build_clean(flat: pathlib.Path, with_shop: bool) -> pathlib.Path:
 
     # home page stays at the root
     (out / "index.html").write_text(rootify((out / "index.html").read_text(encoding="utf-8")),
-                                    encoding="utf-8")
+                                    encoding="utf-8", newline=NL)
     # everything else becomes folder/index.html
     for p in pages:
         src = out / f"{p}.html"
         (out / p).mkdir(exist_ok=True)
         (out / p / "index.html").write_text(rootify(src.read_text(encoding="utf-8")),
-                                            encoding="utf-8")
+                                            encoding="utf-8", newline=NL)
         src.unlink()
 
     # stylesheets are at the root, so their url()s are already root-relative
@@ -1245,19 +1255,19 @@ def build_clean(flat: pathlib.Path, with_shop: bool) -> pathlib.Path:
         f = out / css
         if f.exists():
             f.write_text(f.read_text(encoding="utf-8").replace("url('fonts/", "url('/fonts/"),
-                         encoding="utf-8")
+                         encoding="utf-8", newline=NL)
     # the Animate export loads its atlas by manifest path
     sj = out / "script.js"
     sj.write_text(sj.read_text(encoding="utf-8").replace('src:"images/', 'src:"/images/'),
-                  encoding="utf-8")
+                  encoding="utf-8", newline=NL)
 
-    (out / ".htaccess").write_text(HTACCESS, encoding="utf-8")
+    (out / ".htaccess").write_text(HTACCESS, encoding="utf-8", newline=NL)
     (out / "READ-ME-FIRST.txt").write_text(
         "This build uses root-relative paths so the URLs can be pn0va.com/drops.\n"
         "It MUST be served by a web server. Opening index.html by double-clicking\n"
         "will show an unstyled page, because /style.css resolves to your drive\n"
         "root. Use the flat build next door for local double-click previews.\n",
-        encoding="utf-8")
+        encoding="utf-8", newline=NL)
     return out
 
 
@@ -1285,7 +1295,7 @@ def stamp_assets(folder: pathlib.Path):
         def sub(m):
             d = digest(m.group(2))
             return m.group(1) + m.group(2) + (f"?v={d}" if d else "") + m.group(3)
-        html.write_text(pat.sub(sub, text), encoding="utf-8")
+        html.write_text(pat.sub(sub, text), encoding="utf-8", newline=NL)
 
 
 def check_js(folder: pathlib.Path):

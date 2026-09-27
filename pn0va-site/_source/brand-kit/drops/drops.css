@@ -1,0 +1,389 @@
+/* ==========================================================================
+   DROPS — page styles
+   rev 2026.07.31 · requires tokens.css + components.css first
+   --------------------------------------------------------------------------
+   Layout is an MGS inventory screen: a manifest rail you select from, and a
+   detail pane that swaps. Everything is framed as equipment — panels have
+   bezels and corner brackets, every value carries a label and a unit, and
+   the whole record is designated (DROP #002) rather than titled.
+
+   Single-screen: the page never scrolls. Panels scroll internally.
+   ========================================================================== */
+
+/* --------------------------------------------------------------------------
+   REGISTER A · instrument chrome
+   The MGS parts the spec described but didn't build. A real page needs them
+   now, so here they are.
+   -------------------------------------------------------------------------- */
+
+/* Panel — a housing, not a floating card. */
+.dp-panel{
+  position:relative;
+  display:flex; flex-direction:column;
+  min-height:0;                       /* so it can shrink inside the grid */
+  background:var(--pn-surface);
+  border:var(--pn-hairline-w) solid var(--pn-hairline);
+  border-radius:var(--pn-radius-sm);
+}
+
+/* Corner brackets — device framing. Drawn with gradients so there are no
+   extra elements to keep in sync. */
+.dp-panel::before,
+.dp-panel::after{
+  content:""; position:absolute; width:9px; height:9px; pointer-events:none;
+  border-color:var(--pn-red); border-style:solid; border-width:0;
+}
+.dp-panel::before{ top:-1px; left:-1px;  border-top-width:2px; border-left-width:2px; }
+.dp-panel::after { bottom:-1px; right:-1px; border-bottom-width:2px; border-right-width:2px; }
+
+.dp-panel__head{
+  display:flex; align-items:center; justify-content:space-between; gap:10px;
+  padding:7px 10px;
+  border-bottom:var(--pn-hairline-w) solid var(--pn-hairline);
+  font-size:9px; letter-spacing:.18em; text-transform:uppercase;
+  color:var(--pn-red);
+  flex:0 0 auto;
+}
+.dp-panel__head .dp-idx{ color:var(--pn-ink-faint); letter-spacing:.14em; }
+.dp-headgroup{ display:inline-flex; align-items:center; gap:7px; }
+
+/* --------------------------------------------------------------------------
+   HELP — a <details> so it works with JavaScript off and inherits keyboard
+   support and Esc-to-close from the browser. JS only adds click-outside.
+   -------------------------------------------------------------------------- */
+.dp-help{ position:relative; display:inline-block; }
+
+/* A labelled control, not a bare glyph — "?" alone asks the visitor to guess
+   what it explains, and gives nothing to aim at on a phone. */
+.dp-help > summary{
+  position:relative; list-style:none; cursor:help;
+  display:inline-flex; align-items:center; gap:6px;
+  min-height:24px; padding:0 8px 0 5px;
+  border:1px solid var(--pn-red); border-radius:2px;
+  color:var(--pn-red);
+  transition:color var(--pn-dur-state) ease, background var(--pn-dur-state) ease;
+}
+.dp-help > summary::-webkit-details-marker{ display:none; }
+.dp-help > summary::marker{ content:""; }
+.dp-help > summary .q{
+  display:grid; place-items:center; flex:0 0 auto;
+  width:14px; height:14px; border-radius:50%;
+  background:var(--pn-red); color:var(--pn-void);
+  font-size:8px; line-height:1;
+}
+.dp-help > summary .lbl{
+  font-size:8px; letter-spacing:.14em; text-transform:uppercase; white-space:nowrap;
+}
+.dp-help > summary:hover{ color:var(--pn-signal); border-color:var(--pn-signal); }
+.dp-help > summary:focus-visible{ outline:2px solid var(--pn-focus); outline-offset:2px; }
+.dp-help[open] > summary{ background:var(--pn-red); color:var(--pn-void); }
+.dp-help[open] > summary .q{ background:var(--pn-void); color:var(--pn-red); }
+
+/* An absolutely-positioned child escapes the UA's details-hiding, so the
+   panel stays laid out when closed unless this says otherwise. */
+.dp-help:not([open]) .dp-help__panel{ display:none; }
+
+.dp-help__panel{
+  /* Above EVERYTHING, and 900 was not enough. .dp-panel is position:relative
+     with z-index:auto so it creates no stacking context — which means this
+     popover competes directly with Leaflet's panes (to 600) AND Leaflet's
+     control container, which sits at 1000. At 900 the OpenStreetMap
+     attribution punched through the bottom of the panel. */
+  position:absolute; z-index:1100; top:calc(100% + 9px); right:-6px;
+  width:min(342px, calc(100vw - 40px));
+  background:var(--pn-surface-alt);
+  border:2px solid var(--pn-red); border-radius:var(--pn-radius);
+  box-shadow:var(--pn-glow-window);
+  padding:11px 13px 12px;
+  text-transform:none; letter-spacing:normal;
+}
+.dp-help__panel h3{
+  font-size:9.5px; letter-spacing:.16em; text-transform:uppercase;
+  color:var(--pn-red); margin:0 0 6px;
+}
+.dp-help__panel p{
+  font-family:var(--pn-face-body); font-size:12px; line-height:1.5;
+  color:var(--pn-ink); margin:0;
+}
+
+/* No JS: the panel can still open, but nothing can close it by clicking
+   away, so give it a visible hint that Esc / clicking the ? again works. */
+html:not(.js) .dp-help__panel::after{
+  content:"Press the ? again to close";
+  display:block; margin-top:10px;
+  font-size:8px; letter-spacing:.14em; text-transform:uppercase;
+  color:var(--pn-ink-faint);
+}
+.dp-panel__body{ flex:1 1 auto; min-height:0; overflow:auto; padding:12px; }
+.dp-panel__body--flush{ padding:0; }
+
+/* Readout — a labelled value with a unit. Never a bare number. */
+.dp-readout{ display:flex; flex-direction:column; gap:2px; min-width:0; }
+.dp-readout dt{
+  font-size:8.5px; letter-spacing:.2em; text-transform:uppercase;
+  color:var(--pn-ink-faint); white-space:nowrap;
+}
+.dp-readout dd{
+  margin:0; font-size:12px; font-variant-numeric:tabular-nums;
+  letter-spacing:.04em; color:var(--pn-ink); white-space:nowrap;
+}
+.dp-readout dd .u{ color:var(--pn-ink-muted); font-size:9px; margin-left:3px; }
+/* the live value the operator is reading = bone */
+.dp-readout--live dd{ color:var(--pn-signal); }
+
+/* Designation — the record's identity, not a title.
+   Red, not bone: it's the channel LABEL, while the coordinates beside it are
+   the tuned value you actually read. Keeping the two different colours makes
+   that hierarchy legible, and it hands another slot of bone back to scarcity. */
+.dp-desig{
+  font-size:clamp(15px,2.4vw,20px); letter-spacing:.1em;
+  color:var(--pn-red); font-variant-numeric:tabular-nums; white-space:nowrap;
+}
+.dp-desig .hash{ color:var(--pn-red); opacity:.72; }
+
+/* Status chip */
+.dp-status{
+  font-size:9px; letter-spacing:.18em; text-transform:uppercase;
+  padding:4px 8px; border-radius:2px; border:1px solid currentColor;
+  white-space:nowrap;
+}
+.dp-status--open{ color:var(--pn-signal); animation:pn-blink 1.4s steps(2,end) infinite; }
+.dp-status--done{ color:var(--pn-ink-faint); text-decoration:line-through; }
+@media (prefers-reduced-motion:reduce){ .dp-status--open{ animation:none } }
+
+/* Scanline wash — analog electronics. Softened once the map stopped being
+   red: at .16 over a red ground it was pushing the whole panel into strain. */
+.dp-scan{ position:relative; }
+.dp-scan::after{
+  content:""; position:absolute; inset:0; pointer-events:none; z-index:470;
+  /* sits ABOVE the label tiles, so anything heavier than this eats the
+     street names. .05 over 5px reads as texture, not interference. */
+  background:repeating-linear-gradient(
+    to bottom, rgba(0,0,0,.05) 0 1px, transparent 1px 5px);
+  mix-blend-mode:multiply;
+}
+
+/* --------------------------------------------------------------------------
+   PAGE FRAME — single screen, never scrolls
+   -------------------------------------------------------------------------- */
+html.js body:has(.dp-shell){ overflow:hidden; }
+
+.dp-shell{
+  display:grid;
+  grid-template-columns:236px minmax(0,1fr);
+  gap:12px;
+  padding:74px 14px 14px;            /* clear the fixed nav */
+  height:100vh; height:100dvh;
+  max-width:1400px; margin:0 auto;
+}
+
+/* --- manifest rail --- */
+.dp-manifest .dp-panel__body{ padding:0; }
+.dp-row{
+  display:grid; grid-template-columns:auto 1fr auto; gap:8px; align-items:center;
+  width:100%; text-align:left;
+  background:none; border:0; border-bottom:1px solid var(--pn-divider);
+  padding:10px 11px; cursor:pointer; font:inherit;
+  color:var(--pn-ink-muted);
+  transition:color var(--pn-dur-state) ease, background var(--pn-dur-state) ease;
+}
+.dp-row:hover{ color:var(--pn-ink); background:var(--pn-red-07); }
+.dp-row:focus-visible{ outline:2px solid var(--pn-focus); outline-offset:-2px; }
+.dp-row__n{ font-size:11px; font-variant-numeric:tabular-nums; letter-spacing:.06em; color:var(--pn-red); }
+.dp-row__d{ font-size:9px; letter-spacing:.12em; font-variant-numeric:tabular-nums; }
+.dp-row__s{ font-size:8px; letter-spacing:.14em; text-transform:uppercase; }
+/* status is data — chroma, not signal. Several rows can be open at once, and
+   bone has to stay scarce or it stops meaning "you are here". */
+.dp-row__s.is-open{ color:var(--pn-red); }
+.dp-row__s.is-done{ color:var(--pn-ink-faint); }
+.dp-row[aria-current="true"]{
+  color:var(--pn-signal);                       /* the operator is HERE */
+  background:var(--pn-red-20);
+}
+.dp-row[aria-current="true"] .dp-row__n{ color:var(--pn-signal); }
+.dp-row[aria-current="true"]::before{
+  content:""; position:absolute; left:0; width:3px; height:100%;
+  background:var(--pn-red);
+}
+.dp-row{ position:relative; }
+
+.dp-tally{
+  display:flex; justify-content:space-between; gap:8px;
+  padding:9px 11px; font-size:8.5px; letter-spacing:.16em; text-transform:uppercase;
+  color:var(--pn-ink-faint); border-top:1px solid var(--pn-hairline);
+}
+.dp-tally b{ color:var(--pn-ink); font-weight:400; font-variant-numeric:tabular-nums; }
+
+/* --- detail ---------------------------------------------------------------
+   Codec layout. In MGS the screen is: a frequency readout up top, the live
+   view in the middle, and the two portraits sitting with the dialogue box
+   along the bottom. Putting the photo slots down there with the brief frees
+   the entire upper area for the map, which is the point — the map is the
+   star and everything else annotates it.
+   -------------------------------------------------------------------------- */
+.dp-detail{
+  display:grid; gap:10px; min-height:0;
+  /* the strip gained height so the two photos can actually be looked at;
+     the map still takes every pixel left over and stays the largest panel */
+  grid-template-rows:auto minmax(0,1fr) clamp(164px,23vh,212px);
+  grid-template-areas:
+    "freq"
+    "map"
+    "strip";
+}
+.dp-bar   { grid-area:freq; }
+.dp-map   { grid-area:map; }
+/* The two portrait frames flank the transmission, the way the codec sets its
+   speakers either side of what's being said. DOM order matches visual order —
+   hint, transmission, item — so nothing needs grid-area placement here. */
+.dp-strip {
+  grid-area:strip; display:grid; gap:10px; min-height:0;
+  grid-template-columns:minmax(150px,.82fr) minmax(0,2fr) minmax(150px,.82fr);
+}
+
+/* --- the frequency bar ---------------------------------------------------
+   The codec's defining element: a big tuned number, centred, with the
+   channel identity on one side and its state on the other. The coordinates
+   ARE the frequency here — they're what you tune to. */
+.dp-bar .dp-panel__body{
+  display:grid; align-items:center; gap:14px;
+  grid-template-columns:auto minmax(0,1fr) auto;
+  padding:6px 16px;
+}
+/* the bar is a strip, not a panel — every row inside it runs horizontal so
+   it stays about 70px and gives the height back to the map */
+.dp-bar .dp-readout{ flex-direction:row; align-items:baseline; gap:6px; }
+.dp-bar .dp-readout dt{ font-size:8px; }
+.dp-bar .dp-readout dd{ font-size:11px; }
+
+.dp-freq{
+  display:flex; align-items:baseline; justify-content:center; gap:clamp(10px,2vw,24px);
+  font-variant-numeric:tabular-nums;
+}
+.dp-freq .v{
+  font-size:clamp(14px,2.2vw,22px); letter-spacing:.06em; color:var(--pn-signal);
+  text-shadow:0 0 10px rgba(255,22,9,.45);
+}
+.dp-freq .u{ font-size:9px; letter-spacing:.16em; color:var(--pn-ink-faint); margin-left:4px; }
+.dp-meta{
+  display:flex; gap:clamp(8px,1.6vw,18px); align-items:center;
+  justify-content:flex-end; flex-wrap:wrap;
+}
+
+/* codec frame: a second inset line inside the border, the way the codec's
+   panels are drawn. Only on the two panels that are literally codec parts. */
+.dp-codec{ border-color:var(--pn-red); }
+.dp-codec::before,.dp-codec::after{ width:11px; height:11px; }
+.dp-codec > .dp-panel__body{ box-shadow:inset 0 0 0 1px rgba(255,22,9,.18); }
+
+/* map */
+.dp-map .dp-panel__body{ padding:0; position:relative; }
+.dp-mapcanvas{ position:absolute; inset:0; background:#050505; }
+.dp-map-fallback{
+  display:none; padding:14px; font-size:10px; letter-spacing:.12em;
+  color:var(--pn-red); text-align:center; text-decoration:none;
+}
+html:not(.js) .dp-map-fallback{ display:block; }
+html:not(.js) .dp-mapcanvas{ display:none; }
+
+/* photo slots — the codec's two portrait frames */
+.dp-slot .dp-panel__body{ padding:0; display:grid; place-items:center; overflow:hidden; }
+.dp-slot img{ width:100%; height:100%; object-fit:cover; display:block; opacity:.92; }
+.dp-slot figcaption{
+  padding:6px 8px; font-size:8px; letter-spacing:.14em; text-transform:uppercase;
+  color:var(--pn-ink-muted); border-top:1px solid var(--pn-hairline); text-align:center;
+  flex:0 0 auto; line-height:1.4;
+}
+
+/* brief — the codec dialogue box */
+.dp-brief .dp-panel__body p{
+  font-family:var(--pn-face-body); font-size:12.5px; line-height:1.6;
+  margin:0 0 8px; color:var(--pn-ink); max-width:74ch;
+}
+.dp-brief .dp-panel__body p:last-child{ margin-bottom:0; }
+
+/* entries: only the current one renders */
+.dp-entry{ display:none; }
+.dp-entry.is-current{ display:contents; }
+html:not(.js) .dp-entry{ display:contents; }   /* no JS: show them all, stacked */
+
+.dp-shell{ position:relative; z-index:1; }
+
+/* --------------------------------------------------------------------------
+   RESPONSIVE — below 900px the rail moves under the detail and the page
+   scrolls again, because a single screen stops being honest on a phone.
+   -------------------------------------------------------------------------- */
+@media (max-width:900px){
+  /* The page still does NOT scroll on a phone — overflow becomes pagination,
+     not a longer page. Only the brief scrolls, inside its own panel.
+
+     Everything is measured against the viewport rather than guessed: the
+     manifest becomes a horizontal strip, the frequency bar stays on one line,
+     the photo slots take a fixed slice, and the MAP absorbs whatever is left
+     so it stays the largest thing on screen. */
+  .dp-shell{
+    grid-template-columns:1fr;
+    grid-template-rows:auto minmax(0,1fr);
+    height:100vh; height:100dvh;
+    padding:58px 10px 10px; gap:8px;
+  }
+
+  /* manifest: a horizontal channel strip, not a stacked list */
+  .dp-manifest{ order:0; }
+  .dp-manifest .dp-panel__head{ display:none; }
+  .dp-manifest .dp-panel__body{ display:flex; overflow-x:auto; overflow-y:hidden; }
+  .dp-row{
+    grid-template-columns:auto auto; gap:6px; align-items:baseline;
+    border-bottom:0; border-right:1px solid var(--pn-divider);
+    padding:8px 12px; white-space:nowrap; flex:0 0 auto;
+  }
+  .dp-row__d{ display:none; }               /* the date is in the readout */
+  .dp-row[aria-current="true"]::before{ width:100%; height:2px; top:auto; bottom:0; }
+  .dp-tally{ display:none; }
+
+  .dp-detail{
+    grid-template-rows:auto minmax(0,1fr) auto;
+    grid-template-areas:"freq" "map" "strip";
+    gap:8px; min-height:0;
+  }
+
+  /* frequency bar stays one line — stacking it cost 85px */
+  .dp-bar .dp-panel__head{ display:none; }
+  .dp-bar .dp-panel__body{
+    grid-template-columns:auto minmax(0,1fr) auto;
+    padding:5px 10px; gap:8px;
+  }
+  .dp-freq .v{ font-size:clamp(12px,3.4vw,17px); }
+  .dp-meta .dp-readout{ display:none; }     /* placed/elapsed live in the help panel */
+  .dp-meta{ gap:8px; }
+
+  .dp-map{ min-height:0; }                  /* absorbs the remaining space */
+
+  .dp-strip{
+    grid-template-columns:1fr 1fr;
+    grid-template-areas:"hint item" "brief brief";
+    height:auto; gap:8px;
+  }
+  .dp-slot--hint{ grid-area:hint; }
+  .dp-slot--item{ grid-area:item; }
+  .dp-slot{ height:clamp(88px,13vh,120px); }
+  .dp-brief{ grid-area:brief; height:clamp(74px,11vh,104px); }
+  .dp-brief .dp-panel__body{ overflow-y:auto; }   /* the one thing that scrolls */
+  .dp-brief .dp-panel__body p{ font-size:11.5px; line-height:1.5; }
+
+  /* the help sheet is unchanged — it is the one overlay allowed */
+  .dp-help > summary{ min-height:30px; padding:0 9px 0 7px; gap:6px; }
+  .dp-help > summary .q{ width:15px; height:15px; font-size:8px; }
+  .dp-help > summary .lbl{ font-size:8px; }
+  .dp-help__panel{
+    position:fixed; left:10px; right:10px; width:auto;
+    top:54px; max-height:calc(100dvh - 76px); overflow-y:auto;
+  }
+}
+
+/* very short viewports: drop the photo slots rather than squeeze everything */
+@media (max-width:900px) and (max-height:680px){
+  .dp-slot{ display:none; }
+  .dp-strip{ grid-template-columns:1fr; grid-template-areas:"brief"; }
+  .dp-brief{ height:clamp(64px,12vh,92px); }
+}
