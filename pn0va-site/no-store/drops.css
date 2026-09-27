@@ -387,3 +387,48 @@ html:not(.js) .dp-entry{ display:contents; }   /* no JS: show them all, stacked 
   .dp-strip{ grid-template-columns:1fr; grid-template-areas:"brief"; }
   .dp-brief{ height:clamp(64px,12vh,92px); }
 }
+
+/* --------------------------------------------------------------------------
+   PHONE FREQUENCY BAR — added by build.py
+   One row could not hold DROP #003, both coordinates and the status chip:
+   below ~700px they were drawn on top of each other. It is two rows now —
+   identity and state on top, the coordinates across the full width below.
+
+   The bar's head also stays. It holds the only "What is a drop?" button,
+   so hiding it left phone visitors no way to open the explainer. Only the
+   "Frequency" label goes, to make room.
+   -------------------------------------------------------------------------- */
+@media (max-width:900px){
+  /* 1fr lets a single unbreakable line stretch the column, and with it the
+     whole page, past the edge of the screen. Pin the column to the screen. */
+  .dp-shell, .dp-detail{ grid-template-columns:minmax(0,1fr); }
+
+  .dp-bar .dp-panel__body{
+    grid-template-columns:minmax(0,1fr) auto;
+    grid-template-areas:"desig meta" "freq freq";
+    row-gap:2px;
+  }
+  .dp-desig{ grid-area:desig; }
+  .dp-meta { grid-area:meta; }
+  .dp-freq { grid-area:freq; }
+  .dp-freq .v{ font-size:clamp(13px,4.3vw,18px); }
+
+  .dp-bar .dp-panel__head{ display:flex; padding:4px 8px 4px 6px; }
+  .dp-bar .dp-panel__head > span:first-child{ display:none; }
+  .dp-bar .dp-headgroup{ flex:1 1 auto; min-width:0; justify-content:space-between; }
+  .dp-bar #dp-rev{ min-width:0; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+
+  /* Placed and Elapsed were hidden here "because they live in the help
+     panel", which never showed them, so phones had neither. Elapsed fits
+     beside the chip now; the placed date still does not. */
+  .dp-meta .dp-readout:nth-of-type(2){ display:flex; }
+
+  /* The channel strip's rows kept the desktop list's width:100%, so each
+     one filled the strip and the others sat off-screen with nothing to
+     say they were there. Sized to their content, several show at once. */
+  .dp-row{ width:auto; }
+}
+/* Small phones: DROP #003 and the elapsed readout no longer both fit. */
+@media (max-width:380px){
+  .dp-meta .dp-readout:nth-of-type(2){ display:none; }
+}

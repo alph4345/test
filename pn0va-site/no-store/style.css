@@ -358,3 +358,9 @@ html:not(.js) #css-fireflies span:nth-child(8) { left: 42%; top: 40%; animation-
     top: min(calc(100vw * 1.024 + 28px), calc(100vh - 250px));
   }
 }
+
+/* Keyboard focus — added by build.py. The overlay fills the screen, so a
+   ring round the whole viewport would read as a glitch; ring the words. */
+#start-overlay:focus{ outline:none; }
+#start-overlay:focus-visible #start-text{ outline:2px solid var(--pn-focus); outline-offset:6px; }
+.menu-item:focus-visible{ outline:2px solid var(--pn-focus); outline-offset:2px; }

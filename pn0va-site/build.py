@@ -322,38 +322,63 @@ html.js body:has(.rd-shell){ overflow:hidden; }
   background:var(--pn-red);
 }
 
-.rd-reader .rd-panel__body h2{
+/* Entry typography. .rd-entry is the same content seen with JavaScript off
+   (see the end of this file); with it on, those entries are never shown. */
+.rd-reader .rd-panel__body h2, .rd-entry h2{
   font-size:var(--pn-size-title); letter-spacing:var(--pn-track);
   text-transform:uppercase; color:var(--pn-ink-strong); margin:0 0 12px;
   padding-bottom:8px; text-shadow:var(--pn-glow-text);
   border-bottom:1px solid var(--pn-red-50);
 }
-.rd-reader .rd-panel__body h3{
+.rd-reader .rd-panel__body h3, .rd-entry h3{
   font-size:var(--pn-size-sub); letter-spacing:var(--pn-track);
   text-transform:uppercase; color:var(--pn-red); margin:18px 0 8px;
 }
-.rd-reader .rd-panel__body p{
+.rd-reader .rd-panel__body p, .rd-entry p,
+.rd-reader .rd-panel__body li, .rd-entry li{
   font-family:var(--pn-face-body); font-size:var(--pn-size-body);
   line-height:var(--pn-lh-body); color:var(--pn-ink); margin:0 0 10px; max-width:68ch;
 }
-.rd-reader .rd-panel__body p.date{
+/* Lists had no rules at all, so they fell back to the pixel face at the
+   browser's 16px with the page's tight leading — lines ran into each other. */
+.rd-reader .rd-panel__body ul, .rd-entry ul{ margin:0 0 12px; padding-left:20px; }
+.rd-reader .rd-panel__body li, .rd-entry li{ margin-bottom:4px; }
+.rd-reader .rd-panel__body li::marker, .rd-entry li::marker{ color:var(--pn-red); }
+.rd-reader .rd-panel__body a, .rd-entry a{ color:var(--pn-red); }
+.rd-reader .rd-panel__body a:hover, .rd-entry a:hover{ color:var(--pn-signal); }
+.rd-reader .rd-panel__body p.date, .rd-entry p.date{
   font-family:var(--pn-face-display); font-size:9px; letter-spacing:.14em;
   text-transform:uppercase; color:var(--pn-ink-faint); margin:-4px 0 14px;
 }
-.rd-reader img{
+.rd-reader img, .rd-entry img{
   max-width:100%; height:auto; display:block; margin:0 0 12px;
   border:1px solid var(--pn-hairline);
 }
 
+/* The entries are read from here by reader.js. Hidden only while JavaScript
+   runs: without it the reader cannot work, so the entries become the page. */
+html.js #rd-data{ display:none; }
+html:not(.js) .rd-shell{ display:none; }
+html:not(.js) #rd-data{ max-width:900px; margin:0 auto; padding:74px 16px 32px; }
+html:not(.js) .rd-entry{
+  display:flow-root; margin:0 0 28px; padding:0 0 20px;
+  border-bottom:1px solid var(--pn-hairline);
+}
+
 @media (max-width:900px){
-  /* still no page scroll: manifest becomes a channel strip, reader takes the rest */
+  /* still no page scroll: manifest becomes a channel strip, reader takes the rest.
+     minmax(0,1fr), not 1fr: a 1fr track grows to its widest unbreakable
+     content, and the one-line channel strip made the page 786-945px wide
+     on a 390px phone, cutting the reader off at the right edge. */
   .rd-shell{
-    grid-template-columns:1fr; grid-template-rows:auto minmax(0,1fr);
+    grid-template-columns:minmax(0,1fr); grid-template-rows:auto minmax(0,1fr);
     padding:58px 10px 10px; gap:8px;
   }
   .rd-manifest .rd-panel__head{ display:none; }
   .rd-manifest .rd-panel__body{ display:flex; overflow-x:auto; overflow-y:hidden; }
   .rd-row{
+    width:auto;           /* not the list's 100%: one row filled the strip and
+                             hid the rest off-screen */
     grid-template-columns:auto auto; align-items:baseline; gap:6px;
     border-bottom:0; border-right:1px solid var(--pn-divider);
     padding:9px 13px; white-space:nowrap; flex:0 0 auto;
@@ -430,17 +455,36 @@ READER_JS = """/* ==============================================================
 })();
 """
 
+def div_blocks(html: str, cls: str) -> list[tuple[str, str]]:
+    """(attributes, inner HTML) of every <div class="cls...">, each cut at its
+    OWN </div>.
+
+    A non-greedy regex stops at the first </div> it meets. On projects.html
+    that was the inner .project wrapper's, so every wrapper lost its closing
+    tag and the page shipped with ten unclosed <div>s nested inside each other.
+    """
+    tag = re.compile(r"<(/?)div\b[^>]*>")
+    blocks = []
+    for m in re.finditer(r'<div class="' + re.escape(cls) + r'[^"]*"([^>]*)>', html):
+        depth = 1
+        for t in tag.finditer(html, m.end()):
+            depth += -1 if t.group(1) else 1
+            if not depth:
+                blocks.append((m.group(1), html[m.end():t.start()]))
+                break
+    return blocks
+
+
 def build_reader(html: str, unit: str) -> str:
     """Rewrite a paged-window page into the manifest + reader layout."""
-    items = re.findall(
-        r'<div class="page-content[^"]*"[^>]*id="([^"]+)"[^>]*>(.*?)\n    </div>',
-        html, re.S)
+    items = div_blocks(html, "page-content")
     if not items:
         return html
 
     articles = []
-    for _id, inner in items:
-        subs = re.findall(r'<div class="sub-page[^"]*"[^>]*>(.*?)</div>', inner, re.S)
+    for attrs, inner in items:
+        _id = re.search(r'id="([^"]+)"', attrs).group(1)
+        subs = [sub for _a, sub in div_blocks(inner, "sub-page")]
         if not subs:
             subs = [inner]
         t = re.search(r"<h2>(.*?)</h2>", inner, re.S)
@@ -477,7 +521,10 @@ def build_reader(html: str, unit: str) -> str:
         '       feed the list on the left; everything inside is the body and\n'
         '       it scrolls on its own. No sub-pages, no arrows to wire up.\n'
         '       ============================================================ -->\n'
-        '  <div hidden id="rd-data">\n' + "\n".join(articles) + '\n  </div>')
+        # not the hidden attribute: reader.css hides this only when JS is on,
+        # so with JS off the entries read as one long page instead of the
+        # reader's two empty frames
+        '  <div id="rd-data">\n' + "\n".join(articles) + '\n  </div>')
 
     start = html.find('<main id="windows"')
     end = html.find("</main>", start) + len("</main>")
@@ -494,6 +541,105 @@ def build_reader(html: str, unit: str) -> str:
                   lambda m: m.group(1)
                             + chr(10) + '  <link rel="stylesheet" href="reader.css">',
                   html)
+    return html
+
+
+# Appended to the brand kit's drops.css, so the kit itself stays untouched.
+DROPS_PHONE_CSS = """
+/* --------------------------------------------------------------------------
+   PHONE FREQUENCY BAR — added by build.py
+   One row could not hold DROP #003, both coordinates and the status chip:
+   below ~700px they were drawn on top of each other. It is two rows now —
+   identity and state on top, the coordinates across the full width below.
+
+   The bar's head also stays. It holds the only "What is a drop?" button,
+   so hiding it left phone visitors no way to open the explainer. Only the
+   "Frequency" label goes, to make room.
+   -------------------------------------------------------------------------- */
+@media (max-width:900px){
+  /* 1fr lets a single unbreakable line stretch the column, and with it the
+     whole page, past the edge of the screen. Pin the column to the screen. */
+  .dp-shell, .dp-detail{ grid-template-columns:minmax(0,1fr); }
+
+  .dp-bar .dp-panel__body{
+    grid-template-columns:minmax(0,1fr) auto;
+    grid-template-areas:"desig meta" "freq freq";
+    row-gap:2px;
+  }
+  .dp-desig{ grid-area:desig; }
+  .dp-meta { grid-area:meta; }
+  .dp-freq { grid-area:freq; }
+  .dp-freq .v{ font-size:clamp(13px,4.3vw,18px); }
+
+  .dp-bar .dp-panel__head{ display:flex; padding:4px 8px 4px 6px; }
+  .dp-bar .dp-panel__head > span:first-child{ display:none; }
+  .dp-bar .dp-headgroup{ flex:1 1 auto; min-width:0; justify-content:space-between; }
+  .dp-bar #dp-rev{ min-width:0; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+
+  /* Placed and Elapsed were hidden here "because they live in the help
+     panel", which never showed them, so phones had neither. Elapsed fits
+     beside the chip now; the placed date still does not. */
+  .dp-meta .dp-readout:nth-of-type(2){ display:flex; }
+
+  /* The channel strip's rows kept the desktop list's width:100%, so each
+     one filled the strip and the others sat off-screen with nothing to
+     say they were there. Sized to their content, several show at once. */
+  .dp-row{ width:auto; }
+}
+/* Small phones: DROP #003 and the elapsed readout no longer both fit. */
+@media (max-width:380px){
+  .dp-meta .dp-readout:nth-of-type(2){ display:none; }
+}
+"""
+
+
+# Appended to style.css (home page only).
+HOME_CSS = """
+/* Keyboard focus — added by build.py. The overlay fills the screen, so a
+   ring round the whole viewport would read as a glitch; ring the words. */
+#start-overlay:focus{ outline:none; }
+#start-overlay:focus-visible #start-text{ outline:2px solid var(--pn-focus); outline-offset:6px; }
+.menu-item:focus-visible{ outline:2px solid var(--pn-focus); outline-offset:2px; }
+"""
+
+
+def keyboard_start(html: str) -> str:
+    """Make TAP TO START work from a keyboard.
+
+    The overlay was a bare <div> with a click handler, and the menu stays
+    display:none until that handler runs, so without a mouse or a touch
+    screen the home page was a dead end: nothing to Tab to, nothing for
+    Enter to press.
+    """
+    subs = [
+        ('<div id="start-overlay">',
+         '<div id="start-overlay" role="button" tabindex="0">'),
+        ('<div id="animation_container" style=',
+         '<div id="animation_container" role="img" aria-label="P_N0VA logo" style='),
+        ("    startOverlay.addEventListener('click', function()\n",
+         "    // Enter or Space press it too. It takes focus on load, and a\n"
+         "    // keyboard start passes focus on to the first menu item.\n"
+         "    let byKeyboard = false;\n"
+         "    startOverlay.addEventListener('keydown', function(e)\n"
+         "    {\n"
+         "      if (e.key !== 'Enter' && e.key !== ' ') return;\n"
+         "      e.preventDefault();\n"
+         "      byKeyboard = true;\n"
+         "      startOverlay.click();\n"
+         "    });\n"
+         "    startOverlay.focus();\n"
+         "\n"
+         "    startOverlay.addEventListener('click', function()\n"),
+        ("          menu.classList.add('show');\n",
+         "          menu.classList.add('show');\n"
+         "          if (byKeyboard) menu.querySelector('a').focus();\n"),
+        # a second click (or Enter) ran init() again on top of the first
+        ("    }); // end of click\n", "    }, { once: true }); // end of click\n"),
+    ]
+    for old, new in subs:
+        if old not in html:
+            sys.exit("index.html changed; update keyboard_start() for:\n  " + old.strip())
+        html = html.replace(old, new, 1)
     return html
 
 
@@ -558,6 +704,8 @@ def build(with_shop: bool):
     # Interior pages are pure instrument — a firefly drifting over a map you
     # are trying to read is atmosphere in the wrong place.
     shutil.copy(BRAND / "drops/drops.css", out / "drops.css")
+    (out / "drops.css").write_text((out / "drops.css").read_text(encoding="utf-8")
+                                   + DROPS_PHONE_CSS, encoding="utf-8", newline=NL)
     shutil.copy(BRAND / "drops/drops.js", out / "drops.js")
     for img in (BRAND / "drops/images").glob("*.svg"):
         shutil.copy(img, out / "images")
@@ -582,7 +730,8 @@ def build(with_shop: bool):
     ps = migrate_css(strip_geo_css((out / "page-style.css").read_text(encoding="utf-8")))
     (out / "page-style.css").write_text(ps, encoding="utf-8", newline=NL)
     (out / "style.css").write_text(
-        migrate_css((out / "style.css").read_text(encoding="utf-8")), encoding="utf-8", newline=NL)
+        migrate_css((out / "style.css").read_text(encoding="utf-8")) + HOME_CSS,
+        encoding="utf-8", newline=NL)
 
     # --- pages --------------------------------------------------------------
     for page in PAGES + ["drops.html"]:
@@ -594,6 +743,7 @@ def build(with_shop: bool):
                           HOME_MENU[with_shop], html, flags=re.S)
             html = html.replace('<script src="https://code.createjs.com/1.0.0/createjs.min.js"></script>',
                                 '<script src="vendor/createjs-1.0.0.min.js?v=' + VER + '"></script>')
+            html = keyboard_start(html)
         # tokens must load before anything that uses them
         if "tokens.css" not in html:
             html = re.sub(r'(\n\s*<link rel="stylesheet")',

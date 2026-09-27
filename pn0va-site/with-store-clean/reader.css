@@ -53,38 +53,63 @@ html.js body:has(.rd-shell){ overflow:hidden; }
   background:var(--pn-red);
 }
 
-.rd-reader .rd-panel__body h2{
+/* Entry typography. .rd-entry is the same content seen with JavaScript off
+   (see the end of this file); with it on, those entries are never shown. */
+.rd-reader .rd-panel__body h2, .rd-entry h2{
   font-size:var(--pn-size-title); letter-spacing:var(--pn-track);
   text-transform:uppercase; color:var(--pn-ink-strong); margin:0 0 12px;
   padding-bottom:8px; text-shadow:var(--pn-glow-text);
   border-bottom:1px solid var(--pn-red-50);
 }
-.rd-reader .rd-panel__body h3{
+.rd-reader .rd-panel__body h3, .rd-entry h3{
   font-size:var(--pn-size-sub); letter-spacing:var(--pn-track);
   text-transform:uppercase; color:var(--pn-red); margin:18px 0 8px;
 }
-.rd-reader .rd-panel__body p{
+.rd-reader .rd-panel__body p, .rd-entry p,
+.rd-reader .rd-panel__body li, .rd-entry li{
   font-family:var(--pn-face-body); font-size:var(--pn-size-body);
   line-height:var(--pn-lh-body); color:var(--pn-ink); margin:0 0 10px; max-width:68ch;
 }
-.rd-reader .rd-panel__body p.date{
+/* Lists had no rules at all, so they fell back to the pixel face at the
+   browser's 16px with the page's tight leading — lines ran into each other. */
+.rd-reader .rd-panel__body ul, .rd-entry ul{ margin:0 0 12px; padding-left:20px; }
+.rd-reader .rd-panel__body li, .rd-entry li{ margin-bottom:4px; }
+.rd-reader .rd-panel__body li::marker, .rd-entry li::marker{ color:var(--pn-red); }
+.rd-reader .rd-panel__body a, .rd-entry a{ color:var(--pn-red); }
+.rd-reader .rd-panel__body a:hover, .rd-entry a:hover{ color:var(--pn-signal); }
+.rd-reader .rd-panel__body p.date, .rd-entry p.date{
   font-family:var(--pn-face-display); font-size:9px; letter-spacing:.14em;
   text-transform:uppercase; color:var(--pn-ink-faint); margin:-4px 0 14px;
 }
-.rd-reader img{
+.rd-reader img, .rd-entry img{
   max-width:100%; height:auto; display:block; margin:0 0 12px;
   border:1px solid var(--pn-hairline);
 }
 
+/* The entries are read from here by reader.js. Hidden only while JavaScript
+   runs: without it the reader cannot work, so the entries become the page. */
+html.js #rd-data{ display:none; }
+html:not(.js) .rd-shell{ display:none; }
+html:not(.js) #rd-data{ max-width:900px; margin:0 auto; padding:74px 16px 32px; }
+html:not(.js) .rd-entry{
+  display:flow-root; margin:0 0 28px; padding:0 0 20px;
+  border-bottom:1px solid var(--pn-hairline);
+}
+
 @media (max-width:900px){
-  /* still no page scroll: manifest becomes a channel strip, reader takes the rest */
+  /* still no page scroll: manifest becomes a channel strip, reader takes the rest.
+     minmax(0,1fr), not 1fr: a 1fr track grows to its widest unbreakable
+     content, and the one-line channel strip made the page 786-945px wide
+     on a 390px phone, cutting the reader off at the right edge. */
   .rd-shell{
-    grid-template-columns:1fr; grid-template-rows:auto minmax(0,1fr);
+    grid-template-columns:minmax(0,1fr); grid-template-rows:auto minmax(0,1fr);
     padding:58px 10px 10px; gap:8px;
   }
   .rd-manifest .rd-panel__head{ display:none; }
   .rd-manifest .rd-panel__body{ display:flex; overflow-x:auto; overflow-y:hidden; }
   .rd-row{
+    width:auto;           /* not the list's 100%: one row filled the strip and
+                             hid the rest off-screen */
     grid-template-columns:auto auto; align-items:baseline; gap:6px;
     border-bottom:0; border-right:1px solid var(--pn-divider);
     padding:9px 13px; white-space:nowrap; flex:0 0 auto;

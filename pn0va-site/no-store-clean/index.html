@@ -25,7 +25,7 @@
   <!-- Progressive enhancement: mark the document when JavaScript is available -->
   <script>document.documentElement.classList.add('js');</script>
   <link rel="stylesheet" href="/tokens.css?v=cf68e78a">
-  <link rel="stylesheet" href="/style.css?v=399edf82">
+  <link rel="stylesheet" href="/style.css?v=00e0a76c">
   <script src="/vendor/createjs-1.0.0.min.js?v=c67dc881"></script>
   <script src="/script.js?v=7bbcb091"></script>
 
@@ -50,6 +50,18 @@
       console.error('Missing overlay or menu element.');
       return;
     }
+
+    // Enter or Space press it too. It takes focus on load, and a
+    // keyboard start passes focus on to the first menu item.
+    let byKeyboard = false;
+    startOverlay.addEventListener('keydown', function(e)
+    {
+      if (e.key !== 'Enter' && e.key !== ' ') return;
+      e.preventDefault();
+      byKeyboard = true;
+      startOverlay.click();
+    });
+    startOverlay.focus();
 
     startOverlay.addEventListener('click', function()
     {
@@ -87,16 +99,17 @@
         {
           console.log('Displaying menu...');
           menu.classList.add('show');
+          if (byKeyboard) menu.querySelector('a').focus();
         }, 1000); // 1-second delay after animation starts
       }, 500); // fade-out wait
-    }); // end of click
+    }, { once: true }); // end of click
   }); // end of window load
   </script>
 </head>
 
 <body style="margin:0px;">
   <!-- Animation container -->
-  <div id="animation_container" style="background-color:rgba(255,255,255,0); width:375px; height:384px">
+  <div id="animation_container" role="img" aria-label="P_N0VA logo" style="background-color:rgba(255,255,255,0); width:375px; height:384px">
     <canvas id="canvas" width="375" height="384" style="position: absolute; display: block; background-color:rgba(255,255,255,0);"></canvas>
     <div id="dom_overlay_container" style="pointer-events:none; overflow:hidden; width:375px; height:384px; position: absolute; left: 0px; top: 0px; display: block;"></div>
   </div>
@@ -113,7 +126,7 @@
   </div>
 
   <!-- Tap-to-start overlay -->
-  <div id="start-overlay">
+  <div id="start-overlay" role="button" tabindex="0">
     <div id="start-text">TAP TO START</div>
   </div>
 
