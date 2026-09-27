@@ -670,16 +670,16 @@ def self_hosted_map_html(html: str) -> str:
 
 # Appended to style.css (home page only).
 HOME_CSS = """
-/* Keyboard focus — added by build.py. The overlay fills the screen, so a
-   ring round the whole viewport would read as a glitch; ring the words. */
+/* Keyboard focus — added by build.py. TAP TO ENTER takes focus on load so
+   Enter and Space work at once; it draws no outline, by design: the words
+   are the only thing on screen and already say what to do. */
 #start-overlay:focus{ outline:none; }
-#start-overlay:focus-visible #start-text{ outline:2px solid var(--pn-focus); outline-offset:6px; }
 .menu-item:focus-visible{ outline:2px solid var(--pn-focus); outline-offset:2px; }
 """
 
 
 def keyboard_start(html: str) -> str:
-    """Make TAP TO START work from a keyboard.
+    """Make TAP TO ENTER work from a keyboard.
 
     The overlay was a bare <div> with a click handler, and the menu stays
     display:none until that handler runs, so without a mouse or a touch

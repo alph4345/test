@@ -359,8 +359,8 @@ html:not(.js) #css-fireflies span:nth-child(8) { left: 42%; top: 40%; animation-
   }
 }
 
-/* Keyboard focus — added by build.py. The overlay fills the screen, so a
-   ring round the whole viewport would read as a glitch; ring the words. */
+/* Keyboard focus — added by build.py. TAP TO ENTER takes focus on load so
+   Enter and Space work at once; it draws no outline, by design: the words
+   are the only thing on screen and already say what to do. */
 #start-overlay:focus{ outline:none; }
-#start-overlay:focus-visible #start-text{ outline:2px solid var(--pn-focus); outline-offset:6px; }
 .menu-item:focus-visible{ outline:2px solid var(--pn-focus); outline-offset:2px; }

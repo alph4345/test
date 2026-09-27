@@ -143,7 +143,7 @@ scripts you'll use (Square, analytics); adding it now risks breaking them.
 
 ### Home
 
-- **TAP TO START** hides everything until someone taps, and it has no
+- **TAP TO ENTER** hides everything until someone taps, and it has no
   technical purpose: there's no sound to unlock. First-time visitors and search
   engines see a black screen and one line of text. Consider starting the
   animation straight away. It's your call; it is part of the JRPG feel.
@@ -195,7 +195,7 @@ scripts you'll use (Square, analytics); adding it now risks breaking them.
 ### Everywhere
 
 - Page titles mix styles: "P_N0VA - Blog" and "P_N0VA — DROPS".
-- A missing page shows the home page (TAP TO START). A small "signal lost"
+- A missing page shows the home page (TAP TO ENTER). A small "signal lost"
   page with the menu would be clearer.
 - If you want to know which pages people visit, a privacy-friendly counter
   (Plausible, GoatCounter) is enough. Mention it in a privacy note if you add

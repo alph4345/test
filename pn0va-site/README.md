@@ -98,8 +98,9 @@ LiteSpeed, Netlify, GitHub Pages and Cloudflare all do. Python's
   top of each other, and hid the only "What is a drop?" button.
 - **JavaScript off.** Blog and Projects showed two empty frames; they now show
   every entry as one long page.
-- **Keyboard.** `TAP TO START` only answered clicks, so the home menu could
+- **Keyboard.** The start screen only answered clicks, so the home menu could
   not be reached without a mouse or touch screen. Enter and Space work now.
+- **Home.** `TAP TO START` now reads `TAP TO ENTER`, with no outline.
 - **Projects** shipped with 10 unclosed `<div>`s (a regex in `build_reader`).
 - **Store.** Saved carts kept old prices after a price change; buyers came back
   from Square to a full cart; checkout panels showed developer instructions to
