@@ -62,6 +62,29 @@ PAGES = ["index.html", "blog.html", "projects.html", "about.html"]
 # Linux or macOS changed every stamp (and every line) for no reason.
 NL = "\r\n"
 
+# Link previews and canonical URLs need the public address. Change it here if
+# the domain ever moves.
+SITE_URL = "https://pn0va.com"
+
+# favicon.ico / favicon.svg / apple-touch-icon.png / og-image.png, cut from the
+# logo by tools/make-icons.js. Committed, so the build never needs Node for them.
+ICONS = ROOT / "_source/icons"
+
+# What each page says about itself in search results and link previews:
+# (clean URL path, description). {store} only reads out on the store build.
+PAGE_META = {
+    "index.html":    ("", "P_N0VA: a retro JRPG-styled home for writing, projects "
+                          "and real-world drops{store}."),
+    "blog.html":     ("blog", "Posts from P_N0VA on development, creative projects "
+                              "and building this site."),
+    "projects.html": ("projects", "Projects by P_N0VA: web, animation and game experiments."),
+    "drops.html":    ("drops", "Drops: items P_N0VA has hidden at real locations, each "
+                               "with coordinates, a photo hint and a little lore."),
+    "store.html":    ("store", "Handmade layered wood and acrylic pins, keychains and "
+                               "custom art plates from P_N0VA."),
+    "about.html":    ("about", "About P_N0VA, the operator behind the site."),
+}
+
 
 # ---------------------------------------------------------------- palette ---
 # Only the values that actually change. Everything else was already correct.
@@ -193,6 +216,42 @@ def retarget_nav(html: str, page: str, with_shop: bool) -> str:
     if not m:
         return html
     return html[:m.start(2)] + "\n" + nav_html(page, with_shop) + "\n    " + html[m.end(2):]
+
+
+def add_head_tags(html: str, page: str, with_shop: bool) -> str:
+    """Favicon, description, canonical URL and link-preview tags, after <title>.
+
+    Every page gets the same set, so a shared link to any of them previews
+    with the logo instead of bare text.
+    """
+    from html import escape
+    path, desc = PAGE_META[page]
+    desc = desc.format(store=", plus a small handmade store" if with_shop else "")
+    url = SITE_URL + "/" + path
+    # the home page carried a one-line description; this set replaces it
+    html = re.sub(r'[ \t]*<meta name="description"[^>]*>\n', "", html)
+    m = re.search(r"^([ \t]*)<title>(.*?)</title>[ \t]*\n", html, re.M)
+    indent, title = m.group(1), escape(m.group(2))
+    desc = escape(desc)
+    tags = [
+        f'<meta name="description" content="{desc}">',
+        f'<link rel="canonical" href="{url}">',
+        '<link rel="icon" href="favicon.ico" sizes="32x32">',
+        '<link rel="icon" href="favicon.svg" type="image/svg+xml">',
+        '<link rel="apple-touch-icon" href="apple-touch-icon.png">',
+        '<meta name="theme-color" content="#000000">',
+        '<meta property="og:type" content="website">',
+        '<meta property="og:site_name" content="P_N0VA">',
+        f'<meta property="og:title" content="{title}">',
+        f'<meta property="og:description" content="{desc}">',
+        f'<meta property="og:url" content="{url}">',
+        f'<meta property="og:image" content="{SITE_URL}/images/og-image.png">',
+        '<meta property="og:image:width" content="1200">',
+        '<meta property="og:image:height" content="630">',
+        '<meta property="og:image:alt" content="The P_N0VA logo">',
+        '<meta name="twitter:card" content="summary_large_image">',
+    ]
+    return html[:m.end()] + "".join(indent + t + "\n" for t in tags) + html[m.end():]
 
 
 HOME_MENU = {
@@ -561,6 +620,18 @@ def build(with_shop: bool):
         (out / "images/store").mkdir(parents=True, exist_ok=True)
         for n in ("1", "2", "3"):
             (out / f"images/store/item-{n}.svg").write_text(PLACEHOLDER, encoding="utf-8", newline=NL)
+
+    # --- icons & link previews ------------------------------------------------
+    # There was no favicon (a blank tab, and /favicon.ico fell through to
+    # ErrorDocument and came back as the home page) and no og: tags (a shared
+    # link previewed as bare text). Both now come from the logo itself.
+    for name in ("favicon.ico", "favicon.svg", "apple-touch-icon.png"):
+        shutil.copy(ICONS / name, out / name)
+    shutil.copy(ICONS / "og-image.png", out / "images/og-image.png")
+    for page in PAGES + ["drops.html"] + (["store.html"] if with_shop else []):
+        f = out / page
+        f.write_text(add_head_tags(f.read_text(encoding="utf-8"), page, with_shop),
+                     encoding="utf-8", newline=NL)
 
     return out
 
@@ -1222,7 +1293,8 @@ def build_clean(flat: pathlib.Path, with_shop: bool) -> pathlib.Path:
 
     pages = ["blog", "projects", "drops", "about"] + (["store"] if with_shop else [])
     assets = ("style.css", "page-style.css", "drops.css", "reader.css", "tokens.css",
-              "script.js", "page-script.js", "reader.js", "drops.js", "store.js")
+              "script.js", "page-script.js", "reader.js", "drops.js", "store.js",
+              "favicon.ico", "favicon.svg", "apple-touch-icon.png")
 
     def rootify(html: str) -> str:
         # assets -> /asset
@@ -1278,24 +1350,42 @@ def stamp_assets(folder: pathlib.Path):
     to bump it — and forgetting is the single worst bug in this site's history
     (new HTML served against stale CSS, twice). Deriving the stamp from the
     bytes makes that failure impossible: change a file, its URL changes.
+
+    Images get the same stamp. An image URL that never changes can keep
+    showing old art from a browser's cache after new art is live — the logo
+    has changed twice this year — and the atlas is the worst case: new frame
+    coordinates in script.js drawn from a cached old atlas is garbage.
     """
     import hashlib
     cache: dict[str, str] = {}
 
     def digest(rel: str) -> str | None:
+        rel = rel.replace(SITE_URL, "", 1)          # og:image is absolute
         if rel not in cache:
             f = folder / rel.lstrip("/")
             cache[rel] = (hashlib.sha1(f.read_bytes()).hexdigest()[:8]
                           if f.is_file() else None)
         return cache[rel]
 
+    def sub(m):
+        d = digest(m.group(2))
+        return m.group(1) + m.group(2) + (f"?v={d}" if d else "") + m.group(3)
+
+    # the Animate export names its atlas in a manifest inside script.js. Stamp
+    # that first: it changes script.js, and so script.js's own stamp.
+    atlas = re.compile(r'(src:")([^"?]+\.png)(?:\?v=[^"]*)?(")')
+    for js in folder.glob("*.js"):
+        text = js.read_text(encoding="utf-8")
+        if atlas.search(text):
+            js.write_text(atlas.sub(sub, text), encoding="utf-8", newline=NL)
+
     pat = re.compile(r'((?:href|src)=")([^"?]+\.(?:css|js))\?v=[^"]*(")')
+    img = re.compile(r'((?:href|src|content|data-hint|data-item)=")'
+                     r'((?:' + re.escape(SITE_URL) + r')?[^":?#]+\.(?:png|svg|ico|jpe?g|webp|gif))'
+                     r'(?:\?v=[^"]*)?(")')
     for html in folder.rglob("*.html"):
         text = html.read_text(encoding="utf-8")
-        def sub(m):
-            d = digest(m.group(2))
-            return m.group(1) + m.group(2) + (f"?v={d}" if d else "") + m.group(3)
-        html.write_text(pat.sub(sub, text), encoding="utf-8", newline=NL)
+        html.write_text(img.sub(sub, pat.sub(sub, text)), encoding="utf-8", newline=NL)
 
 
 def check_js(folder: pathlib.Path):
