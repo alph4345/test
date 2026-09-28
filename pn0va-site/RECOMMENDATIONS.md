@@ -7,14 +7,14 @@ is what's left, and the answers to the security questions.
 
 ## Do these first
 
-1. **Make the map file, then upload the new `with-store-clean` (or
-   `no-store-clean`) folder.** The live Drops map says "API key required"
-   because Carto now wants a key. `python tools/make-map.py` then
-   `python build.py` creates the self-hosted replacement (README, *The Drops
-   map*). The upload also replaces the old `.htaccess`, which sends every page
-   into a redirect loop on a standard Apache server ("too many redirects"). If
+1. **Upload the new `with-store-clean` (or `no-store-clean`) folder.** The live
+   Drops map says "API key required" because Carto now wants a key; the new
+   build carries its own map (README, *The Drops map*), so that goes away. The
+   upload also replaces the old `.htaccess`, which sends every page into a
+   redirect loop on a standard Apache server ("too many redirects"). If
    pn0va.com loads fine today, your host behaves differently from stock
-   Apache, but the new file works either way.
+   Apache, but the new file works either way. Upload the `maps` folder too:
+   without it the Drops page falls back to rings on plain ground.
 2. **Turn on HTTPS**, then force it (see README, *The server*). This matters
    most for the store: over plain HTTP, someone on the same public Wi-Fi can
    change the page on its way to a buyer, including where Checkout sends them.

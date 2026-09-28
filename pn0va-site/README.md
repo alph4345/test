@@ -68,6 +68,10 @@ site no longer asks Carto (or anyone else) for anything.
 - No key, no usage limits, no account. The data is © OpenStreetMap
   contributors (ODbL); the attribution on the map is required and in place.
 
+**The map in this folder** was made 2026-09-28 from OpenStreetMap data of
+2026-09-27: 10.8 MB, covering the three San Francisco drops. A visitor who
+looks at all three downloads about 200 KB of it.
+
 **One map file serves every drop.** It is not one map per location: a new
 drop within about 3 km of an existing one is already covered. `build.py`
 checks each build and names any drop that falls outside the map; only then
