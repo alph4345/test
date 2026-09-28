@@ -1720,10 +1720,16 @@ def build_clean(flat: pathlib.Path, with_shop: bool) -> pathlib.Path:
     (out / ".htaccess").write_text(HTACCESS, encoding="utf-8", newline=NL)
     robots_and_sitemap(out, pages)
     (out / "READ-ME-FIRST.txt").write_text(
-        "This build uses root-relative paths so the URLs can be pn0va.com/drops.\n"
-        "It MUST be served by a web server. Opening index.html by double-clicking\n"
-        "will show an unstyled page, because /style.css resolves to your drive\n"
-        "root. Use the flat build next door for local double-click previews.\n",
+        "This folder is the website, ready to upload. Upload everything in it\n"
+        "except this note, including .htaccess and the maps folder.\n"
+        "\n"
+        "Double-clicking index.html shows a bare page: the pages link to\n"
+        "/style.css, /drops and so on, and \"/\" means the top of the website on\n"
+        "a web server but the top of the drive on your computer.\n"
+        "\n"
+        "To see the site on your computer first, double-click PREVIEW.cmd in the\n"
+        "pn0va-site folder, or drag this folder onto it. It shows this folder\n"
+        "the way the web host will, Drops map included, with nothing to install.\n",
         encoding="utf-8", newline=NL)
     return out
 
@@ -1846,6 +1852,7 @@ if __name__ == "__main__":
         stamp_assets(c)
         print(f"  built {d.name:11s} {len(list(d.rglob('*'))):3d} files"
               f"   +  {c.name:17s} {len(list(c.rglob('*'))):3d} files")
-    print("\n  flat builds  = double-click previewable")
-    print("  -clean       = pn0va.com/drops URLs, must be served")
+    print("\n  -clean       = pn0va.com/drops URLs: the one you upload")
+    print("  flat builds  = open by double-clicking (no street map)")
+    print("  preview      = double-click PREVIEW.cmd, or  python tools/preview.py")
     check_map()

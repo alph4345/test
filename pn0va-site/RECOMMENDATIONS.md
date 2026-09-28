@@ -14,7 +14,9 @@ is what's left, and the answers to the security questions.
    redirect loop on a standard Apache server ("too many redirects"). If
    pn0va.com loads fine today, your host behaves differently from stock
    Apache, but the new file works either way. Upload the `maps` folder too:
-   without it the Drops page falls back to rings on plain ground.
+   without it the Drops page falls back to rings on plain ground. To check
+   the folder on your computer first, double-click `PREVIEW.cmd` (README,
+   *Local preview*).
 2. **Turn on HTTPS**, then force it (see README, *The server*). This matters
    most for the store: over plain HTTP, someone on the same public Wi-Fi can
    change the page on its way to a buyer, including where Checkout sends them.

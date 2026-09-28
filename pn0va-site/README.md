@@ -15,7 +15,8 @@ Rev **2026.08.02**. Four builds — two variants x two URL styles:
 `pn0va.com/drops` serves `drops/index.html`. That means pages sit one level
 deep, so every asset path is **root-relative** (`/style.css`, `/images/...`) —
 which is exactly why opening one by double-clicking shows an unstyled page:
-`/style.css` resolves to your drive root. Use the flat build for that.
+`/style.css` resolves to your drive root. To see it on your computer before
+uploading, double-click `PREVIEW.cmd` (see *Local preview*).
 
 A `.htaccess` ships with each clean build. It strips trailing slashes, maps
 bare paths to their `index.html`, and 301s every old URL — including
@@ -91,14 +92,10 @@ rings and marker on plain ground plus a link to the location on
 OpenStreetMap, not error tiles.
 
 **The server must send parts of files** (HTTP "range requests"). Apache,
-LiteSpeed, Netlify, GitHub Pages and Cloudflare all do. Python's
-`http.server` does not, so to preview the map on your own computer:
-
-```bash
-pip install rangehttpserver
-cd with-store
-python -m RangeHTTPServer 8940     # then open http://localhost:8940/drops.html
-```
+LiteSpeed, Netlify, GitHub Pages and Cloudflare all do, and so does the
+preview (see *Local preview*). Python's `http.server` does not, and a page
+opened by double-clicking cannot read a file in parts at all: both show the
+rings on plain ground instead of streets.
 
 ## 2026.09.27 update
 
@@ -120,6 +117,9 @@ python -m RangeHTTPServer 8940     # then open http://localhost:8940/drops.html
   customers; cart lines rendered saved text as HTML. See STORE-SETUP.md.
 
 **Added**
+- **`PREVIEW.cmd`: the site on your computer, as the host will show it.**
+  Double-click it before uploading: clean addresses, redirects and the
+  Drops map all work, with nothing to install (see *Local preview*).
 - **The Drops map is self-hosted.** Carto's tiles now say "API key required";
   the streets come from `maps/drops.pmtiles` on your own server instead. Run
   `tools/make-map.py` once to create it (see *The Drops map*).
@@ -212,16 +212,33 @@ returning customers' saved carts will mismatch.
 
 ## Local preview
 
-```bash
-python -m http.server 8940 --directory with-store
-```
+**Double-click `PREVIEW.cmd`** (Windows). Pick a build from the list and the
+site opens in your browser at `http://localhost:8940`, served the way the web
+host will serve it:
 
-Both variants are also registered in `.claude/launch.json` as `site-shop`
-(8940) and `site-noshop` (8941). That server ignores `.htaccess`, so check
-clean-URL changes on the real host (or a local Apache) before relying on them.
-It also cannot send parts of files, so the Drops map falls back to its plain
-ground there; `python -m RangeHTTPServer 8940` from inside `with-store`
-shows the real map (see *The Drops map*).
+- `/drops`-style addresses, plus the redirects and the missing-page rule,
+  read from that build's own `.htaccess`;
+- the Drops map;
+- nothing cached, so after a rebuild a reload shows the new files.
+
+Nothing to install: it runs on the PowerShell that comes with Windows. Leave
+its window open while you look around, and close it to stop. To preview a
+folder kept somewhere else, such as an unzipped upload, drag the folder onto
+`PREVIEW.cmd`. For the phone layout, press F12 in the browser, then
+Ctrl+Shift+M.
+
+The first time, Windows may warn that the file came from the internet: click
+**More info**, then **Run anyway**. If it still won't run, right-click the
+zip you downloaded, choose **Properties**, tick **Unblock**, and unzip again.
+
+On a Mac or Linux, or from a terminal, the same preview is
+`python tools/preview.py` (add a build name, e.g. `no-store-clean`, to skip
+the list). It needs Python and nothing else. `tools/preview.ps1` is the server
+behind `PREVIEW.cmd`; keep the two in step.
+
+If you use `.claude/launch.json` (`site-shop`, `site-noshop`), it runs
+Python's plain `http.server`: no clean addresses and no street map. Point it
+at `python tools/preview.py with-store --no-browser --port 8940` instead.
 
 ## Verified
 
@@ -235,3 +252,10 @@ every page at 1440 and 390 px wide, with JavaScript on and off, and no
 horizontal overflow or console errors · every clean URL, old URL and trailing
 slash resolves in at most one redirect · all pages' tags balance · cart:
 re-pricing, removed items, `?paid=1`, and the demo, link and api checkout paths.
+
+**2026.09.28**, the preview (`tools/preview.py`, and `tools/preview.ps1` under
+PowerShell 7 and checked against Windows PowerShell 5.1): 66 HTTP checks on
+each, covering every `.htaccess` redirect, the missing-page rule, blocked
+paths outside the folder and byte ranges · every page of a clean and a flat
+build in Chromium, with the Drops map drawing streets at all three drops on
+desktop and phone · the build list, dragged folders and a busy port.
