@@ -1795,6 +1795,47 @@ def check_js(folder: pathlib.Path):
     return None
 
 
+def check_map() -> None:
+    """Say when the Drops street map needs making, or making again.
+
+    One map file covers every drop. It only needs remaking when a drop sits
+    outside the area it was cut for, so compare the drops in drops.html with
+    the list tools/make-map.py recorded inside the file.
+    """
+    import gzip, json, math
+    f = MAP_SRC / "drops.pmtiles"
+    if not f.exists():
+        print("\n  map: no street map yet. Run  python tools/make-map.py  and build again.")
+        return
+    with open(f, "rb") as fh:                   # PMTiles header: metadata offset
+        head = fh.read(127)                     # and length at bytes 24-40,
+        fh.seek(int.from_bytes(head[24:32], "little"))   # compression at 97
+        raw = fh.read(int.from_bytes(head[32:40], "little"))
+    info = json.loads(gzip.decompress(raw) if head[97] == 2 else raw).get("pn0va", {})
+    made_for, km = info.get("drops"), info.get("detail_km", 0)
+    if not isinstance(made_for, list):
+        return                                  # made before drops were recorded
+
+    def km_between(a, b):
+        dlat = (a[0] - b[0]) * 110.574
+        dlng = (a[1] - b[1]) * 111.320 * math.cos(math.radians((a[0] + b[0]) / 2))
+        return math.hypot(dlat, dlng)
+
+    html = (BRAND / "drops/drops.html").read_text(encoding="utf-8")
+    outside = []
+    for m in re.finditer(r'<article class="dp-entry"(.*?)>', html, re.S):
+        attrs = dict(re.findall(r'data-(n|lat|lng)="([^"]*)"', m.group(1)))
+        if "lat" not in attrs or "lng" not in attrs:
+            continue
+        here = (float(attrs["lat"]), float(attrs["lng"]))
+        # covered = at least 1 km of detail on every side of the marker
+        if not any(km_between(here, d) <= km - 1 for d in made_for):
+            outside.append(f"DROP #{attrs.get('n', '?')} ({here[0]:.4f}, {here[1]:.4f})")
+    if outside:
+        print("\n  map: outside the street map: " + ", ".join(outside) +
+              "\n       Run  python tools/make-map.py  and build again.")
+
+
 if __name__ == "__main__":
     for flag in (True, False):
         d = build(flag)
@@ -1807,3 +1848,4 @@ if __name__ == "__main__":
               f"   +  {c.name:17s} {len(list(c.rglob('*'))):3d} files")
     print("\n  flat builds  = double-click previewable")
     print("  -clean       = pn0va.com/drops URLs, must be served")
+    check_map()

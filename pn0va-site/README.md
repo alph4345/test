@@ -68,8 +68,12 @@ site no longer asks Carto (or anyone else) for anything.
 - No key, no usage limits, no account. The data is © OpenStreetMap
   contributors (ODbL); the attribution on the map is required and in place.
 
-**Make or refresh the map** (the first time, and after adding a drop
-somewhere new):
+**One map file serves every drop.** It is not one map per location: a new
+drop within about 3 km of an existing one is already covered. `build.py`
+checks each build and names any drop that falls outside the map; only then
+does the map need making again, and the new file replaces the old one.
+
+**Make or refresh the map** (the first time, and whenever the build says so):
 
 ```bash
 pip install pmtiles requests

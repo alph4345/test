@@ -216,7 +216,9 @@ def main():
         "center_zoom": 14,
         "center_lon_e7": round(mid[1] * 1e7), "center_lat_e7": round(mid[0] * 1e7),
     }
-    meta["pn0va"] = {"source": url, "drops": len(pts), "detail_km": DETAIL_KM,
+    # build.py reads the drop list back, to warn when a new drop is outside
+    meta["pn0va"] = {"source": url, "drops": [[lat, lng] for lat, lng in pts],
+                     "detail_km": DETAIL_KM,
                      "detail_zooms": [DETAIL_ZOOMS[0], DETAIL_ZOOMS[-1]],
                      "context_km": CONTEXT_KM,
                      "context_zooms": [CONTEXT_ZOOMS[0], CONTEXT_ZOOMS[-1]]}
