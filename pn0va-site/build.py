@@ -684,11 +684,10 @@ def self_hosted_map_html(html: str) -> str:
     return html.replace("Carto dark · OSM", "OpenStreetMap", 1)
 
 
-# --- open / claimed: left off the page for now --------------------------------
+# --- open / claimed: removed ---------------------------------------------------
 # Every drop showed OPEN or CLAIMED from a data-status set by hand, so the page
-# claimed to know something nobody had confirmed. It comes back when a finder
-# can confirm a claim (a code from the drop, checked by a server). data-status
-# stays in drops.html, ignored until then.
+# claimed to know something nobody had confirmed. Drops have no status now; a
+# data-status left in drops.html is ignored.
 def omit_status_html(html: str) -> str:
     """drops.html: no status chip in the frequency bar, no Open/Recovered tally."""
     html, a = re.subn(r'\n[ \t]*<div class="dp-tally">.*?</div>', "", html, count=1, flags=re.S)

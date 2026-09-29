@@ -83,9 +83,8 @@ your host offers it.
   listings are now switched off, but a guessable name like
   `images/drop-004-hint.jpg` can still be opened. Don't upload a drop's photos
   until you publish it.
-- Never put a claim code, answer or other secret in the page or its scripts.
-  If you want "enter the code you found" claiming, or hints that unlock over
-  time, that needs a small server. I can build it.
+- Never put an answer, code or other secret in the page or its scripts.
+  Anything secret, like hints that unlock over time, needs a small server.
 
 **In the real world:**
 
@@ -99,45 +98,6 @@ your host offers it.
 with "API key required" tiles, so the streets come from a file on your own
 server instead (README, *The Drops map*). Visitors' browsers ask no map
 company for anything, and no one can change its terms or switch it off.
-
-### Claiming a drop with a code
-
-Open / Claimed is off the Drops page until a claim can be confirmed. The way
-to confirm one:
-
-1. Each item carries a card with a claim code, e.g. `7KQ4-M9XD`. A tool makes
-   the code, prints it for the card, and stores only a fingerprint of it
-   (a hash). The code itself is never in the page, the scripts or the
-   server's files.
-2. The Drops page gets a *Claim this drop* box. The finder types the code; the
-   page sends it to a small script on the server.
-3. The server checks it against that drop's fingerprint. The first correct
-   code wins: the drop is marked claimed, with the date, for every visitor at
-   once, with no rebuild or upload. "Elapsed" can then say how long it took to
-   find.
-
-**It needs a server script.** A static page can't record anything for other
-visitors, and whatever the page holds, anyone can read. Two homes for it:
-
-- a PHP file on your current host. Most Apache hosts run PHP, and no new
-  account is needed;
-- a free serverless function (Cloudflare Workers, Netlify Functions), which is
-  also where the store's `api` checkout would live (STORE-SETUP.md).
-
-**How safe it is.** Guessing is hopeless: eight random characters from a
-32-letter alphabet is a trillion combinations, and the server allows only a
-few tries a minute. A leaked copy of the server's files reveals no codes.
-Only the first claim counts, even if two arrive at once. The real risks are
-human: a finder could post a photo of the code, or claim without taking the
-item. A scratch-off panel, or a code kept inside the container, helps. If
-finders can leave a name or message, everyone sees it: keep it short, plain
-text, and removable by you, or start with the date only. Codes must travel
-over HTTPS, one more reason to turn it on.
-
-**Effort:** about a day's work: the server script, the claim box and live
-status on the page, the code tool, and tests. Your part is printing a code
-card for each drop. Whether your host runs PHP decides which of the two
-homes to use.
 
 ### Store: how safe is it?
 
@@ -212,9 +172,9 @@ scripts you'll use (Square, analytics); adding it now risks breaking them.
 ### Drops
 
 - Every drop uses the same placeholder hint and item images.
-- Open / Claimed is off the page for now (see *Claiming a drop with a code*).
-  Drop #001's own text still says so: its item caption reads "Found &
-  claimed" and its brief ends "Recovered 2026.06.28."
+- Drops no longer have an Open / Claimed status. Drop #001's own text still
+  mentions one: its item caption reads "Found & claimed" and its brief ends
+  "Recovered 2026.06.28." `data-status` can go from `drops.html`.
 - Coordinates are always labelled °N and °W, so a drop south of the equator
   or east of Greenwich would show the wrong hemisphere. Anywhere in the
   Americas north of the equator is fine.

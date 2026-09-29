@@ -107,10 +107,9 @@ rings on plain ground instead of streets.
   all the drops for the zoomed-out view; with drops in two cities that box
   covers everything in between (about 1,000 km for San Francisco and
   Arizona). Each drop gets its own area now.
-- **Drops no longer say Open or Claimed.** The label on each row, the chip in
-  the frequency bar and the Open/Recovered tally are off the page until a
-  finder can confirm a claim (see RECOMMENDATIONS.md, *Claiming a drop with a
-  code*). `data-status` can stay in `drops.html`; the page ignores it.
+- **Drops no longer have an Open / Claimed status.** The label on each row,
+  the chip in the frequency bar and the Open/Recovered tally are gone for
+  good. `data-status` in `drops.html` is ignored and can be deleted.
 - **The frequency bar is slimmer.** Its Placed and Elapsed readouts kept the
   browser's default list margins, so the bar `drops.css` means to be "about
   70px" was 96px (113px on phones). The map gets the difference. Phones now
