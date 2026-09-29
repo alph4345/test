@@ -7,7 +7,8 @@ place names around every drop, as one file the site serves itself.
     python tools/make-map.py
 
 Writes _source/map/drops.pmtiles, which build.py copies into every build as
-maps/drops.pmtiles. Run it again after adding a drop somewhere new.
+maps/drops.pmtiles. build.py runs this itself when a drop is outside the map,
+so adding a drop somewhere new needs no separate step.
 
 Why a file and not a map service: Carto started answering keyless requests
 with "API key required" tiles, which broke the page overnight. A file on your
@@ -20,7 +21,11 @@ in pieces over plain HTTP, so this script asks for only the tiles near your
 drops, not the ~120 GB planet:
 
   * close-up detail (zoom 12-15) within DETAIL_KM of each drop;
-  * a wider view (zoom 8-11) within CONTEXT_KM of all of them.
+  * a wider view (zoom 8-11) within CONTEXT_KM of each drop.
+
+Each drop gets its own area, so drops in two cities cost two small areas,
+not everything in between: one box around San Francisco and Arizona together
+would be a thousand kilometres across.
 
 The map can zoom in past 15: the renderer scales the vector data up, so it
 stays sharp. The data is © OpenStreetMap contributors (ODbL); the attribution
@@ -190,15 +195,15 @@ def main():
     args = ap.parse_args()
 
     pts = drop_points()
-    wanted = set()
+    wanted, boxes = set(), []
     for lat, lng in pts:
         wanted |= tiles_in(box(lat, lng, DETAIL_KM), DETAIL_ZOOMS)
-    lats, lngs = [p[0] for p in pts], [p[1] for p in pts]
-    mid = (sum(lats) / len(lats), sum(lngs) / len(lngs))
-    w0, s0, _, _ = box(min(lats), min(lngs), CONTEXT_KM)
-    _, _, e1, n1 = box(max(lats), max(lngs), CONTEXT_KM)
-    context = (w0, s0, e1, n1)
-    wanted |= tiles_in(context, CONTEXT_ZOOMS)
+        boxes.append(box(lat, lng, CONTEXT_KM))
+        wanted |= tiles_in(boxes[-1], CONTEXT_ZOOMS)
+    # the header's bounds hold every area; its centre is the newest drop
+    context = (min(b[0] for b in boxes), min(b[1] for b in boxes),
+               max(b[2] for b in boxes), max(b[3] for b in boxes))
+    mid = pts[0]
 
     url = args.source or latest_build()
     print(f"  {len(pts)} drops -> {len(wanted)} tiles from {url}")

@@ -389,6 +389,15 @@ html:not(.js) .dp-entry{ display:contents; }   /* no JS: show them all, stacked 
 }
 
 /* --------------------------------------------------------------------------
+   FREQUENCY BAR HEIGHT — added by build.py
+   drops.css means the bar to "stay about 70px and give the height back to
+   the map", but Placed and Elapsed are <dl>s, and a browser gives every <dl>
+   1em of margin above and below: the bar was 96px on a desktop and 113px on
+   a phone. Without the margins it is 75px and 85px, and the map gets the rest.
+   -------------------------------------------------------------------------- */
+.dp-bar .dp-readout{ margin:0; }
+
+/* --------------------------------------------------------------------------
    PHONE FREQUENCY BAR — added by build.py
    One row could not hold DROP #003, both coordinates and the status chip:
    below ~700px they were drawn on top of each other. It is two rows now —
@@ -406,7 +415,7 @@ html:not(.js) .dp-entry{ display:contents; }   /* no JS: show them all, stacked 
   .dp-bar .dp-panel__body{
     grid-template-columns:minmax(0,1fr) auto;
     grid-template-areas:"desig meta" "freq freq";
-    row-gap:2px;
+    row-gap:6px;
   }
   .dp-desig{ grid-area:desig; }
   .dp-meta { grid-area:meta; }
@@ -420,7 +429,7 @@ html:not(.js) .dp-entry{ display:contents; }   /* no JS: show them all, stacked 
 
   /* Placed and Elapsed were hidden here "because they live in the help
      panel", which never showed them, so phones had neither. Elapsed fits
-     beside the chip now; the placed date still does not. */
+     on nearly any phone; the placed date joins it where there is room. */
   .dp-meta .dp-readout:nth-of-type(2){ display:flex; }
 
   /* The channel strip's rows kept the desktop list's width:100%, so each
@@ -428,8 +437,12 @@ html:not(.js) .dp-entry{ display:contents; }   /* no JS: show them all, stacked 
      say they were there. Sized to their content, several show at once. */
   .dp-row{ width:auto; }
 }
-/* Small phones: DROP #003 and the elapsed readout no longer both fit. */
-@media (max-width:380px){
+/* Widths measured with the widest values, DROP #888 and 8888 days: the
+   placed date fits from 520px, and below 340px the elapsed readout doesn't. */
+@media (min-width:520px) and (max-width:900px){
+  .dp-meta .dp-readout:nth-of-type(1){ display:flex; }
+}
+@media (max-width:339px){
   .dp-meta .dp-readout:nth-of-type(2){ display:none; }
 }
 
@@ -440,7 +453,7 @@ html:not(.js) .dp-entry{ display:contents; }   /* no JS: show them all, stacked 
   .dp-bar .dp-panel__body{
     grid-template-columns:auto minmax(0,1fr);
     grid-template-areas:"desig meta" "freq freq";
-    row-gap:2px;
+    row-gap:6px;
   }
   .dp-desig{ grid-area:desig; }
   .dp-meta { grid-area:meta; }

@@ -26,8 +26,8 @@
 
 <link rel="stylesheet" href="/vendor/leaflet/leaflet.css?v=ec929f11">
 <link rel="stylesheet" href="/tokens.css?v=cf68e78a">
-<link rel="stylesheet" href="/page-style.css?v=f3c54d01">
-<link rel="stylesheet" href="/drops.css?v=95d875d3">
+<link rel="stylesheet" href="/page-style.css?v=81ec7628">
+<link rel="stylesheet" href="/drops.css?v=94a41e4e">
 <style>
 /* Self-hosted faces — no Google Fonts request, no CDN failure mode. */
 @font-face{
@@ -191,16 +191,12 @@
 <main class="dp-shell">
 
   <!-- ============ MANIFEST RAIL ============ -->
-  <section class="dp-panel dp-manifest" aria-label="Drops manifest">
+  <section class="dp-panel dp-manifest" data-fly="left" data-fly-delay="60" aria-label="Drops manifest">
     <div class="dp-panel__head">
       <span>Drops</span>
       <span class="dp-idx" id="dp-count">—</span>
     </div>
     <div class="dp-panel__body" id="dp-rows"></div>
-    <div class="dp-tally">
-      <span>Open <b id="dp-open">—</b></span>
-      <span>Recovered <b id="dp-done">—</b></span>
-    </div>
   </section>
 
   <!-- ============ DETAIL ============ -->
@@ -208,7 +204,7 @@
 
     <!-- FREQUENCY BAR — the codec's tuned readout. The coordinates are the
          frequency: they are what you tune to in order to reach a drop. -->
-    <section class="dp-panel dp-codec dp-bar" aria-label="Drop frequency">
+    <section class="dp-panel dp-codec dp-bar" data-fly="top" data-fly-delay="60" aria-label="Drop frequency">
       <div class="dp-panel__head">
         <span>Frequency</span>
         <span class="dp-headgroup">
@@ -244,13 +240,12 @@
         <span class="dp-meta">
           <dl class="dp-readout"><dt>Placed</dt><dd id="r-placed">—</dd></dl>
           <dl class="dp-readout"><dt>Elapsed</dt><dd><span id="r-days">—</span><span class="u">d</span></dd></dl>
-          <span class="dp-status dp-status--open" id="r-status">—</span>
         </span>
       </div>
     </section>
 
     <!-- map -->
-    <section class="dp-panel dp-map dp-scan" aria-label="Drop location">
+    <section class="dp-panel dp-map dp-scan" data-fly="right" data-fly-delay="140" aria-label="Drop location">
       <div class="dp-panel__head">
         <span>Location</span>
         <span class="dp-idx">OpenStreetMap</span>
@@ -266,18 +261,18 @@
     <!-- BOTTOM STRIP — the codec's two portrait frames sitting with the
          dialogue box, which is what frees the whole upper area for the map. -->
     <div class="dp-strip">
-      <figure class="dp-panel dp-slot dp-slot--hint" style="margin:0">
+      <figure class="dp-panel dp-slot dp-slot--hint" data-fly="bottom" data-fly-delay="140" style="margin:0">
         <div class="dp-panel__head"><span>Hint</span><span class="dp-idx">IMG-A</span></div>
         <div class="dp-panel__body dp-panel__body--flush"><img id="s-hint" src="/images/hint-placeholder.svg?v=beafeca1" alt=""></div>
         <figcaption id="s-hintcap">—</figcaption>
       </figure>
 
-      <section class="dp-panel dp-codec dp-brief" aria-label="Drop brief">
+      <section class="dp-panel dp-codec dp-brief" data-fly="bottom" data-fly-delay="200" aria-label="Drop brief">
         <div class="dp-panel__head"><span>Transmission</span><span class="dp-idx" id="r-title">—</span></div>
         <div class="dp-panel__body" id="dp-brief"></div>
       </section>
 
-      <figure class="dp-panel dp-slot dp-slot--item" style="margin:0">
+      <figure class="dp-panel dp-slot dp-slot--item" data-fly="bottom" data-fly-delay="260" style="margin:0">
         <div class="dp-panel__head"><span>Item</span><span class="dp-idx">IMG-B</span></div>
         <div class="dp-panel__body dp-panel__body--flush"><img id="s-item" src="/images/item-placeholder.svg?v=53bfe82d" alt=""></div>
         <figcaption id="s-itemcap">—</figcaption>
@@ -334,6 +329,7 @@
 <script src="/vendor/leaflet/leaflet.js?v=5a640ff8"></script>
 <script src="/vendor/protomaps-leaflet/protomaps-leaflet.js?v=9d8eec24"></script>
 <script src="/drops-map.js?v=03518c33" data-map="maps/drops.pmtiles?v=0a2d46bf"></script>
-<script src="/drops.js?v=eafcadc9"></script>
+<script src="/drops.js?v=aac61e35"></script>
+<script src="/page-script.js?v=f052dc9d"></script>
 </body>
 </html>

@@ -159,11 +159,11 @@ nav ul li a.active
   padding: 24px;
 }
 
-/* Entrance animations (pure CSS): left window rises from the
-   bottom, right window slides in from the side, both with the
-   little overshoot "impact" the JS version has */
-#window-left  { animation: window-from-bottom 1.3s cubic-bezier(.22,.9,.21,1) 0.15s both; }
-#window-right { animation: window-from-left   1.3s cubic-bezier(.16,.84,.44,1) 0.3s both; }
+/* Entrance animations (pure CSS, for JavaScript off): left window
+   rises from the bottom, right window slides in from the side, both
+   with the little overshoot "impact" the JS version has */
+html:not(.js) #window-left  { animation: window-from-bottom 1.3s cubic-bezier(.22,.9,.21,1) 0.15s both; }
+html:not(.js) #window-right { animation: window-from-left   1.3s cubic-bezier(.16,.84,.44,1) 0.3s both; }
 
 @keyframes window-from-bottom
 {
@@ -178,20 +178,28 @@ nav ul li a.active
   100% { transform: translateX(0); opacity: 1; }
 }
 
-/* When JavaScript is running it takes over the entrance
-   (fly-in with motion trails), so suppress the CSS keyframes
-   and start hidden; page-script.js reveals and animates. */
-html.js #window-left,
-html.js #window-right
+/* When JavaScript is running, page-script.js flies in every window
+   marked data-fly (and each child of a data-fly-each container),
+   with motion trails, on every content page. They start hidden and
+   page-script.js reveals them. Should it never run, the failsafe
+   shows them after 3 seconds rather than leave the page blank. */
+html.js [data-fly],
+html.js [data-fly-each] > *
 {
-  animation: none;
   opacity: 0;
+  animation: fly-failsafe 0s linear 3s forwards;
 }
 
-html.js #window-left.landed,
-html.js #window-right.landed
+html.js [data-fly].landed,
+html.js [data-fly-each] > .landed
 {
   opacity: 1;
+  animation: none;
+}
+
+@keyframes fly-failsafe
+{
+  to { opacity: 1; }
 }
 
 /* ---------------------------------------------------------- */
@@ -444,7 +452,7 @@ html:not(.js) .nav-arrows
 
   /* on small screens the right window slides up from the
      bottom too, matching the JS behaviour */
-  #window-right { animation-name: window-from-bottom; }
+  html:not(.js) #window-right { animation-name: window-from-bottom; }
 
   nav ul
   {
@@ -659,16 +667,17 @@ html.js .page-content {
 @media (prefers-reduced-motion: reduce)
 {
   nav,
-  #window-left,
-  #window-right
+  html:not(.js) #window-left,
+  html:not(.js) #window-right
   {
     animation: none;
   }
 
-  html.js #window-left,
-  html.js #window-right
+  html.js [data-fly],
+  html.js [data-fly-each] > *
   {
     opacity: 1;
+    animation: none;
     transition: none;
   }
 

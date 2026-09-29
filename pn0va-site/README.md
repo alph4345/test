@@ -73,29 +73,54 @@ site no longer asks Carto (or anyone else) for anything.
 2026-09-27: 10.8 MB, covering the three San Francisco drops. A visitor who
 looks at all three downloads about 200 KB of it.
 
-**One map file serves every drop.** It is not one map per location: a new
-drop within about 3 km of an existing one is already covered. `build.py`
-checks each build and names any drop that falls outside the map; only then
-does the map need making again, and the new file replaces the old one.
+**One map file serves every drop, and a new drop gets its map by itself.**
+Add the drop to `drops.html` and run `python build.py`. If the drop is more
+than about 3 km from every drop the map was made for, the build first
+fetches the area around each drop from the newest daily world map published
+by Protomaps (build.protomaps.com), then builds. Each drop gets its own area,
+so drops in two cities cost two small areas, not everything between them. A
+test drop in Mesa, Arizona added 6 MB to the map and under 30 seconds to the
+build. Upload the new `maps/drops.pmtiles` along with the rest of the folder.
 
-**Make or refresh the map** (the first time, and whenever the build says so):
+The build needs two Python packages for that, installed once:
 
 ```bash
 pip install pmtiles requests
-python tools/make-map.py     # writes _source/map/drops.pmtiles
-python build.py
 ```
 
-It downloads only your area from the newest daily world map published by
-Protomaps (build.protomaps.com). Until the file exists, the page shows the
-rings and marker on plain ground plus a link to the location on
-OpenStreetMap, not error tiles.
+Without them, or offline, the build carries on with the map it has and names
+the drops it doesn't cover; the page shows those on plain ground. With no map
+file at all, it shows the rings and marker on plain ground plus a link to the
+location on OpenStreetMap, not error tiles. `python tools/make-map.py` remakes
+the map on demand, for instance to pick up newer streets.
 
 **The server must send parts of files** (HTTP "range requests"). Apache,
 LiteSpeed, Netlify, GitHub Pages and Cloudflare all do, and so does the
 preview (see *Local preview*). Python's `http.server` does not, and a page
 opened by double-clicking cannot read a file in parts at all: both show the
 rings on plain ground instead of streets.
+
+## 2026.09.29 update
+
+- **A new drop location gets its street map automatically** when you build
+  (see *The Drops map*). `tools/make-map.py` also used to cut one box around
+  all the drops for the zoomed-out view; with drops in two cities that box
+  covers everything in between (about 1,000 km for San Francisco and
+  Arizona). Each drop gets its own area now.
+- **Drops no longer say Open or Claimed.** The label on each row, the chip in
+  the frequency bar and the Open/Recovered tally are off the page until a
+  finder can confirm a claim (see RECOMMENDATIONS.md, *Claiming a drop with a
+  code*). `data-status` can stay in `drops.html`; the page ignores it.
+- **The frequency bar is slimmer.** Its Placed and Elapsed readouts kept the
+  browser's default list margins, so the bar `drops.css` means to be "about
+  70px" was 96px (113px on phones). The map gets the difference. Phones now
+  show Elapsed down to 340px wide and Placed from 520px.
+- **The About page's window entrance runs on every content page.** The
+  windows on Blog, Projects, Drops and Store fly in from the edge they sit
+  against, trailing red after-images, as About's always have.
+  `page-script.js` does it for any element marked `data-fly`. It stays still
+  when the visitor's system asks for reduced motion, and with JavaScript off
+  the windows are simply there.
 
 ## 2026.09.27 update
 
@@ -259,3 +284,17 @@ each, covering every `.htaccess` redirect, the missing-page rule, blocked
 paths outside the folder and byte ranges · every page of a clean and a flat
 build in Chromium, with the Drops map drawing streets at all three drops on
 desktop and phone · the build list, dragged folders and a busy port.
+
+**2026.09.29** · a copy of the site with a test drop added at 33.390226,
+-111.868363 (Mesa, Arizona), built with `python build.py` alone: the build
+fetched the new area by itself (492 tiles, 16.8 MB map), and the page drew
+the streets there and at the three San Francisco drops, zoomed in and out,
+on desktop and phone · the frequency bar at 18 widths from 320 to 1920px,
+with the widest values (DROP #888, 8888 days): nothing overlaps · the window
+entrance on all five content pages, desktop and phone: every window lands
+visible with no leftover transform, trail or scroll lock; still under reduced
+motion; windows shown without JavaScript, and shown within 3 seconds if
+`page-script.js` fails to load; the Drops map centred on its marker after
+flying in; store cards paged to later are visible · every page at 1440 and
+390px, JavaScript on and off: no console errors, sideways scrolling or
+outside requests.

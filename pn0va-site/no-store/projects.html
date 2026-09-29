@@ -23,7 +23,7 @@
   <!-- Progressive enhancement: mark the document when JavaScript is available -->
   <script>document.documentElement.classList.add('js');</script>
   <link rel="stylesheet" href="tokens.css?v=cf68e78a">
-  <link rel="stylesheet" href="page-style.css?v=f8caa6ac">
+  <link rel="stylesheet" href="page-style.css?v=3f1606c7">
   <link rel="stylesheet" href="reader.css?v=1a3f38c6">
 </head>
 <body>
@@ -40,11 +40,11 @@
   </nav>
 
     <main class="rd-shell">
-    <section class="rd-panel rd-manifest" aria-label="Projects">
+    <section class="rd-panel rd-manifest" aria-label="Projects" data-fly="left">
       <div class="rd-panel__head"><span>Projects</span><span class="rd-idx" id="rd-count">--</span></div>
       <div class="rd-panel__body" id="rd-rows"></div>
     </section>
-    <section class="rd-panel rd-reader" aria-label="Project">
+    <section class="rd-panel rd-reader" aria-label="Project" data-fly="bottom">
       <div class="rd-panel__head"><span id="rd-title">--</span><span class="rd-idx" id="rd-date"></span></div>
       <div class="rd-panel__body" id="rd-body"></div>
     </section>
@@ -145,5 +145,6 @@
   </article>
   </div>
   <script src="reader.js?v=1946441d"></script>
+  <script src="page-script.js?v=f052dc9d"></script>
 </body>
 </html>

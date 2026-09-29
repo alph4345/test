@@ -81,17 +81,13 @@
          the selected row (see .dp-row[aria-current] in drops.css). */
       b.innerHTML =
         '<span class="dp-row__n">' + e.dataset.n + '</span>' +
-        '<span class="dp-row__d">' + e.dataset.placed + '</span>' +
-        '<span class="dp-row__s ' + (live ? "is-open" : "is-done") + '">' +
-          (live ? "OPEN" : "CLAIMED") + '</span>';
+        '<span class="dp-row__d">' + e.dataset.placed + '</span>';
       b.addEventListener("click", function(){ show(i); });
       frag.appendChild(b);
     });
 
     el.rows.appendChild(frag);
     el.count.textContent = String(entries.length).padStart(2, "0") + " REC";
-    el.open.textContent  = open;
-    el.done.textContent  = entries.length - open;
   }
 
   /* --- record ----------------------------------------------------------- */
@@ -109,8 +105,6 @@
     });
 
     el.n.textContent      = d.n;
-    el.status.textContent = live ? "Open" : "Claimed";
-    el.status.className   = "dp-status " + (live ? "dp-status--open" : "dp-status--done");
     el.lat.textContent    = mag(d.lat);
     el.lng.textContent    = mag(d.lng);
     el.placed.textContent = d.placed;

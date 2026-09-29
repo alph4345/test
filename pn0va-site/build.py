@@ -504,12 +504,12 @@ def build_reader(html: str, unit: str) -> str:
 
     shell = (
         '  <main class="rd-shell">\n'
-        '    <section class="rd-panel rd-manifest" aria-label="' + unit + 's">\n'
+        '    <section class="rd-panel rd-manifest" aria-label="' + unit + 's" data-fly="left">\n'
         '      <div class="rd-panel__head"><span>' + unit + 's</span>'
         '<span class="rd-idx" id="rd-count">--</span></div>\n'
         '      <div class="rd-panel__body" id="rd-rows"></div>\n'
         '    </section>\n'
-        '    <section class="rd-panel rd-reader" aria-label="' + unit + '">\n'
+        '    <section class="rd-panel rd-reader" aria-label="' + unit + '" data-fly="bottom">\n'
         '      <div class="rd-panel__head"><span id="rd-title">--</span>'
         '<span class="rd-idx" id="rd-date"></span></div>\n'
         '      <div class="rd-panel__body" id="rd-body"></div>\n'
@@ -532,11 +532,12 @@ def build_reader(html: str, unit: str) -> str:
 
     # NOTE: this runs BEFORE the ?v= rewrite, so the version string here is
     # still the ORIGINAL one from the 2026-07-06 build. Match it loosely.
-    html = re.sub(r'<script src="paged-window\.js[^"]*"></script>',
-                  '<script src="reader.js"></script>', html)
-    # page-script.js animates #window-left / #window-right, which no longer
-    # exist on these pages — leaving it in would be a silent no-op at best
+    # page-script.js flies in the two panels (data-fly above). It goes after
+    # reader.js, which fills the list the panels are measured with.
     html = re.sub(r'\s*<script src="page-script\.js[^"]*"></script>', '', html)
+    html = re.sub(r'<script src="paged-window\.js[^"]*"></script>',
+                  '<script src="reader.js"></script>\n'
+                  '  <script src="page-script.js?v=' + VER + '"></script>', html)
     html = re.sub(r'(<link rel="stylesheet" href="page-style\.css[^"]*">)',
                   lambda m: m.group(1)
                             + chr(10) + '  <link rel="stylesheet" href="reader.css">',
@@ -545,6 +546,17 @@ def build_reader(html: str, unit: str) -> str:
 
 
 # Appended to the brand kit's drops.css, so the kit itself stays untouched.
+DROPS_BAR_CSS = """
+/* --------------------------------------------------------------------------
+   FREQUENCY BAR HEIGHT — added by build.py
+   drops.css means the bar to "stay about 70px and give the height back to
+   the map", but Placed and Elapsed are <dl>s, and a browser gives every <dl>
+   1em of margin above and below: the bar was 96px on a desktop and 113px on
+   a phone. Without the margins it is 75px and 85px, and the map gets the rest.
+   -------------------------------------------------------------------------- */
+.dp-bar .dp-readout{ margin:0; }
+"""
+
 DROPS_PHONE_CSS = """
 /* --------------------------------------------------------------------------
    PHONE FREQUENCY BAR — added by build.py
@@ -564,7 +576,7 @@ DROPS_PHONE_CSS = """
   .dp-bar .dp-panel__body{
     grid-template-columns:minmax(0,1fr) auto;
     grid-template-areas:"desig meta" "freq freq";
-    row-gap:2px;
+    row-gap:6px;
   }
   .dp-desig{ grid-area:desig; }
   .dp-meta { grid-area:meta; }
@@ -578,7 +590,7 @@ DROPS_PHONE_CSS = """
 
   /* Placed and Elapsed were hidden here "because they live in the help
      panel", which never showed them, so phones had neither. Elapsed fits
-     beside the chip now; the placed date still does not. */
+     on nearly any phone; the placed date joins it where there is room. */
   .dp-meta .dp-readout:nth-of-type(2){ display:flex; }
 
   /* The channel strip's rows kept the desktop list's width:100%, so each
@@ -586,8 +598,12 @@ DROPS_PHONE_CSS = """
      say they were there. Sized to their content, several show at once. */
   .dp-row{ width:auto; }
 }
-/* Small phones: DROP #003 and the elapsed readout no longer both fit. */
-@media (max-width:380px){
+/* Widths measured with the widest values, DROP #888 and 8888 days: the
+   placed date fits from 520px, and below 340px the elapsed readout doesn't. */
+@media (min-width:520px) and (max-width:900px){
+  .dp-meta .dp-readout:nth-of-type(1){ display:flex; }
+}
+@media (max-width:339px){
   .dp-meta .dp-readout:nth-of-type(2){ display:none; }
 }
 
@@ -598,7 +614,7 @@ DROPS_PHONE_CSS = """
   .dp-bar .dp-panel__body{
     grid-template-columns:auto minmax(0,1fr);
     grid-template-areas:"desig meta" "freq freq";
-    row-gap:2px;
+    row-gap:6px;
   }
   .dp-desig{ grid-area:desig; }
   .dp-meta { grid-area:meta; }
@@ -666,6 +682,68 @@ def self_hosted_map_html(html: str) -> str:
         + (' data-map="maps/drops.pmtiles"' if has_map else '') + '></script>\n'
         + old, 1)
     return html.replace("Carto dark · OSM", "OpenStreetMap", 1)
+
+
+# --- open / claimed: left off the page for now --------------------------------
+# Every drop showed OPEN or CLAIMED from a data-status set by hand, so the page
+# claimed to know something nobody had confirmed. It comes back when a finder
+# can confirm a claim (a code from the drop, checked by a server). data-status
+# stays in drops.html, ignored until then.
+def omit_status_html(html: str) -> str:
+    """drops.html: no status chip in the frequency bar, no Open/Recovered tally."""
+    html, a = re.subn(r'\n[ \t]*<div class="dp-tally">.*?</div>', "", html, count=1, flags=re.S)
+    html, b = re.subn(r'\n[ \t]*<span class="dp-status[^"]*" id="r-status">[^<]*</span>', "",
+                      html, count=1)
+    if not (a and b):
+        sys.exit("drops.html changed; update omit_status_html() in build.py")
+    return html
+
+
+def fly_in_drops(html: str) -> str:
+    """drops.html: the About page's window entrance, for the six panels.
+
+    page-script.js flies each one in from the edge it sits against (the list
+    from the left, the frequency bar from the top, the map from the right,
+    the bottom strip from below). It loads after drops.js, so the list and
+    the map are built before anything moves."""
+    panels = [('class="dp-panel dp-manifest"', "left", 60),
+              ('class="dp-panel dp-codec dp-bar"', "top", 60),
+              ('class="dp-panel dp-map dp-scan"', "right", 140),
+              ('class="dp-panel dp-slot dp-slot--hint"', "bottom", 140),
+              ('class="dp-panel dp-codec dp-brief"', "bottom", 200),
+              ('class="dp-panel dp-slot dp-slot--item"', "bottom", 260)]
+    for cls, where, delay in panels:
+        if html.count(cls) != 1:
+            sys.exit("drops.html changed; update fly_in_drops() in build.py")
+        html = html.replace(cls, f'{cls} data-fly="{where}" data-fly-delay="{delay}"')
+    html, n = re.subn(r'(<script src="drops\.js[^"]*"></script>)',
+                      r'\1\n<script src="page-script.js?v=' + VER + '"></script>', html, count=1)
+    if not n:
+        sys.exit("drops.html changed; update fly_in_drops() in build.py")
+    return html
+
+
+def omit_status_js(js: str) -> str:
+    """drops.js: rows without OPEN / CLAIMED, and nothing written to the
+    chip and tally omit_status_html() removed."""
+    subs = [
+        ("""'<span class="dp-row__d">' + e.dataset.placed + '</span>' +
+        '<span class="dp-row__s ' + (live ? "is-open" : "is-done") + '">' +
+          (live ? "OPEN" : "CLAIMED") + '</span>';
+""", """'<span class="dp-row__d">' + e.dataset.placed + '</span>';
+"""),
+        ("""    el.open.textContent  = open;
+    el.done.textContent  = entries.length - open;
+""", ""),
+        ("""    el.status.textContent = live ? "Open" : "Claimed";
+    el.status.className   = "dp-status " + (live ? "dp-status--open" : "dp-status--done");
+""", ""),
+    ]
+    for old, new in subs:
+        if old not in js:
+            sys.exit("drops.js changed; update omit_status_js() in build.py")
+        js = js.replace(old, new, 1)
+    return js
 
 
 # Appended to style.css (home page only).
@@ -773,7 +851,7 @@ def build(with_shop: bool):
     drops = drops.replace('<link rel="stylesheet" href="drops.css',
                           '<link rel="stylesheet" href="page-style.css?v=' + VER +
                           '">\n<link rel="stylesheet" href="drops.css')
-    drops = self_hosted_map_html(drops)
+    drops = fly_in_drops(omit_status_html(self_hosted_map_html(drops)))
     (out / "drops.html").write_text(drops, encoding="utf-8", newline=NL)
 
     # No FIREFLY_CSS here: the living layer belongs to the home page only.
@@ -781,9 +859,9 @@ def build(with_shop: bool):
     # are trying to read is atmosphere in the wrong place.
     shutil.copy(BRAND / "drops/drops.css", out / "drops.css")
     (out / "drops.css").write_text((out / "drops.css").read_text(encoding="utf-8")
-                                   + DROPS_PHONE_CSS + DROPS_MAP_CSS, encoding="utf-8", newline=NL)
+                                   + DROPS_BAR_CSS + DROPS_PHONE_CSS + DROPS_MAP_CSS, encoding="utf-8", newline=NL)
     (out / "drops.js").write_text(
-        self_hosted_map_js((BRAND / "drops/drops.js").read_text(encoding="utf-8")),
+        omit_status_js(self_hosted_map_js((BRAND / "drops/drops.js").read_text(encoding="utf-8"))),
         encoding="utf-8", newline=NL)
     shutil.copy(MAP_SRC / "drops-map.js", out / "drops-map.js")
     (out / "vendor/protomaps-leaflet").mkdir(parents=True, exist_ok=True)
@@ -1162,7 +1240,7 @@ __NAV__
        ============================================================ -->
 
   <main id="store-shell">
-    <div id="store-grid">
+    <div id="store-grid" data-fly-each="bottom">
 
     <article class="store-item" data-id="pin-gameboy" data-name="Game Boy Pin" data-price="18">
       <img src="images/store/item-1.svg" alt="Layered wood and acrylic Game Boy pin">
@@ -1234,6 +1312,7 @@ __NAV__
   </aside>
 
   <script src="store.js?v=__VER__"></script>
+  <script src="page-script.js?v=__VER__"></script>
 </body>
 </html>
 """
@@ -1801,18 +1880,18 @@ def check_js(folder: pathlib.Path):
     return None
 
 
-def check_map() -> None:
-    """Say when the Drops street map needs making, or making again.
+def map_gaps():
+    """The drops the street map does not cover, as "DROP #004 (33.3902, -111.8684)".
 
-    One map file covers every drop. It only needs remaking when a drop sits
-    outside the area it was cut for, so compare the drops in drops.html with
-    the list tools/make-map.py recorded inside the file.
+    None means there is no map file at all. One map file covers every drop; it
+    only needs making again when a drop sits outside the area it was cut for,
+    so compare the drops in drops.html with the list tools/make-map.py
+    recorded inside the file.
     """
     import gzip, json, math
     f = MAP_SRC / "drops.pmtiles"
     if not f.exists():
-        print("\n  map: no street map yet. Run  python tools/make-map.py  and build again.")
-        return
+        return None
     with open(f, "rb") as fh:                   # PMTiles header: metadata offset
         head = fh.read(127)                     # and length at bytes 24-40,
         fh.seek(int.from_bytes(head[24:32], "little"))   # compression at 97
@@ -1820,7 +1899,7 @@ def check_map() -> None:
     info = json.loads(gzip.decompress(raw) if head[97] == 2 else raw).get("pn0va", {})
     made_for, km = info.get("drops"), info.get("detail_km", 0)
     if not isinstance(made_for, list):
-        return                                  # made before drops were recorded
+        return []                               # made before drops were recorded
 
     def km_between(a, b):
         dlat = (a[0] - b[0]) * 110.574
@@ -1837,12 +1916,46 @@ def check_map() -> None:
         # covered = at least 1 km of detail on every side of the marker
         if not any(km_between(here, d) <= km - 1 for d in made_for):
             outside.append(f"DROP #{attrs.get('n', '?')} ({here[0]:.4f}, {here[1]:.4f})")
-    if outside:
-        print("\n  map: outside the street map: " + ", ".join(outside) +
-              "\n       Run  python tools/make-map.py  and build again.")
+    return outside
+
+
+def have_map_tools() -> bool:
+    import importlib.util
+    return all(importlib.util.find_spec(m) for m in ("pmtiles", "requests"))
+
+
+def ensure_map() -> None:
+    """Before building, cut the street map again if a drop is outside it.
+
+    So adding a drop somewhere new takes nothing but adding it to drops.html
+    and building: tools/make-map.py fetches the area around every drop from
+    the newest OpenStreetMap build (build.protomaps.com), a few MB per city.
+    Without the tools or a connection the build goes on with the map it has,
+    and check_map() says so at the end.
+    """
+    import subprocess
+    gaps = map_gaps()
+    if gaps == [] or not have_map_tools():
+        return
+    what = "no street map yet" if gaps is None else "outside the street map: " + ", ".join(gaps)
+    print(f"  map: {what}. Fetching the area from OpenStreetMap...")
+    subprocess.run([sys.executable, str(ROOT / "tools/make-map.py")])
+    print()
+
+
+def check_map() -> None:
+    """After building, say if a drop is still without a street map."""
+    gaps = map_gaps()
+    if gaps == []:
+        return
+    what = "no street map yet" if gaps is None else "outside the street map: " + ", ".join(gaps)
+    fix = ("Fetching it failed (see above). Build again when online." if have_map_tools()
+           else "To fetch it:  pip install pmtiles requests  then build again.")
+    print(f"\n  map: {what}.\n       {fix}")
 
 
 if __name__ == "__main__":
+    ensure_map()
     for flag in (True, False):
         d = build(flag)
         check_js(d)
