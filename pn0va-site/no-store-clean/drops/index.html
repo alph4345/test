@@ -23,11 +23,12 @@
 
 <!-- Progressive enhancement: mark the document when JavaScript is available -->
 <script>document.documentElement.classList.add('js');</script>
+<script>document.documentElement.dataset.view = /^#./.test(location.hash) ? "drop" : "world";</script>
 
 <link rel="stylesheet" href="/vendor/leaflet/leaflet.css?v=ec929f11">
 <link rel="stylesheet" href="/tokens.css?v=cf68e78a">
 <link rel="stylesheet" href="/page-style.css?v=81ec7628">
-<link rel="stylesheet" href="/drops.css?v=94a41e4e">
+<link rel="stylesheet" href="/drops.css?v=66298f68">
 <style>
 /* Self-hosted faces — no Google Fonts request, no CDN failure mode. */
 @font-face{
@@ -188,6 +189,43 @@
   </nav>
 
 
+
+<!-- ============ WORLD: every drop on the globe (drops-world.js) ============
+     The first screen. html[data-view] says which one is showing; without
+     JavaScript this one stays hidden and the drops read as one long page. -->
+<section class="dw-shell" id="dw" aria-label="Drops around the world">
+  <section class="dp-panel dw-list" aria-label="Drops" data-fly="left" data-fly-delay="60">
+    <div class="dp-panel__head"><span>Drops</span><span class="dp-idx" id="dw-count">&mdash;</span></div>
+    <p class="dw-help"><b>Help</b>Select a drop.</p>
+    <div class="dp-panel__body" id="dw-rows"></div>
+  </section>
+  <section class="dp-panel dw-stage" aria-label="World" data-fly="right" data-fly-delay="60">
+    <div class="dp-panel__head"><span>World</span><details class="dp-help" id="dw-help">
+            <summary title="What is a drop?">
+              <span class="q" aria-hidden="true">?</span>
+              <span class="lbl">What is a drop?</span>
+            </summary>
+            <div class="dp-help__panel" role="note">
+              <h3>What is a drop?</h3>
+              <p>Loot left by the operator at a real location. You get the
+                 coordinates, a photo of the item and a hint to its hiding
+                 place &mdash; enough to go and find it. Each one carries a
+                 short piece of lore too.</p>
+            </div>
+          </details></div>
+    <div class="dp-panel__body dw-globe" id="dw-globe">
+      <canvas id="dw-canvas" aria-hidden="true"></canvas>
+      <div class="dw-callout" id="dw-callout" aria-hidden="true" hidden></div>
+    </div>
+    <div class="dw-bar">
+      <span class="dw-from">World</span><span class="dw-arrows" aria-hidden="true">&gt;&gt;</span>
+      <span class="dw-to" id="dw-to">&mdash;</span>
+      <span class="dw-coords" id="dw-coords"></span>
+      <a class="dw-go" id="dw-go" href="#">Open drop <span aria-hidden="true">&gt;</span></a>
+    </div>
+  </section>
+</section>
+
 <main class="dp-shell">
 
   <!-- ============ MANIFEST RAIL ============ -->
@@ -329,7 +367,11 @@
 <script src="/vendor/leaflet/leaflet.js?v=5a640ff8"></script>
 <script src="/vendor/protomaps-leaflet/protomaps-leaflet.js?v=9d8eec24"></script>
 <script src="/drops-map.js?v=03518c33" data-map="maps/drops.pmtiles?v=0a2d46bf"></script>
-<script src="/drops.js?v=aac61e35"></script>
-<script src="/page-script.js?v=f052dc9d"></script>
+<script src="/drops.js?v=5ead9067"></script>
+<script src="/vendor/world/d3-array.min.js?v=08cb6252"></script>
+<script src="/vendor/world/d3-geo.min.js?v=b7604723"></script>
+<script src="/vendor/world/topojson-client.min.js?v=bc057598"></script>
+<script src="/drops-world.js?v=df603082" data-land="maps/world.json?v=207096bf"></script>
+<script src="/page-script.js?v=1573d777"></script>
 </body>
 </html>

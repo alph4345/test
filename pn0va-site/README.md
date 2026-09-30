@@ -100,6 +100,53 @@ preview (see *Local preview*). Python's `http.server` does not, and a page
 opened by double-clicking cannot read a file in parts at all: both show the
 rings on plain ground instead of streets.
 
+### The Drops page: the world, then a drop
+
+The Drops page is one page with two screens.
+
+- **The world** (`pn0va.com/drops`): the list of drops with their dates, and
+  a globe with a point for each. Pointing at a drop in the list turns the
+  globe to it; choosing one (click, Enter, or tapping its point twice) dives
+  the globe in, flashes, and flies in the drop.
+- **A drop** (`pn0va.com/drops#003`): the record as before: coordinates,
+  street map, hint, brief and item. `< WORLD` at the top of its list, Esc, or
+  the browser's Back pulls back out to the globe.
+
+Every drop has its own address, so a link to `pn0va.com/drops#003` opens on
+that drop, and Back, reload and sharing all work. A drop is marked **NEW**
+for its first week, in both lists.
+
+Adding a drop hasn't changed: one `<article class="dp-entry">` in
+`drops.html`, then `python build.py`. The globe reads the same records.
+
+The globe is drawn in the brand palette from `tokens.css`: ember sea, slate
+land, ash coasts, a linen sheen, red for the instruments (graticule, rim,
+pointer, NEW) and bone for the drop you are on. Nearby drops share one point
+with a count (the three San Francisco drops show as x3). Its files:
+
+- `drops-world.js`, from `_source/world/`;
+- `vendor/world/`: d3-geo, d3-array and topojson-client (ISC licence) draw
+  it, about 60 KB;
+- `maps/world.json`: the coastlines, Natural Earth's 1:50m land (public
+  domain) thinned to 16,000 points, 161 KB (58 KB compressed). The server
+  compresses it: the `.htaccess` now covers JSON.
+
+With reduced motion on, the screens change without the dive or the flights.
+With JavaScript off, the world view stays hidden and the page is the drop
+frame it always was.
+
+## 2026.09.30 update
+
+- **The Drops page opens on the world.** A globe with every drop and the list
+  of drops with their dates; choosing one flies into it on the same page
+  (see *The Drops page: the world, then a drop*). Each drop has its own
+  address (`drops#003`), and a drop is NEW for its first week.
+- **Hemispheres are labelled properly.** The frequency bar said °N and °W
+  whatever the drop; south of the equator or east of Greenwich it now says
+  °S or °E.
+- `page-script.js` can fly windows out as well as in (`pn0vaFly.enter`,
+  `exit`, `reset`): the Drops page moves between its screens with it.
+
 ## 2026.09.29 update
 
 - **A new drop location gets its street map automatically** when you build
@@ -297,3 +344,16 @@ motion; windows shown without JavaScript, and shown within 3 seconds if
 flying in; store cards paged to later are visible · every page at 1440 and
 390px, JavaScript on and off: no console errors, sideways scrolling or
 outside requests.
+
+**2026.09.30**, the Drops world view, in both the clean and the flat build, on
+desktop and phone: arriving on the world; choosing a drop by click, Enter,
+or its point on the globe; the street map sized and centred on the marker
+after the switch; the list, `< WORLD`, Esc, Back and Forward; a link straight
+to one drop, and to one that doesn't exist; switching drops from the list
+keeps the address without adding history; reduced motion; JavaScript off;
+12 widths from 320 to 1920px with nothing overflowing · a copy with a
+day-old drop in Arizona: NEW in both lists, its own point, the globe
+turning between the cities · the globe turns at about 57 frames a second,
+and 30 with the processor slowed four times · every page at 1440 and 390px,
+JavaScript on and off: no console errors, sideways scrolling or outside
+requests.

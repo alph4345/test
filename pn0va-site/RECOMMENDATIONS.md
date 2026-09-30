@@ -175,9 +175,9 @@ scripts you'll use (Square, analytics); adding it now risks breaking them.
 - Drops no longer have an Open / Claimed status. Drop #001's own text still
   mentions one: its item caption reads "Found & claimed" and its brief ends
   "Recovered 2026.06.28." `data-status` can go from `drops.html`.
-- Coordinates are always labelled °N and °W, so a drop south of the equator
-  or east of Greenwich would show the wrong hemisphere. Anywhere in the
-  Americas north of the equator is fine.
+- With JavaScript off, the Drops page is an empty frame: the records are
+  filled in by the script, and always have been. The build could also write
+  each drop out as plain text for that case.
 - The "100 m" and "250 m" ring labels overlap at the default zoom.
 
 ### Store

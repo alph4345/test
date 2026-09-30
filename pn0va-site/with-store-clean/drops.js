@@ -107,6 +107,9 @@
     el.n.textContent      = d.n;
     el.lat.textContent    = mag(d.lat);
     el.lng.textContent    = mag(d.lng);
+    /* the unit says which side of the equator and of Greenwich (build.py) */
+    el.lat.nextElementSibling.textContent = "\u00b0" + (+d.lat < 0 ? "S" : "N");
+    el.lng.nextElementSibling.textContent = "\u00b0" + (+d.lng < 0 ? "W" : "E");
     el.placed.textContent = d.placed;
     el.days.textContent   = daysSince(d.placed);
     el.place.textContent  = d.place || "—";
@@ -126,6 +129,7 @@
                   "#map=" + (d.zoom || 15) + "/" + d.lat + "/" + d.lng;
 
     moveMap(+d.lat, +d.lng, +(d.zoom || 15));
+    document.dispatchEvent(new CustomEvent("pn0va:drop", { detail: { index: i } }));
   }
 
   /* --- map -------------------------------------------------------------- */
@@ -331,6 +335,22 @@
   })();
 
   buildManifest();
-  show(0);
+  /* drops#003 opens on drop 003 (build.py; see drops-world.js) */
+  var start = 0;
+  entries.forEach(function (e, i) { if ("#" + e.dataset.n === location.hash) start = i; });
+  show(start);
   setTimeout(function(){ if (map) map.invalidateSize(); }, 250);
+
+  /* For drops-world.js, which moves between the world view and a drop. */
+  window.pn0vaDrops = {
+    entries: entries,
+    current: function () { return current; },
+    /* Show drop i in a panel that has just become visible. Size the map
+       first: while hidden, Leaflet measured it as nothing. */
+    open: function (i) {
+      if (map) map.invalidateSize({ pan: false });
+      current = -1;
+      show(i);
+    }
+  };
 })();

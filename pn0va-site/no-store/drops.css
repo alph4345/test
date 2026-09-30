@@ -475,3 +475,127 @@ html:not(.js) .dp-entry{ display:contents; }   /* no JS: show them all, stacked 
   z-index:480; padding:10px 14px; white-space:nowrap;
   background:rgba(0,0,0,.85); border:1px solid var(--pn-hairline);
 }
+
+/* --------------------------------------------------------------------------
+   WORLD VIEW — added by build.py (drops-world.js)
+   The page's first screen: the list of drops beside a globe. html[data-view]
+   says which screen shows; it is set from the address before the page draws
+   (drops#003 is a drop), so the other screen never flashes past.
+   -------------------------------------------------------------------------- */
+html.js[data-view="world"] .dp-shell{ display:none; }
+html:not(.js) .dw-shell, html.js:not([data-view="world"]) .dw-shell{ display:none; }
+
+.dw-shell{
+  display:grid; grid-template-columns:340px minmax(0,1fr); gap:12px;
+  padding:74px 14px 14px; height:100vh; height:100dvh;
+  max-width:1400px; margin:0 auto; position:relative; z-index:1;
+}
+.dw-list .dp-panel__body{ padding:0; overflow-y:auto; }
+.dw-help{
+  margin:0; padding:11px 12px 10px; border-bottom:1px solid var(--pn-divider);
+  font-size:9px; letter-spacing:.16em; text-transform:uppercase; color:var(--pn-ink);
+}
+.dw-help b{ font-weight:400; color:var(--pn-red); font-size:8px; margin-right:10px; }
+.dw-row{
+  position:relative; display:grid; grid-template-columns:auto minmax(0,1fr) auto auto;
+  gap:10px; align-items:baseline; padding:13px 12px;
+  border-bottom:1px solid var(--pn-divider); text-decoration:none; color:var(--pn-ink-muted);
+  transition:color var(--pn-dur-state) ease, background var(--pn-dur-state) ease;
+}
+.dw-row:hover, .dw-row[aria-current="true"]{ background:var(--pn-red-20); color:var(--pn-signal); }
+.dw-row[aria-current="true"]::before{
+  content:""; position:absolute; left:0; top:0; bottom:0; width:3px; background:var(--pn-red);
+}
+.dw-row:focus-visible{ outline:2px solid var(--pn-focus); outline-offset:-2px; }
+.dw-n{ font-size:12px; letter-spacing:.06em; color:var(--pn-red); font-variant-numeric:tabular-nums; }
+.dw-row[aria-current="true"] .dw-n{ color:var(--pn-signal); }
+.dw-place{
+  font-size:9px; letter-spacing:.12em; text-transform:uppercase; color:var(--pn-ink);
+  white-space:nowrap; overflow:hidden; text-overflow:ellipsis;
+}
+.dw-date{ font-size:9px; letter-spacing:.1em; font-variant-numeric:tabular-nums; }
+/* the cut between screens: a red flash that fades (drops-world.js) */
+.dw-cut{
+  position:fixed; inset:0; z-index:90; pointer-events:none;
+  background:radial-gradient(ellipse at 50% 55%, var(--pn-red-30), var(--pn-red-07) 55%, transparent 80%);
+  animation:dw-cut .45s ease-out forwards;
+}
+@keyframes dw-cut{ from{ opacity:1; } to{ opacity:0; } }
+
+/* a menu confirms a choice by flashing it */
+.dw-row.is-chosen{ animation:dw-confirm .42s steps(1,end); }
+@keyframes dw-confirm{
+  0%, 50%{ background:var(--pn-red-60); }
+  25%, 75%{ background:var(--pn-red-20); }
+}
+
+/* NEW: a drop's first week. Red, like the pointer: it is where to look. */
+.dp-new{
+  display:inline-block; align-self:center; justify-self:end; padding:3px 4px 2px;
+  font-size:7px; line-height:1; letter-spacing:.14em; text-transform:uppercase;
+  color:var(--pn-void); background:var(--pn-red); border-radius:2px;
+}
+
+.dw-stage .dw-globe{ padding:0; position:relative; overflow:hidden; flex:1 1 auto; min-height:0; }
+.dw-globe canvas{
+  position:absolute; inset:0; width:100%; height:100%; display:block;
+  cursor:grab; touch-action:none;
+}
+.dw-globe::after{             /* the scanline wash from the street map */
+  content:""; position:absolute; inset:0; pointer-events:none;
+  background:repeating-linear-gradient(to bottom, rgba(0,0,0,.14) 0 1px, transparent 1px 4px);
+}
+.dw-callout{
+  position:absolute; z-index:2; pointer-events:none; padding:6px 9px 5px;
+  background:rgba(0,0,0,.82); border:1px solid var(--pn-red); border-radius:2px;
+  font-size:8px; line-height:1.8; letter-spacing:.14em; text-transform:uppercase;
+  color:var(--pn-ink-muted); white-space:nowrap;
+}
+.dw-callout[hidden]{ display:none; }
+.dw-callout b{ display:block; font-weight:400; font-size:10px; color:var(--pn-signal); }
+.dw-bar{
+  display:flex; align-items:center; gap:14px; padding:8px 10px 8px 12px; flex:0 0 auto;
+  border-top:var(--pn-hairline-w) solid var(--pn-hairline);
+  font-size:9px; letter-spacing:.14em; text-transform:uppercase; color:var(--pn-ink-muted);
+}
+.dw-arrows{ color:var(--pn-red); }
+.dw-to{ color:var(--pn-signal); min-width:0; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+.dw-coords{ margin-left:auto; color:var(--pn-ink); font-variant-numeric:tabular-nums; white-space:nowrap; }
+.dw-go{
+  flex:0 0 auto; padding:8px 11px; white-space:nowrap; text-decoration:none;
+  font-size:9px; letter-spacing:.14em; color:var(--pn-ink);
+  border:2px solid var(--pn-red); border-radius:var(--pn-radius-sm);
+  transition:color var(--pn-dur-state) ease, background var(--pn-dur-state) ease;
+}
+.dw-go:hover{ color:var(--pn-signal); background:var(--pn-red-07); }
+.dw-go:focus-visible{ outline:2px solid var(--pn-focus); outline-offset:2px; }
+
+/* the way back, at the head of the drop screen's list */
+.dp-world-back{
+  display:block; width:100%; flex:0 0 auto; text-align:left; cursor:pointer;
+  font:inherit; font-size:9px; letter-spacing:.16em; text-transform:uppercase;
+  color:var(--pn-ink-muted); background:none;
+  border:0; border-bottom:1px solid var(--pn-divider); padding:10px 11px;
+  transition:color var(--pn-dur-state) ease, background var(--pn-dur-state) ease;
+}
+.dp-world-back span{ color:var(--pn-red); margin-right:6px; }
+.dp-world-back:hover{ color:var(--pn-signal); background:var(--pn-red-07); }
+.dp-world-back:focus-visible{ outline:2px solid var(--pn-focus); outline-offset:-2px; }
+
+@media (max-width:900px){
+  .dw-shell{
+    grid-template-columns:minmax(0,1fr); grid-template-rows:minmax(0,1.2fr) minmax(0,1fr);
+    padding:58px 10px 10px; gap:8px;
+  }
+  .dw-stage{ order:-1; }
+  .dw-coords, .dw-from, .dw-arrows{ display:none; }
+  .dw-go{ margin-left:auto; }
+  .dw-row{ padding:11px 10px; }
+  /* the drop screen's list is a strip here; the way back leads it */
+  .dp-manifest{ flex-direction:row; }
+  .dp-manifest .dp-panel__body{ flex:1 1 auto; min-width:0; }
+  .dp-world-back{
+    width:auto; white-space:nowrap; padding:8px 12px;
+    border-bottom:0; border-right:1px solid var(--pn-divider);
+  }
+}

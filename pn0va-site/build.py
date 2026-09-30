@@ -722,6 +722,240 @@ def fly_in_drops(html: str) -> str:
     return html
 
 
+# --- the world view: the Drops page's first screen ----------------------------
+# A globe with a point for every drop and the list of drops beside it; choosing
+# one dives into the drop's record, all on one page (drops#003 is drop 003).
+# drops-world.js does it, with d3-geo and Natural Earth's coastlines in
+# _source/world. The record screen itself is the brand kit's, unchanged.
+WORLD_SRC = ROOT / "_source/world"
+
+WORLD_HTML = """
+<!-- ============ WORLD: every drop on the globe (drops-world.js) ============
+     The first screen. html[data-view] says which one is showing; without
+     JavaScript this one stays hidden and the drops read as one long page. -->
+<section class="dw-shell" id="dw" aria-label="Drops around the world">
+  <section class="dp-panel dw-list" aria-label="Drops" data-fly="left" data-fly-delay="60">
+    <div class="dp-panel__head"><span>Drops</span><span class="dp-idx" id="dw-count">&mdash;</span></div>
+    <p class="dw-help"><b>Help</b>Select a drop.</p>
+    <div class="dp-panel__body" id="dw-rows"></div>
+  </section>
+  <section class="dp-panel dw-stage" aria-label="World" data-fly="right" data-fly-delay="60">
+    <div class="dp-panel__head"><span>World</span>__HELP__</div>
+    <div class="dp-panel__body dw-globe" id="dw-globe">
+      <canvas id="dw-canvas" aria-hidden="true"></canvas>
+      <div class="dw-callout" id="dw-callout" aria-hidden="true" hidden></div>
+    </div>
+    <div class="dw-bar">
+      <span class="dw-from">World</span><span class="dw-arrows" aria-hidden="true">&gt;&gt;</span>
+      <span class="dw-to" id="dw-to">&mdash;</span>
+      <span class="dw-coords" id="dw-coords"></span>
+      <a class="dw-go" id="dw-go" href="#">Open drop <span aria-hidden="true">&gt;</span></a>
+    </div>
+  </section>
+</section>
+
+"""
+
+
+def world_view(html: str) -> str:
+    """drops.html: the world screen, its scripts, and which screen to open on."""
+    js_on = "<script>document.documentElement.classList.add('js');</script>"
+    help_box = re.search(r'<details class="dp-help" id="dp-help">.*?</details>', html, re.S)
+    if html.count(js_on) != 1 or not help_box or html.count('<main class="dp-shell">') != 1:
+        sys.exit("drops.html changed; update world_view() in build.py")
+    # decided before the page draws, so the other screen never flashes past
+    html = html.replace(js_on, js_on + "\n<script>document.documentElement.dataset.view"
+                        " = /^#./.test(location.hash) ? \"drop\" : \"world\";</script>", 1)
+    # the world has its own "What is a drop?", top right as on a drop: the
+    # other lives in a panel that is hidden here
+    html = html.replace('<main class="dp-shell">', WORLD_HTML.replace(
+        "__HELP__", help_box.group(0).replace('id="dp-help"', 'id="dw-help"')) +
+        '<main class="dp-shell">', 1)
+    html, n = re.subn(r'(<script src="drops\.js[^"]*"></script>)', lambda m: m.group(1) + "".join(
+        f'\n<script src="vendor/world/{lib}.min.js?v={VER}"></script>'
+        for lib in ("d3-array", "d3-geo", "topojson-client")) +
+        f'\n<script src="drops-world.js?v={VER}" data-land="maps/world.json"></script>', html, count=1)
+    if not n:
+        sys.exit("drops.html changed; update world_view() in build.py")
+    return html
+
+
+def drops_api_js(js: str) -> str:
+    """drops.js: open on the drop in the address, say when the drop changes,
+    let drops-world.js open one, and label the hemispheres properly."""
+    subs = [
+        ("""    el.lat.textContent    = mag(d.lat);
+    el.lng.textContent    = mag(d.lng);
+""", """    el.lat.textContent    = mag(d.lat);
+    el.lng.textContent    = mag(d.lng);
+    /* the unit says which side of the equator and of Greenwich (build.py) */
+    el.lat.nextElementSibling.textContent = "\\u00b0" + (+d.lat < 0 ? "S" : "N");
+    el.lng.nextElementSibling.textContent = "\\u00b0" + (+d.lng < 0 ? "W" : "E");
+"""),
+        ("""    moveMap(+d.lat, +d.lng, +(d.zoom || 15));
+  }
+""", """    moveMap(+d.lat, +d.lng, +(d.zoom || 15));
+    document.dispatchEvent(new CustomEvent("pn0va:drop", { detail: { index: i } }));
+  }
+"""),
+        ("""  buildManifest();
+  show(0);
+  setTimeout(function(){ if (map) map.invalidateSize(); }, 250);
+})();""", """  buildManifest();
+  /* drops#003 opens on drop 003 (build.py; see drops-world.js) */
+  var start = 0;
+  entries.forEach(function (e, i) { if ("#" + e.dataset.n === location.hash) start = i; });
+  show(start);
+  setTimeout(function(){ if (map) map.invalidateSize(); }, 250);
+
+  /* For drops-world.js, which moves between the world view and a drop. */
+  window.pn0vaDrops = {
+    entries: entries,
+    current: function () { return current; },
+    /* Show drop i in a panel that has just become visible. Size the map
+       first: while hidden, Leaflet measured it as nothing. */
+    open: function (i) {
+      if (map) map.invalidateSize({ pan: false });
+      current = -1;
+      show(i);
+    }
+  };
+})();"""),
+    ]
+    for old, new in subs:
+        if js.count(old) != 1:
+            sys.exit("drops.js changed; update drops_api_js() in build.py")
+        js = js.replace(old, new)
+    return js
+
+
+DROPS_WORLD_CSS = """
+/* --------------------------------------------------------------------------
+   WORLD VIEW — added by build.py (drops-world.js)
+   The page's first screen: the list of drops beside a globe. html[data-view]
+   says which screen shows; it is set from the address before the page draws
+   (drops#003 is a drop), so the other screen never flashes past.
+   -------------------------------------------------------------------------- */
+html.js[data-view="world"] .dp-shell{ display:none; }
+html:not(.js) .dw-shell, html.js:not([data-view="world"]) .dw-shell{ display:none; }
+
+.dw-shell{
+  display:grid; grid-template-columns:340px minmax(0,1fr); gap:12px;
+  padding:74px 14px 14px; height:100vh; height:100dvh;
+  max-width:1400px; margin:0 auto; position:relative; z-index:1;
+}
+.dw-list .dp-panel__body{ padding:0; overflow-y:auto; }
+.dw-help{
+  margin:0; padding:11px 12px 10px; border-bottom:1px solid var(--pn-divider);
+  font-size:9px; letter-spacing:.16em; text-transform:uppercase; color:var(--pn-ink);
+}
+.dw-help b{ font-weight:400; color:var(--pn-red); font-size:8px; margin-right:10px; }
+.dw-row{
+  position:relative; display:grid; grid-template-columns:auto minmax(0,1fr) auto auto;
+  gap:10px; align-items:baseline; padding:13px 12px;
+  border-bottom:1px solid var(--pn-divider); text-decoration:none; color:var(--pn-ink-muted);
+  transition:color var(--pn-dur-state) ease, background var(--pn-dur-state) ease;
+}
+.dw-row:hover, .dw-row[aria-current="true"]{ background:var(--pn-red-20); color:var(--pn-signal); }
+.dw-row[aria-current="true"]::before{
+  content:""; position:absolute; left:0; top:0; bottom:0; width:3px; background:var(--pn-red);
+}
+.dw-row:focus-visible{ outline:2px solid var(--pn-focus); outline-offset:-2px; }
+.dw-n{ font-size:12px; letter-spacing:.06em; color:var(--pn-red); font-variant-numeric:tabular-nums; }
+.dw-row[aria-current="true"] .dw-n{ color:var(--pn-signal); }
+.dw-place{
+  font-size:9px; letter-spacing:.12em; text-transform:uppercase; color:var(--pn-ink);
+  white-space:nowrap; overflow:hidden; text-overflow:ellipsis;
+}
+.dw-date{ font-size:9px; letter-spacing:.1em; font-variant-numeric:tabular-nums; }
+/* the cut between screens: a red flash that fades (drops-world.js) */
+.dw-cut{
+  position:fixed; inset:0; z-index:90; pointer-events:none;
+  background:radial-gradient(ellipse at 50% 55%, var(--pn-red-30), var(--pn-red-07) 55%, transparent 80%);
+  animation:dw-cut .45s ease-out forwards;
+}
+@keyframes dw-cut{ from{ opacity:1; } to{ opacity:0; } }
+
+/* a menu confirms a choice by flashing it */
+.dw-row.is-chosen{ animation:dw-confirm .42s steps(1,end); }
+@keyframes dw-confirm{
+  0%, 50%{ background:var(--pn-red-60); }
+  25%, 75%{ background:var(--pn-red-20); }
+}
+
+/* NEW: a drop's first week. Red, like the pointer: it is where to look. */
+.dp-new{
+  display:inline-block; align-self:center; justify-self:end; padding:3px 4px 2px;
+  font-size:7px; line-height:1; letter-spacing:.14em; text-transform:uppercase;
+  color:var(--pn-void); background:var(--pn-red); border-radius:2px;
+}
+
+.dw-stage .dw-globe{ padding:0; position:relative; overflow:hidden; flex:1 1 auto; min-height:0; }
+.dw-globe canvas{
+  position:absolute; inset:0; width:100%; height:100%; display:block;
+  cursor:grab; touch-action:none;
+}
+.dw-globe::after{             /* the scanline wash from the street map */
+  content:""; position:absolute; inset:0; pointer-events:none;
+  background:repeating-linear-gradient(to bottom, rgba(0,0,0,.14) 0 1px, transparent 1px 4px);
+}
+.dw-callout{
+  position:absolute; z-index:2; pointer-events:none; padding:6px 9px 5px;
+  background:rgba(0,0,0,.82); border:1px solid var(--pn-red); border-radius:2px;
+  font-size:8px; line-height:1.8; letter-spacing:.14em; text-transform:uppercase;
+  color:var(--pn-ink-muted); white-space:nowrap;
+}
+.dw-callout[hidden]{ display:none; }
+.dw-callout b{ display:block; font-weight:400; font-size:10px; color:var(--pn-signal); }
+.dw-bar{
+  display:flex; align-items:center; gap:14px; padding:8px 10px 8px 12px; flex:0 0 auto;
+  border-top:var(--pn-hairline-w) solid var(--pn-hairline);
+  font-size:9px; letter-spacing:.14em; text-transform:uppercase; color:var(--pn-ink-muted);
+}
+.dw-arrows{ color:var(--pn-red); }
+.dw-to{ color:var(--pn-signal); min-width:0; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+.dw-coords{ margin-left:auto; color:var(--pn-ink); font-variant-numeric:tabular-nums; white-space:nowrap; }
+.dw-go{
+  flex:0 0 auto; padding:8px 11px; white-space:nowrap; text-decoration:none;
+  font-size:9px; letter-spacing:.14em; color:var(--pn-ink);
+  border:2px solid var(--pn-red); border-radius:var(--pn-radius-sm);
+  transition:color var(--pn-dur-state) ease, background var(--pn-dur-state) ease;
+}
+.dw-go:hover{ color:var(--pn-signal); background:var(--pn-red-07); }
+.dw-go:focus-visible{ outline:2px solid var(--pn-focus); outline-offset:2px; }
+
+/* the way back, at the head of the drop screen's list */
+.dp-world-back{
+  display:block; width:100%; flex:0 0 auto; text-align:left; cursor:pointer;
+  font:inherit; font-size:9px; letter-spacing:.16em; text-transform:uppercase;
+  color:var(--pn-ink-muted); background:none;
+  border:0; border-bottom:1px solid var(--pn-divider); padding:10px 11px;
+  transition:color var(--pn-dur-state) ease, background var(--pn-dur-state) ease;
+}
+.dp-world-back span{ color:var(--pn-red); margin-right:6px; }
+.dp-world-back:hover{ color:var(--pn-signal); background:var(--pn-red-07); }
+.dp-world-back:focus-visible{ outline:2px solid var(--pn-focus); outline-offset:-2px; }
+
+@media (max-width:900px){
+  .dw-shell{
+    grid-template-columns:minmax(0,1fr); grid-template-rows:minmax(0,1.2fr) minmax(0,1fr);
+    padding:58px 10px 10px; gap:8px;
+  }
+  .dw-stage{ order:-1; }
+  .dw-coords, .dw-from, .dw-arrows{ display:none; }
+  .dw-go{ margin-left:auto; }
+  .dw-row{ padding:11px 10px; }
+  /* the drop screen's list is a strip here; the way back leads it */
+  .dp-manifest{ flex-direction:row; }
+  .dp-manifest .dp-panel__body{ flex:1 1 auto; min-width:0; }
+  .dp-world-back{
+    width:auto; white-space:nowrap; padding:8px 12px;
+    border-bottom:0; border-right:1px solid var(--pn-divider);
+  }
+}
+"""
+
+
 def omit_status_js(js: str) -> str:
     """drops.js: rows without OPEN / CLAIMED, and nothing written to the
     chip and tally omit_status_html() removed."""
@@ -850,7 +1084,7 @@ def build(with_shop: bool):
     drops = drops.replace('<link rel="stylesheet" href="drops.css',
                           '<link rel="stylesheet" href="page-style.css?v=' + VER +
                           '">\n<link rel="stylesheet" href="drops.css')
-    drops = fly_in_drops(omit_status_html(self_hosted_map_html(drops)))
+    drops = world_view(fly_in_drops(omit_status_html(self_hosted_map_html(drops))))
     (out / "drops.html").write_text(drops, encoding="utf-8", newline=NL)
 
     # No FIREFLY_CSS here: the living layer belongs to the home page only.
@@ -858,14 +1092,22 @@ def build(with_shop: bool):
     # are trying to read is atmosphere in the wrong place.
     shutil.copy(BRAND / "drops/drops.css", out / "drops.css")
     (out / "drops.css").write_text((out / "drops.css").read_text(encoding="utf-8")
-                                   + DROPS_BAR_CSS + DROPS_PHONE_CSS + DROPS_MAP_CSS, encoding="utf-8", newline=NL)
+                                   + DROPS_BAR_CSS + DROPS_PHONE_CSS + DROPS_MAP_CSS
+                                   + DROPS_WORLD_CSS, encoding="utf-8", newline=NL)
     (out / "drops.js").write_text(
-        omit_status_js(self_hosted_map_js((BRAND / "drops/drops.js").read_text(encoding="utf-8"))),
+        drops_api_js(omit_status_js(self_hosted_map_js(
+            (BRAND / "drops/drops.js").read_text(encoding="utf-8")))),
         encoding="utf-8", newline=NL)
     shutil.copy(MAP_SRC / "drops-map.js", out / "drops-map.js")
     (out / "vendor/protomaps-leaflet").mkdir(parents=True, exist_ok=True)
     for f in ("protomaps-leaflet.js", "protomaps-leaflet.LICENSE"):
         shutil.copy(MAP_SRC / "vendor" / f, out / "vendor/protomaps-leaflet" / f)
+    # the world view: its script, d3-geo and friends, and the coastlines
+    shutil.copy(WORLD_SRC / "drops-world.js", out / "drops-world.js")
+    shutil.copytree(WORLD_SRC / "vendor", out / "vendor/world", dirs_exist_ok=True)
+    (out / "maps").mkdir(exist_ok=True)
+    shutil.copy(WORLD_SRC / "land.json", out / "maps/world.json")
+    shutil.copy(WORLD_SRC / "world-atlas.LICENSE", out / "maps/world.LICENSE")
     # the map itself exists once tools/make-map.py has been run
     if (MAP_SRC / "drops.pmtiles").exists():
         (out / "maps").mkdir(exist_ok=True)
@@ -1724,13 +1966,13 @@ ErrorDocument 404 /
   <FilesMatch "\\.(html|css|js)$">
     Header set Cache-Control "no-cache"
   </FilesMatch>
-  <FilesMatch "\\.(png|jpe?g|gif|webp|svg|ico|woff2|pmtiles)$">
+  <FilesMatch "\\.(png|jpe?g|gif|webp|svg|ico|woff2|pmtiles|json)$">
     Header set Cache-Control "public, max-age=86400"
   </FilesMatch>
 </IfModule>
 
 <IfModule mod_deflate.c>
-  AddOutputFilterByType DEFLATE text/html text/css text/plain text/xml application/xml application/javascript text/javascript image/svg+xml
+  AddOutputFilterByType DEFLATE text/html text/css text/plain text/xml application/xml application/javascript text/javascript application/json image/svg+xml
 </IfModule>
 """
 
@@ -1756,7 +1998,7 @@ def build_clean(flat: pathlib.Path, with_shop: bool) -> pathlib.Path:
     pages = ["blog", "projects", "drops", "about"] + (["store"] if with_shop else [])
     assets = ("style.css", "page-style.css", "drops.css", "reader.css", "tokens.css",
               "script.js", "page-script.js", "reader.js", "drops.js", "store.js",
-              "drops-map.js", "favicon.ico", "favicon.svg", "apple-touch-icon.png")
+              "drops-map.js", "drops-world.js", "favicon.ico", "favicon.svg", "apple-touch-icon.png")
 
     def rootify(html: str) -> str:
         # assets -> /asset
@@ -1849,8 +2091,8 @@ def stamp_assets(folder: pathlib.Path):
             js.write_text(atlas.sub(sub, text), encoding="utf-8", newline=NL)
 
     pat = re.compile(r'((?:href|src)=")([^"?]+\.(?:css|js))\?v=[^"]*(")')
-    img = re.compile(r'((?:href|src|content|data-hint|data-item|data-map)=")'
-                     r'((?:' + re.escape(SITE_URL) + r')?[^":?#]+\.(?:png|svg|ico|jpe?g|webp|gif|pmtiles))'
+    img = re.compile(r'((?:href|src|content|data-hint|data-item|data-map|data-land)=")'
+                     r'((?:' + re.escape(SITE_URL) + r')?[^":?#]+\.(?:png|svg|ico|jpe?g|webp|gif|pmtiles|json))'
                      r'(?:\?v=[^"]*)?(")')
     for html in folder.rglob("*.html"):
         text = html.read_text(encoding="utf-8")
