@@ -570,17 +570,59 @@ html:not(.js) .dw-shell, html.js:not([data-view="world"]) .dw-shell{ display:non
 .dw-go:hover{ color:var(--pn-signal); background:var(--pn-red-07); }
 .dw-go:focus-visible{ outline:2px solid var(--pn-focus); outline-offset:2px; }
 
-/* the way back, at the head of the drop screen's list */
-.dp-world-back{
-  display:block; width:100%; flex:0 0 auto; text-align:left; cursor:pointer;
-  font:inherit; font-size:9px; letter-spacing:.16em; text-transform:uppercase;
-  color:var(--pn-ink-muted); background:none;
-  border:0; border-bottom:1px solid var(--pn-divider); padding:10px 11px;
-  transition:color var(--pn-dur-state) ease, background var(--pn-dur-state) ease;
+/* zoom: + and - a doubling at a time, the globe back to the whole globe.
+   Drawn like the street map's own controls, bars rather than glyphs. */
+.dw-zoom{
+  position:absolute; left:10px; top:10px; z-index:3;
+  display:flex; flex-direction:column;
 }
-.dp-world-back span{ color:var(--pn-red); margin-right:6px; }
-.dp-world-back:hover{ color:var(--pn-signal); background:var(--pn-red-07); }
-.dp-world-back:focus-visible{ outline:2px solid var(--pn-focus); outline-offset:-2px; }
+.dw-zoom button{
+  position:relative; display:grid; place-items:center;
+  width:28px; height:28px; padding:0; cursor:pointer; font:inherit;
+  background:rgba(0,0,0,.85); color:var(--pn-red);
+  border:1px solid var(--pn-hairline); border-radius:0;
+  transition:color var(--pn-dur-state) ease;
+}
+.dw-zoom .dw-zoom-out{ border-top:0; }
+.dw-zoom .dw-zoom-all{ margin-top:6px; }
+.dw-zoom .dw-zoom-in::before, .dw-zoom .dw-zoom-in::after, .dw-zoom .dw-zoom-out::before{
+  content:""; position:absolute; left:50%; top:50%; background:currentColor;
+}
+.dw-zoom .dw-zoom-in::before, .dw-zoom .dw-zoom-out::before{ width:11px; height:2px; margin:-1px 0 0 -5.5px; }
+.dw-zoom .dw-zoom-in::after{ width:2px; height:11px; margin:-5.5px 0 0 -1px; }
+.dw-zoom svg{ width:16px; height:16px; fill:none; stroke:currentColor; stroke-width:1.3; }
+.dw-zoom button:hover{ color:var(--pn-signal); }
+.dw-zoom button[aria-disabled="true"]{ color:var(--pn-ink-faint); cursor:default; }
+.dw-zoom button:focus-visible{ outline:2px solid var(--pn-focus); outline-offset:2px; }
+
+/* WORLD MAP: the way back, at the top of the drop screen's list. A real
+   button, framed and lit in red, with Esc beside it for keyboards. */
+.dp-world-back{
+  display:flex; align-items:center; gap:9px; flex:0 0 auto;
+  margin:8px 8px 4px; padding:9px 10px; cursor:pointer; text-align:left;
+  font:inherit; font-size:10px; letter-spacing:.16em; text-transform:uppercase;
+  color:var(--pn-ink-strong); background:var(--pn-red-07);
+  border:2px solid var(--pn-red); border-radius:var(--pn-radius-sm);
+  box-shadow:0 0 14px var(--pn-red-30);
+  transition:color var(--pn-dur-state) ease, background var(--pn-dur-state) ease,
+             box-shadow var(--pn-dur-state) ease;
+}
+.dp-world-back svg{
+  width:16px; height:16px; flex:0 0 auto;
+  fill:none; stroke:var(--pn-red); stroke-width:1.3;
+}
+.dp-world-back .key{
+  margin-left:auto; padding:3px 4px 2px; font-size:7px; letter-spacing:.1em;
+  color:var(--pn-ash); border:1px solid var(--pn-slate); border-radius:2px;
+}
+.dp-world-back:hover{ color:var(--pn-signal); background:var(--pn-red-20); box-shadow:var(--pn-glow-hover); }
+.dp-world-back:focus-visible{ outline:2px solid var(--pn-focus); outline-offset:2px; }
+@media (pointer:coarse){ .dp-world-back .key{ display:none; } }
+
+/* ...and on the street map, the globe under recentre */
+.dp-recenter.dp-to-world a{ display:grid; place-items:center; text-indent:0; }
+.dp-recenter.dp-to-world a::before, .dp-recenter.dp-to-world a::after{ content:none; }
+.dp-recenter.dp-to-world svg{ width:16px; height:16px; fill:none; stroke:currentColor; stroke-width:1.3; }
 
 @media (max-width:900px){
   .dw-shell{
@@ -591,11 +633,10 @@ html:not(.js) .dw-shell, html.js:not([data-view="world"]) .dw-shell{ display:non
   .dw-coords, .dw-from, .dw-arrows{ display:none; }
   .dw-go{ margin-left:auto; }
   .dw-row{ padding:11px 10px; }
+  .dw-zoom button{ width:32px; height:32px; }
   /* the drop screen's list is a strip here; the way back leads it */
-  .dp-manifest{ flex-direction:row; }
-  .dp-manifest .dp-panel__body{ flex:1 1 auto; min-width:0; }
-  .dp-world-back{
-    width:auto; white-space:nowrap; padding:8px 12px;
-    border-bottom:0; border-right:1px solid var(--pn-divider);
-  }
+  .dp-manifest{ flex-direction:row; align-items:center; }
+  .dp-manifest .dp-panel__body{ flex:1 1 auto; min-width:0; align-self:stretch; }
+  .dp-world-back{ margin:5px 4px 5px 6px; padding:6px 9px; font-size:9px; white-space:nowrap; }
+  .dp-world-back .key{ display:none; }
 }

@@ -345,6 +345,7 @@
   window.pn0vaDrops = {
     entries: entries,
     current: function () { return current; },
+    map: function () { return map; },
     /* Show drop i in a panel that has just become visible. Size the map
        first: while hidden, Leaflet measured it as nothing. */
     open: function (i) {

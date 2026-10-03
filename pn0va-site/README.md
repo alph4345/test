@@ -109,8 +109,11 @@ The Drops page is one page with two screens.
   globe to it; choosing one (click, Enter, or tapping its point twice) dives
   the globe in, flashes, and flies in the drop.
 - **A drop** (`pn0va.com/drops#003`): the record as before: coordinates,
-  street map, hint, brief and item. `< WORLD` at the top of its list, Esc, or
-  the browser's Back pulls back out to the globe.
+  street map, hint, brief and item. **WORLD MAP** at the top of its list (the
+  first button in the strip on a phone), the globe button on the street map,
+  Esc, or the browser's Back pulls back out to the globe. Choosing another
+  drop in the list, or with the arrow keys, flies the windows out and back
+  in with it.
 
 Every drop has its own address, so a link to `pn0va.com/drops#003` opens on
 that drop, and Back, reload and sharing all work. A drop is marked **NEW**
@@ -121,8 +124,15 @@ Adding a drop hasn't changed: one `<article class="dp-entry">` in
 
 The globe is drawn in the brand palette from `tokens.css`: ember sea, slate
 land, ash coasts, a linen sheen, red for the instruments (graticule, rim,
-pointer, NEW) and bone for the drop you are on. Nearby drops share one point
-with a count (the three San Francisco drops show as x3). Its files:
+pointer, NEW) and bone for the drop you are on.
+
+Every drop has its own point. Drops too close together to tell apart, like
+the three in San Francisco, sit on a small ring around the spot they share,
+each on a thread back to it, in the order they really lie (Alcatraz on top).
+The globe zooms with its **+** and **−** buttons, the mouse wheel, a pinch, or
+the + − 0 keys, as far as about a state across: closer than that, the
+coastline data turns to polygons. The globe button below them goes back to
+the whole globe. Its files:
 
 - `drops-world.js`, from `_source/world/`;
 - `vendor/world/`: d3-geo, d3-array and topojson-client (ISC licence) draw
@@ -131,9 +141,28 @@ with a count (the three San Francisco drops show as x3). Its files:
   domain) thinned to 16,000 points, 161 KB (58 KB compressed). The server
   compresses it: the `.htaccess` now covers JSON.
 
-With reduced motion on, the screens change without the dive or the flights.
-With JavaScript off, the world view stays hidden and the page is the drop
-frame it always was.
+With reduced motion on, the screens and drops change without the dive or the
+flights. With JavaScript off, the world view stays hidden and the page is the
+drop frame it always was.
+
+## 2026.10.03 update
+
+- **Every drop has its own point on the globe.** The three San Francisco
+  drops were one point marked x3, so pointing at 002 or 001 seemed to do
+  nothing. They now sit on a small ring around their spot, and the pointer
+  moves to each one.
+- **The globe zooms**: + and − buttons at its top left (and the mouse wheel,
+  a pinch, or the + − 0 keys), and a globe button back to the whole globe.
+  A drop chosen while zoomed in opens as before, and WORLD MAP returns to
+  the same zoom.
+- **Changing drops animates like choosing one.** Picking a drop in the drop
+  screen's list, or with the arrow keys, flies its windows out and back in
+  with the new drop. Before, they cut over.
+- **The way back is easy to find.** `< WORLD` was a faint line of text. It is
+  now a red-framed **WORLD MAP** button at the top of the drop list, and a
+  globe button on the street map, under recentre.
+- With the street map focused, the arrow keys pan it. They used to pan it and
+  change the drop at the same time.
 
 ## 2026.09.30 update
 
@@ -357,3 +386,17 @@ turning between the cities · the globe turns at about 57 frames a second,
 and 30 with the processor slowed four times · every page at 1440 and 390px,
 JavaScript on and off: no console errors, sideways scrolling or outside
 requests.
+
+**2026.10.03**, clean and flat builds, desktop and phone: the three San
+Francisco drops drawn as three points at least 18px apart, the pointer
+landing on each as its row is pointed at, and a click on each selecting it ·
+zoom by button, keys, wheel and pinch, stopping at both ends, the selected
+drop staying where it is, and the page never scrolling · opening a drop
+zoomed in, and WORLD MAP returning at that zoom · changing drops by the list
+and the arrow keys: the five windows fly out and back while the list stays,
+the address follows without new history, and four quick changes end on the
+last one · WORLD MAP and the map's globe button at 12 widths from 320 to
+1920px, clear of the drop list · the callout clear of the zoom buttons at
+every width · the street map panning with the arrows · the Arizona test copy:
+four points, NEW in red · frame rates as before (about 55 a second turning
+on a desktop, 40 on a phone).
