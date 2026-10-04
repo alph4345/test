@@ -118,6 +118,7 @@
      re-runs on resize, so rotating a phone repaginates rather than clipping.
      ---------------------------------------------------------------------- */
   var items  = [].slice.call(document.querySelectorAll(".store-item"));
+  var shell  = document.getElementById("store-shell");
   var grid   = document.getElementById("store-grid");
   var pager  = document.getElementById("store-pager");
   var label  = document.getElementById("store-count");
@@ -126,12 +127,31 @@
   var page   = 0, perPage = items.length;
 
   function measure() {
+    shell.classList.remove("scrolls");
     items.forEach(function (it) { it.hidden = false; });
     var cols = getComputedStyle(grid).gridTemplateColumns.split(" ").length;
-    var card = items[0].getBoundingClientRect().height;
+    // the tallest card, so a row with a long description is not cut off
+    var card = Math.max.apply(null, items.map(function (it) {
+      return it.getBoundingClientRect().height;
+    }));
     var gap  = parseFloat(getComputedStyle(grid).rowGap) || 0;
-    var rows = Math.max(1, Math.floor((grid.clientHeight + gap) / (card + gap)));
-    perPage  = Math.max(1, cols * rows);
+    function fit() {
+      var rows = Math.max(1, Math.floor((grid.clientHeight + gap) / (card + gap)));
+      return Math.max(1, cols * rows);
+    }
+    // the pager takes a row of its own, so it is only shown when needed
+    pager.hidden = true;
+    perPage = fit();
+    if (perPage < items.length) { pager.hidden = false; perPage = fit(); }
+    // a screen too short for even one card (a phone on its side) has no
+    // pages: the store scrolls like any other page instead of cutting the
+    // card's ADD TO CART off
+    if (card > grid.clientHeight) {
+      shell.classList.add("scrolls");
+      perPage = items.length;
+    } else if (window.scrollY) {
+      window.scrollTo(0, 0);           // back from scrolling: the top again
+    }
   }
 
   function paint() {
@@ -141,17 +161,43 @@
       it.hidden = Math.floor(i / perPage) !== page;
     });
     pager.hidden = pages < 2;
-    label.textContent = "PAGE " + (page + 1) + " / " + pages;
+    var word = document.createElement("span");
+    word.className = "pg-word"; word.textContent = "PAGE ";
+    label.replaceChildren(word, (page + 1) + " / " + pages);
     prev.disabled = page === 0;
     next.disabled = page >= pages - 1;
   }
 
   function repaginate() { measure(); paint(); }
 
-  prev.addEventListener("click", function () { if (page > 0) { page--; paint(); } });
-  next.addEventListener("click", function () {
-    if ((page + 1) * perPage < items.length) { page++; paint(); }
-  });
+  /* A page turn is the same flight as the windows on arrival: this page's
+     cards fly out and the next page's fly in. A click made meanwhile decides
+     the page that lands. Without motion the page just changes. */
+  var reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+  var turning = false, wanted = -1;
+  function turn(by) {
+    var to = (wanted >= 0 ? wanted : page) + by;
+    if (to < 0 || to * perPage >= items.length) return;
+    wanted = to;
+    if (turning) return;
+    var fly = !reduceMotion && window.pn0vaFly;
+    if (!fly) { page = wanted; wanted = -1; paint(); return; }
+    turning = true;
+    (function step() {
+      if (wanted < 0) { turning = false; return; }
+      fly.exit(grid).then(function () {
+        page = wanted; wanted = -1;
+        paint();
+        // the cards just flown out stay off-screen until this clears them
+        items.forEach(function (it) {
+          it.style.transition = it.style.transform = it.style.willChange = "";
+        });
+        return fly.enter(grid);
+      }).then(step);
+    })();
+  }
+  prev.addEventListener("click", function () { turn(-1); });
+  next.addEventListener("click", function () { turn(1); });
 
   var t;
   window.addEventListener("resize", function () {

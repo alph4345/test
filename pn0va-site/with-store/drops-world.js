@@ -2,41 +2,50 @@
    DROPS — the world view
    --------------------------------------------------------------------------
    One page, two screens. The WORLD: a globe with a point for every drop and
-   the list of drops with their dates. A DROP: the record drops.js already
-   draws (frequency bar, street map, hint, brief, item).
+   the list of drops with their names and dates. A DROP: the record drops.js
+   already draws (frequency bar, street map, hint, brief, item).
 
      drops         the world
      drops#003     drop 003 (a link to one drop opens straight on it)
 
    Point at a drop in the list and the globe turns to it. Choose it and the
-   globe dives in, the list flies off, and the drop's windows fly in. WORLD
-   MAP (top of the drop list, and on the street map), Esc or the browser's
-   Back returns, pulling back out to the globe. Changing drops on the drop
-   screen, from its list or with the arrow keys, flies the windows out and
-   back in with the new drop.
+   globe dives in, the list flies off, and the drop's windows fly in, with
+   the same flight and red after-images as the About page. WORLD MAP (top of
+   the drop list, and on the street map), Esc or the browser's Back returns,
+   pulling back out to the globe. Changing drops on the drop screen, from its
+   list or with the arrow keys, flies the windows out and back in.
 
-   Every drop has its own point. Drops too close to tell apart at the
-   current zoom are spread around the spot they share, each on a thread back
-   to it. The globe zooms with its + and - buttons, the mouse wheel, a pinch,
-   or the + - 0 keys; the globe button goes back to the whole globe.
+   The globe is a map: coast, lakes, country borders, state and province
+   lines, and the names of countries, states, cities, peaks and landmarks.
+   They come from Natural Earth (public domain) at four levels of detail
+   made by tools/make-world: the whole globe loads at once, and closer in,
+   finer levels load for the part in view. Each level is the same coastline
+   simplified to the pixel, so zooming in only sharpens it. Landmarks come
+   from maps/landmarks.json, which is meant to be added to.
+
+   Every drop has its own point, which grows as you zoom in. Drops too close
+   to tell apart sit on a ring round the spot they share, each on a thread
+   back to it. Hover a point for the drop's name and date, or a city, peak or
+   landmark for what it is. Zoom with + and -, the mouse wheel, a pinch, or
+   the + - 0 keys; the globe button goes back to the whole globe.
 
    It reads the same <article class="dp-entry"> records as drops.js, so a
-   new drop is on the globe with nothing more to do. A drop is marked NEW
-   for its first week.
+   new drop is on the globe with nothing more to do. A drop is NEW for its
+   first week. One marked data-claimed="2026.06.28" (or just data-claimed)
+   shows CLAIMED on its page, in both lists and on the globe; a drop without
+   it shows nothing either way.
 
-   The globe is Natural Earth's coastline (public domain, 1:50m simplified)
-   drawn with d3-geo in the brand palette: an ember sea, slate land, ash
-   coasts, red instruments (graticule, rim, pointer), linen points, and bone
-   for the drop you are on. Colours come from tokens.css; the translucent
-   glows are the same red and linen at strengths the tokens don't list.
+   Colours come from tokens.css: an ember sea, slate land, ash coasts and
+   state lines, taupe borders, red instruments (graticule, rim, pointer),
+   linen points and names, bone for the drop you are on.
    ========================================================================== */
 
 (function () {
   "use strict";
 
   var NEW_DAYS = 7;                     // a drop is NEW for its first week
-  var ZOOM_MAX = 16;                    // a state across; closer, the 1:50m coast turns to polygons
-  var SPREAD = 18;                      // px: points closer than this are moved apart
+  var ZOOM_MAX = 64;                    // a city and its surroundings; the drop's own map has the streets
+  var LABEL_BIAS = 0.4;                 // names a little sparser than a web map's
 
   // A wireframe globe, on every way back to the whole world.
   var GLOBE = '<svg viewBox="0 0 16 16" aria-hidden="true" focusable="false">' +
@@ -44,7 +53,8 @@
               '<path d="M1.5 8h13M2.6 4.7h10.8M2.6 11.3h10.8"/></svg>';
 
   var me = document.currentScript;
-  var LAND = me && me.dataset.land ? new URL(me.dataset.land, me.src).href : null;
+  function attr(name) { return me && me.dataset[name] ? new URL(me.dataset[name], me.src).href : null; }
+  var WORLD = attr("world"), WORLD_V = (me && me.dataset.worldV) || "", MARKS = attr("landmarks");
   var drops = window.pn0vaDrops;        // from drops.js
   var root = document.documentElement;
   var world = document.getElementById("dw");
@@ -61,7 +71,8 @@
   function tok(name, fallback) { return css.getPropertyValue(name).trim() || fallback; }
   var RED = tok("--pn-red", "#FF1609"), EMBER = tok("--pn-ember", "#0A0000"),
       BONE = tok("--pn-bone", "#FFFFFF"), LINEN = tok("--pn-linen", "#E8E2DC"),
-      ASH = tok("--pn-ash", "#7A716B"), SLATE = tok("--pn-slate", "#3A3532");
+      TAUPE = tok("--pn-taupe", "#B0A49B"), ASH = tok("--pn-ash", "#7A716B"),
+      SLATE = tok("--pn-slate", "#3A3532");
 
   /* --- the drops ---------------------------------------------------------- */
   function daysSince(stamp) {
@@ -69,11 +80,17 @@
     var then = new Date(+p[0], +p[1] - 1, +p[2]);
     return isNaN(then) ? Infinity : (Date.now() - then) / 86400000;
   }
+  // data-claimed="2026.06.28" or bare data-claimed: claimed ("" if no date)
+  function claimedOf(e) {
+    if (!e.hasAttribute("data-claimed")) return null;
+    var v = (e.getAttribute("data-claimed") || "").trim();
+    return /^(no|false|0)$/i.test(v) ? null : v;
+  }
   var list = drops.entries.map(function (e, i) {
     var d = e.dataset;
     return { i: i, n: d.n, placed: d.placed || "", place: d.place || d.title || "",
              lat: parseFloat(d.lat), lng: parseFloat(d.lng),
-             isNew: daysSince(d.placed) < NEW_DAYS };
+             isNew: daysSince(d.placed) < NEW_DAYS, claimed: claimedOf(e) };
   });
   function indexOf(n) {
     for (var i = 0; i < list.length; i++) if (list[i].n === n) return i;
@@ -91,9 +108,14 @@
     if (text != null) x.textContent = text;
     return x;
   }
-  function newBadge() { return el("span", "dp-new", "New"); }
+  // Claimed outranks NEW: the item is gone, however recent the drop.
+  function tagFor(d) {
+    if (d.claimed !== null) return el("span", "dp-claimed-tag", "Claimed");
+    if (d.isNew) return el("span", "dp-new", "New");
+    return null;
+  }
 
-  /* --- the list ----------------------------------------------------------- */
+  /* --- the lists ---------------------------------------------------------- */
   var rows = document.getElementById("dw-rows");
   document.getElementById("dw-count").textContent = String(list.length).padStart(2, "0") + " REC";
   list.forEach(function (d) {
@@ -101,18 +123,24 @@
     a.href = "#" + d.n;
     a.appendChild(el("span", "dw-n", d.n));
     a.appendChild(el("span", "dw-place", d.place));
-    a.appendChild(d.isNew ? newBadge() : el("span"));
+    a.appendChild(tagFor(d) || el("span"));
     a.appendChild(el("span", "dw-date", d.placed));
     a.addEventListener("mouseenter", function () { select(d.i); });
     a.addEventListener("focus", function () { select(d.i); });
     rows.appendChild(a);
   });
 
-  // The drop screen's list gets the NEW badges too, and, at its top, the
-  // way back: a real button, so nobody has to hunt for it.
+  // The drop screen's list (drops.js builds it with numbers and dates) gets
+  // each drop's name and tag, and, at its top, the way back: a real button,
+  // so nobody has to hunt for it.
   var rail = document.getElementById("dp-rows");
   if (rail) list.forEach(function (d) {
-    if (d.isNew && rail.children[d.i]) rail.children[d.i].appendChild(newBadge());
+    var row = rail.children[d.i];
+    if (!row) return;
+    var num = row.querySelector(".dp-row__n"), name = el("span", "dp-row__p", d.place);
+    if (num && num.nextSibling) row.insertBefore(name, num.nextSibling); else row.appendChild(name);
+    var tag = tagFor(d);
+    if (tag) row.appendChild(tag);
   });
   var manifest = rail && rail.closest(".dp-manifest");
   var back = el("button", "dp-world-back");
@@ -145,58 +173,123 @@
     street.addControl(new ToWorld());
   }
 
-  /* --- the globe ---------------------------------------------------------- */
+  // CLAIMED on the drop's page: a chip at the head of the frequency bar
+  // (its readouts have no room to spare), and the word in the item's own
+  // head, so the photo stays clear for whoever looks later. Nothing for a
+  // drop that isn't marked.
+  var chip = el("span", "dp-claimed");
+  chip.hidden = true;
+  var head = document.querySelector(".dp-bar .dp-headgroup");
+  if (head) head.insertBefore(chip, head.firstChild);
+  var itemMark = el("span", "dp-item-claimed");
+  itemMark.hidden = true;
+  var itemHead = document.querySelector(".dp-slot--item .dp-panel__head");
+  if (itemHead && itemHead.lastElementChild) itemHead.insertBefore(itemMark, itemHead.lastElementChild);
+  function showClaimed(i) {
+    var d = list[i], on = !!d && d.claimed !== null;
+    chip.hidden = itemMark.hidden = !on;
+    chip.textContent = on ? "Claimed" : "";
+    if (on && d.claimed) chip.appendChild(el("span", "d", d.claimed));
+    itemMark.textContent = on ? "Claimed" : "";
+    if (on && d.claimed) itemMark.appendChild(el("span", "d", " " + d.claimed));
+  }
+
+  /* --- the map's data ----------------------------------------------------- */
+  // Files from tools/make-world: "0" is the whole globe and carries the
+  // index of the rest; each holds pieces (a square of map: land, lakes,
+  // coast, borders, states) and the names to show at its zoom.
   var box = document.getElementById("dw-globe");
   var canvas = document.getElementById("dw-canvas");
   var callout = document.getElementById("dw-callout");
   var ctx = canvas.getContext("2d");
   var hasGlobe = !!(window.d3 && d3.geoOrthographic && window.topojson);
-  var proj, path, land = null, landLo = null;
+  var REF_R = 288;                      // the desktop globe's radius the levels are cut for
+  var proj, path, index = null, files = {}, marks = [];
   if (hasGlobe) {
     proj = d3.geoOrthographic().clipAngle(90).precision(0.4);
     path = d3.geoPath(proj, ctx);
-    if (LAND) fetch(LAND).then(function (r) { return r.json(); }).then(function (t) {
-      land = topojson.feature(t, t.objects.land);
-      landLo = inside(topojson.feature(coarsen(t, 3), t.objects.land));
+    if (WORLD) load("0");
+    if (MARKS) fetch(MARKS).then(function (r) { return r.json(); }).then(function (j) {
+      // [kind, name, lng, lat, from, to, note], as in the map's files; a
+      // landmark's zoom is the globe's, its "from" the web map's equivalent
+      marks = (j.landmarks || []).filter(function (m) {
+        return m && m.name && isFinite(m.lat) && isFinite(m.lng);
+      }).map(function (m) {
+        return ["l", String(m.name), +m.lng, +m.lat, Math.log2(REF_R * (+m.zoom || 8) / 40.74), 99, m.note ? String(m.note) : null];
+      });
       draw();
-    }).catch(function () { /* the globe works without coastlines */ });
+    }).catch(function () { /* the globe works without landmarks */ });
   } else {
     canvas.hidden = true;
   }
 
-  // While the globe moves it draws about half the coastline's points: the
-  // eye can't follow the detail, and a phone keeps its frame rate.
-  function coarsen(t, step) {
-    var q = !!t.transform;
-    return { type: t.type, transform: t.transform, objects: t.objects, arcs: t.arcs.map(function (arc) {
-      var x = 0, y = 0, abs = arc.map(function (p) {
-        if (!q) return p;
-        x += p[0]; y += p[1]; return [x, y];
+  function load(name) {
+    if (files[name]) return files[name];
+    var f = files[name] = { ready: false, pieces: [], places: [] };
+    var lvl = +name.split("/")[0];
+    fetch(WORLD + name + ".json" + (WORLD_V ? "?v=" + WORLD_V : "")).then(function (r) {
+      if (!r.ok) throw new Error(r.status);
+      return r.json();
+    }).then(function (t) {
+      if (t.index) index = t.index;
+      var size = index ? index.levels[lvl].piece : 360, byKey = {};
+      ["land", "lakes", "coast", "borders", "states"].forEach(function (layer) {
+        if (!t.objects[layer]) return;
+        topojson.feature(t, t.objects[layer]).features.forEach(function (ft) {
+          var k = ft.properties.p;
+          if (!byKey[k]) {
+            var ij = k.split(","), x0 = ij[0] * size - 180, y0 = ij[1] * size - 90;
+            var bx = [x0, y0, x0 + size, y0 + size], c = [x0 + size / 2, y0 + size / 2];
+            // its middle and how far it reaches round the globe, to skip it
+            // when it is wholly on the far side
+            var reach = 0;
+            [[bx[0], bx[1]], [bx[2], bx[1]], [bx[0], bx[3]], [bx[2], bx[3]], [c[0], bx[1]], [c[0], bx[3]]].forEach(function (q) {
+              reach = Math.max(reach, d3.geoDistance(c, q));
+            });
+            byKey[k] = { box: bx, c: c, reach: reach };
+          }
+          byKey[k][layer] = layer === "land" || layer === "lakes" ? shapesOf(ft.geometry) : linesOf(ft.geometry);
+        });
       });
-      // small islands keep every point: thinned, they turn inside out
-      var keep = abs.length <= 4 * step ? abs :
-        abs.filter(function (p, i) { return i % step === 0 || i === abs.length - 1; });
-      if (!q) return keep;
-      var px = 0, py = 0;
-      return keep.map(function (p) { var d = [p[0] - px, p[1] - py]; px = p[0]; py = p[1]; return d; });
-    }) };
-  }
-
-  // A ring thinned the wrong way round encloses the rest of the planet, and
-  // would paint the whole globe as land. No land mass covers a hemisphere, so
-  // anything bigger than one is dropped.
-  function inside(f) {
-    function fix(g) {
-      if (!g) return g;
-      var small = function (c) { return d3.geoArea({ type: "Polygon", coordinates: c }) < 2 * Math.PI; };
-      if (g.type === "Polygon") return small(g.coordinates) ? g : null;
-      if (g.type === "MultiPolygon") g.coordinates = g.coordinates.filter(small);
-      return g;
-    }
-    (f.features || [f]).forEach(function (x) { x.geometry = fix(x.geometry); });
+      f.pieces = Object.keys(byKey).map(function (k) { return byKey[k]; });
+      f.places = t.places || [];
+      f.ready = true;
+      draw();
+    }).catch(function () {
+      f.ready = true;                   // nothing there: the map goes on without it
+      draw();
+    });
     return f;
   }
 
+  // The map's points become unit vectors once, when a file arrives: then a
+  // frame costs a few multiplications a point, and no trigonometry.
+  var RAD = Math.PI / 180;
+  function vectors(ring) {
+    var v = new Float64Array(ring.length * 3);
+    for (var k = 0; k < ring.length; k++) {
+      var l = ring[k][0] * RAD, f = ring[k][1] * RAD, c = Math.cos(f);
+      v[3 * k] = c * Math.cos(l); v[3 * k + 1] = c * Math.sin(l); v[3 * k + 2] = Math.sin(f);
+    }
+    return v;
+  }
+  // Land and lakes: each shape with the cap it lies in (its middle and how
+  // far its outline reaches), to tell in front, behind and across the horizon.
+  function shapesOf(g) {
+    var polys = g.type === "MultiPolygon" ? g.coordinates : g.type === "Polygon" ? [g.coordinates] : [];
+    return polys.map(function (rings) {
+      var v = rings.map(vectors), o = v[0], x = 0, y = 0, z = 0, k;
+      for (k = 0; k < o.length; k += 3) { x += o[k]; y += o[k + 1]; z += o[k + 2]; }
+      var m = Math.hypot(x, y, z) || 1, c = [x / m, y / m, z / m], low = 1;
+      for (k = 0; k < o.length; k += 3) low = Math.min(low, c[0] * o[k] + c[1] * o[k + 1] + c[2] * o[k + 2]);
+      return { v: v, c: c, reach: Math.acos(clamp(low, -1, 1)) };
+    });
+  }
+  function linesOf(g) {
+    return (g.type === "MultiLineString" ? g.coordinates : g.type === "LineString" ? [g.coordinates] : []).map(vectors);
+  }
+
+  /* --- the view ------------------------------------------------------------ */
   var W = 0, H = 0, R = 0, DPR = 1, CX = 0, CY = 0, halo = null, inMotion = false;
   var sel = Math.max(0, drops.current());
   // What the globe faces: a centre, the zoom chosen with the buttons, wheel
@@ -229,6 +322,82 @@
     if (hasGlobe) proj.clipExtent([[-2, -2], [W + 2, H + 2]]);
     halo = null;
     return true;
+  }
+
+  // The level of detail for the zoom, by scale rather than zoom: a phone's
+  // smaller globe moves up a level later, and draws no more than it shows.
+  function levelFor() {
+    if (!index) return 0;
+    var ze = R * view.zoom / index.R, lv = index.levels;
+    for (var k = 0; k < lv.length - 1; k++) if (ze < lv[k].until) return k;
+    return lv.length - 1;
+  }
+  // The longitudes and latitudes on screen, from points round its edge.
+  function viewBox() {
+    face(view);
+    var lons = [], lats = [], c = view.lng;
+    function take(x, y) {
+      var g = proj.invert([x, y]);
+      if (!g || !isFinite(g[0]) || !isFinite(g[1])) return;
+      var lon = g[0];
+      while (lon < c - 180) lon += 360;
+      while (lon > c + 180) lon -= 360;
+      lons.push(lon); lats.push(g[1]);
+    }
+    for (var k = 0; k <= 8; k++) { take(W * k / 8, 0); take(W * k / 8, H); take(0, H * k / 8); take(W, H * k / 8); }
+    take(CX, CY);
+    var b = { lon0: Math.min.apply(null, lons), lon1: Math.max.apply(null, lons),
+              lat0: Math.min.apply(null, lats), lat1: Math.max.apply(null, lats) };
+    var dx = (b.lon1 - b.lon0) * 0.1 + 0.2, dy = (b.lat1 - b.lat0) * 0.1 + 0.2;
+    b.lon0 -= dx; b.lon1 += dx; b.lat0 = Math.max(-90, b.lat0 - dy); b.lat1 = Math.min(90, b.lat1 + dy);
+    // a pole in view: every longitude
+    [[0, 90], [0, -90]].forEach(function (pole) {
+      if (d3.geoDistance(pole, [view.lng, view.lat]) > Math.PI / 2) return;
+      var p = proj(pole);
+      if (p[0] < 0 || p[0] > W || p[1] < 0 || p[1] > H) return;
+      b.lon0 = c - 180; b.lon1 = c + 180;
+      if (pole[1] > 0) b.lat1 = 90; else b.lat0 = -90;
+    });
+    return b;
+  }
+  function inView(bx, vb) {
+    if (bx[3] < vb.lat0 || bx[1] > vb.lat1) return false;
+    for (var k = -1; k <= 1; k++) if (bx[0] + 360 * k <= vb.lon1 && bx[2] + 360 * k >= vb.lon0) return true;
+    return false;
+  }
+  function fileNames(lv, vb) {
+    var F = lv.file, n = 360 / F, have = index.files[lv.id] || [], out = [];
+    var j0 = Math.max(0, Math.floor((vb.lat0 + 90) / F)), j1 = Math.min(180 / F - 1, Math.floor((vb.lat1 + 90) / F));
+    for (var i = Math.floor((vb.lon0 + 180) / F); i <= Math.floor((vb.lon1 + 180) / F); i++)
+      for (var j = j0; j <= j1; j++) {
+        var key = (((i % n) + n) % n) + "_" + j, name = lv.id + "/" + key;
+        if (have.indexOf(key) >= 0 && out.indexOf(name) < 0) out.push(name);
+      }
+    return out;
+  }
+  // What to draw: the level the zoom wants if its files for the part in
+  // view are all here (asking for any that aren't), else the next coarser,
+  // down to the whole globe. Never a mix, so the coast never jumps about.
+  function mapNow() {
+    var want = levelFor(), vb = want > 0 ? viewBox() : null;
+    for (var L = want; L >= 0; L--) {
+      var names = L === 0 ? ["0"] : L === 1 ? ["1"] : fileNames(index.levels[L], vb);
+      var got = names.map(load), complete = got.every(function (f) { return f.ready; });
+      if (!complete) continue;
+      var pieces = [], places = [], centre = [view.lng, view.lat];
+      got.forEach(function (f) {
+        f.pieces.forEach(function (p) {
+          var d = d3.geoDistance(p.c, centre);
+          if (d - p.reach > Math.PI / 2) return;                // the far side
+          if (L > 0 && !inView(p.box, vb)) return;               // off the screen
+          p.near = d + p.reach < Math.PI / 2 - 0.01;             // nowhere near the horizon
+          pieces.push(p);
+        });
+        places = places.concat(f.places);
+      });
+      return { level: L, pieces: pieces, places: places };
+    }
+    return { level: 0, pieces: [], places: [] };
   }
 
   // The rim with the window glow, and a bezel of ash ticks as on the street
@@ -275,6 +444,80 @@
     return gratLines;
   }
 
+  // The view as three directions: C out of the screen at its centre, E and
+  // N across it to the east and north. A point lands on the screen at its
+  // parts along E and N (the orthographic projection), and its part along C
+  // says whether it is in front of the horizon or behind it.
+  var FC = [1, 0, 0], FE = [0, 1, 0], FN = [0, 0, 1], FS = 1;
+  function frame() {
+    var l = view.lng * RAD, f = view.lat * RAD, cl = Math.cos(l), sl = Math.sin(l), cf = Math.cos(f), sf = Math.sin(f);
+    FC = [cf * cl, cf * sl, sf]; FE = [-sl, cl, 0]; FN = [-sf * cl, -sf * sl, cf]; FS = scale(view);
+  }
+  // A ring or a line into the path. fold: points behind the horizon go onto
+  // it at their own bearing, so a shape across it is cut off by the globe's
+  // edge, as the eye would see it.
+  function ring(v, fold, closing) {
+    for (var k = 0; k < v.length; k += 3) {
+      var X = v[k], Y = v[k + 1], Z = v[k + 2];
+      var x = X * FE[0] + Y * FE[1], y = X * FN[0] + Y * FN[1] + Z * FN[2];
+      if (fold && X * FC[0] + Y * FC[1] + Z * FC[2] < 0) { var m = Math.hypot(x, y) || 1; x /= m; y /= m; }
+      if (k) ctx.lineTo(CX + FS * x, CY - FS * y); else ctx.moveTo(CX + FS * x, CY - FS * y);
+    }
+    if (closing) ctx.closePath();
+  }
+  // A line across the horizon: drawn up to it, and on again from it.
+  function cutLine(v) {
+    var px = 0, py = 0, pz = 0, down = false;
+    for (var k = 0; k < v.length; k += 3) {
+      var X = v[k], Y = v[k + 1], Z = v[k + 2];
+      var x = X * FE[0] + Y * FE[1], y = X * FN[0] + Y * FN[1] + Z * FN[2], z = X * FC[0] + Y * FC[1] + Z * FC[2];
+      if (z >= 0) {
+        if (down) ctx.lineTo(CX + FS * x, CY - FS * y);
+        else {
+          if (k) { var t = pz / (pz - z); ctx.moveTo(CX + FS * (px + (x - px) * t), CY - FS * (py + (y - py) * t)); ctx.lineTo(CX + FS * x, CY - FS * y); }
+          else ctx.moveTo(CX + FS * x, CY - FS * y);
+          down = true;
+        }
+      } else if (down) {
+        var u = pz / (pz - z);
+        ctx.lineTo(CX + FS * (px + (x - px) * u), CY - FS * (py + (y - py) * u));
+        down = false;
+      }
+      px = x; py = y; pz = z;
+    }
+  }
+  // Land or lakes into the path: in front, as they are; behind, not at all;
+  // across the horizon, folded onto it.
+  function shapes(pieces, layer) {
+    ctx.beginPath();
+    pieces.forEach(function (p) {
+      (p[layer] || []).forEach(function (s) {
+        var fold = false;
+        if (!p.near) {
+          var d = Math.acos(clamp(s.c[0] * FC[0] + s.c[1] * FC[1] + s.c[2] * FC[2], -1, 1));
+          if (d - s.reach > Math.PI / 2) return;
+          fold = d + s.reach > Math.PI / 2 - 0.01;
+        }
+        s.v.forEach(function (v) { ring(v, fold, true); });
+      });
+    });
+  }
+  function stroke(pieces, layer, width, colour, alpha, dash) {
+    ctx.beginPath();
+    pieces.forEach(function (p) {
+      (p[layer] || []).forEach(function (item) {
+        (item.v || [item]).forEach(function (v) {           // a lake's rings, or a line
+          if (p.near) ring(v, false, false); else cutLine(v);
+        });
+      });
+    });
+    ctx.lineWidth = width; ctx.strokeStyle = colour; ctx.globalAlpha = alpha;
+    if (dash) ctx.setLineDash(dash);
+    ctx.stroke();
+    if (dash) ctx.setLineDash([]);
+    ctx.globalAlpha = 1;
+  }
+
   function draw() {
     if (!hasGlobe || !W) return;
     var s = scale(view), rest = clamp(1.6 - view.dive * 0.6, 0, 1);   // 1 at rest, 0 diving
@@ -289,13 +532,20 @@
     lit.addColorStop(0, "rgba(255,22,9,.16)"); lit.addColorStop(.6, "rgba(255,22,9,.05)"); lit.addColorStop(1, "rgba(255,22,9,0)");
     ctx.fillStyle = lit; ctx.fill();
 
-    // land: slate, coasts in ash
-    var shape = inMotion && landLo ? landLo : land;
-    if (shape) {
-      ctx.beginPath(); path(shape);
-      ctx.fillStyle = SLATE; ctx.fill();
-      ctx.lineWidth = 0.7; ctx.strokeStyle = ASH; ctx.globalAlpha = 0.85; ctx.stroke(); ctx.globalAlpha = 1;
-    }
+    // the map: land in slate, lakes in the sea's ember, state lines dashed
+    // and faint, borders in taupe, the coast in ash
+    var map = mapNow(), pieces = map.pieces;
+    frame();
+    shapes(pieces, "land");
+    ctx.fillStyle = SLATE; ctx.fill();
+    shapes(pieces, "lakes");
+    ctx.fillStyle = EMBER; ctx.fill();
+    var ze = index ? R * view.zoom / index.R : view.zoom;
+    stroke(pieces, "states", 0.6, ASH, 0.55 * clamp((ze - 1.3) / 2, 0, 1), [3, 3]);
+    stroke(pieces, "borders", 0.8, TAUPE, 0.55);
+    stroke(pieces, "lakes", 0.6, ASH, 0.7);
+    stroke(pieces, "coast", 0.7, ASH, 0.85);
+
     // a linen sheen where the light falls, over land and sea alike
     ctx.beginPath(); ctx.arc(CX, CY, s, 0, 2 * Math.PI);
     var sheen = ctx.createRadialGradient(CX - s * .4, CY - s * .45, 0, CX - s * .2, CY - s * .2, s * 1.1);
@@ -317,87 +567,73 @@
       ctx.restore();
     }
 
-    drawPoints(rest);
+    // the drops are laid out first, then the callout, so the names on the
+    // map make way for both; the drops are drawn last, on top
+    var lay = layoutDrops(), avoid = dropBoxes(lay);
+    var cbox = placeCallout(lay, rest, avoid);
+    if (cbox) avoid.push(cbox);
+    placeHits = [];
+    if (rest > 0.98) drawPlaces(map.places.concat(marks), avoid);
+    drawDrops(lay, rest);
     zoomButtons();
   }
 
-  // Points: one for every drop on this side of the globe. Drops closer
-  // together than SPREAD are moved apart, each on a red thread back to the
-  // ash mark where it really is; zoom in far enough and they separate.
+  /* --- the drops on the globe --------------------------------------------- */
+  // Points grow with the zoom (a fifth power: about twice the size at 32x),
+  // and the room each needs grows with them.
+  function radii() {
+    var g = Math.pow(view.zoom, 0.2);
+    return { dot: 3.2 * g, sel: 4.5 * g, room: Math.max(18, 9 * g + 9) };
+  }
   var hits = [];
-  function drawPoints(rest) {
-    var centre = [view.lng, view.lat], pts = [], shown = null;
+  function layoutDrops() {
+    var centre = [view.lng, view.lat], pts = [], rr = radii(), shown = null;
     list.forEach(function (d) {
       if (!hasPos(d) || d3.geoDistance([d.lng, d.lat], centre) > Math.PI / 2 - 0.02) return;
       var p = proj([d.lng, d.lat]);
-      pts.push({ i: d.i, at: p, x: p[0], y: p[1] });
+      pts.push({ i: d.i, at: p, x: p[0], y: p[1], r: d.i === sel ? rr.sel : rr.dot });
     });
-    spreadOut(pts);
+    spreadOut(pts, rr.room);
     hits = pts;
-
-    var moved = pts.filter(function (q) { return Math.hypot(q.x - q.at[0], q.y - q.at[1]) > 2; });
-    if (moved.length) {
-      ctx.save();
-      ctx.beginPath();
-      moved.forEach(function (q) { ctx.moveTo(q.at[0], q.at[1]); ctx.lineTo(q.x, q.y); });
-      ctx.lineWidth = 1; ctx.strokeStyle = RED; ctx.globalAlpha = 0.6; ctx.stroke();
-      ctx.globalAlpha = 1; ctx.fillStyle = ASH;
-      ctx.beginPath();
-      moved.forEach(function (q) { ctx.moveTo(q.at[0] + 2, q.at[1]); ctx.arc(q.at[0], q.at[1], 2, 0, 2 * Math.PI); });
-      ctx.fill();
-      ctx.restore();
-    }
-
     pts.forEach(function (q) { if (q.i === sel) shown = q; });
-    if (shown) pointer(shown, rest);            // under the points, so it hides none
-    var others = pts.filter(function (q) { return q !== shown; });
-    dots(others.filter(function (q) { return !list[q.i].isNew; }), LINEN, false);
-    dots(others.filter(function (q) { return list[q.i].isNew; }), RED, false);
-    if (shown) dots([shown], BONE, true);
-
-    // the callout rides with the pointer while the globe is at rest
-    if (shown && rest > 0.9 && !inMotion) {
-      var d = list[sel];
-      callout.textContent = "";
-      callout.appendChild(el("b", null, "Drop #" + d.n));
-      callout.appendChild(el("span", null, d.placed));
-      callout.hidden = false;
-      var cw = callout.offsetWidth, ch = callout.offsetHeight, px = shown.x, py = shown.y;
-      // Up and right of the pointer if it fits, else the first place round
-      // the point that keeps clear of it, the pointer and the zoom buttons
-      // (on a phone the left is where the buttons are), else the least bad.
-      var avoid = [[px - 14, py - 14, px + 14, py + 14], [px + 5, py - 41, px + 43, py - 5],
-                   [zoomBox.offsetLeft - 6, zoomBox.offsetTop - 6,
-                    zoomBox.offsetLeft + zoomBox.offsetWidth + 6, zoomBox.offsetTop + zoomBox.offsetHeight + 6]];
-      var best = null;
-      [[px + 48, py - 70], [px - 48 - cw, py - 70], [px + 48, py + 26], [px - 48 - cw, py + 26],
-       [px - cw / 2, py + 30], [px - cw / 2, py - 50 - ch]].forEach(function (c) {
-        var x = clamp(c[0], 8, W - cw - 8), y = clamp(c[1], 8, H - ch - 8), cost = 0;
-        avoid.forEach(function (a) {
-          cost += Math.max(0, Math.min(x + cw, a[2]) - Math.max(x, a[0])) *
-                  Math.max(0, Math.min(y + ch, a[3]) - Math.max(y, a[1]));
-        });
-        if (!best || cost < best.cost) best = { x: x, y: y, cost: cost };
-      });
-      callout.style.left = best.x + "px";
-      callout.style.top = best.y + "px";
-    } else {
-      callout.hidden = true;
+    return { pts: pts, shown: shown, rr: rr, labels: (index ? R * view.zoom / index.R : view.zoom) >= 3 };
+  }
+  // A drop's number sits on the side away from the spot it was moved off
+  // (the outside of its ring), or to the right of a drop that wasn't moved.
+  var NUM_W = 23;                       // three digits of the pixel face at 7px
+  function numberAt(q) {
+    var dx = q.x - q.at[0], dy = q.y - q.at[1], d = Math.hypot(dx, dy);
+    var right = d < 2 || dx >= -0.3 * d;
+    var x = right ? q.x + q.r + 4 : q.x - q.r - 4 - NUM_W;
+    return { x: x, y: q.y + (d < 2 ? 0 : (dy / d) * 4), box: [x - 1, q.y - 6, x + NUM_W + 1, q.y + 6] };
+  }
+  // the room the drops, their numbers and the pointer take on screen
+  function dropBoxes(lay) {
+    var out = [];
+    lay.pts.forEach(function (q) {
+      var pad = q.r + 4;
+      out.push([q.x - pad, q.y - pad, q.x + pad, q.y + pad]);
+      if (lay.labels && q !== lay.shown) out.push(numberAt(q).box);
+    });
+    if (lay.shown) {
+      var s = lay.shown;
+      out.push([s.x + s.r, s.y - s.r - 40, s.x + s.r + 42, s.y - s.r]);
     }
+    return out;
   }
 
-  // Drops within SPREAD of each other (directly or through a neighbour)
+  // Drops within `room` of each other (directly or through a neighbour)
   // form a group, set out on a ring around the group's middle in the order
   // they really lie round it, turned to match (in San Francisco, Alcatraz
   // is the top one). As the zoom parts them, the ring eases into their true
-  // places; by the time they are SPREAD apart they are there. A drop with
+  // places; by the time they are `room` apart they are there. A drop with
   // room around it never moves.
-  function spreadOut(pts) {
+  function spreadOut(pts, room) {
     var up = pts.map(function (q, k) { return k; });
     function top(k) { while (up[k] !== k) k = up[k] = up[up[k]]; return k; }
     var a, b, p, q;
     for (a = 0; a < pts.length; a++) for (b = a + 1; b < pts.length; b++)
-      if (Math.hypot(pts[a].x - pts[b].x, pts[a].y - pts[b].y) < SPREAD) up[top(a)] = top(b);
+      if (Math.hypot(pts[a].x - pts[b].x, pts[a].y - pts[b].y) < room) up[top(a)] = top(b);
     var groups = {};
     pts.forEach(function (q, k) { (groups[top(k)] = groups[top(k)] || []).push(q); });
     Object.keys(groups).forEach(function (key) {
@@ -415,8 +651,8 @@
       // turn the ring to sit as close as it can to the true bearings
       var sx = 0, sy = 0, step = 2 * Math.PI / n;
       g.forEach(function (q, k) { sx += Math.cos(q.bearing - k * step); sy += Math.sin(q.bearing - k * step); });
-      var turn = Math.atan2(sy, sx), r = SPREAD / (2 * Math.sin(Math.PI / n));
-      var real = Math.pow(Math.min(1, near / SPREAD), 2);       // 0 together .. 1 apart
+      var turn = Math.atan2(sy, sx), r = room / (2 * Math.sin(Math.PI / n));
+      var real = Math.pow(Math.min(1, near / room), 2);         // 0 together .. 1 apart
       g.forEach(function (q, k) {
         var x = cx + r * Math.cos(turn + k * step), y = cy + r * Math.sin(turn + k * step);
         q.x = x + (q.x - x) * real; q.y = y + (q.y - y) * real;
@@ -428,9 +664,9 @@
       for (a = 0; a < pts.length; a++) for (b = a + 1; b < pts.length; b++) {
         p = pts[a]; q = pts[b];
         var dx = q.x - p.x, dy = q.y - p.y, gap = Math.hypot(dx, dy);
-        if (gap >= SPREAD - 0.01) continue;
+        if (gap >= room - 0.01) continue;
         if (gap < 1e-6) { dx = Math.cos(b * 2.4); dy = Math.sin(b * 2.4); gap = 1; }   // the very same spot
-        var push = (SPREAD - gap) / 2 / gap;
+        var push = (room - gap) / 2 / gap;
         p.x -= dx * push; p.y -= dy * push; q.x += dx * push; q.y += dy * push;
         again = true;
       }
@@ -438,16 +674,68 @@
     }
   }
 
+  function drawDrops(lay, rest) {
+    var pts = lay.pts, shown = lay.shown;
+    // threads from moved points back to where the drops are, marked in ash
+    var moved = pts.filter(function (q) { return Math.hypot(q.x - q.at[0], q.y - q.at[1]) > 2; });
+    if (moved.length) {
+      ctx.save();
+      ctx.beginPath();
+      moved.forEach(function (q) { ctx.moveTo(q.at[0], q.at[1]); ctx.lineTo(q.x, q.y); });
+      ctx.lineWidth = 1; ctx.strokeStyle = RED; ctx.globalAlpha = 0.6; ctx.stroke();
+      ctx.globalAlpha = 1; ctx.fillStyle = ASH;
+      ctx.beginPath();
+      moved.forEach(function (q) { ctx.moveTo(q.at[0] + 2, q.at[1]); ctx.arc(q.at[0], q.at[1], 2, 0, 2 * Math.PI); });
+      ctx.fill();
+      ctx.restore();
+    }
+    if (shown) pointer(shown, rest);            // under the points, so it hides none
+    var others = pts.filter(function (q) { return q !== shown; });
+    var claimed = others.filter(function (q) { return list[q.i].claimed !== null; });
+    var open = others.filter(function (q) { return list[q.i].claimed === null; });
+    dots(open.filter(function (q) { return !list[q.i].isNew; }), LINEN, 9);
+    dots(open.filter(function (q) { return list[q.i].isNew; }), RED, 9);
+    rings(claimed, ASH);                        // claimed: hollow, the item is gone
+    if (shown) dots([shown], BONE, 14);
+    // the pointed-at drop gets a ring of its own
+    var hv = hover && hover.drop != null && hover.drop !== sel && pts.filter(function (q) { return q.i === hover.drop; })[0];
+    if (hv) {
+      ctx.beginPath(); ctx.arc(hv.x, hv.y, hv.r + 5, 0, 2 * Math.PI);
+      ctx.lineWidth = 1; ctx.strokeStyle = LINEN; ctx.globalAlpha = 0.8; ctx.stroke(); ctx.globalAlpha = 1;
+    }
+    // numbers beside the points once there is room for them
+    if (lay.labels) {
+      ctx.save();
+      ctx.font = "7px 'Press Start 2P', monospace"; ctx.textBaseline = "middle";
+      ctx.lineJoin = "round"; ctx.lineWidth = 3; ctx.strokeStyle = "rgba(10,0,0,.85)";
+      others.forEach(function (q) {
+        var at = numberAt(q);
+        ctx.strokeText(list[q.i].n, at.x, at.y);
+        ctx.fillStyle = list[q.i].claimed !== null ? ASH : LINEN;
+        ctx.fillText(list[q.i].n, at.x, at.y);
+      });
+      ctx.restore();
+    }
+  }
+
   // Points of one colour as one shape: the glow is the costly part of a
   // point, and this way it is drawn once for all of them.
-  function dots(qs, colour, on) {
+  function dots(qs, colour, blur) {
     if (!qs.length) return;
-    var r = on ? 4.5 : 3.2;
     ctx.save();
-    ctx.shadowColor = RED; ctx.shadowBlur = on ? 14 : 9;
+    ctx.shadowColor = RED; ctx.shadowBlur = blur;
     ctx.beginPath();
-    qs.forEach(function (q) { ctx.moveTo(q.x + r, q.y); ctx.arc(q.x, q.y, r, 0, 2 * Math.PI); });
+    qs.forEach(function (q) { ctx.moveTo(q.x + q.r, q.y); ctx.arc(q.x, q.y, q.r, 0, 2 * Math.PI); });
     ctx.fillStyle = colour; ctx.fill();
+    ctx.restore();
+  }
+  function rings(qs, colour) {
+    if (!qs.length) return;
+    ctx.save();
+    ctx.beginPath();
+    qs.forEach(function (q) { ctx.moveTo(q.x + q.r, q.y); ctx.arc(q.x, q.y, q.r, 0, 2 * Math.PI); });
+    ctx.fillStyle = "rgba(10,0,0,.8)"; ctx.fill();
+    ctx.lineWidth = 1.5; ctx.strokeStyle = colour; ctx.stroke();
     ctx.restore();
   }
 
@@ -455,14 +743,152 @@
   // with a ring around it.
   function pointer(q, rest) {
     ctx.save();
-    ctx.beginPath(); ctx.arc(q.x, q.y, 11, 0, 2 * Math.PI);
+    ctx.beginPath(); ctx.arc(q.x, q.y, q.r + 6.5, 0, 2 * Math.PI);
     ctx.lineWidth = 1.2; ctx.strokeStyle = RED; ctx.stroke();
     ctx.globalAlpha = Math.max(rest, 0.35);
-    var tx = q.x + 7, ty = q.y - 7;
+    var tx = q.x + q.r + 2.5, ty = q.y - q.r - 2.5;
     ctx.shadowColor = "rgba(255,22,9,.8)"; ctx.shadowBlur = 12;
     ctx.beginPath(); ctx.moveTo(tx, ty); ctx.lineTo(tx + 34, ty - 12); ctx.lineTo(tx + 14, ty - 32);
     ctx.closePath(); ctx.fillStyle = RED; ctx.fill();
     ctx.restore();
+  }
+
+  /* --- the callout: what the pointer, or the mouse, is on ------------------ */
+  var hover = null;                     // { drop: i } or { place: [...] }, under the mouse
+  var calloutKey = "";
+  function dropLines(d) {
+    var l = [["b", "Drop #" + d.n], ["span", d.place], ["span", d.placed]];
+    if (d.claimed !== null) l.push(["em", "Claimed" + (d.claimed ? " " + d.claimed : "")]);
+    else if (d.isNew) l.push(["em", "New"]);
+    return l;
+  }
+  var KIND = { c: "Country", s: "State / province", k: "Capital", t: "City", p: "Peak", l: "Landmark" };
+  function placeLines(pl) {
+    var kind = pl[0], note = pl[6], what = KIND[kind];
+    if (kind === "l") return note ? [["b", pl[1]], ["span", note]] : [["b", pl[1]], ["span", what]];
+    if (kind === "p" && note) what += " · " + Number(note).toLocaleString("en-US") + " m";
+    else if (note) what += " · " + note;
+    return [["b", pl[1]], ["span", what]];
+  }
+  function placeCallout(lay, rest, avoid) {
+    var target = null;
+    if (hover && hover.drop != null) {
+      var q = lay.pts.filter(function (p) { return p.i === hover.drop; })[0];
+      if (q) target = { key: "d" + q.i, lines: dropLines(list[q.i]), x: q.x, y: q.y, r: q.r };
+    } else if (hover && hover.place) {
+      var pl = hover.place;
+      if (d3.geoDistance([pl[2], pl[3]], [view.lng, view.lat]) < Math.PI / 2) {
+        var pp = proj([pl[2], pl[3]]);
+        target = { key: "p" + pl[0] + pl[1] + pl[2], lines: placeLines(pl), x: pp[0], y: pp[1], r: 4 };
+      }
+    }
+    if (!target && lay.shown && rest > 0.9 && !inMotion)
+      target = { key: "d" + sel, lines: dropLines(list[sel]), x: lay.shown.x, y: lay.shown.y, r: lay.shown.r };
+    // nothing to point at on screen: no callout (not one pinned in a corner)
+    if (target && (target.x < 0 || target.x > W || target.y < 0 || target.y > H)) target = null;
+    if (!target) { callout.hidden = true; calloutKey = ""; return null; }
+    if (target.key !== calloutKey) {
+      calloutKey = target.key;
+      callout.textContent = "";
+      target.lines.forEach(function (l) { callout.appendChild(el(l[0], null, l[1])); });
+    }
+    callout.hidden = false;
+    var cw = callout.offsetWidth, ch = callout.offsetHeight, px = target.x, py = target.y, o = target.r + 44;
+    // Up and right of the point if it fits, else the first place round it
+    // that keeps clear of the drops, the pointer and the zoom buttons (on a
+    // phone the left is where the buttons are), else the least bad.
+    var clear = avoid.concat([[zoomBox.offsetLeft - 6, zoomBox.offsetTop - 6,
+      zoomBox.offsetLeft + zoomBox.offsetWidth + 6, zoomBox.offsetTop + zoomBox.offsetHeight + 6]]);
+    var best = null;
+    [[px + o, py - o - 26], [px - o - cw, py - o - 26], [px + o, py + o - 18], [px - o - cw, py + o - 18],
+     [px - cw / 2, py + target.r + 26], [px - cw / 2, py - target.r - 46 - ch]].forEach(function (c) {
+      var x = clamp(c[0], 8, W - cw - 8), y = clamp(c[1], 8, H - ch - 8), cost = 0;
+      clear.forEach(function (a) {
+        cost += Math.max(0, Math.min(x + cw, a[2]) - Math.max(x, a[0])) *
+                Math.max(0, Math.min(y + ch, a[3]) - Math.max(y, a[1]));
+      });
+      if (!best || cost < best.cost) best = { x: x, y: y, cost: cost };
+    });
+    callout.style.left = best.x + "px";
+    callout.style.top = best.y + "px";
+    return [best.x, best.y, best.x + cw, best.y + ch];
+  }
+
+  /* --- names on the map ------------------------------------------------------ */
+  // Countries, states, capitals, cities, peaks and landmarks, each from the
+  // zoom Natural Earth gives it (landmarks: their own). The most important
+  // first; a name that would overlap one already down, a drop or the
+  // callout is left out.
+  var STYLE = {
+    c: { font: "8px 'Press Start 2P', monospace", size: 8, fill: TAUPE, alpha: 0.8, upper: true },
+    s: { font: "bold 9px Arial, Helvetica, sans-serif", size: 9, fill: ASH, alpha: 1, upper: true },
+    k: { font: "bold 11px Arial, Helvetica, sans-serif", size: 11, fill: LINEN, alpha: 0.95, mark: "square" },
+    t: { font: "11px Arial, Helvetica, sans-serif", size: 11, fill: LINEN, alpha: 0.85, mark: "dot" },
+    p: { font: "italic 10px Arial, Helvetica, sans-serif", size: 10, fill: TAUPE, alpha: 0.9, mark: "peak" },
+    l: { font: "11px Arial, Helvetica, sans-serif", size: 11, fill: LINEN, alpha: 0.95, mark: "diamond" }
+  };
+  var ORDER = { l: 0, c: 1, k: 2, t: 3, s: 4, p: 5 };
+  var widths = {}, placeHits = [];
+  function textWidth(font, text) {
+    var k = font + "|" + text;
+    if (!(k in widths)) { ctx.font = font; widths[k] = ctx.measureText(text).width; }
+    return widths[k];
+  }
+  function drawPlaces(all, placed) {
+    var zw = Math.log2(R * view.zoom / 40.74) - LABEL_BIAS, centre = [view.lng, view.lat], cand = [];
+    all.forEach(function (pl) {
+      if (pl[4] > zw || zw > pl[5] + 0.5) return;
+      if (d3.geoDistance([pl[2], pl[3]], centre) > 1.2) return;   // squeezed on the horizon
+      var p = proj([pl[2], pl[3]]);
+      if (p[0] < -40 || p[0] > W + 40 || p[1] < -10 || p[1] > H + 10) return;
+      cand.push({ pl: pl, x: p[0], y: p[1] });
+    });
+    cand.sort(function (a, b) { return (a.pl[4] - b.pl[4]) || (ORDER[a.pl[0]] - ORDER[b.pl[0]]); });
+    if (cand.length > 400) cand.length = 400;
+    function free(b) {
+      if (b[0] < 2 || b[2] > W - 2 || b[1] < 2 || b[3] > H - 2) return false;
+      for (var k = 0; k < placed.length; k++) {
+        var a = placed[k];
+        if (b[0] < a[2] && a[0] < b[2] && b[1] < a[3] && a[1] < b[3]) return false;
+      }
+      return true;
+    }
+    ctx.save();
+    ctx.textBaseline = "middle"; ctx.lineJoin = "round";
+    cand.forEach(function (c) {
+      var st = STYLE[c.pl[0]], text = st.upper ? c.pl[1].toUpperCase() : c.pl[1];
+      var w = textWidth(st.font, text), h = st.size + 2, x = c.x, y = c.y, spot = null;
+      if (!st.mark) {
+        var b = [x - w / 2 - 2, y - h / 2, x + w / 2 + 2, y + h / 2];
+        if (free(b)) spot = { b: b, tx: x - w / 2, ty: y };
+      } else {
+        var m = [x - 4, y - 4, x + 4, y + 4];
+        [[x + 7, y], [x - 7 - w, y], [x - w / 2, y - 11], [x - w / 2, y + 11]].some(function (o) {
+          var b2 = [o[0] - 2, o[1] - h / 2, o[0] + w + 2, o[1] + h / 2];
+          if (free(b2) && free(m)) { spot = { b: b2, m: m, tx: o[0], ty: o[1] }; return true; }
+          return false;
+        });
+      }
+      if (!spot) return;
+      placed.push(spot.b);
+      if (spot.m) { placed.push(spot.m); mark(st.mark, x, y); placeHits.push({ x: x, y: y, pl: c.pl }); }
+      ctx.font = st.font;
+      ctx.lineWidth = 3; ctx.strokeStyle = "rgba(10,0,0,.85)"; ctx.globalAlpha = 1;
+      ctx.strokeText(text, spot.tx, spot.ty);
+      ctx.fillStyle = st.fill; ctx.globalAlpha = st.alpha;
+      ctx.fillText(text, spot.tx, spot.ty);
+      ctx.globalAlpha = 1;
+    });
+    ctx.restore();
+  }
+  function mark(kind, x, y) {
+    ctx.beginPath();
+    if (kind === "dot") { ctx.arc(x, y, 2, 0, 2 * Math.PI); ctx.fillStyle = LINEN; ctx.fill(); return; }
+    if (kind === "square") { ctx.rect(x - 2.5, y - 2.5, 5, 5); ctx.fillStyle = LINEN; ctx.fill(); ctx.lineWidth = 1; ctx.strokeStyle = "rgba(10,0,0,.85)"; ctx.stroke(); return; }
+    if (kind === "peak") { ctx.moveTo(x, y - 3.5); ctx.lineTo(x + 3.5, y + 2.5); ctx.lineTo(x - 3.5, y + 2.5); ctx.closePath(); ctx.fillStyle = TAUPE; ctx.fill(); return; }
+    // a landmark: the street map's red diamond, outlined
+    ctx.moveTo(x, y - 4.5); ctx.lineTo(x + 4.5, y); ctx.lineTo(x, y + 4.5); ctx.lineTo(x - 4.5, y); ctx.closePath();
+    ctx.fillStyle = "rgba(10,0,0,.85)"; ctx.fill(); ctx.lineWidth = 1.5; ctx.strokeStyle = RED; ctx.stroke();
   }
 
   /* --- moving the globe ---------------------------------------------------- */
@@ -492,7 +918,7 @@
         var k = Math.min(1, (t - t0) / ms), e = (curve || ease)(k), ll = arc(e);
         view = { lng: ll[0], lat: ll[1], zoom: Math.exp(z0 + (z1 - z0) * e - dip * 4 * e * (1 - e)),
                  dive: Math.exp(v0 + (v1 - v0) * e) };
-        if (k >= 1) { inMotion = false; view = to; }   // the last frame at full detail
+        if (k >= 1) { inMotion = false; view = to; }   // the last frame settles the callout
         draw();
         if (k < 1) requestAnimationFrame(step); else done();
       })(t0);
@@ -541,7 +967,7 @@
     })(t0);
   }
 
-  // A moment after the last wheel turn or pinch, redraw at full detail.
+  // A moment after the last wheel turn or pinch, the callout comes back.
   var settling = 0;
   function settleSoon() {
     clearTimeout(settling);
@@ -677,13 +1103,20 @@
   }
 
   // One finger or the mouse drags the globe round; two fingers pinch to
-  // zoom. A tap on a point selects it, a second tap opens it.
+  // zoom. A tap on a point selects it, a second tap opens it; a tap on a
+  // city, peak or landmark says what it is.
   var drag = null, touches = {}, pinch = null;
   function twoFingers() {
     var ids = Object.keys(touches);
     if (ids.length !== 2) return null;
     var a = touches[ids[0]], b = touches[ids[1]], r = canvas.getBoundingClientRect();
     return { gap: Math.hypot(a.x - b.x, a.y - b.y), mid: [(a.x + b.x) / 2 - r.left, (a.y + b.y) / 2 - r.top] };
+  }
+  function setHover(next) {
+    var a = hover ? (hover.drop != null ? "d" + hover.drop : "p" + hover.place[1] + hover.place[2]) : "";
+    var b = next ? (next.drop != null ? "d" + next.drop : "p" + next.place[1] + next.place[2]) : "";
+    hover = next;
+    if (a !== b) draw();
   }
   canvas.addEventListener("pointerdown", function (ev) {
     touches[ev.pointerId] = { x: ev.clientX, y: ev.clientY };
@@ -706,16 +1139,22 @@
       return;
     }
     if (!drag) {
-      canvas.style.cursor = hit(ev) ? "pointer" : "grab";
+      // the mouse over a point or a name: say what it is
+      var q = hit(ev), pl = q ? null : hitPlace(ev);
+      canvas.style.cursor = q ? "pointer" : pl ? "help" : "grab";
+      if (ev.pointerType === "mouse" || ev.pointerType === "pen") setHover(q ? { drop: q.i } : pl ? { place: pl } : null);
       return;
     }
     var dx = ev.clientX - drag.x, dy = ev.clientY - drag.y;
     if (!drag.moved && Math.hypot(dx, dy) < 4) return;
-    drag.moved = true; anim++; inMotion = true;
+    drag.moved = true; anim++; inMotion = true; hover = null;
     var k = 180 / Math.PI / scale(view);
     view = { lng: drag.v.lng - dx * k, lat: clamp(drag.v.lat + dy * k, -80, 80), zoom: view.zoom, dive: view.dive };
     canvas.style.cursor = "grabbing";
     draw();
+  });
+  canvas.addEventListener("pointerleave", function (ev) {
+    if (ev.pointerType === "mouse" && !drag) setHover(null);
   });
   // A finger lifting from a pinch: the pinch is over, and it wasn't a tap.
   function lift(ev) {
@@ -731,9 +1170,14 @@
     if (was && was.moved) { inMotion = false; draw(); }
     if (!was || was.moved) return;
     var q = hit(ev);
-    if (!q) return;
-    if (q.i === sel) location.hash = "#" + list[sel].n;
-    else select(q.i);
+    if (q) {
+      hover = null;
+      if (q.i === sel) location.hash = "#" + list[sel].n;
+      else select(q.i);
+      return;
+    }
+    // a tap on a name shows what it is until the next tap
+    if (ev.pointerType !== "mouse") { var pl = hitPlace(ev); setHover(pl ? { place: pl } : null); }
   });
   canvas.addEventListener("pointercancel", function (ev) { lift(ev); drag = null; inMotion = false; draw(); });
   function hit(ev) {
@@ -741,7 +1185,16 @@
     var best = null, reach = ev.pointerType === "touch" ? 22 : 14;
     hits.forEach(function (q) {
       var gap = Math.hypot(q.x - x, q.y - y);
-      if (gap < reach) { reach = gap; best = q; }
+      if (gap < Math.max(reach, q.r + 6) && (!best || gap < best.gap)) best = { q: q, gap: gap };
+    });
+    return best && best.q;
+  }
+  function hitPlace(ev) {
+    var r = canvas.getBoundingClientRect(), x = ev.clientX - r.left, y = ev.clientY - r.top;
+    var best = null, reach = ev.pointerType === "touch" ? 16 : 9;
+    placeHits.forEach(function (h) {
+      var gap = Math.hypot(h.x - x, h.y - y);
+      if (gap < reach) { reach = gap; best = h.pl; }
     });
     return best;
   }
@@ -768,6 +1221,8 @@
   });
 
   /* --- screens ------------------------------------------------------------- */
+  // Every flight here is the About page's: the same speed, the same distance,
+  // the same red after-images.
   var listPanel = world.querySelector(".dw-list");
 
   function wait(ms) { return new Promise(function (done) { setTimeout(done, ms); }); }
@@ -803,22 +1258,23 @@
       // new drop; the list stays where it is
       if (drops.current() === i) return;
       if (moving()) {
-        await fly().exit(detail, { speed: 0.6, distance: 0.45 });
+        await fly().exit(detail);
         if (next && next.i >= 0) { i = next.i; next = null; }   // chosen again meanwhile
       }
       if (drops.current() !== i) drops.open(i);
       if (fly()) fly().reset(detail);
-      if (moving()) await fly().enter(detail, { speed: 0.4, distance: 0.45 });
+      if (moving()) await fly().enter(detail);
       return;
     }
     var d = list[i];
     var fromList = world.contains(document.activeElement);
+    hover = null;
     select(i, "hold");
     if (moving()) {
       blink(i);
       var diving = turnTo(dive(i), 560, easeIn);
       await wait(150);
-      await Promise.all([diving, fly().exit(listPanel, { distance: 0.45 })]);
+      await Promise.all([diving, fly().exit(listPanel)]);
     }
     root.dataset.view = "drop";
     if (moving()) flash();
@@ -829,13 +1285,13 @@
       var row = rail && rail.children[i];
       if (row) row.focus({ preventScroll: true });
     }
-    if (moving()) await fly().enter(shell, { speed: 0.55, distance: 0.45 });
+    if (moving()) await fly().enter(shell);
   }
 
   async function toWorld() {
     if (root.dataset.view === "world") return;
     var i = Math.max(0, drops.current()), fromDrop = shell.contains(document.activeElement);
-    if (moving()) await fly().exit(shell, { distance: 0.45 });
+    if (moving()) await fly().exit(shell);
     root.dataset.view = "world";
     if (moving()) flash();
     if (fly()) fly().reset(shell);
@@ -845,7 +1301,7 @@
     if (fromDrop && rows.children[i]) rows.children[i].focus({ preventScroll: true });
     if (moving()) {
       view = dive(i); draw();                   // start inside the drop we left
-      fly().enter(listPanel, { speed: 0.55, distance: 0.45 });
+      fly().enter(listPanel);
       await turnTo(aim(i, view.zoom), 720, easeOut);   // and pull back out, to the zoom we left
     }
   }
@@ -915,9 +1371,20 @@
     go({ i: -1 });
   }
 
-  // Keep the address and the title in step with the drop showing, without
-  // adding history.
+  // Keep the claimed chip, the address and the title in step with the drop
+  // showing; the address without adding history.
+  // On a phone the drop list is a strip: it scrolls to the drop showing,
+  // centred, or from its number when it is wider than the strip. Again once
+  // the pixel font is in, which widens every chip.
+  function revealRow(i) {
+    var row = rail && rail.children[i];
+    if (!row || rail.scrollWidth <= rail.clientWidth) return;
+    var a = row.getBoundingClientRect(), b = rail.getBoundingClientRect();
+    rail.scrollLeft += (a.left - b.left) - Math.max(0, (b.width - a.width) / 2);
+  }
   document.addEventListener("pn0va:drop", function (ev) {
+    showClaimed(ev.detail.index);
+    revealRow(ev.detail.index);
     if (root.dataset.view !== "drop") return;
     var d = list[ev.detail.index];
     history.replaceState(history.state, "", "#" + d.n);
@@ -926,6 +1393,9 @@
 
   /* --- start --------------------------------------------------------------- */
   route(true);
+  showClaimed(drops.current());
+  revealRow(drops.current());
+  if (document.fonts) document.fonts.ready.then(function () { revealRow(drops.current()); });
   select(sel, "jump");
   if (hasGlobe) {
     if (window.ResizeObserver) new ResizeObserver(function () { if (size()) draw(); }).observe(box);

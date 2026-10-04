@@ -1,0 +1,14 @@
+{
+  "name": "pn0va-make-world",
+  "private": true,
+  "description": "Builds the Drops globe's map data from Natural Earth (see make-world.mjs).",
+  "type": "module",
+  "scripts": { "build": "node make-world.mjs" },
+  "dependencies": {
+    "d3-geo": "3.1.1",
+    "lineclip": "2.0.0",
+    "topojson-client": "3.1.0",
+    "topojson-server": "3.0.1",
+    "topojson-simplify": "3.0.3"
+  }
+}

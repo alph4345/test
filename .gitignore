@@ -14,3 +14,7 @@ hardware/capcore/capcore.dsn
 hardware/trinketcore/trinketcore.dsn
 logs/
 freerouting.json
+
+# pn0va-site: the world-map generator's downloads and packages
+pn0va-site/tools/make-world/cache/
+pn0va-site/tools/make-world/node_modules/

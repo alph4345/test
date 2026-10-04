@@ -22,7 +22,7 @@
   <meta name="twitter:card" content="summary_large_image">
   <script>document.documentElement.classList.add('js');</script>
   <link rel="stylesheet" href="tokens.css?v=cf68e78a">
-  <link rel="stylesheet" href="page-style.css?v=938ce29e">
+  <link rel="stylesheet" href="page-style.css?v=74603506">
 </head>
 
 <body>
@@ -89,11 +89,13 @@
     </article>
 
     </div>
-    <nav id="store-pager" aria-label="Store pages">
-      <button class="store-page-btn" id="store-prev" type="button">&#171; Prev</button>
+    <!-- not a <nav>: the site's menu bar styles every <nav>, and pinned this
+         over the menu at the top of the screen -->
+    <div id="store-pager" role="navigation" aria-label="Store pages">
+      <button class="store-page-btn" id="store-prev" type="button" aria-label="Previous page">&#171;<span class="pg-word"> Prev</span></button>
       <span id="store-count">--</span>
-      <button class="store-page-btn" id="store-next" type="button">Next &#187;</button>
-    </nav>
+      <button class="store-page-btn" id="store-next" type="button" aria-label="Next page"><span class="pg-word">Next </span>&#187;</button>
+    </div>
   </main>
 
   <!-- shown by store.js when Square sends the buyer back with ?paid=1 -->
@@ -122,7 +124,7 @@
     </div>
   </aside>
 
-  <script src="store.js?v=e7fdf619"></script>
+  <script src="store.js?v=824178d9"></script>
   <script src="page-script.js?v=1573d777"></script>
 </body>
 </html>

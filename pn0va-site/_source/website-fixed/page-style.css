@@ -227,9 +227,9 @@ html.js [data-fly-each] > .landed
 
 .text-window p
 {
-  font-size: 12.5px;
-  line-height: 1.7;
-  margin: 8px 0;
+  font-size: 15px;
+  line-height: 1.65;
+  margin: 10px 0;
   font-family: Arial, sans-serif;
 }
 
@@ -481,7 +481,7 @@ html:not(.js) .nav-arrows
 
   .text-window h2 { font-size: 13px; }
   .text-window h3 { font-size: 11px; }
-  .text-window p  { font-size: 10px; }
+  .text-window p  { font-size: 14px; }
 
   .nav-arrow
   {
@@ -1364,6 +1364,14 @@ html.js body:has(#windows.single-screen)
   }
 
   .about-portrait { max-height: 20vh; }
+
+  /* ...and a phone too short for both scrolls, rather than cut the second
+     off (page-script.js still holds the page still while the windows fly) */
+  html.js body:has(#windows.single-screen)
+  {
+    overflow: visible;
+    height: auto;
+  }
 }
 
 /* short screens fall back to scrolling instead of clipping */

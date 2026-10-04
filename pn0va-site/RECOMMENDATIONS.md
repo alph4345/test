@@ -159,22 +159,19 @@ scripts you'll use (Square, analytics); adding it now risks breaking them.
 
 ### Blog and Projects
 
-- Every post lives at `/blog` and opens on the first one. Give each post its
-  own link (e.g. `pn0va.com/blog#building-with-createjs`) so a single post can
-  be shared.
 - The first post says "browse through the archive on the right"; the list is
   on the left now.
-- Projects have no dates, so the date slot in the header is empty. Add dates
-  or hide the slot.
-- The title and date appear twice in each post: in the header and again in the
-  body.
+- Projects have no dates, so only their reading time shows under the title.
+  A `<p class="date">` under each project's title in `projects.html`, as the
+  blog posts have, would tell visitors how current each one is.
 
 ### Drops
 
 - Every drop uses the same placeholder hint and item images.
-- Drops no longer have an Open / Claimed status. Drop #001's own text still
-  mentions one: its item caption reads "Found & claimed" and its brief ends
-  "Recovered 2026.06.28." `data-status` can go from `drops.html`.
+- Drop #001's text says it was found: its item caption reads "Found &
+  claimed" and its brief ends "Recovered 2026.06.28." The page doesn't mark it
+  claimed until you add `data-claimed="2026.06.28"` to it (README, *Marking a
+  drop claimed*). `data-status` does nothing and can go from `drops.html`.
 - With JavaScript off, the Drops page is an empty frame: the records are
   filled in by the script, and always have been. The build could also write
   each drop out as plain text for that case.

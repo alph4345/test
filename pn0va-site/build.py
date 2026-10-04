@@ -322,38 +322,75 @@ html.js body:has(.rd-shell){ overflow:hidden; }
   background:var(--pn-red);
 }
 
-/* Entry typography. .rd-entry is the same content seen with JavaScript off
-   (see the end of this file); with it on, those entries are never shown. */
-.rd-reader .rd-panel__body h2, .rd-entry h2{
-  font-size:var(--pn-size-title); letter-spacing:var(--pn-track);
-  text-transform:uppercase; color:var(--pn-ink-strong); margin:0 0 12px;
-  padding-bottom:8px; text-shadow:var(--pn-glow-text);
-  border-bottom:1px solid var(--pn-red-50);
+/* The article: the item's own content in a column a comfortable line long,
+   centred in the reader (.rd-entry is the same content seen with JavaScript
+   off; see the end of this file). Text is set for reading, 16.5px Arial at
+   1.72, about 70 characters a line: the brand's 12.5px body size is meant
+   for captions and labels, and in a 1,000px panel it ran 150 to a line. */
+.rd-reader .rd-panel__body{ padding:24px clamp(16px, 4vw, 48px) 40px; }
+.rd-article, .rd-entry{ max-width:44rem; margin:0 auto; }
+.rd-article h2, .rd-entry h2{
+  font-size:clamp(15px, 1.4vw, 20px); line-height:1.45; letter-spacing:.06em;
+  text-transform:uppercase; color:var(--pn-ink-strong); margin:0 0 10px;
+  text-shadow:var(--pn-glow-text); text-wrap:balance;
 }
-.rd-reader .rd-panel__body h3, .rd-entry h3{
-  font-size:var(--pn-size-sub); letter-spacing:var(--pn-track);
-  text-transform:uppercase; color:var(--pn-red); margin:18px 0 8px;
+.rd-article .rd-meta{
+  font-family:var(--pn-face-display); font-size:9px; line-height:1.6; letter-spacing:.16em; text-transform:uppercase;
+  color:var(--pn-ink-muted); margin:0 0 22px; padding-bottom:14px; border-bottom:1px solid var(--pn-red-50);
 }
-.rd-reader .rd-panel__body p, .rd-entry p,
-.rd-reader .rd-panel__body li, .rd-entry li{
-  font-family:var(--pn-face-body); font-size:var(--pn-size-body);
-  line-height:var(--pn-lh-body); color:var(--pn-ink); margin:0 0 10px; max-width:68ch;
+.rd-article h3, .rd-entry h3{
+  font-size:12px; line-height:1.6; letter-spacing:.1em; text-transform:uppercase;
+  color:var(--pn-red); margin:30px 0 12px;
 }
-/* Lists had no rules at all, so they fell back to the pixel face at the
-   browser's 16px with the page's tight leading — lines ran into each other. */
-.rd-reader .rd-panel__body ul, .rd-entry ul{ margin:0 0 12px; padding-left:20px; }
-.rd-reader .rd-panel__body li, .rd-entry li{ margin-bottom:4px; }
-.rd-reader .rd-panel__body li::marker, .rd-entry li::marker{ color:var(--pn-red); }
-.rd-reader .rd-panel__body a, .rd-entry a{ color:var(--pn-red); }
-.rd-reader .rd-panel__body a:hover, .rd-entry a:hover{ color:var(--pn-signal); }
-.rd-reader .rd-panel__body p.date, .rd-entry p.date{
+.rd-article p, .rd-entry p, .rd-article li, .rd-entry li{
+  font-family:var(--pn-face-body); font-size:16.5px; line-height:1.72;
+  color:var(--pn-ink); margin:0 0 16px;
+}
+.rd-article p.date{ display:none; }          /* it is under the title */
+.rd-entry p.date{
   font-family:var(--pn-face-display); font-size:9px; letter-spacing:.14em;
   text-transform:uppercase; color:var(--pn-ink-faint); margin:-4px 0 14px;
 }
-.rd-reader img, .rd-entry img{
-  max-width:100%; height:auto; display:block; margin:0 0 12px;
-  border:1px solid var(--pn-hairline);
+.rd-article ul, .rd-entry ul{ margin:0 0 18px; padding-left:22px; }
+.rd-article li, .rd-entry li{ margin-bottom:6px; }
+.rd-article li::marker, .rd-entry li::marker{ color:var(--pn-red); }
+.rd-article strong, .rd-entry strong{ color:var(--pn-ink-strong); }
+.rd-article a, .rd-entry a{ color:var(--pn-red); text-underline-offset:3px; }
+.rd-article a:hover, .rd-entry a:hover{ color:var(--pn-signal); }
+/* Pictures: the lead one across the column and no taller than 40% of the
+   screen, so the words start above the fold; one beside the text floats in
+   the column, not out at the panel's far edge. */
+.rd-article img, .rd-entry img{ max-width:100%; height:auto; display:block; }
+.rd-article .photo-cover, .rd-entry .photo-cover{
+  width:100%; height:auto; aspect-ratio:16/7; max-height:40vh; object-fit:cover; margin:0 0 24px;
 }
+.rd-article .photo-wide, .rd-entry .photo-wide{
+  width:100%; height:auto; aspect-ratio:3/1; object-fit:cover; margin:8px 0 22px;
+}
+.rd-article .photo-right, .rd-entry .photo-right{ float:right; width:min(40%, 260px); height:auto; margin:6px 0 14px 24px; }
+.rd-article .photo-left, .rd-entry .photo-left{ float:left; width:min(40%, 260px); height:auto; margin:6px 24px 14px 0; }
+.rd-article .photo-inset, .rd-entry .photo-inset{ width:min(80%, 460px); height:auto; margin:26px auto; }
+
+/* the previous and next items, at the article's end */
+.rd-next{
+  clear:both; display:grid; grid-template-columns:1fr 1fr; gap:12px;
+  margin:40px 0 0; padding-top:20px; border-top:1px solid var(--pn-hairline);
+}
+.rd-next__b{
+  display:block; text-align:left; cursor:pointer; font:inherit; color:var(--pn-ink); background:none;
+  border:1px solid var(--pn-hairline); border-radius:var(--pn-radius-sm); padding:12px 14px;
+  transition:border-color var(--pn-dur-state) ease, background var(--pn-dur-state) ease;
+}
+.rd-next__b--next{ grid-column:2; text-align:right; }
+.rd-next__b .k{
+  display:block; font-size:8px; letter-spacing:.16em; text-transform:uppercase;
+  color:var(--pn-red); margin-bottom:7px;
+}
+.rd-next__b .t{ display:block; font-size:10px; letter-spacing:.06em; line-height:1.5; }
+.rd-next__b:hover{ border-color:var(--pn-red); background:var(--pn-red-07); }
+.rd-next__b:focus-visible{ outline:2px solid var(--pn-focus); outline-offset:2px; }
+/* the reader's head says which item of how many, on one line */
+.rd-reader .rd-panel__head #rd-title{ white-space:nowrap; overflow:hidden; text-overflow:ellipsis; min-width:0; }
 
 /* The entries are read from here by reader.js. Hidden only while JavaScript
    runs: without it the reader cannot work, so the entries become the page. */
@@ -386,6 +423,15 @@ html:not(.js) .rd-entry{
   .rd-row__d{ display:none; }
   .rd-row[aria-current="true"]::before{ width:100%; height:2px; top:auto; bottom:0; }
   .rd-panel__body{ padding:13px 15px 16px; }
+  .rd-reader .rd-panel__body{ padding:18px 16px 28px; }
+  .rd-article p, .rd-entry p, .rd-article li, .rd-entry li{ font-size:15.5px; line-height:1.65; }
+  .rd-article h2, .rd-entry h2{ font-size:15px; }
+  /* beside the text there is no room on a phone: the picture takes the width */
+  .rd-article .photo-right, .rd-article .photo-left,
+  .rd-entry .photo-right, .rd-entry .photo-left{ float:none; width:100%; margin:4px 0 18px; }
+  .rd-article .photo-inset, .rd-entry .photo-inset{ width:100%; }
+  .rd-next{ grid-template-columns:1fr; }
+  .rd-next__b--next{ grid-column:auto; }
 }
 """
 
@@ -398,6 +444,15 @@ READER_JS = """/* ==============================================================
    different axes — side chevrons turned pages within a post, bottom arrows
    flipped between posts — with nothing on screen to tell them apart. Letting
    the body scroll makes sub-pages unnecessary and deletes the ambiguity.
+
+   Each item has its own address (blog#my-first-blog-post), so one can be
+   linked to. Choosing another flies the reader window out and back in with
+   it, the About page's flight and after-images, as on the Drops page. The
+   article reads in a column a comfortable line long, its date and reading
+   time under its title, the previous and next items at its end.
+
+   Keys: left and right change item (up and down too, in the list); up, down,
+   Page Up, Page Down and Space scroll the article.
 
    Content lives in the HTML; this file counts it at runtime.
    ========================================================================== */
@@ -412,46 +467,146 @@ READER_JS = """/* ==============================================================
   var title = document.getElementById("rd-title");
   var date  = document.getElementById("rd-date");
   var count = document.getElementById("rd-count");
+  var panel = body.closest(".rd-reader");
+  var unit  = (panel && panel.getAttribute("aria-label")) || "Item";
+  var reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
   var current = -1;
 
+  function pad(n) { return String(n).padStart(2, "0"); }
+  function el(tag, cls, text) {
+    var x = document.createElement(tag);
+    if (cls) x.className = cls;
+    if (text != null) x.textContent = text;
+    return x;
+  }
+
+  // each item's address: its title in lower case, words joined by dashes
+  var slugs = [];
   entries.forEach(function (e, i) {
-    var b = document.createElement("button");
+    var s = (e.dataset.title || "").toLowerCase().normalize("NFKD")
+      .replace(/[\\u0300-\\u036f]/g, "").replace(/[^a-z0-9]+/g, "-").replace(/^-+|-+$/g, "") || String(i + 1);
+    var base = s, n = 2;
+    while (slugs.indexOf(s) >= 0) s = base + "-" + n++;
+    slugs.push(s);
+  });
+
+  entries.forEach(function (e, i) {
+    var b = el("button", "rd-row");
     b.type = "button";
-    b.className = "rd-row";
     b.setAttribute("aria-current", "false");
-    b.innerHTML =
-      '<span class="rd-row__n">' + String(i + 1).padStart(2, "0") + '</span>' +
-      '<span class="rd-row__t">' + e.dataset.title + '</span>' +
-      '<span class="rd-row__d">' + (e.dataset.date || "") + '</span>';
-    b.addEventListener("click", function () { show(i); });
+    b.appendChild(el("span", "rd-row__n", pad(i + 1)));
+    b.appendChild(el("span", "rd-row__t", e.dataset.title));
+    b.appendChild(el("span", "rd-row__d", e.dataset.date || ""));
+    b.addEventListener("click", function () { go(i); });
     rows.appendChild(b);
   });
-  if (count) count.textContent = String(entries.length).padStart(2, "0") + " REC";
+  if (count) count.textContent = pad(entries.length) + " REC";
+  if (date) date.hidden = true;            // the date is under the title now
 
-  function show(i) {
+  function readingTime(e) {
+    var words = (e.textContent || "").trim().split(/\\s+/).length;
+    return Math.max(1, Math.round(words / 200)) + " min read";
+  }
+
+  function show(i, quiet) {
     if (i === current || !entries[i]) return;
     current = i;
     var e = entries[i];
     [].forEach.call(rows.children, function (r, n) {
       r.setAttribute("aria-current", n === i ? "true" : "false");
     });
-    title.textContent = e.dataset.title;
-    if (date) date.textContent = e.dataset.date || "";
-    body.innerHTML = e.innerHTML;
+    title.textContent = unit + " " + pad(i + 1) + " / " + pad(entries.length);
+    var art = el("article", "rd-article");
+    art.innerHTML = e.innerHTML;
+    var meta = el("p", "rd-meta", [e.dataset.date, readingTime(e)].filter(Boolean).join("  \\u00b7  "));
+    var h = art.querySelector("h2");
+    if (h) h.parentNode.insertBefore(meta, h.nextSibling); else art.insertBefore(meta, art.firstChild);
+    art.appendChild(neighbours(i));
+    body.textContent = "";
+    body.appendChild(art);
     body.scrollTop = 0;                    // a new item starts at the top
+    if (!quiet) history.replaceState(history.state, "", "#" + slugs[i]);
+    // on a phone the list is a strip: bring the item into it
+    var row = rows.children[i];
+    if (row && rows.scrollWidth > rows.clientWidth) {
+      var a = row.getBoundingClientRect(), b = rows.getBoundingClientRect();
+      rows.scrollLeft += (a.left - b.left) - Math.max(0, (b.width - a.width) / 2);
+    }
+  }
+
+  // the previous and next items, at the end of the article (a div: the
+  // site's own menu bar styles every <nav>)
+  function neighbours(i) {
+    var nav = el("div", "rd-next");
+    nav.setAttribute("role", "navigation");
+    nav.setAttribute("aria-label", "More " + unit.toLowerCase() + "s");
+    [[i - 1, "Previous"], [i + 1, "Next"]].forEach(function (p) {
+      var k = p[0];
+      if (!entries[k]) { nav.appendChild(el("span")); return; }
+      var b = el("button", "rd-next__b rd-next__b--" + p[1].toLowerCase());
+      b.type = "button";
+      b.appendChild(el("span", "k", p[1] + " " + unit.toLowerCase()));
+      b.appendChild(el("span", "t", entries[k].dataset.title));
+      b.addEventListener("click", function () { go(k); });
+      nav.appendChild(b);
+    });
+    return nav;
+  }
+
+  // One change at a time: the reader flies out and back in with the new
+  // item; a newer choice made meanwhile is the one that lands.
+  var busy = false, wanted = -1;
+  async function go(i) {
+    if (!entries[i]) return;
+    wanted = i;
+    if (busy) return;
+    busy = true;
+    while (wanted >= 0) {
+      var k = wanted; wanted = -1;
+      if (k === current) continue;
+      var fly = !reduceMotion && panel && window.pn0vaFly;
+      if (!fly) { show(k); continue; }
+      await fly.exit(panel);
+      if (wanted >= 0) { k = wanted; wanted = -1; }
+      show(k);
+      fly.reset(panel);
+      await fly.enter(panel);
+    }
+    busy = false;
   }
 
   document.addEventListener("keydown", function (ev) {
     var t = ev.target;
     if (t && t.closest && t.closest("input, textarea, [contenteditable]")) return;
-    if (ev.key === "ArrowDown" || ev.key === "ArrowRight") {
-      if (current < entries.length - 1) { show(current + 1); ev.preventDefault(); }
-    } else if (ev.key === "ArrowUp" || ev.key === "ArrowLeft") {
-      if (current > 0) { show(current - 1); ev.preventDefault(); }
+    if (ev.altKey || ev.ctrlKey || ev.metaKey) return;
+    var inList = t && t.closest && t.closest("#rd-rows");
+    var step = { ArrowRight: 1, ArrowLeft: -1 }[ev.key] ||
+               (inList ? { ArrowDown: 1, ArrowUp: -1 }[ev.key] : 0);
+    if (step) {
+      var from = wanted >= 0 ? wanted : current, to = from + step;
+      if (to >= 0 && to < entries.length) { ev.preventDefault(); go(to); }
+      return;
+    }
+    // the page itself never scrolls: these scroll the article
+    var by = { ArrowDown: 48, ArrowUp: -48, PageDown: 0.9, PageUp: -0.9, " ": ev.shiftKey ? -0.9 : 0.9 }[ev.key];
+    if (by && !(t && t.closest && t.closest("button, a, summary"))) {
+      ev.preventDefault();
+      body.scrollBy({ top: Math.abs(by) < 1 ? by * body.clientHeight : by });
     }
   });
 
-  show(0);
+  // the address decides the item: on arrival, and when it is changed by hand
+  function fromHash() {
+    var id = "";
+    try { id = decodeURIComponent(location.hash.slice(1)); } catch (e) { /* a mangled address */ }
+    return slugs.indexOf(id);
+  }
+  window.addEventListener("hashchange", function () {
+    var i = fromHash();
+    if (i >= 0) go(i);
+  });
+  var first = fromHash();
+  show(first >= 0 ? first : 0, true);
 })();
 """
 
@@ -695,7 +850,11 @@ def omit_status_html(html: str) -> str:
                       html, count=1)
     if not (a and b):
         sys.exit("drops.html changed; update omit_status_html() in build.py")
-    return html
+    # the how-to comment at the top: data-claimed replaced data-status
+    return html.replace('data-status   "open" or "recovered"',
+                        'data-claimed  YYYY.MM.DD, only once you know the drop was found:\n'
+                        '                        CLAIMED shows on its page, in the lists and\n'
+                        '                        on the globe. Leave it off and nothing shows.', 1)
 
 
 def fly_in_drops(html: str) -> str:
@@ -725,9 +884,21 @@ def fly_in_drops(html: str) -> str:
 # --- the world view: the Drops page's first screen ----------------------------
 # A globe with a point for every drop and the list of drops beside it; choosing
 # one dives into the drop's record, all on one page (drops#003 is drop 003).
-# drops-world.js does it, with d3-geo and Natural Earth's coastlines in
-# _source/world. The record screen itself is the brand kit's, unchanged.
+# drops-world.js does it, with d3-geo. The map it draws is Natural Earth at
+# four levels of detail, made once by tools/make-world into _source/world/data;
+# the landmarks are _source/world/landmarks.json. The record screen itself is
+# the brand kit's, with names and a claimed mark added by drops-world.js.
 WORLD_SRC = ROOT / "_source/world"
+
+
+def world_version() -> str:
+    """A hash of the map data, so a browser never keeps a stale piece of it."""
+    import hashlib
+    h = hashlib.sha1()
+    for f in sorted((WORLD_SRC / "data").rglob("*.json")):
+        h.update(f.relative_to(WORLD_SRC).as_posix().encode())
+        h.update(f.read_bytes())
+    return h.hexdigest()[:8]
 
 WORLD_HTML = """
 <!-- ============ WORLD: every drop on the globe (drops-world.js) ============
@@ -774,7 +945,8 @@ def world_view(html: str) -> str:
     html, n = re.subn(r'(<script src="drops\.js[^"]*"></script>)', lambda m: m.group(1) + "".join(
         f'\n<script src="vendor/world/{lib}.min.js?v={VER}"></script>'
         for lib in ("d3-array", "d3-geo", "topojson-client")) +
-        f'\n<script src="drops-world.js?v={VER}" data-land="maps/world.json"></script>', html, count=1)
+        f'\n<script src="drops-world.js?v={VER}" data-world="maps/world/" data-world-v="{world_version()}"'
+        f' data-landmarks="maps/landmarks.json"></script>', html, count=1)
     if not n:
         sys.exit("drops.html changed; update world_view() in build.py")
     return html
@@ -891,6 +1063,48 @@ html:not(.js) .dw-shell, html.js:not([data-view="world"]) .dw-shell{ display:non
   color:var(--pn-void); background:var(--pn-red); border-radius:2px;
 }
 
+/* CLAIMED: the owner's mark (data-claimed in drops.html). In the lists a
+   quiet tag; on the drop's page a chip in the frequency bar and a word in
+   the item's head. A drop without the mark shows nothing either way. */
+.dp-claimed-tag{
+  display:inline-block; align-self:center; justify-self:end; padding:2px 4px 1px;
+  font-size:7px; line-height:1; letter-spacing:.14em; text-transform:uppercase;
+  color:var(--pn-ink-muted); border:1px solid var(--pn-ash); border-radius:2px;
+}
+.dp-claimed{
+  display:inline-flex; align-items:center; gap:.7em; min-height:22px; padding:0 7px; flex:0 0 auto;
+  font-size:8px; letter-spacing:.14em; text-transform:uppercase; white-space:nowrap;
+  border-radius:2px; border:1px solid var(--pn-red);
+  color:var(--pn-red); background:var(--pn-red-07);
+}
+.dp-claimed[hidden]{ display:none; }
+@media (max-width:520px){ .dp-claimed .d{ display:none; } }
+/* the item's own head says so too, in red beside its label: the photo is
+   left clear, so whoever comes later can still see what was there */
+.dp-item-claimed{
+  min-width:0; color:var(--pn-red); letter-spacing:.14em;
+  white-space:nowrap; overflow:hidden; text-overflow:ellipsis;
+}
+.dp-item-claimed[hidden]{ display:none; }
+/* the strip's photos share its width whatever their heads say */
+@media (max-width:900px){ .dp-strip{ grid-template-columns:minmax(0,1fr) minmax(0,1fr); } }
+@media (max-width:520px){ .dp-item-claimed .d{ display:none; } }
+
+/* the drop screen's list: each drop's number and name, its date beneath
+   (drops.js gives the number and date, drops-world.js the name and tag) */
+.dp-row{
+  grid-template-columns:auto minmax(0,1fr) auto; grid-template-areas:"n p tag" ". d d";
+  row-gap:4px; column-gap:8px; align-items:baseline;
+}
+.dp-row__n{ grid-area:n; }
+.dp-row__p{
+  grid-area:p; min-width:0; font-size:9px; letter-spacing:.12em; text-transform:uppercase;
+  color:var(--pn-ink); white-space:nowrap; overflow:hidden; text-overflow:ellipsis;
+}
+.dp-row__d{ grid-area:d; color:var(--pn-ink-muted); }
+.dp-row .dp-new, .dp-row .dp-claimed-tag{ grid-area:tag; }
+.dp-row[aria-current="true"] .dp-row__p{ color:var(--pn-signal); }
+
 .dw-stage .dw-globe{ padding:0; position:relative; overflow:hidden; flex:1 1 auto; min-height:0; }
 .dw-globe canvas{
   position:absolute; inset:0; width:100%; height:100%; display:block;
@@ -908,6 +1122,8 @@ html:not(.js) .dw-shell, html.js:not([data-view="world"]) .dw-shell{ display:non
 }
 .dw-callout[hidden]{ display:none; }
 .dw-callout b{ display:block; font-weight:400; font-size:10px; color:var(--pn-signal); }
+.dw-callout span{ display:block; }
+.dw-callout em{ display:block; font-style:normal; color:var(--pn-red); }
 .dw-bar{
   display:flex; align-items:center; gap:14px; padding:8px 10px 8px 12px; flex:0 0 auto;
   border-top:var(--pn-hairline-w) solid var(--pn-hairline);
@@ -988,12 +1204,25 @@ html:not(.js) .dw-shell, html.js:not([data-view="world"]) .dw-shell{ display:non
   .dw-coords, .dw-from, .dw-arrows{ display:none; }
   .dw-go{ margin-left:auto; }
   .dw-row{ padding:11px 10px; }
-  .dw-zoom button{ width:32px; height:32px; }
-  /* the drop screen's list is a strip here; the way back leads it */
+  .dw-zoom button{ width:40px; height:40px; }
+  /* the drop screen's list is a strip here, number and name to a chip;
+     the way back leads it. Both are a thumb's size (44px tall), and the
+     street map, which takes what is left, gives up the height. */
+  .dp-row{
+    grid-template-areas:"n p tag"; grid-template-columns:auto auto auto; row-gap:0;
+    min-height:44px; padding:0 14px; align-items:center;
+  }
+  .dp-row__n{ font-size:12px; }
+  .dp-row__p{ font-size:9px; }
   .dp-manifest{ flex-direction:row; align-items:center; }
   .dp-manifest .dp-panel__body{ flex:1 1 auto; min-width:0; align-self:stretch; }
-  .dp-world-back{ margin:5px 4px 5px 6px; padding:6px 9px; font-size:9px; white-space:nowrap; }
+  .dp-world-back{
+    margin:6px 4px 6px 6px; padding:0 12px; min-height:44px;
+    font-size:10px; white-space:nowrap;
+  }
+  .dp-world-back svg{ width:18px; height:18px; }
   .dp-world-back .key{ display:none; }
+  .dp-bar .dp-help > summary{ min-height:36px; }
 }
 """
 
@@ -1144,11 +1373,12 @@ def build(with_shop: bool):
     (out / "vendor/protomaps-leaflet").mkdir(parents=True, exist_ok=True)
     for f in ("protomaps-leaflet.js", "protomaps-leaflet.LICENSE"):
         shutil.copy(MAP_SRC / "vendor" / f, out / "vendor/protomaps-leaflet" / f)
-    # the world view: its script, d3-geo and friends, and the coastlines
+    # the world view: its script, d3-geo and friends, the map and the landmarks
     shutil.copy(WORLD_SRC / "drops-world.js", out / "drops-world.js")
     shutil.copytree(WORLD_SRC / "vendor", out / "vendor/world", dirs_exist_ok=True)
     (out / "maps").mkdir(exist_ok=True)
-    shutil.copy(WORLD_SRC / "land.json", out / "maps/world.json")
+    shutil.copytree(WORLD_SRC / "data", out / "maps/world", dirs_exist_ok=True)
+    shutil.copy(WORLD_SRC / "landmarks.json", out / "maps/landmarks.json")
     shutil.copy(WORLD_SRC / "world-atlas.LICENSE", out / "maps/world.LICENSE")
     # the map itself exists once tools/make-map.py has been run
     if (MAP_SRC / "drops.pmtiles").exists():
@@ -1312,7 +1542,7 @@ html.js body:has(#store-shell){ overflow:hidden; }
   font-variant-numeric:tabular-nums; text-shadow:var(--pn-glow-active);
 }
 .store-item p{
-  font-family:Arial, sans-serif; font-size:12.5px; line-height:1.6;
+  font-family:Arial, sans-serif; font-size:14px; line-height:1.6;
   color:var(--pn-ink); margin:0 0 16px; flex:1 1 auto;
 }
 .store-item button{
@@ -1466,24 +1696,36 @@ html:not(.js) #cart-backdrop, html:not(.js) .store-item button{ display:none; }
 #store-thanks button:focus-visible{ outline:2px solid var(--pn-focus); outline-offset:2px; }
 
 @media screen and (max-width:700px){
-  #store-shell{ padding:66px 12px 10px; gap:9px; }
+  #store-shell{ padding:66px 12px 8px; gap:9px; }
   #store-grid{ gap:14px; grid-template-columns:repeat(auto-fit, minmax(230px, 340px)); }
   /* A 4:3 image plus full copy made the card 433px, so only ONE fit per page
-     on a phone and 326px sat empty. Shorter image, clamped description, two
-     per page. */
+     on a phone and 326px sat empty. Shorter image and a description clamped
+     to four readable lines: two per page on a tall phone, one on the rest. */
   .store-item img{ aspect-ratio:16/9; }
   .store-item .body{ padding:10px 12px 11px; }
   .store-item h2{ font-size:11px; margin-bottom:6px; }
   .store-item .price{ font-size:12px; margin-bottom:7px; }
   .store-item p{
-    font-size:11.5px; line-height:1.5; margin-bottom:11px;
-    display:-webkit-box; -webkit-line-clamp:3; -webkit-box-orient:vertical;
+    font-size:13.5px; line-height:1.5; margin-bottom:11px;
+    display:-webkit-box; -webkit-line-clamp:4; -webkit-box-orient:vertical;
     overflow:hidden;
   }
   .store-item button{ padding:9px; font-size:9px; }
-  #store-count{ font-size:8px; min-width:80px; }
-  .store-page-btn{ font-size:8px; padding:8px 10px; }
+  /* a bar along the bottom: the pager on the left, the cart on the right
+     (centred on the same line), so the cart never covers NEXT */
+  #store-pager{ justify-content:flex-start; gap:8px; height:48px; padding:0 140px 0 2px; }
+  .store-page-btn{ min-width:44px; height:36px; padding:0 10px; font-size:9px; }
+  .store-page-btn .pg-word{ display:none; }
+  #store-count{ font-size:8px; min-width:0; white-space:nowrap; }
+  #cart-toggle{ right:12px; bottom:10px; height:44px; padding:0 14px; }
 }
+@media screen and (max-width:360px){
+  #store-count .pg-word{ display:none; }
+}
+/* too short for one card (store.js decides): the page scrolls instead */
+html.js body:has(#store-shell.scrolls){ overflow:auto; }
+#store-shell.scrolls{ height:auto; }
+#store-shell.scrolls #store-grid{ overflow:visible; }
 /* no JS: pagination cannot work, so let the page scroll and show everything */
 html:not(.js) body:has(#store-shell){ overflow:auto; }
 html:not(.js) #store-shell{ height:auto; }
@@ -1561,11 +1803,13 @@ __NAV__
     </article>
 
     </div>
-    <nav id="store-pager" aria-label="Store pages">
-      <button class="store-page-btn" id="store-prev" type="button">&#171; Prev</button>
+    <!-- not a <nav>: the site's menu bar styles every <nav>, and pinned this
+         over the menu at the top of the screen -->
+    <div id="store-pager" role="navigation" aria-label="Store pages">
+      <button class="store-page-btn" id="store-prev" type="button" aria-label="Previous page">&#171;<span class="pg-word"> Prev</span></button>
       <span id="store-count">--</span>
-      <button class="store-page-btn" id="store-next" type="button">Next &#187;</button>
-    </nav>
+      <button class="store-page-btn" id="store-next" type="button" aria-label="Next page"><span class="pg-word">Next </span>&#187;</button>
+    </div>
   </main>
 
   <!-- shown by store.js when Square sends the buyer back with ?paid=1 -->
@@ -1720,6 +1964,7 @@ STORE_JS = """/* ===============================================================
      re-runs on resize, so rotating a phone repaginates rather than clipping.
      ---------------------------------------------------------------------- */
   var items  = [].slice.call(document.querySelectorAll(".store-item"));
+  var shell  = document.getElementById("store-shell");
   var grid   = document.getElementById("store-grid");
   var pager  = document.getElementById("store-pager");
   var label  = document.getElementById("store-count");
@@ -1728,12 +1973,31 @@ STORE_JS = """/* ===============================================================
   var page   = 0, perPage = items.length;
 
   function measure() {
+    shell.classList.remove("scrolls");
     items.forEach(function (it) { it.hidden = false; });
     var cols = getComputedStyle(grid).gridTemplateColumns.split(" ").length;
-    var card = items[0].getBoundingClientRect().height;
+    // the tallest card, so a row with a long description is not cut off
+    var card = Math.max.apply(null, items.map(function (it) {
+      return it.getBoundingClientRect().height;
+    }));
     var gap  = parseFloat(getComputedStyle(grid).rowGap) || 0;
-    var rows = Math.max(1, Math.floor((grid.clientHeight + gap) / (card + gap)));
-    perPage  = Math.max(1, cols * rows);
+    function fit() {
+      var rows = Math.max(1, Math.floor((grid.clientHeight + gap) / (card + gap)));
+      return Math.max(1, cols * rows);
+    }
+    // the pager takes a row of its own, so it is only shown when needed
+    pager.hidden = true;
+    perPage = fit();
+    if (perPage < items.length) { pager.hidden = false; perPage = fit(); }
+    // a screen too short for even one card (a phone on its side) has no
+    // pages: the store scrolls like any other page instead of cutting the
+    // card's ADD TO CART off
+    if (card > grid.clientHeight) {
+      shell.classList.add("scrolls");
+      perPage = items.length;
+    } else if (window.scrollY) {
+      window.scrollTo(0, 0);           // back from scrolling: the top again
+    }
   }
 
   function paint() {
@@ -1743,17 +2007,43 @@ STORE_JS = """/* ===============================================================
       it.hidden = Math.floor(i / perPage) !== page;
     });
     pager.hidden = pages < 2;
-    label.textContent = "PAGE " + (page + 1) + " / " + pages;
+    var word = document.createElement("span");
+    word.className = "pg-word"; word.textContent = "PAGE ";
+    label.replaceChildren(word, (page + 1) + " / " + pages);
     prev.disabled = page === 0;
     next.disabled = page >= pages - 1;
   }
 
   function repaginate() { measure(); paint(); }
 
-  prev.addEventListener("click", function () { if (page > 0) { page--; paint(); } });
-  next.addEventListener("click", function () {
-    if ((page + 1) * perPage < items.length) { page++; paint(); }
-  });
+  /* A page turn is the same flight as the windows on arrival: this page's
+     cards fly out and the next page's fly in. A click made meanwhile decides
+     the page that lands. Without motion the page just changes. */
+  var reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+  var turning = false, wanted = -1;
+  function turn(by) {
+    var to = (wanted >= 0 ? wanted : page) + by;
+    if (to < 0 || to * perPage >= items.length) return;
+    wanted = to;
+    if (turning) return;
+    var fly = !reduceMotion && window.pn0vaFly;
+    if (!fly) { page = wanted; wanted = -1; paint(); return; }
+    turning = true;
+    (function step() {
+      if (wanted < 0) { turning = false; return; }
+      fly.exit(grid).then(function () {
+        page = wanted; wanted = -1;
+        paint();
+        // the cards just flown out stay off-screen until this clears them
+        items.forEach(function (it) {
+          it.style.transition = it.style.transform = it.style.willChange = "";
+        });
+        return fly.enter(grid);
+      }).then(step);
+    })();
+  }
+  prev.addEventListener("click", function () { turn(-1); });
+  next.addEventListener("click", function () { turn(1); });
 
   var t;
   window.addEventListener("resize", function () {
@@ -2133,7 +2423,7 @@ def stamp_assets(folder: pathlib.Path):
             js.write_text(atlas.sub(sub, text), encoding="utf-8", newline=NL)
 
     pat = re.compile(r'((?:href|src)=")([^"?]+\.(?:css|js))\?v=[^"]*(")')
-    img = re.compile(r'((?:href|src|content|data-hint|data-item|data-map|data-land)=")'
+    img = re.compile(r'((?:href|src|content|data-hint|data-item|data-map|data-landmarks)=")'
                      r'((?:' + re.escape(SITE_URL) + r')?[^":?#]+\.(?:png|svg|ico|jpe?g|webp|gif|pmtiles|json))'
                      r'(?:\?v=[^"]*)?(")')
     for html in folder.rglob("*.html"):

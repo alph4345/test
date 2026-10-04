@@ -233,9 +233,9 @@ html.js [data-fly-each] > .landed
 
 .text-window p
 {
-  font-size: 12.5px;
-  line-height: 1.7;
-  margin: 8px 0;
+  font-size: 15px;
+  line-height: 1.65;
+  margin: 10px 0;
   font-family: Arial, sans-serif;
 }
 
@@ -487,7 +487,7 @@ html:not(.js) .nav-arrows
 
   .text-window h2 { font-size: 13px; }
   .text-window h3 { font-size: 11px; }
-  .text-window p  { font-size: 10px; }
+  .text-window p  { font-size: 14px; }
 
   .nav-arrow
   {
@@ -817,6 +817,14 @@ html.js body:has(#windows.single-screen)
   }
 
   .about-portrait { max-height: 20vh; }
+
+  /* ...and a phone too short for both scrolls, rather than cut the second
+     off (page-script.js still holds the page still while the windows fly) */
+  html.js body:has(#windows.single-screen)
+  {
+    overflow: visible;
+    height: auto;
+  }
 }
 
 /* short screens fall back to scrolling instead of clipping */
@@ -1236,7 +1244,7 @@ html.js body:has(#store-shell){ overflow:hidden; }
   font-variant-numeric:tabular-nums; text-shadow:var(--pn-glow-active);
 }
 .store-item p{
-  font-family:Arial, sans-serif; font-size:12.5px; line-height:1.6;
+  font-family:Arial, sans-serif; font-size:14px; line-height:1.6;
   color:var(--pn-ink); margin:0 0 16px; flex:1 1 auto;
 }
 .store-item button{
@@ -1390,24 +1398,36 @@ html:not(.js) #cart-backdrop, html:not(.js) .store-item button{ display:none; }
 #store-thanks button:focus-visible{ outline:2px solid var(--pn-focus); outline-offset:2px; }
 
 @media screen and (max-width:700px){
-  #store-shell{ padding:66px 12px 10px; gap:9px; }
+  #store-shell{ padding:66px 12px 8px; gap:9px; }
   #store-grid{ gap:14px; grid-template-columns:repeat(auto-fit, minmax(230px, 340px)); }
   /* A 4:3 image plus full copy made the card 433px, so only ONE fit per page
-     on a phone and 326px sat empty. Shorter image, clamped description, two
-     per page. */
+     on a phone and 326px sat empty. Shorter image and a description clamped
+     to four readable lines: two per page on a tall phone, one on the rest. */
   .store-item img{ aspect-ratio:16/9; }
   .store-item .body{ padding:10px 12px 11px; }
   .store-item h2{ font-size:11px; margin-bottom:6px; }
   .store-item .price{ font-size:12px; margin-bottom:7px; }
   .store-item p{
-    font-size:11.5px; line-height:1.5; margin-bottom:11px;
-    display:-webkit-box; -webkit-line-clamp:3; -webkit-box-orient:vertical;
+    font-size:13.5px; line-height:1.5; margin-bottom:11px;
+    display:-webkit-box; -webkit-line-clamp:4; -webkit-box-orient:vertical;
     overflow:hidden;
   }
   .store-item button{ padding:9px; font-size:9px; }
-  #store-count{ font-size:8px; min-width:80px; }
-  .store-page-btn{ font-size:8px; padding:8px 10px; }
+  /* a bar along the bottom: the pager on the left, the cart on the right
+     (centred on the same line), so the cart never covers NEXT */
+  #store-pager{ justify-content:flex-start; gap:8px; height:48px; padding:0 140px 0 2px; }
+  .store-page-btn{ min-width:44px; height:36px; padding:0 10px; font-size:9px; }
+  .store-page-btn .pg-word{ display:none; }
+  #store-count{ font-size:8px; min-width:0; white-space:nowrap; }
+  #cart-toggle{ right:12px; bottom:10px; height:44px; padding:0 14px; }
 }
+@media screen and (max-width:360px){
+  #store-count .pg-word{ display:none; }
+}
+/* too short for one card (store.js decides): the page scrolls instead */
+html.js body:has(#store-shell.scrolls){ overflow:auto; }
+#store-shell.scrolls{ height:auto; }
+#store-shell.scrolls #store-grid{ overflow:visible; }
 /* no JS: pagination cannot work, so let the page scroll and show everything */
 html:not(.js) body:has(#store-shell){ overflow:auto; }
 html:not(.js) #store-shell{ height:auto; }

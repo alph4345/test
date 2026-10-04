@@ -27,8 +27,8 @@
 
 <link rel="stylesheet" href="vendor/leaflet/leaflet.css?v=ec929f11">
 <link rel="stylesheet" href="tokens.css?v=cf68e78a">
-<link rel="stylesheet" href="page-style.css?v=938ce29e">
-<link rel="stylesheet" href="drops.css?v=b3dd6809">
+<link rel="stylesheet" href="page-style.css?v=74603506">
+<link rel="stylesheet" href="drops.css?v=b008bc2d">
 <style>
 /* Self-hosted faces — no Google Fonts request, no CDN failure mode. */
 @font-face{
@@ -166,7 +166,9 @@
      3. Set the data-* attributes on the <article>:
           data-n        designation number, e.g. "003"
           data-placed   YYYY.MM.DD
-          data-status   "open" or "recovered"
+          data-claimed  YYYY.MM.DD, only once you know the drop was found:
+                        CLAIMED shows on its page, in the lists and
+                        on the globe. Leave it off and nothing shows.
           data-lat / data-lng    decimal degrees, signed
           data-zoom     leaflet zoom, 13-16 is usually right
           data-place    short place label for the readout bar
@@ -372,7 +374,7 @@
 <script src="vendor/world/d3-array.min.js?v=08cb6252"></script>
 <script src="vendor/world/d3-geo.min.js?v=b7604723"></script>
 <script src="vendor/world/topojson-client.min.js?v=bc057598"></script>
-<script src="drops-world.js?v=b44a3f0a" data-land="maps/world.json?v=207096bf"></script>
+<script src="drops-world.js?v=842ad443" data-world="maps/world/" data-world-v="3bc38e2e" data-landmarks="maps/landmarks.json?v=88aa0b67"></script>
 <script src="page-script.js?v=1573d777"></script>
 </body>
 </html>

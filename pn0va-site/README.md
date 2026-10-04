@@ -104,10 +104,10 @@ rings on plain ground instead of streets.
 
 The Drops page is one page with two screens.
 
-- **The world** (`pn0va.com/drops`): the list of drops with their dates, and
-  a globe with a point for each. Pointing at a drop in the list turns the
-  globe to it; choosing one (click, Enter, or tapping its point twice) dives
-  the globe in, flashes, and flies in the drop.
+- **The world** (`pn0va.com/drops`): the list of drops with their names and
+  dates, and a globe with a point for each. Pointing at a drop in the list
+  turns the globe to it; choosing one (click, Enter, or tapping its point
+  twice) dives the globe in, flashes, and flies in the drop.
 - **A drop** (`pn0va.com/drops#003`): the record as before: coordinates,
   street map, hint, brief and item. **WORLD MAP** at the top of its list (the
   first button in the strip on a phone), the globe button on the street map,
@@ -123,27 +123,114 @@ Adding a drop hasn't changed: one `<article class="dp-entry">` in
 `drops.html`, then `python build.py`. The globe reads the same records.
 
 The globe is drawn in the brand palette from `tokens.css`: ember sea, slate
-land, ash coasts, a linen sheen, red for the instruments (graticule, rim,
-pointer, NEW) and bone for the drop you are on.
+land, ash coasts and state lines, taupe borders, a linen sheen and names, red
+for the instruments (graticule, rim, pointer, NEW) and bone for the drop you
+are on.
 
-Every drop has its own point. Drops too close together to tell apart, like
-the three in San Francisco, sit on a small ring around the spot they share,
-each on a thread back to it, in the order they really lie (Alcatraz on top).
-The globe zooms with its **+** and **−** buttons, the mouse wheel, a pinch, or
-the + − 0 keys, as far as about a state across: closer than that, the
-coastline data turns to polygons. The globe button below them goes back to
-the whole globe. Its files:
+It is a map: coast, lakes, country borders, state and province lines, and the
+names of countries, states, cities, peaks and landmarks, each named once there
+is room for it. It zooms with its **+** and **−** buttons, the mouse wheel, a
+pinch, or the + − 0 keys, from the whole globe down to a city (64 times
+closer). The coastline is redrawn finer as you come in, so its shape holds and
+only sharpens; the street map on each drop's own screen takes over from there.
+The globe button below the zoom buttons goes back to the whole globe.
+
+Every drop has its own point, which grows as you zoom in. Drops too close
+together to tell apart, like the three in San Francisco, sit on a small ring
+around the spot they share, each on a thread back to it, in the order they
+really lie (Alcatraz on top); zoom in and they move apart onto their own
+spots. Point at anything for what it is: a drop's number, name and date, a
+city's state or country, a peak's height, a landmark's note. On a touch
+screen, tap it.
+
+Its files:
 
 - `drops-world.js`, from `_source/world/`;
-- `vendor/world/`: d3-geo, d3-array and topojson-client (ISC licence) draw
-  it, about 60 KB;
-- `maps/world.json`: the coastlines, Natural Earth's 1:50m land (public
-  domain) thinned to 16,000 points, 161 KB (58 KB compressed). The server
-  compresses it: the `.htaccess` now covers JSON.
+- `vendor/world/`: d3-geo, d3-array and topojson-client (ISC licence), about
+  60 KB;
+- `maps/world/`: the map, from Natural Earth (public domain), at four levels
+  of detail. The whole globe is one file of 305 KB (106 KB as the
+  `.htaccess` compresses it); closer in, the page fetches only the part in
+  view. 10.2 MB in 308 files, of which a visitor who zooms all the way in on
+  a drop downloads about 420 KB compressed. `tools/make-world/` made it, and
+  only needs running again for newer borders (see the top of
+  `make-world.mjs`);
+- `maps/landmarks.json`, from `_source/world/landmarks.json`: 62 landmarks,
+  each a name, a position, the zoom it appears from (1 is the whole globe,
+  64 the closest) and the note shown when pointed at. Add your own the same
+  way and rebuild.
 
 With reduced motion on, the screens and drops change without the dive or the
 flights. With JavaScript off, the world view stays hidden and the page is the
 drop frame it always was.
+
+### Marking a drop claimed
+
+A drop shows no status unless you give it one. Once you know a drop has been
+found, add `data-claimed` with the date to its `<article>` in `drops.html`:
+
+```html
+<article class="dp-entry" data-n="001" data-placed="2026.06.15" data-claimed="2026.06.28" ...>
+```
+
+and run `python build.py`. The drop then says **CLAIMED** with the date in its
+frequency bar and in the title of its item window (just **CLAIMED** on a
+narrow phone), **CLAIMED** in both lists in place of NEW, and its point on the
+globe turns hollow. The item photo is left alone, so later visitors still see
+what was left there. `data-claimed` without a date shows **CLAIMED** alone;
+deleting it undoes it. Nothing ever says "unclaimed".
+
+Drop 001's brief says it was recovered on 2026.06.28, but it is not marked:
+add `data-claimed="2026.06.28"` to it if it should show.
+
+## 2026.10.04 update
+
+- **The globe zooms properly, and it is a real map.** Zooming used to enlarge
+  one coarse outline: the drop points stayed the same size and the coast
+  changed shape as it grew. Now the coastline is redrawn finer at every step
+  (Natural Earth's 1:10m), so it only sharpens, and the points grow. It zooms
+  to a city (64x, up from 16x) and shows country borders, state and province
+  lines, lakes, and the names of countries, states, cities, peaks and 62
+  landmarks as there is room for them (see *The Drops page*).
+- **Point at anything on the globe for what it is**: a drop's number, name and
+  date; a city's state or country; a peak's height; a landmark's note. Tap it
+  on a phone.
+- **The drop screen's list shows each drop's name**, as the world list does,
+  not just its date.
+- **Claimed, when you say so**: `data-claimed="YYYY.MM.DD"` on a drop marks it
+  claimed on its page, in both lists and on the globe, without covering the
+  item photo. Without it nothing shows (see *Marking a drop claimed*).
+- **Changing drops flies the windows exactly as the About page does.** They
+  flew half as far and faster before, so the after-images hardly showed.
+- **Blog and Projects**: choosing a post flies the reader out and back in with
+  it, with the same after-images. Each post has its own address to link to
+  (`blog#building-with-createjs`). The text is larger (16.5px, was 12.5px), in
+  a column a comfortable line long, with the date and reading time under the
+  title and the previous and next posts at the end. ← and → change post; ↑ ↓,
+  Page Up, Page Down and Space scroll it.
+- **Store**: Prev and Next fly the cards out and the next page's in. The
+  descriptions are larger: 14px (12.5px before), and 13.5px on phones in four
+  lines (11.5px in three).
+- **About**: larger text, 15px (12.5px before; 14px on phones, 10px before).
+- **Phones, Drops**: bigger buttons on the drop screen (WORLD MAP and each
+  drop in the strip 44px tall, the zoom buttons 40px), the globe a little
+  smaller to make room, and the drop you are on scrolled into view in the
+  strip.
+
+**Fixed**
+- **Store, on any screen that needed a second page**: the Prev / Next bar sat
+  on top of the site's menu at the top of the screen (it was a `<nav>`, and
+  the menu's style pins every `<nav>` there). It is at the bottom now; on a
+  phone it shares a line with the cart button instead of sitting under it.
+- **Store, short screens** (a phone on its side, a short laptop window): a
+  card taller than the space was cut off, ADD TO CART included. When not even
+  one card fits, the store now scrolls like any other page.
+- **About, on most phones**: the About Me window was cut off at the bottom of
+  any screen shorter than about 700px (an iPhone in Safari, for one), with no
+  way to scroll to it. The page scrolls now when the two windows don't fit.
+- The how-to comment at the top of the Drops page still described
+  `data-status`, which does nothing since 2026.09.29. It describes
+  `data-claimed` now.
 
 ## 2026.10.03 update
 
@@ -400,3 +487,20 @@ last one · WORLD MAP and the map's globe button at 12 widths from 320 to
 every width · the street map panning with the arrows · the Arizona test copy:
 four points, NEW in red · frame rates as before (about 55 a second turning
 on a desktop, 40 on a phone).
+
+**2026.10.04**, clean and flat builds, desktop and phone: the globe at every
+zoom from 1 to 64x, the coast keeping its shape and the points growing, no
+seams at the date line or round the poles · pointing at drops, cities, peaks
+and landmarks · a drop marked claimed in the Arizona test copy: CLAIMED with
+its date in the bar and the item title, Claimed in both lists, a hollow point,
+the photo uncovered; another drop shows none of it · drop changes flying as
+About's do, with after-images · Blog and Projects: choosing posts by the
+list, the end-of-post buttons, the arrow keys and the address; quick changes
+ending on the last one; reduced motion · the store paging forwards and back,
+quick clicks, a resize mid-turn, twelve cards over six pages, reduced motion;
+the pager and cart clear of each other from 320 to 1440px; short screens
+scrolling · About reachable at 11 sizes from 320x568 to 1440x900 · two
+builds in a row byte-identical · every page at 1440 and 390px, JavaScript on
+and off: no console errors, failed requests, sideways scrolling or outside
+requests · the globe turning at about 60 frames a second on a desktop and
+45 on a phone.

@@ -536,6 +536,48 @@ html:not(.js) .dw-shell, html.js:not([data-view="world"]) .dw-shell{ display:non
   color:var(--pn-void); background:var(--pn-red); border-radius:2px;
 }
 
+/* CLAIMED: the owner's mark (data-claimed in drops.html). In the lists a
+   quiet tag; on the drop's page a chip in the frequency bar and a word in
+   the item's head. A drop without the mark shows nothing either way. */
+.dp-claimed-tag{
+  display:inline-block; align-self:center; justify-self:end; padding:2px 4px 1px;
+  font-size:7px; line-height:1; letter-spacing:.14em; text-transform:uppercase;
+  color:var(--pn-ink-muted); border:1px solid var(--pn-ash); border-radius:2px;
+}
+.dp-claimed{
+  display:inline-flex; align-items:center; gap:.7em; min-height:22px; padding:0 7px; flex:0 0 auto;
+  font-size:8px; letter-spacing:.14em; text-transform:uppercase; white-space:nowrap;
+  border-radius:2px; border:1px solid var(--pn-red);
+  color:var(--pn-red); background:var(--pn-red-07);
+}
+.dp-claimed[hidden]{ display:none; }
+@media (max-width:520px){ .dp-claimed .d{ display:none; } }
+/* the item's own head says so too, in red beside its label: the photo is
+   left clear, so whoever comes later can still see what was there */
+.dp-item-claimed{
+  min-width:0; color:var(--pn-red); letter-spacing:.14em;
+  white-space:nowrap; overflow:hidden; text-overflow:ellipsis;
+}
+.dp-item-claimed[hidden]{ display:none; }
+/* the strip's photos share its width whatever their heads say */
+@media (max-width:900px){ .dp-strip{ grid-template-columns:minmax(0,1fr) minmax(0,1fr); } }
+@media (max-width:520px){ .dp-item-claimed .d{ display:none; } }
+
+/* the drop screen's list: each drop's number and name, its date beneath
+   (drops.js gives the number and date, drops-world.js the name and tag) */
+.dp-row{
+  grid-template-columns:auto minmax(0,1fr) auto; grid-template-areas:"n p tag" ". d d";
+  row-gap:4px; column-gap:8px; align-items:baseline;
+}
+.dp-row__n{ grid-area:n; }
+.dp-row__p{
+  grid-area:p; min-width:0; font-size:9px; letter-spacing:.12em; text-transform:uppercase;
+  color:var(--pn-ink); white-space:nowrap; overflow:hidden; text-overflow:ellipsis;
+}
+.dp-row__d{ grid-area:d; color:var(--pn-ink-muted); }
+.dp-row .dp-new, .dp-row .dp-claimed-tag{ grid-area:tag; }
+.dp-row[aria-current="true"] .dp-row__p{ color:var(--pn-signal); }
+
 .dw-stage .dw-globe{ padding:0; position:relative; overflow:hidden; flex:1 1 auto; min-height:0; }
 .dw-globe canvas{
   position:absolute; inset:0; width:100%; height:100%; display:block;
@@ -553,6 +595,8 @@ html:not(.js) .dw-shell, html.js:not([data-view="world"]) .dw-shell{ display:non
 }
 .dw-callout[hidden]{ display:none; }
 .dw-callout b{ display:block; font-weight:400; font-size:10px; color:var(--pn-signal); }
+.dw-callout span{ display:block; }
+.dw-callout em{ display:block; font-style:normal; color:var(--pn-red); }
 .dw-bar{
   display:flex; align-items:center; gap:14px; padding:8px 10px 8px 12px; flex:0 0 auto;
   border-top:var(--pn-hairline-w) solid var(--pn-hairline);
@@ -633,10 +677,23 @@ html:not(.js) .dw-shell, html.js:not([data-view="world"]) .dw-shell{ display:non
   .dw-coords, .dw-from, .dw-arrows{ display:none; }
   .dw-go{ margin-left:auto; }
   .dw-row{ padding:11px 10px; }
-  .dw-zoom button{ width:32px; height:32px; }
-  /* the drop screen's list is a strip here; the way back leads it */
+  .dw-zoom button{ width:40px; height:40px; }
+  /* the drop screen's list is a strip here, number and name to a chip;
+     the way back leads it. Both are a thumb's size (44px tall), and the
+     street map, which takes what is left, gives up the height. */
+  .dp-row{
+    grid-template-areas:"n p tag"; grid-template-columns:auto auto auto; row-gap:0;
+    min-height:44px; padding:0 14px; align-items:center;
+  }
+  .dp-row__n{ font-size:12px; }
+  .dp-row__p{ font-size:9px; }
   .dp-manifest{ flex-direction:row; align-items:center; }
   .dp-manifest .dp-panel__body{ flex:1 1 auto; min-width:0; align-self:stretch; }
-  .dp-world-back{ margin:5px 4px 5px 6px; padding:6px 9px; font-size:9px; white-space:nowrap; }
+  .dp-world-back{
+    margin:6px 4px 6px 6px; padding:0 12px; min-height:44px;
+    font-size:10px; white-space:nowrap;
+  }
+  .dp-world-back svg{ width:18px; height:18px; }
   .dp-world-back .key{ display:none; }
+  .dp-bar .dp-help > summary{ min-height:36px; }
 }
