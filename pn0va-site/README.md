@@ -105,27 +105,30 @@ rings on plain ground instead of streets.
 The Drops page is one page with two screens.
 
 - **The world** (`pn0va.com/drops`): the list of drops with their names and
-  dates, and a globe with a point for each. Pointing at a drop in the list
-  turns the globe to it; choosing one (click, Enter, or tapping its point
-  twice) dives the globe in, flashes, and flies in the drop.
-- **A drop** (`pn0va.com/drops#003`): the record as before: coordinates,
-  street map, hint, brief and item. **WORLD MAP** at the top of its list (the
-  first button in the strip on a phone), the globe button on the street map,
-  Esc, or the browser's Back pulls back out to the globe. Choosing another
-  drop in the list, or with the arrow keys, flies the windows out and back
-  in with it.
+  dates, and a globe with a point for each. Choosing a drop (a click or
+  Enter on its row, the arrow keys down the list, or a click on its point)
+  turns the globe to it and opens a prompt beside it: its name and date, and
+  **OPEN DROP**. That button, or the one in the bar under the globe, is the
+  only way in: the globe dives, flashes, and the drop's windows fly in.
+  Pointing at a row only marks its drop's point, and a double-click on a
+  point opens nothing.
+- **A drop** (`pn0va.com/drops#003`): that one drop's record: coordinates,
+  street map, hint, brief and item. It has no list of the other drops and no
+  stepping through them. **WORLD MAP** at the head of its top bar, the globe
+  button on the street map, Esc, or the browser's Back pulls back out to the
+  globe, where the next one is chosen.
 
 Every drop has its own address, so a link to `pn0va.com/drops#003` opens on
 that drop, and Back, reload and sharing all work. A drop is marked **NEW**
-for its first week, in both lists.
+for its first week, in the list and in its prompt.
 
 Adding a drop hasn't changed: one `<article class="dp-entry">` in
 `drops.html`, then `python build.py`. The globe reads the same records.
 
 The globe is drawn in the brand palette from `tokens.css`: ember sea, slate
-land, ash coasts and state lines, taupe borders, a linen sheen and names, red
-for the instruments (graticule, rim, pointer, NEW) and bone for the drop you
-are on.
+land, ash coasts, taupe borders over a dark edge (thickening as you come in)
+and dashed taupe state lines, a linen sheen and names, red for the
+instruments (graticule, rim, pointer, NEW) and bone for the drop you are on.
 
 It is a map: coast, lakes, country borders, state and province lines, and the
 names of countries, states, cities, peaks and landmarks, each named once there
@@ -141,7 +144,10 @@ around the spot they share, each on a thread back to it, in the order they
 really lie (Alcatraz on top); zoom in and they move apart onto their own
 spots. Point at anything for what it is: a drop's number, name and date, a
 city's state or country, a peak's height, a landmark's note. On a touch
-screen, tap it.
+screen, tap it. Close in, a landmark's name goes ahead of the city it stands
+in (at 64x the Colosseum shows over Rome), but every name gives way to the
+drops' points and the prompt, so the landmarks right beside a drop, most of
+San Francisco's, stay hidden.
 
 Its files:
 
@@ -151,14 +157,16 @@ Its files:
 - `maps/world/`: the map, from Natural Earth (public domain), at four levels
   of detail. The whole globe is one file of 305 KB (106 KB as the
   `.htaccess` compresses it); closer in, the page fetches only the part in
-  view. 10.2 MB in 308 files, of which a visitor who zooms all the way in on
+  view. 10.4 MB in 308 files, of which a visitor who zooms all the way in on
   a drop downloads about 420 KB compressed. `tools/make-world/` made it, and
   only needs running again for newer borders (see the top of
   `make-world.mjs`);
-- `maps/landmarks.json`, from `_source/world/landmarks.json`: 62 landmarks,
-  each a name, a position, the zoom it appears from (1 is the whole globe,
-  64 the closest) and the note shown when pointed at. Add your own the same
-  way and rebuild.
+- `maps/landmarks.json`, from `_source/world/landmarks.json`: 148 landmarks
+  around the world, each a name, a position, the zoom it appears from (1 is
+  the whole globe, 64 the closest) and the note shown when pointed at. Add
+  your own the same way and rebuild. At 64x the globe shows about 300 m to a
+  pixel, so two landmarks a few streets apart can't both show: one a city is
+  plenty.
 
 With reduced motion on, the screens and drops change without the dive or the
 flights. With JavaScript off, the world view stays hidden and the page is the
@@ -175,13 +183,54 @@ found, add `data-claimed` with the date to its `<article>` in `drops.html`:
 
 and run `python build.py`. The drop then says **CLAIMED** with the date in its
 frequency bar and in the title of its item window (just **CLAIMED** on a
-narrow phone), **CLAIMED** in both lists in place of NEW, and its point on the
-globe turns hollow. The item photo is left alone, so later visitors still see
+narrow phone), **CLAIMED** in the world list in place of NEW and in its
+prompt on the globe, and its point turns hollow. The item photo is left alone, so later visitors still see
 what was left there. `data-claimed` without a date shows **CLAIMED** alone;
 deleting it undoes it. Nothing ever says "unclaimed".
 
 Drop 001's brief says it was recovered on 2026.06.28, but it is not marked:
 add `data-claimed="2026.06.28"` to it if it should show.
+
+## 2026.10.07 update
+
+- **A drop opens with its OPEN DROP button, and nothing else.** Choosing a
+  drop in the list or on the globe turns the globe to it and opens a prompt
+  beside it with its name, date and **OPEN DROP**; that button, or the one
+  under the globe, opens it. A click on a row, a second click or a
+  double-click on a point no longer opens the drop. Pointing at a row marks
+  its point without swinging the globe round; a click turns it. From the
+  keyboard: the arrows down the list, Enter to reach the prompt's button,
+  Enter again to open.
+- **A drop's page shows that drop only.** Its list of the other drops, and
+  the arrow keys that stepped through them, are gone; the record takes the
+  full width. WORLD MAP heads its top bar (40px tall on a phone); the globe
+  button on the street map, Esc and Back still go back.
+- **Screen changes are quicker, and their after-images always show.**
+  Opening a drop took about 2.5 seconds and going back about 2.2; now about
+  1.5 and 1.3. The windows fly the About page's flight at twice its speed,
+  from nearer the edge. Their after-images were drawn by a timer while they
+  flew, and the street map drawing its tiles held that timer up: with the
+  processor slowed four times, as on a modest laptop, a drop opened with 10
+  after-images across all its windows instead of 70 or more. Each window's
+  after-images are now set out the moment it takes off and fade on their
+  own, so they always show. About, Blog, Projects and Store use the same
+  code and look as they did.
+- **Stronger borders, more landmarks.** Country borders are thicker and
+  brighter, over a dark edge, and state and province lines clearer. Some
+  were missing close in (California-Nevada, Arizona-California,
+  Washington-Idaho and 21 more US lines, Quebec-Ontario and others), because
+  Natural Earth files them as "statistical" boundaries; the map includes
+  them now. 85 landmarks added, 148 in all, each checked against Natural
+  Earth's outlines to lie in its country: from Badwater Basin, Delicate Arch
+  and Devils Tower to the Nazca Lines, the Alhambra, Meteora, Abu Simbel, the
+  Terracotta Army, Ha Long Bay, Borobudur and Milford Sound.
+- **+ zooms where you are looking.** It zooms about the chosen drop only
+  while the globe still points at it; dragged off to Europe, + goes into
+  Europe rather than back toward the drop at the edge of the globe.
+
+**Fixed**
+- On a phone, a claimed drop's item window title squeezed its photo tag
+  (IMG-B) onto two lines.
 
 ## 2026.10.04 update
 
@@ -504,3 +553,20 @@ builds in a row byte-identical · every page at 1440 and 390px, JavaScript on
 and off: no console errors, failed requests, sideways scrolling or outside
 requests · the globe turning at about 60 frames a second on a desktop and
 45 on a phone.
+
+**2026.10.07**, clean and flat builds, desktop and phone: choosing a drop by
+the list, the arrow keys and its point turns the globe and opens its prompt
+without opening the drop; clicks and double-clicks on points open nothing;
+OPEN DROP in the prompt and in the bar opens it, and so do Enter, Enter from
+the keyboard; the drop's page with no list, the arrow keys leaving it on its
+drop, WORLD MAP, Esc, Back, Forward, and links to one drop · screen changes
+timed and their after-images counted per window, at full speed and with the
+processor slowed four times: every window leaves them · the top bar and the
+prompt at 12 widths from 320 to 1920px, a claimed drop included, nothing
+overlapping or scrolling sideways · every new landmark checked against
+Natural Earth's 1:10m countries, and every landmark drawn when the globe is
+aimed at it, but for seven in San Francisco under the drops · the globe
+turning at about 60 frames a second on a desktop and 47 on a phone · two
+builds in a row byte-identical · every page at 1440 and 390px, JavaScript
+on and off: no console errors, failed requests, sideways scrolling or
+outside requests.

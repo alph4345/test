@@ -308,7 +308,10 @@ async function main() {
   // Zoomed out, the 1:50m set, which has them for nine large countries (the
   // USA, Canada, Brazil, Australia, Russia, China, India, Indonesia and South
   // Africa); from level 2, the 1:10m set, which has every country's.
-  const admin = fc => ({ ...fc, features: fc.features.filter(f => /^Admin-1 boundary/.test(f.properties.FEATURECLA)) });
+  // "statistical" too: Natural Earth files some real state lines that way
+  // (California - Nevada, Arizona - California, Quebec - Ontario...)
+  const admin = fc => ({ ...fc, features: fc.features.filter(f => f.geometry &&
+    /^Admin-1 (statistical )?boundary/.test(f.properties.FEATURECLA)) });
   const admin1T = topology({ states: admin(src.admin1) }, 1e6);
   const admin1Wide = topology({ states: admin(await ne("ne_50m_admin_1_states_provinces_lines")) }, 1e6);
   src.lakes.features.forEach(f => {

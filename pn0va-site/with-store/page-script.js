@@ -24,8 +24,16 @@
 //                                     once the scope is hidden
 //
 // enter() and exit() return a promise that settles when the last window
-// has stopped. speed scales the timing (.5 is twice as fast) and distance
-// how far off-screen the flight starts or ends (.5 is half as far).
+// has stopped. speed scales the timing (.5 is twice as fast, after-images
+// as close together along the way) and distance how far off-screen the
+// flight starts or ends (.5 is half as far).
+//
+// The after-images are laid out the moment a window sets off: its flight
+// is known (where it starts, where it lands, how long, on which curve), so
+// each outline is put where the window will be at its moment and fades on
+// its own. The browser runs those fades itself, so a page busy with other
+// work as its windows land (the Drops street map drawing its tiles) can no
+// longer leave a flight without them, as a timer sampling the windows did.
 
 (function ()
 {
@@ -33,8 +41,9 @@
 
   const DURATION_MS = 1400;     // Slowed animation
   const EXIT_MS = 420;          // leaving is quicker than arriving
-  const TRAIL_INTERVAL_MS = 70;
+  const TRAIL_INTERVAL_MS = 70; // one after-image this often along a flight
   const TRAIL_FADE_MS = 600;
+  const TRAIL_GAP_PX = 6;       // closer than this to the last one: left out
   const START_MS = 60;
   const NARROW = "(max-width: 700px)";
 
@@ -78,41 +87,68 @@
     return list;
   }
 
-  // After-image outlines. All the windows in flight are measured first and
-  // drawn second, so the page is laid out once per trail, not once per window.
-  function spawnTrails(flying)
+  // An easing curve as a function of time (0..1 -> 0..1), to know where a
+  // window will be: the cubic-bezier() the browser animates it with.
+  function curveOf(css)
   {
-    const rects = flying.map(function (el)
+    const p = /cubic-bezier\(([^)]*)\)/.exec(css)[1].split(",").map(Number);
+    const cx = 3 * p[0], bx = 3 * (p[2] - p[0]) - cx, ax = 1 - cx - bx;
+    const cy = 3 * p[1], by = 3 * (p[3] - p[1]) - cy, ay = 1 - cy - by;
+    const X = (t) => ((ax * t + bx) * t + cx) * t;
+    const Y = (t) => ((ay * t + by) * t + cy) * t;
+    return function (x)
     {
-      return { r: el.getBoundingClientRect(), radius: getComputedStyle(el).borderRadius };
-    });
-    rects.forEach(function (o)
+      if (x <= 0) return 0;
+      if (x >= 1) return 1;
+      let lo = 0, hi = 1, t = x;
+      for (let i = 0; i < 24; i++)       // X rises with t: halve the interval
+      {
+        const v = X(t);
+        if (Math.abs(v - x) < 1e-5) break;
+        if (v < x) lo = t; else hi = t;
+        t = (lo + hi) / 2;
+      }
+      return Y(t);
+    };
+  }
+
+  // A window's after-images, all laid out as it sets off. r is where the
+  // window rests; off is how far from there the flight starts (arriving) or
+  // ends (leaving). Each outline waits, unseen, until the window passes its
+  // spot, shows at .7 and fades. Spots off the screen, or on top of the one
+  // before, are left out.
+  function trailsFor(w, r, off, away, curve, ms, step)
+  {
+    if (!document.body.animate) return;
+    const radius = getComputedStyle(w.el).borderRadius;
+    const made = [];
+    let last = null;
+    for (let t = step / 2; t < ms; t += step)
     {
-      if (o.r.bottom < 0 || o.r.top > window.innerHeight ||
-          o.r.right < 0 || o.r.left > window.innerWidth) return;   // off-screen
+      const p = curve(t / ms), k = away ? p : 1 - p;   // how far from its place
+      const x = r.left + off[0] * k, y = r.top + off[1] * k;
+      if (y + r.height < 0 || y > window.innerHeight ||
+          x + r.width < 0 || x > window.innerWidth) continue;          // off-screen
+      if (last && Math.hypot(x - last[0], y - last[1]) < TRAIL_GAP_PX) continue;
+      last = [x, y];
       const clone = document.createElement('div');
       clone.style.position = 'fixed';
-      clone.style.left = `${o.r.left}px`;
-      clone.style.top = `${o.r.top}px`;
-      clone.style.width = `${o.r.width}px`;
-      clone.style.height = `${o.r.height}px`;
+      clone.style.left = `${x}px`;
+      clone.style.top = `${y}px`;
+      clone.style.width = `${r.width}px`;
+      clone.style.height = `${r.height}px`;
       clone.style.border = `2px solid ${MAIN_COLOR}`;
       clone.style.background = 'transparent';
-      clone.style.borderRadius = o.radius;
+      clone.style.borderRadius = radius;
       clone.style.pointerEvents = 'none';
       clone.style.zIndex = '50';
-      clone.style.opacity = '0.7';
-
-      clone.style.transition = `opacity ${TRAIL_FADE_MS}ms linear`;
+      clone.style.opacity = '0';                        // until its moment
       document.body.appendChild(clone);
-
-      requestAnimationFrame(() =>
-      {
-        clone.style.opacity = '0';
-      });
-
-      setTimeout(() => clone.remove(), TRAIL_FADE_MS + 50);
-    });
+      clone.animate([{ opacity: 0.7 }, { opacity: 0 }],
+                    { duration: TRAIL_FADE_MS, delay: t, easing: 'linear', fill: 'forwards' });
+      made.push(clone);
+    }
+    setTimeout(() => made.forEach((c) => c.remove()), ms + TRAIL_FADE_MS + 100);
   }
 
   // The offscreen start positions extend the document past the viewport,
@@ -132,14 +168,20 @@
     }, ms);
   }
 
-  // k < 1 starts nearer the edge: screen changes arrive sooner than a page
-  function offscreen(dir, k)
+  // How far off-screen a flight starts or ends, as [x, y]. k < 1 starts
+  // nearer the edge: screen changes arrive sooner than a page.
+  function shift(dir, k)
   {
     const OFF = 800; // extra distance beyond the viewport edge
-    if (dir === 'left')   return `translateX(${-(window.innerWidth  + OFF) * k}px)`;
-    if (dir === 'right')  return `translateX(${ (window.innerWidth  + OFF) * k}px)`;
-    if (dir === 'top')    return `translateY(${-(window.innerHeight + OFF) * k}px)`;
-    /* bottom */          return `translateY(${ (window.innerHeight + OFF) * k}px)`;
+    if (dir === 'left')   return [-(window.innerWidth  + OFF) * k, 0];
+    if (dir === 'right')  return [ (window.innerWidth  + OFF) * k, 0];
+    if (dir === 'top')    return [0, -(window.innerHeight + OFF) * k];
+    /* bottom */          return [0,  (window.innerHeight + OFF) * k];
+  }
+  function offscreen(dir, k)
+  {
+    const s = shift(dir, k);
+    return `translate(${s[0]}px, ${s[1]}px)`;
   }
 
   function fly(scope, away, opts)
@@ -175,9 +217,10 @@
     });
 
     // A window that starts wholly below or beside the screen just appears.
+    // Where each rests is kept: its after-images are measured from there.
     const inView = windows.filter(function (w)
     {
-      const r = w.el.getBoundingClientRect();
+      const r = w.r = w.el.getBoundingClientRect();
       const seen = r.bottom > 0 && r.top < window.innerHeight &&
                    r.right > 0 && r.left < window.innerWidth;
       if (!seen) w.el.classList.add('landed');
@@ -188,7 +231,6 @@
     const duration = (away ? EXIT_MS : DURATION_MS) * speed;
     const last = Math.max.apply(null, inView.map(function (w) { return w.delay; }));
     lockScroll(last + duration + 400);
-    const flying = new Set();
 
     inView.forEach(function (w)
     {
@@ -207,11 +249,11 @@
         el.style.transition =
           `transform ${duration}ms ${easing}`;
         el.style.transform = away ? offscreen(w.dir, reach) : 'translate(0, 0)';
-        flying.add(el);
+        trailsFor(w, w.r, shift(w.dir, reach), away, curveOf(easing), duration,
+                  TRAIL_INTERVAL_MS * speed);
 
         setTimeout(() =>
         {
-          flying.delete(el);
           if (away) return;          // stays out until reset()
           // settle cleanly: hand control back to the stylesheet
           el.style.transition = '';
@@ -220,13 +262,6 @@
         }, duration + 60);
       }, w.delay);
     });
-
-    // one clock for every trail
-    const trail = setInterval(() =>
-    {
-      if (flying.size) spawnTrails(Array.from(flying));
-    }, TRAIL_INTERVAL_MS);
-    setTimeout(() => clearInterval(trail), last + duration + 100);
 
     return new Promise(function (done) { setTimeout(done, last + duration + 80); });
   }

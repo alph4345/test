@@ -907,7 +907,7 @@ WORLD_HTML = """
 <section class="dw-shell" id="dw" aria-label="Drops around the world">
   <section class="dp-panel dw-list" aria-label="Drops" data-fly="left" data-fly-delay="60">
     <div class="dp-panel__head"><span>Drops</span><span class="dp-idx" id="dw-count">&mdash;</span></div>
-    <p class="dw-help"><b>Help</b>Select a drop.</p>
+    <p class="dw-help"><b>Help</b>Pick a drop, then open.</p>
     <div class="dp-panel__body" id="dw-rows"></div>
   </section>
   <section class="dp-panel dw-stage" aria-label="World" data-fly="right" data-fly-delay="60">
@@ -915,6 +915,7 @@ WORLD_HTML = """
     <div class="dp-panel__body dw-globe" id="dw-globe">
       <canvas id="dw-canvas" aria-hidden="true"></canvas>
       <div class="dw-callout" id="dw-callout" aria-hidden="true" hidden></div>
+      <div class="dw-card" id="dw-card" role="group" aria-label="Chosen drop" hidden></div>
     </div>
     <div class="dw-bar">
       <span class="dw-from">World</span><span class="dw-arrows" aria-hidden="true">&gt;&gt;</span>
@@ -1025,11 +1026,14 @@ html:not(.js) .dw-shell, html.js:not([data-view="world"]) .dw-shell{ display:non
 .dw-help b{ font-weight:400; color:var(--pn-red); font-size:8px; margin-right:10px; }
 .dw-row{
   position:relative; display:grid; grid-template-columns:auto minmax(0,1fr) auto auto;
-  gap:10px; align-items:baseline; padding:13px 12px;
-  border-bottom:1px solid var(--pn-divider); text-decoration:none; color:var(--pn-ink-muted);
+  gap:10px; align-items:baseline; width:100%; margin:0; padding:13px 12px;
+  background:none; border:0; border-bottom:1px solid var(--pn-divider); border-radius:0;
+  font:inherit; text-align:left; cursor:pointer; color:var(--pn-ink-muted);
   transition:color var(--pn-dur-state) ease, background var(--pn-dur-state) ease;
 }
-.dw-row:hover, .dw-row[aria-current="true"]{ background:var(--pn-red-20); color:var(--pn-signal); }
+/* pointed at: marked; chosen: lit, with the bar */
+.dw-row:hover{ background:var(--pn-red-07); color:var(--pn-ink); }
+.dw-row[aria-current="true"]{ background:var(--pn-red-20); color:var(--pn-signal); }
 .dw-row[aria-current="true"]::before{
   content:""; position:absolute; left:0; top:0; bottom:0; width:3px; background:var(--pn-red);
 }
@@ -1086,24 +1090,18 @@ html:not(.js) .dw-shell, html.js:not([data-view="world"]) .dw-shell{ display:non
   white-space:nowrap; overflow:hidden; text-overflow:ellipsis;
 }
 .dp-item-claimed[hidden]{ display:none; }
+/* ...and the photo's tag (IMG-B) beside it stays on one line */
+.dp-slot .dp-panel__head > .dp-idx{ flex:0 0 auto; white-space:nowrap; }
 /* the strip's photos share its width whatever their heads say */
 @media (max-width:900px){ .dp-strip{ grid-template-columns:minmax(0,1fr) minmax(0,1fr); } }
 @media (max-width:520px){ .dp-item-claimed .d{ display:none; } }
 
-/* the drop screen's list: each drop's number and name, its date beneath
-   (drops.js gives the number and date, drops-world.js the name and tag) */
-.dp-row{
-  grid-template-columns:auto minmax(0,1fr) auto; grid-template-areas:"n p tag" ". d d";
-  row-gap:4px; column-gap:8px; align-items:baseline;
-}
-.dp-row__n{ grid-area:n; }
-.dp-row__p{
-  grid-area:p; min-width:0; font-size:9px; letter-spacing:.12em; text-transform:uppercase;
-  color:var(--pn-ink); white-space:nowrap; overflow:hidden; text-overflow:ellipsis;
-}
-.dp-row__d{ grid-area:d; color:var(--pn-ink-muted); }
-.dp-row .dp-new, .dp-row .dp-claimed-tag{ grid-area:tag; }
-.dp-row[aria-current="true"] .dp-row__p{ color:var(--pn-signal); }
+/* One drop at a time: the drop screen has no list of the others (the world
+   has that) and no way to step through them, so the record takes the whole
+   width. drops-world.js sets dw-ready; should it not run, drops.js's list
+   stays, the only way between drops then. */
+html.dw-ready .dp-manifest{ display:none; }
+html.dw-ready .dp-shell{ grid-template-columns:minmax(0,1fr); }
 
 .dw-stage .dw-globe{ padding:0; position:relative; overflow:hidden; flex:1 1 auto; min-height:0; }
 .dw-globe canvas{
@@ -1124,6 +1122,35 @@ html:not(.js) .dw-shell, html.js:not([data-view="world"]) .dw-shell{ display:non
 .dw-callout b{ display:block; font-weight:400; font-size:10px; color:var(--pn-signal); }
 .dw-callout span{ display:block; }
 .dw-callout em{ display:block; font-style:normal; color:var(--pn-red); }
+
+/* The prompt: by the chosen drop whenever the globe is still, its name and
+   date and OPEN DROP, the one way into it (with the bar's button below the
+   globe). It pops in as a menu window would, the cursor blinking. */
+.dw-card{
+  position:absolute; z-index:3; padding:7px 9px 9px;
+  background:rgba(0,0,0,.9); border:1px solid var(--pn-red); border-radius:2px;
+  box-shadow:0 0 16px var(--pn-red-30);
+  font-size:8px; line-height:1.8; letter-spacing:.14em; text-transform:uppercase;
+  color:var(--pn-ink-muted); white-space:nowrap;
+}
+.dw-card[hidden]{ display:none; }
+.dw-card > b{ display:block; font-weight:400; font-size:10px; color:var(--pn-signal); }
+.dw-card > span{ display:block; }
+.dw-card > em{ display:block; font-style:normal; color:var(--pn-red); }
+.dw-card.is-in{ animation:dw-card-in .16s ease-out; }
+@keyframes dw-card-in{ from{ opacity:0; transform:translateY(5px) scale(.97); } }
+.dw-open{
+  display:flex; align-items:center; gap:8px; margin-top:8px; min-height:30px; padding:0 12px 0 9px;
+  font-size:9px; letter-spacing:.16em; color:var(--pn-ink-strong); text-decoration:none;
+  background:var(--pn-red-07); border:2px solid var(--pn-red); border-radius:var(--pn-radius-sm);
+  transition:color var(--pn-dur-state) ease, background var(--pn-dur-state) ease,
+             box-shadow var(--pn-dur-state) ease;
+}
+.dw-open .cur{ color:var(--pn-red); font-size:10px; animation:dw-cursor 1.05s steps(1,end) infinite; }
+@keyframes dw-cursor{ 50%{ opacity:0; } }
+.dw-open:hover{ color:var(--pn-signal); background:var(--pn-red-20); box-shadow:var(--pn-glow-hover); }
+.dw-open:focus-visible{ outline:2px solid var(--pn-focus); outline-offset:2px; }
+@media (prefers-reduced-motion:reduce){ .dw-card.is-in, .dw-open .cur{ animation:none; } }
 .dw-bar{
   display:flex; align-items:center; gap:14px; padding:8px 10px 8px 12px; flex:0 0 auto;
   border-top:var(--pn-hairline-w) solid var(--pn-hairline);
@@ -1166,12 +1193,14 @@ html:not(.js) .dw-shell, html.js:not([data-view="world"]) .dw-shell{ display:non
 .dw-zoom button[aria-disabled="true"]{ color:var(--pn-ink-faint); cursor:default; }
 .dw-zoom button:focus-visible{ outline:2px solid var(--pn-focus); outline-offset:2px; }
 
-/* WORLD MAP: the way back, at the top of the drop screen's list. A real
-   button, framed and lit in red, with Esc beside it for keyboards. */
+/* WORLD MAP: the way back, heading the drop's top bar where the word
+   "Frequency" was. A real button, framed and lit in red, with Esc beside it
+   for keyboards. */
+.dp-bar .dp-panel__head > .dp-world-back + span{ display:none; }
 .dp-world-back{
   display:flex; align-items:center; gap:9px; flex:0 0 auto;
-  margin:8px 8px 4px; padding:9px 10px; cursor:pointer; text-align:left;
-  font:inherit; font-size:10px; letter-spacing:.16em; text-transform:uppercase;
+  margin:0; min-height:30px; padding:0 10px; cursor:pointer; text-align:left;
+  font:inherit; font-size:9px; letter-spacing:.16em; text-transform:uppercase;
   color:var(--pn-ink-strong); background:var(--pn-red-07);
   border:2px solid var(--pn-red); border-radius:var(--pn-radius-sm);
   box-shadow:0 0 14px var(--pn-red-30);
@@ -1205,24 +1234,21 @@ html:not(.js) .dw-shell, html.js:not([data-view="world"]) .dw-shell{ display:non
   .dw-go{ margin-left:auto; }
   .dw-row{ padding:11px 10px; }
   .dw-zoom button{ width:40px; height:40px; }
-  /* the drop screen's list is a strip here, number and name to a chip;
-     the way back leads it. Both are a thumb's size (44px tall), and the
-     street map, which takes what is left, gives up the height. */
-  .dp-row{
-    grid-template-areas:"n p tag"; grid-template-columns:auto auto auto; row-gap:0;
-    min-height:44px; padding:0 14px; align-items:center;
-  }
-  .dp-row__n{ font-size:12px; }
-  .dp-row__p{ font-size:9px; }
-  .dp-manifest{ flex-direction:row; align-items:center; }
-  .dp-manifest .dp-panel__body{ flex:1 1 auto; min-width:0; align-self:stretch; }
-  .dp-world-back{
-    margin:6px 4px 6px 6px; padding:0 12px; min-height:44px;
-    font-size:10px; white-space:nowrap;
-  }
+  .dw-open{ min-height:40px; }
+  /* The drop screen: no strip of drops above the bar now, so the record
+     starts at the top. The way back heads the bar, a thumb's size (40px);
+     the help is its "?", and the drop's place name loses its "Memory ·". */
+  html.dw-ready .dp-shell{ grid-template-rows:minmax(0,1fr); }
+  .dp-world-back{ min-height:40px; padding:0 12px; font-size:10px; white-space:nowrap; }
   .dp-world-back svg{ width:18px; height:18px; }
   .dp-world-back .key{ display:none; }
-  .dp-bar .dp-help > summary{ min-height:36px; }
+  .dp-bar .dp-help > summary{ min-height:36px; min-width:36px; justify-content:center; padding:0; }
+  .dp-bar .dp-help > summary .lbl{ display:none; }
+  .dp-bar #dp-rev{ font-size:0; letter-spacing:0; }
+  .dp-bar #r-place{
+    display:inline-block; max-width:100%; vertical-align:bottom; font-size:9px; letter-spacing:.14em;
+    overflow:hidden; text-overflow:ellipsis; white-space:nowrap;
+  }
 }
 """
 

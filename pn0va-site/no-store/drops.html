@@ -28,7 +28,7 @@
 <link rel="stylesheet" href="vendor/leaflet/leaflet.css?v=ec929f11">
 <link rel="stylesheet" href="tokens.css?v=cf68e78a">
 <link rel="stylesheet" href="page-style.css?v=1541d15b">
-<link rel="stylesheet" href="drops.css?v=b008bc2d">
+<link rel="stylesheet" href="drops.css?v=6fad0a3f">
 <style>
 /* Self-hosted faces — no Google Fonts request, no CDN failure mode. */
 @font-face{
@@ -198,7 +198,7 @@
 <section class="dw-shell" id="dw" aria-label="Drops around the world">
   <section class="dp-panel dw-list" aria-label="Drops" data-fly="left" data-fly-delay="60">
     <div class="dp-panel__head"><span>Drops</span><span class="dp-idx" id="dw-count">&mdash;</span></div>
-    <p class="dw-help"><b>Help</b>Select a drop.</p>
+    <p class="dw-help"><b>Help</b>Pick a drop, then open.</p>
     <div class="dp-panel__body" id="dw-rows"></div>
   </section>
   <section class="dp-panel dw-stage" aria-label="World" data-fly="right" data-fly-delay="60">
@@ -218,6 +218,7 @@
     <div class="dp-panel__body dw-globe" id="dw-globe">
       <canvas id="dw-canvas" aria-hidden="true"></canvas>
       <div class="dw-callout" id="dw-callout" aria-hidden="true" hidden></div>
+      <div class="dw-card" id="dw-card" role="group" aria-label="Chosen drop" hidden></div>
     </div>
     <div class="dw-bar">
       <span class="dw-from">World</span><span class="dw-arrows" aria-hidden="true">&gt;&gt;</span>
@@ -373,7 +374,7 @@
 <script src="vendor/world/d3-array.min.js?v=08cb6252"></script>
 <script src="vendor/world/d3-geo.min.js?v=b7604723"></script>
 <script src="vendor/world/topojson-client.min.js?v=bc057598"></script>
-<script src="drops-world.js?v=842ad443" data-world="maps/world/" data-world-v="3bc38e2e" data-landmarks="maps/landmarks.json?v=88aa0b67"></script>
-<script src="page-script.js?v=1573d777"></script>
+<script src="drops-world.js?v=b97a5532" data-world="maps/world/" data-world-v="c0cbfae2" data-landmarks="maps/landmarks.json?v=a9e7a54f"></script>
+<script src="page-script.js?v=af4e1a21"></script>
 </body>
 </html>
