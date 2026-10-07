@@ -917,12 +917,6 @@ WORLD_HTML = """
       <div class="dw-callout" id="dw-callout" aria-hidden="true" hidden></div>
       <div class="dw-card" id="dw-card" role="group" aria-label="Chosen drop" hidden></div>
     </div>
-    <div class="dw-bar">
-      <span class="dw-from">World</span><span class="dw-arrows" aria-hidden="true">&gt;&gt;</span>
-      <span class="dw-to" id="dw-to">&mdash;</span>
-      <span class="dw-coords" id="dw-coords"></span>
-      <a class="dw-go" id="dw-go" href="#">Open drop <span aria-hidden="true">&gt;</span></a>
-    </div>
   </section>
 </section>
 
@@ -1024,19 +1018,28 @@ html:not(.js) .dw-shell, html.js:not([data-view="world"]) .dw-shell{ display:non
   font-size:9px; letter-spacing:.16em; text-transform:uppercase; color:var(--pn-ink);
 }
 .dw-help b{ font-weight:400; color:var(--pn-red); font-size:8px; margin-right:10px; }
+.dw-item{ position:relative; border-bottom:1px solid var(--pn-divider); }
 .dw-row{
   position:relative; display:grid; grid-template-columns:auto minmax(0,1fr) auto auto;
-  gap:10px; align-items:baseline; width:100%; margin:0; padding:13px 12px;
-  background:none; border:0; border-bottom:1px solid var(--pn-divider); border-radius:0;
+  column-gap:10px; row-gap:5px; align-items:baseline; width:100%; margin:0; padding:12px 12px 11px;
+  background:none; border:0; border-radius:0;
   font:inherit; text-align:left; cursor:pointer; color:var(--pn-ink-muted);
   transition:color var(--pn-dur-state) ease, background var(--pn-dur-state) ease;
 }
-/* pointed at: marked; chosen: lit, with the bar */
+/* pointed at: marked; chosen: lit, with the bar down its side */
 .dw-row:hover{ background:var(--pn-red-07); color:var(--pn-ink); }
 .dw-row[aria-current="true"]{ background:var(--pn-red-20); color:var(--pn-signal); }
-.dw-row[aria-current="true"]::before{
-  content:""; position:absolute; left:0; top:0; bottom:0; width:3px; background:var(--pn-red);
+.dw-item:has(> .dw-row[aria-current="true"])::before{
+  content:""; position:absolute; left:0; top:0; bottom:0; width:3px; background:var(--pn-red); z-index:1;
 }
+/* the second line: the drop's title and the start of its story */
+.dw-line{
+  grid-column:2 / -1; min-width:0; white-space:normal;
+  font-family:var(--pn-face-body); font-size:12px; line-height:1.45; letter-spacing:0; text-transform:none;
+  color:var(--pn-ink-muted);
+  display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical; overflow:hidden;
+}
+.dw-row:hover .dw-line, .dw-row[aria-current="true"] .dw-line{ color:var(--pn-ink); }
 .dw-row:focus-visible{ outline:2px solid var(--pn-focus); outline-offset:-2px; }
 .dw-n{ font-size:12px; letter-spacing:.06em; color:var(--pn-red); font-variant-numeric:tabular-nums; }
 .dw-row[aria-current="true"] .dw-n{ color:var(--pn-signal); }
@@ -1092,8 +1095,6 @@ html:not(.js) .dw-shell, html.js:not([data-view="world"]) .dw-shell{ display:non
 .dp-item-claimed[hidden]{ display:none; }
 /* ...and the photo's tag (IMG-B) beside it stays on one line */
 .dp-slot .dp-panel__head > .dp-idx{ flex:0 0 auto; white-space:nowrap; }
-/* the strip's photos share its width whatever their heads say */
-@media (max-width:900px){ .dp-strip{ grid-template-columns:minmax(0,1fr) minmax(0,1fr); } }
 @media (max-width:520px){ .dp-item-claimed .d{ display:none; } }
 
 /* One drop at a time: the drop screen has no list of the others (the world
@@ -1119,23 +1120,55 @@ html.dw-ready .dp-shell{ grid-template-columns:minmax(0,1fr); }
   color:var(--pn-ink-muted); white-space:nowrap;
 }
 .dw-callout[hidden]{ display:none; }
-.dw-callout b{ display:block; font-weight:400; font-size:10px; color:var(--pn-signal); }
-.dw-callout span{ display:block; }
-.dw-callout em{ display:block; font-style:normal; color:var(--pn-red); }
+.dw-callout > b{ display:block; font-weight:400; font-size:10px; color:var(--pn-signal); }
+.dw-callout:not(.is-drop) > span{ display:block; }     /* a place's lines; a drop's are its details' */
+.dw-callout > em{ display:block; font-style:normal; color:var(--pn-red); }
 
-/* The prompt: by the chosen drop whenever the globe is still, its name and
-   date and OPEN DROP, the one way into it (with the bar's button below the
-   globe). It pops in as a menu window would, the cursor blinking. */
+/* A drop's details, wherever they show (the prompt, the popup over its
+   point, the row opened on a phone): labels in the pixel face, what they
+   say in the body face, which reads at any size. */
+.dw-callout.is-drop, .dw-card{ width:max-content; max-width:min(260px, calc(100% - 16px)); white-space:normal; }
+.dw-callout .dw-place, .dw-card .dw-place{ display:block; color:var(--pn-ink); white-space:normal; }
+.dw-title{
+  display:block; margin:3px 0 2px;
+  font-family:var(--pn-face-body); font-size:13px; font-style:italic; line-height:1.3;
+  letter-spacing:0; text-transform:none; color:var(--pn-ink-strong);
+}
+.dw-at{ display:block; }
+/* when it was placed, and how long ago: one line with a dot between, or
+   two where they don't fit, and then no dot (it sits in the gap, and a
+   half that wraps takes its dot outside the line, where it is cut off) */
+.dw-when{ display:flex; flex-wrap:wrap; column-gap:1.5em; overflow:hidden; }
+.dw-when > span{ position:relative; white-space:nowrap; }
+.dw-when > span + span::before{ content:"\\00B7"; position:absolute; right:100%; width:1.5em; text-align:center; }
+.dw-at{ color:var(--pn-ink); font-variant-numeric:tabular-nums; }
+.kv{
+  display:block; margin-top:3px;
+  font-family:var(--pn-face-body); font-size:12px; line-height:1.4; letter-spacing:0; text-transform:none;
+  color:var(--pn-ink);
+}
+.kv b{
+  font-family:var(--pn-face-display); font-weight:400; font-size:7.5px; letter-spacing:.14em;
+  text-transform:uppercase; color:var(--pn-red); margin-right:7px;
+}
+.dw-teaser{
+  display:block; margin-top:6px; quotes:"\\201C" "\\201D";
+  font-family:var(--pn-face-body); font-size:12px; font-style:italic; line-height:1.45;
+  letter-spacing:0; text-transform:none; color:var(--pn-ink-muted);
+}
+
+/* The prompt: by the chosen drop whenever the globe is still, all there is
+   to say about it and OPEN DROP, the one way into it. It pops in as a menu
+   window would, the cursor blinking. */
 .dw-card{
   position:absolute; z-index:3; padding:7px 9px 9px;
   background:rgba(0,0,0,.9); border:1px solid var(--pn-red); border-radius:2px;
   box-shadow:0 0 16px var(--pn-red-30);
   font-size:8px; line-height:1.8; letter-spacing:.14em; text-transform:uppercase;
-  color:var(--pn-ink-muted); white-space:nowrap;
+  color:var(--pn-ink-muted);
 }
 .dw-card[hidden]{ display:none; }
 .dw-card > b{ display:block; font-weight:400; font-size:10px; color:var(--pn-signal); }
-.dw-card > span{ display:block; }
 .dw-card > em{ display:block; font-style:normal; color:var(--pn-red); }
 .dw-card.is-in{ animation:dw-card-in .16s ease-out; }
 @keyframes dw-card-in{ from{ opacity:0; transform:translateY(5px) scale(.97); } }
@@ -1151,22 +1184,19 @@ html.dw-ready .dp-shell{ grid-template-columns:minmax(0,1fr); }
 .dw-open:hover{ color:var(--pn-signal); background:var(--pn-red-20); box-shadow:var(--pn-glow-hover); }
 .dw-open:focus-visible{ outline:2px solid var(--pn-focus); outline-offset:2px; }
 @media (prefers-reduced-motion:reduce){ .dw-card.is-in, .dw-open .cur{ animation:none; } }
-.dw-bar{
-  display:flex; align-items:center; gap:14px; padding:8px 10px 8px 12px; flex:0 0 auto;
-  border-top:var(--pn-hairline-w) solid var(--pn-hairline);
-  font-size:9px; letter-spacing:.14em; text-transform:uppercase; color:var(--pn-ink-muted);
+/* On a phone the chosen row opens up underneath (drops-world.js): the rest
+   of the details and its OPEN DROP, the width of the list, a thumb's height. */
+.dw-more{
+  padding:2px 14px 14px 46px; background:var(--pn-red-07);
+  font-size:8px; line-height:1.8; letter-spacing:.14em; text-transform:uppercase;
+  color:var(--pn-ink-muted);
 }
-.dw-arrows{ color:var(--pn-red); }
-.dw-to{ color:var(--pn-signal); min-width:0; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
-.dw-coords{ margin-left:auto; color:var(--pn-ink); font-variant-numeric:tabular-nums; white-space:nowrap; }
-.dw-go{
-  flex:0 0 auto; padding:8px 11px; white-space:nowrap; text-decoration:none;
-  font-size:9px; letter-spacing:.14em; color:var(--pn-ink);
-  border:2px solid var(--pn-red); border-radius:var(--pn-radius-sm);
-  transition:color var(--pn-dur-state) ease, background var(--pn-dur-state) ease;
-}
-.dw-go:hover{ color:var(--pn-signal); background:var(--pn-red-07); }
-.dw-go:focus-visible{ outline:2px solid var(--pn-focus); outline-offset:2px; }
+.dw-more[hidden]{ display:none; }
+.dw-more > em{ display:block; font-style:normal; color:var(--pn-red); }
+.dw-more .dw-title{ margin-top:0; }
+.dw-more .dw-open{ justify-content:center; min-height:44px; margin-top:10px; font-size:10px; }
+.dw-more .dw-teaser{ display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical; overflow:hidden; }
+.dw-item.is-open .dw-line{ display:none; }       /* the details say it in full */
 
 /* zoom: + and - a doubling at a time, the globe back to the whole globe.
    Drawn like the street map's own controls, bars rather than glyphs. */
@@ -1230,9 +1260,9 @@ html.dw-ready .dp-shell{ grid-template-columns:minmax(0,1fr); }
     padding:58px 10px 10px; gap:8px;
   }
   .dw-stage{ order:-1; }
-  .dw-coords, .dw-from, .dw-arrows{ display:none; }
-  .dw-go{ margin-left:auto; }
-  .dw-row{ padding:11px 10px; }
+  .dw-row{ padding:11px 12px 10px; }
+  .dw-line{ -webkit-line-clamp:1; }
+  .dw-list .dw-help{ display:none; }          /* the opened row says what to do */
   .dw-zoom button{ width:40px; height:40px; }
   .dw-open{ min-height:40px; }
   /* The drop screen: no strip of drops above the bar now, so the record
@@ -1249,6 +1279,52 @@ html.dw-ready .dp-shell{ grid-template-columns:minmax(0,1fr); }
     display:inline-block; max-width:100%; vertical-align:bottom; font-size:9px; letter-spacing:.14em;
     overflow:hidden; text-overflow:ellipsis; white-space:nowrap;
   }
+}
+
+/* --------------------------------------------------------------------------
+   A DROP ON A PHONE — a page that scrolls, so nothing is left out. Held to
+   one screen it dropped the hint and item photos on every phone under 680px
+   tall (an iPhone in Safari among them) and left the brief two lines in a
+   box. The street map keeps half the screen; the photos sit side by side
+   under it, and the brief reads in full. (The world stays one screen.)
+   -------------------------------------------------------------------------- */
+@media (max-width:900px){
+  html.js[data-view="drop"] body:has(.dp-shell){ overflow:auto; }
+  html.dw-ready .dp-shell{ height:auto; min-height:100vh; min-height:100dvh; grid-template-rows:auto; }
+  html.dw-ready .dp-detail{ grid-template-rows:auto auto auto; }
+  html.dw-ready .dp-map{ height:52vh; height:52svh; min-height:240px; }
+  html.dw-ready .dp-strip{
+    grid-template-columns:minmax(0,1fr) minmax(0,1fr); grid-template-areas:"hint item" "brief brief";
+  }
+  html.dw-ready .dp-slot{ display:flex; height:auto; }
+  html.dw-ready .dp-slot .dp-panel__body{ flex:0 0 auto; aspect-ratio:4/3; }
+  html.dw-ready .dp-brief{ height:auto; }
+  html.dw-ready .dp-brief .dp-panel__body{ overflow:visible; }
+  html.dw-ready .dp-brief .dp-panel__body p{ font-size:14px; line-height:1.6; }
+}
+
+/* --------------------------------------------------------------------------
+   ON ITS SIDE — a phone held sideways is wide and short. Stacked, the globe
+   was a strip 120px tall over a list no taller, too short for the chosen
+   drop's row to open in: they sit side by side instead, as on a desktop,
+   each the full height. A drop's photos flank its brief, as on a desktop,
+   rather than each filling the screen.
+   -------------------------------------------------------------------------- */
+@media (max-width:900px) and (min-width:560px) and (orientation:landscape){
+  .dw-shell{ grid-template-columns:minmax(270px,40%) minmax(0,1fr); grid-template-rows:minmax(0,1fr); }
+  .dw-stage{ order:0; }
+  html.dw-ready .dp-strip{
+    grid-template-columns:minmax(0,.82fr) minmax(0,2fr) minmax(0,.82fr); grid-template-areas:"hint brief item";
+  }
+}
+
+/* A wide screen that is short (a big phone on its side, a window halved):
+   the drop's page scrolls, rather than squeezing the street map to a
+   sliver between the bar and the photos. */
+@media (min-width:901px) and (max-height:560px){
+  html.js[data-view="drop"] body:has(.dp-shell){ overflow:auto; }
+  html.dw-ready .dp-shell{ height:auto; min-height:100vh; min-height:100dvh; }
+  html.dw-ready .dp-detail{ grid-template-rows:auto max(280px, 64vh) clamp(164px,23vh,212px); }
 }
 """
 

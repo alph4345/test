@@ -104,26 +104,41 @@ rings on plain ground instead of streets.
 
 The Drops page is one page with two screens.
 
-- **The world** (`pn0va.com/drops`): the list of drops with their names and
-  dates, and a globe with a point for each. Choosing a drop (a click or
-  Enter on its row, the arrow keys down the list, or a click on its point)
-  turns the globe to it and opens a prompt beside it: its name and date, and
-  **OPEN DROP**. That button, or the one in the bar under the globe, is the
-  only way in: the globe dives, flashes, and the drop's windows fly in.
-  Pointing at a row only marks its drop's point, and a double-click on a
-  point opens nothing.
+- **The world** (`pn0va.com/drops`): the list of drops, each with its
+  name, date, title and the first line of its story, and a globe with a
+  point for each. Choosing a drop (a click or Enter on its row, the arrow
+  keys down the list, or a click on its point) turns the globe to it and
+  opens a prompt beside it: its title, when it was placed and how long ago,
+  where it is, its item and hint, the first line of its story, and
+  **OPEN DROP**, the only way in: the globe dives, flashes, and the drop's
+  windows fly in. Pointing at a row only marks its drop's point, and a
+  double-click on a point opens nothing. On a phone the globe is too small
+  to carry all that, so the chosen drop's row opens up underneath instead,
+  with the same (but for where it is and the hint, which its page shows)
+  and an OPEN DROP the width of the list.
 - **A drop** (`pn0va.com/drops#003`): that one drop's record: coordinates,
   street map, hint, brief and item. It has no list of the other drops and no
   stepping through them. **WORLD MAP** at the head of its top bar, the globe
   button on the street map, Esc, or the browser's Back pulls back out to the
-  globe, where the next one is chosen.
+  globe, where the next one is chosen. On a phone the page scrolls: the
+  street map takes half the screen, the hint and item photos sit side by
+  side under it, and the brief reads in full.
+
+On a phone held sideways the list sits beside the globe, as on a desktop,
+and a drop's photos flank its brief. On any screen too short for a drop's
+page to fit (under 560px tall), the page scrolls rather than squeezing the
+street map.
 
 Every drop has its own address, so a link to `pn0va.com/drops#003` opens on
 that drop, and Back, reload and sharing all work. A drop is marked **NEW**
 for its first week, in the list and in its prompt.
 
 Adding a drop hasn't changed: one `<article class="dp-entry">` in
-`drops.html`, then `python build.py`. The globe reads the same records.
+`drops.html`, then `python build.py`. The globe reads the same records, and
+what the list, the prompt and the popup say comes from them too:
+`data-title` (left out where it only repeats `data-place`), `data-placed`,
+`data-itemcap`, `data-hintcap` and the first sentence of the brief. There is
+nothing more to fill in.
 
 The globe is drawn in the brand palette from `tokens.css`: ember sea, slate
 land, ash coasts, taupe borders over a dark edge (thickening as you come in)
@@ -142,9 +157,9 @@ Every drop has its own point, which grows as you zoom in. Drops too close
 together to tell apart, like the three in San Francisco, sit on a small ring
 around the spot they share, each on a thread back to it, in the order they
 really lie (Alcatraz on top); zoom in and they move apart onto their own
-spots. Point at anything for what it is: a drop's number, name and date, a
-city's state or country, a peak's height, a landmark's note. On a touch
-screen, tap it. Close in, a landmark's name goes ahead of the city it stands
+spots. Point at anything for what it is: a drop's number, name, title,
+date, item and the start of its story; a city's state or country, a peak's
+height, a landmark's note. On a touch screen, tap it. Close in, a landmark's name goes ahead of the city it stands
 in (at 64x the Colosseum shows over Rome), but every name gives way to the
 drops' points and the prompt, so the landmarks right beside a drop, most of
 San Francisco's, stay hidden.
@@ -190,6 +205,40 @@ deleting it undoes it. Nothing ever says "unclaimed".
 
 Drop 001's brief says it was recovered on 2026.06.28, but it is not marked:
 add `data-claimed="2026.06.28"` to it if it should show.
+
+## 2026.10.07 update 2
+
+- **One OPEN DROP.** The bar under the globe, with its second OPEN DROP, is
+  gone. On a desktop the prompt by the chosen drop is the way in; on a
+  phone, the chosen drop's row.
+- **More about each drop, wherever it shows.** The prompt now gives the
+  drop's title, when it was placed and how long ago, its coordinates, its
+  item and hint, and the first line of its story, above OPEN DROP. Pointing
+  at another drop's point shows the same but for where it is and the hint.
+  Each row of the list has the title and the first line of the story under
+  the name. All of it comes from the drop's record (see *The Drops page*).
+- **Phones, the world.** The prompt no longer covers the small globe: the
+  chosen drop's row opens underneath with its details and an OPEN DROP the
+  width of the list and 44px tall, and the list scrolls to keep it in view.
+  The other rows keep one line of their story. The help line above the list
+  is left out; the opened row says what to do. A double tap on a row no
+  longer opens the drop: as a row opens the rows round it move, and its
+  OPEN DROP could come to rest under the finger for the second tap.
+- **Phones, a drop.** The page scrolls. Held to one screen, it left out the
+  hint and item photos on every phone under 680px tall (an iPhone in Safari
+  among them) and kept the brief to two lines in a box. Now the street map
+  takes half the screen, the two photos sit side by side under it, and the
+  brief reads in full, in larger type.
+- **Phones on their side.** The list and the globe sit side by side, as on
+  a desktop, instead of a globe 120px tall over a list too short for a row
+  to open in; a drop's photos flank its brief. On a screen wider than a
+  phone but short (a large phone on its side, a laptop window halved), a
+  drop's page scrolls rather than squeezing its street map: at 932x430 the
+  map was 52px tall, and is now 280px.
+
+**Fixed**
+- On a short phone, a drop's brief took half the width, beside an empty
+  space where the photos had been.
 
 ## 2026.10.07 update
 

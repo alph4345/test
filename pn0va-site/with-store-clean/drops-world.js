@@ -10,12 +10,14 @@
 
    Choose a drop in the list (a click, Enter or the arrow keys), or its
    point on the globe, and the globe turns to it and a prompt opens beside
-   it: the drop's name and date, and OPEN DROP. That button, or the one in
-   the bar under the globe, is the only way in: the globe dives, the list
-   flies off, and the drop's windows fly in with the About page's flight
-   and red after-images, at twice its speed. The drop screen shows that one
-   drop; WORLD MAP (at the head of its top bar, and on the street map), Esc
-   or the browser's Back pulls back out to the globe.
+   it: what the drop is (its title, when it was placed, where, its item and
+   hint, the first line of its story) and OPEN DROP. On a phone, where the
+   globe is small, the same opens under the drop's row instead. OPEN DROP
+   is the only way in: the globe dives, the list flies off, and the drop's
+   windows fly in with the About page's flight and red after-images, at
+   twice its speed. The drop screen shows that one drop; WORLD MAP (at the
+   head of its top bar, and on the street map), Esc or the browser's Back
+   pulls back out to the globe.
 
    The globe is a map: coast, lakes, country borders, state and province
    lines, and the names of countries, states, cities, peaks and landmarks.
@@ -27,10 +29,11 @@
 
    Every drop has its own point, which grows as you zoom in. Drops too close
    to tell apart sit on a ring round the spot they share, each on a thread
-   back to it. Hover a point for the drop's name and date, or a city, peak or
-   landmark for what it is (pointing at a drop in the list marks its point
-   too). Zoom with + and -, the mouse wheel, a pinch, or the + - 0 keys; the
-   globe button goes back to the whole globe.
+   back to it. Hover a point for what the drop is (as the prompt says it,
+   short of where and the hint), or a city, peak or landmark for what it is
+   (pointing at a drop in the list marks its point too). Zoom with + and -,
+   the mouse wheel, a pinch, or the + - 0 keys; the globe button goes back
+   to the whole globe.
 
    It reads the same <article class="dp-entry"> records as drops.js, so a
    new drop is on the globe with nothing more to do. A drop is NEW for its
@@ -120,27 +123,123 @@
     return null;
   }
 
+  /* --- what each drop's record says --------------------------------------- */
+  // Its title (unless it only repeats the place), the captions of its item
+  // and hint photos, and the first sentence of its brief, as a teaser.
+  function about(d) {
+    var e = drops.entries[d.i], ds = e.dataset, p = e.querySelector("p");
+    var text = p ? p.textContent.replace(/\s+/g, " ").trim() : "";
+    var first = text.match(/^.+?[.!?](?=\s|$)/);
+    return {
+      title: ds.title && ds.title.toLowerCase() !== d.place.toLowerCase() ? ds.title : "",
+      item: ds.itemcap || "", hint: ds.hintcap || "",
+      teaser: first ? first[0] : text
+    };
+  }
+  // how long ago it was placed: "79 days ago"
+  function age(d) {
+    var n = Math.floor(daysSince(d.placed));
+    if (!isFinite(n) || n < 0) return "";
+    return n === 0 ? "today" : n === 1 ? "yesterday" : n + " days ago";
+  }
+  // a label and its value: "ITEM  Enamel pin — Game Boy"
+  function kv(label, value) {
+    var s = el("span", "kv");
+    s.appendChild(el("b", null, label));
+    s.appendChild(document.createTextNode(value));
+    return s;
+  }
+  // What there is to say about drop d, into box (after its number and
+  // place). how: "popup" over a point; "prompt", the chosen drop's, by its
+  // point, with where it is, the hint and OPEN DROP; "row", the same opened
+  // under its row on a phone, kept short (where it is and the hint are on
+  // the drop's own page) so the rows round it stay in view.
+  function describe(box, d, how) {
+    var x = about(d), a = age(d), when = el("span", "dw-when");
+    if (x.title) box.appendChild(el("i", "dw-title", x.title));
+    when.appendChild(el("span", null, "Placed " + d.placed));       // two halves, each kept
+    if (a) when.appendChild(el("span", null, a));                    // whole (see the CSS)
+    box.appendChild(when);
+    if (d.claimed !== null) box.appendChild(el("em", null, "Claimed" + (d.claimed ? " " + d.claimed : "")));
+    else if (d.isNew) box.appendChild(el("em", null, "New"));
+    if (how === "prompt" && hasPos(d)) box.appendChild(el("span", "dw-at", coords(d)));
+    if (x.item) box.appendChild(kv("Item", x.item));
+    if (how === "prompt" && x.hint) box.appendChild(kv("Hint", x.hint));
+    if (x.teaser) box.appendChild(el("q", "dw-teaser", x.teaser));
+    if (how === "popup") return;
+    var go = el("a", "dw-open");
+    go.href = "#" + d.n;
+    go.innerHTML = '<span class="cur" aria-hidden="true">&#9656;</span>Open drop';
+    // Opened under its row, the rows round it move, and OPEN DROP can come
+    // to rest under the finger that chose it: a second tap on that spot
+    // straight after (a double tap) is not a request to open it.
+    if (how === "row") go.addEventListener("click", function (ev) {
+      if (ev.detail && tapped && Date.now() - tapped.t < 450 &&
+          Math.hypot(ev.clientX - tapped.x, ev.clientY - tapped.y) < 30) ev.preventDefault();
+    });
+    box.appendChild(go);
+  }
+
   /* --- the list ----------------------------------------------------------- */
   // A row chooses its drop: the globe turns to it and the prompt opens there.
   // It never opens the drop itself. Pointing at a row only marks the drop's
   // point, so running the mouse down the list doesn't swing the globe about.
-  var rows = document.getElementById("dw-rows");
+  // Each row says what the drop is (its title and the start of its story);
+  // on a phone the chosen one opens up underneath with the rest, and its
+  // OPEN DROP, instead of a prompt over the small globe.
+  var rows = document.getElementById("dw-rows"), rowBtns = [], mores = [];
+  var tapped = null;                    // where and when a row was last tapped or clicked
   document.getElementById("dw-count").textContent = String(list.length).padStart(2, "0") + " REC";
   list.forEach(function (d) {
-    var a = el("button", "dw-row");
+    var item = el("div", "dw-item"), a = el("button", "dw-row"), x = about(d);
     a.type = "button";
     a.appendChild(el("span", "dw-n", d.n));
     a.appendChild(el("span", "dw-place", d.place));
     a.appendChild(tagFor(d) || el("span"));
     a.appendChild(el("span", "dw-date", d.placed));
+    var line = [x.title, x.teaser].filter(Boolean).join(" — ");
+    if (line) a.appendChild(el("span", "dw-line", line));
     a.addEventListener("mouseenter", function () { if (d.i !== sel) setHover({ drop: d.i }); });
     a.addEventListener("mouseleave", function () { if (hover && hover.drop === d.i) setHover(null); });
     a.addEventListener("focus", function () { select(d.i); });
     // from the keyboard (no pointer, so no click count), Enter goes on to
     // the prompt's OPEN DROP, so a second Enter opens it
-    a.addEventListener("click", function (ev) { select(d.i); if (!ev.detail) promptFocus(); });
-    rows.appendChild(a);
+    a.addEventListener("click", function (ev) {
+      tapped = ev.detail ? { x: ev.clientX, y: ev.clientY, t: Date.now() } : null;
+      select(d.i);
+      if (!ev.detail) promptFocus();
+    });
+    var more = el("div", "dw-more");
+    more.hidden = true;
+    item.appendChild(a);
+    item.appendChild(more);
+    rows.appendChild(item);
+    rowBtns.push(a);
+    mores.push(more);
   });
+
+  // Where the prompt goes: by the drop's point on the globe, or under its
+  // row: on a phone, and wherever the globe can't show the drop.
+  var narrow = window.matchMedia("(max-width: 900px)");
+  function docked() { return narrow.matches || !hasGlobe || !hasPos(list[sel] || {}); }
+  function dock() {
+    mores.forEach(function (m, k) {
+      var on = docked() && k === sel;
+      if (on && !m.childNodes.length) describe(m, list[k], "row");
+      m.hidden = !on;
+      m.parentNode.classList.toggle("is-open", on);
+      if (on) reveal(m.parentNode);
+    });
+  }
+  // the opened row in full view inside the list, which scrolls on its own
+  function reveal(item) {
+    var a = item.getBoundingClientRect(), b = rows.getBoundingClientRect();
+    if (!b.height) return;
+    if (a.bottom > b.bottom) rows.scrollTop += a.bottom - b.bottom + 4;
+    if (a.top < b.top) rows.scrollTop -= b.top - a.top + 4;
+  }
+  function onNarrow() { dock(); draw(); }
+  if (narrow.addEventListener) narrow.addEventListener("change", onNarrow); else narrow.addListener(onNarrow);
 
   // The drop screen shows one drop: drops.js's list of them is hidden (see
   // the CSS), and the way back, a real button so nobody has to hunt for it,
@@ -764,18 +863,16 @@
   }
 
   /* --- the prompt and the callout ------------------------------------------ */
-  // The prompt sits by the chosen drop whenever the globe is still: its
-  // number, name and date, and OPEN DROP, the way into it. The callout says
-  // what the mouse (or a tap) is on: another drop, a city, a peak, a
-  // landmark. Each keeps clear of the points, the pointer, the zoom buttons
-  // and the other.
+  // The prompt sits by the chosen drop whenever the globe is still: all
+  // there is to say about it (see describe) and OPEN DROP, the way into it.
+  // The callout says what the mouse (or a tap) is on: another drop, much as
+  // the prompt does, or a city, a peak, a landmark. Each keeps clear of the
+  // points, the pointer, the zoom buttons and the other.
   var hover = null;                     // { drop: i } or { place: [...] }, under the mouse
   var calloutKey = "", cardKey = "", wantFocus = false, focusLate = 0;
-  function dropLines(d) {
-    var l = [["b", "Drop #" + d.n], ["span", d.place], ["span", d.placed]];
-    if (d.claimed !== null) l.push(["em", "Claimed" + (d.claimed ? " " + d.claimed : "")]);
-    else if (d.isNew) l.push(["em", "New"]);
-    return l;
+  function dropHead(box, d) {
+    box.appendChild(el("b", null, "Drop #" + d.n));
+    box.appendChild(el("span", "dw-place", d.place));
   }
   var KIND = { c: "Country", s: "State / province", k: "Capital", t: "City", p: "Peak", l: "Landmark" };
   function placeLines(pl) {
@@ -786,7 +883,6 @@
     return [["b", pl[1]], ["span", what]];
   }
   function fill(box, lines) {
-    box.textContent = "";
     lines.forEach(function (l) { box.appendChild(el(l[0], null, l[1])); });
   }
   function onScreen(x, y) { return x >= 0 && x <= W && y >= 0 && y <= H; }
@@ -818,18 +914,16 @@
   // pops in each time it opens.
   function placeCard(lay, rest, avoid) {
     var q = lay.shown, held = card.contains(document.activeElement);
-    if (!q || !onScreen(q.x, q.y) || rest < 0.9 || (inMotion && !held)) {
+    if (docked() || !q || !onScreen(q.x, q.y) || rest < 0.9 || (inMotion && !held)) {
       card.hidden = true; cardKey = "";
       return null;
     }
     var d = list[sel];
     if (cardKey !== "d" + sel) {
       cardKey = "d" + sel;
-      fill(card, dropLines(d));
-      var go = el("a", "dw-open");
-      go.href = "#" + d.n;
-      go.innerHTML = '<span class="cur" aria-hidden="true">&#9656;</span>Open drop';
-      card.appendChild(go);
+      card.textContent = "";
+      dropHead(card, d);
+      describe(card, d, "prompt");
       card.hidden = false;
       card.classList.remove("is-in");
       void card.offsetWidth;                   // restart the pop
@@ -840,31 +934,32 @@
     if (wantFocus) { wantFocus = false; card.lastChild.focus({ preventScroll: true }); }
     return b;
   }
-  // Enter on a row goes on to the prompt's OPEN DROP as soon as it opens
-  // (to the bar's, for a drop with no point to open it beside).
+  // Enter on a row goes on to the prompt's OPEN DROP: at once when it opens
+  // under the row, or as soon as the globe has turned and it opens there.
   function promptFocus() {
     clearTimeout(focusLate);
+    var under = docked() && mores[sel].querySelector(".dw-open");
+    if (under) { under.focus({ preventScroll: true }); return; }
     if (!card.hidden && !inMotion) { card.lastChild.focus({ preventScroll: true }); return; }
     wantFocus = true;
-    focusLate = setTimeout(function () {
-      if (!wantFocus) return;
-      wantFocus = false;
-      bar.go.focus({ preventScroll: true });
-    }, 1600);
+    focusLate = setTimeout(function () { wantFocus = false; }, 1600);
   }
 
-  // The callout: what the mouse or a tap is on. Not the chosen drop: its
-  // prompt says all that already.
+  // The callout: what the mouse or a tap is on. Not the chosen drop, whose
+  // prompt by its point says all that already; but where that prompt is
+  // under the drop's row (a narrow window), its point says it too.
   function placeCallout(lay, rest, avoid) {
     var target = null;
-    if (hover && hover.drop != null && hover.drop !== sel) {
-      var q = lay.pts.filter(function (p) { return p.i === hover.drop; })[0];
-      if (q) target = { key: "d" + q.i, lines: dropLines(list[q.i]), x: q.x, y: q.y, r: q.r };
+    if (hover && hover.drop != null && (hover.drop !== sel || docked())) {
+      var q = lay.pts.filter(function (p) { return p.i === hover.drop; })[0], d = q && list[q.i];
+      if (q) target = { key: "d" + q.i, x: q.x, y: q.y, r: q.r,
+                        make: function (box) { dropHead(box, d); describe(box, d, "popup"); } };
     } else if (hover && hover.place) {
       var pl = hover.place;
       if (d3.geoDistance([pl[2], pl[3]], [view.lng, view.lat]) < Math.PI / 2) {
         var pp = proj([pl[2], pl[3]]);
-        target = { key: "p" + pl[0] + pl[1] + pl[2], lines: placeLines(pl), x: pp[0], y: pp[1], r: 4 };
+        target = { key: "p" + pl[0] + pl[1] + pl[2], x: pp[0], y: pp[1], r: 4,
+                   make: function (box) { fill(box, placeLines(pl)); } };
       }
     }
     // nothing to point at on screen: no callout (not one pinned in a corner)
@@ -872,7 +967,9 @@
     if (!target) { callout.hidden = true; calloutKey = ""; return null; }
     if (target.key !== calloutKey) {
       calloutKey = target.key;
-      fill(callout, target.lines);
+      callout.textContent = "";
+      target.make(callout);
+      callout.classList.toggle("is-drop", target.key.charAt(0) === "d");
     }
     callout.hidden = false;
     return placeBox(callout, target.x, target.y, target.r, avoid);
@@ -1120,25 +1217,18 @@
   }
 
   /* --- choosing ------------------------------------------------------------ */
-  var bar = { to: document.getElementById("dw-to"), coords: document.getElementById("dw-coords"),
-              go: document.getElementById("dw-go") };
-
-  // Choosing a drop: the list marks it, the bar names it, and the globe
-  // turns to it (the prompt opens there once it is still). It is never
-  // opened from here. how: "jump" moves the globe at once, "hold" leaves it
-  // where it is (a dive is about to take it there). Chosen again while the
-  // globe is already on its way to it, the globe carries on as it was.
+  // Choosing a drop: the list marks it, and the globe turns to it (the
+  // prompt opens there once it is still, or under its row on a phone). It
+  // is never opened from here. how: "jump" moves the globe at once, "hold"
+  // leaves it where it is (a dive is about to take it there). Chosen again
+  // while the globe is already on its way to it, the globe carries on.
   var aimed = -1;                       // the drop the globe was last turned to
   function select(i, how) {
     if (!list[i]) return;
-    var d = list[i], again = i === sel && aimed === i;
+    var again = i === sel && aimed === i;
     sel = i;
-    [].forEach.call(rows.children, function (r, k) {
-      r.setAttribute("aria-current", k === i ? "true" : "false");
-    });
-    bar.to.textContent = "Drop #" + d.n + " · " + d.place;
-    bar.coords.textContent = hasPos(d) ? coords(d) : "";
-    bar.go.href = "#" + d.n;
+    rowBtns.forEach(function (r, k) { r.setAttribute("aria-current", k === i ? "true" : "false"); });
+    dock();
     if (hover && hover.drop === i) hover = null;      // its prompt says it now
     if (how === "hold") return;
     aimed = i;
@@ -1163,7 +1253,7 @@
       if (!plain) return;
       if (root.dataset.view === "world") {
         ev.preventDefault();
-        rows.children[clamp(sel + step, 0, list.length - 1)].focus();
+        rowBtns[clamp(sel + step, 0, list.length - 1)].focus();
       } else if (t && t.closest && t.closest(".leaflet-container")) {
         ev.preventDefault();
         panStreet(ev.key, ev.shiftKey);
@@ -1335,7 +1425,7 @@
 
   // A menu confirms a choice by flashing it.
   function blink(i) {
-    var r = rows.children[i];
+    var r = rowBtns[i];
     if (!r || reduceMotion) return;
     r.classList.add("is-chosen");
     setTimeout(function () { r.classList.remove("is-chosen"); }, 420);
@@ -1368,6 +1458,7 @@
         if (next && next.i >= 0) { i = next.i; next = null; }   // asked for again meanwhile
       }
       if (fly()) fly().reset(detail);
+      window.scrollTo(0, 0);                    // a phone scrolls a drop's page
       await arrive(i, detail);
       return;
     }
@@ -1380,6 +1471,7 @@
       await Promise.all([turnTo(dive(i), 420, easeIn), fly().exit(listPanel, OUT)]);
     }
     root.dataset.view = "drop";
+    window.scrollTo(0, 0);
     if (moving()) flash();
     if (fly()) fly().reset(world);
     document.title = TITLE.replace(/DROPS$/, "DROP #" + d.n);
@@ -1392,12 +1484,13 @@
     var i = Math.max(0, drops.current()), fromDrop = shell.contains(document.activeElement);
     if (moving()) await fly().exit(shell, OUT);
     root.dataset.view = "world";
+    window.scrollTo(0, 0);                      // wherever the drop's page was scrolled to
     if (moving()) flash();
     if (fly()) fly().reset(shell);
     document.title = TITLE;
     size();
     select(i, "jump");
-    if (fromDrop && rows.children[i]) rows.children[i].focus({ preventScroll: true });
+    if (fromDrop && rowBtns[i]) rowBtns[i].focus({ preventScroll: true });
     if (moving()) {
       fly().enter(listPanel, IN);
       view = dive(i); draw();                   // start inside the drop we left
