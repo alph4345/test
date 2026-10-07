@@ -1390,7 +1390,7 @@
   }
 
   // The wheel zooms about the point under the mouse.
-  canvas.addEventListener("wheel", function (ev) {
+  function wheelZoom(ev) {
     if (!hasGlobe || !W) return;
     ev.preventDefault();
     var dy = ev.deltaY * (ev.deltaMode === 1 ? 16 : ev.deltaMode === 2 ? H : 1);
@@ -1401,7 +1401,11 @@
     zoomAbout(groundAt(p), p, z);
     draw();
     settleSoon();
-  }, { passive: false });
+  }
+  canvas.addEventListener("wheel", wheelZoom, { passive: false });
+  // over the prompt too: it covers a good part of the globe, and has
+  // nothing of its own to scroll
+  card.addEventListener("wheel", wheelZoom, { passive: false });
 
   // The world view has its own "What is a drop?" (the drop screen's lives
   // in a panel that is hidden here); like that one, a click outside closes it.
