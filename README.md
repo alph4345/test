@@ -27,6 +27,9 @@ This repository has:
 * **[Choosing a capacitor](docs/choosing-a-capacitor.md)**: lithium-ion
   capacitors vs. ordinary supercapacitors, part numbers, safety rules.
 * **[Buy or build?](docs/buy-or-build.md)**: sourcing options and costs.
+* **[n0va Books](bookkeeping)**: the bookkeeping app for n0va crafts & creations.
+  Customer profiles, branded estimates, invoices and receipts, and payments taken
+  through Square. Open `bookkeeping/index.html` in a browser; nothing to install.
 * **[Firmware examples](firmware)**: Arduino and MicroPython code for power
   button, sleep/wake, capacitor gauge and shutdown on CapCore, and
   CircuitPython charge-gauge, music-box and e-ink tarot-oracle examples for TrinketCore.
@@ -78,6 +81,7 @@ depend on.
 ## Repository layout
 
 ```
+bookkeeping/            n0va Books: customers, estimates, invoices, payments, receipts
 docs/                   guides and board renders
 firmware/               Arduino + MicroPython (CapCore), CircuitPython (TrinketCore)
 hardware/trinketcore/   all-in-one board: KiCad project, PCBWay files, generator scripts
