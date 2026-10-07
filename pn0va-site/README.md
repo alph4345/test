@@ -217,6 +217,8 @@ add `data-claimed="2026.06.28"` to it if it should show.
   at another drop's point shows the same but for where it is and the hint.
   Each row of the list has the title and the first line of the story under
   the name. All of it comes from the drop's record (see *The Drops page*).
+  The mouse wheel over the prompt zooms the globe, as it does everywhere
+  else on it.
 - **Phones, the world.** The prompt no longer covers the small globe: the
   chosen drop's row opens underneath with its details and an OPEN DROP the
   width of the list and 44px tall, and the list scrolls to keep it in view.
@@ -619,3 +621,22 @@ turning at about 60 frames a second on a desktop and 47 on a phone · two
 builds in a row byte-identical · every page at 1440 and 390px, JavaScript
 on and off: no console errors, failed requests, sideways scrolling or
 outside requests.
+
+**2026.10.07, update 2**, clean and flat builds, desktop and phone: one
+OPEN DROP on screen at every step, by the chosen drop's point on a desktop
+and under its row on a phone; what the list, the prompt, the popup and the
+opened row say, word for word, for each drop, the date and its age never
+cut off; choosing a drop by the list, the arrow keys, Tab and its point,
+and clicks and double-clicks on points opening nothing; a double tap on a
+phone row opening nothing, and a tap on its OPEN DROP a moment later
+opening the drop; the wheel zooming over the prompt as over the rest of
+the globe; the drop's page, WORLD MAP, Esc, Back, Forward and links · 12
+widths from 320 to 1920px with a claimed drop: the prompt inside the globe
+and clear of the zoom buttons, or the chosen row opened in full view with
+an OPEN DROP 44px tall; both photos and the whole brief on every drop's
+page; nothing scrolling sideways · phones on their side (667x375,
+844x390), a large one (932x430) and tablets both ways · screen changes
+timed as before (about 1.5 seconds in, 1.3 out), and the globe turning as
+fast as the previous version, measured side by side · two builds in a row
+byte-identical · every page at 1440 and 390px, JavaScript on and off: no
+console errors, failed requests, sideways scrolling or outside requests.
