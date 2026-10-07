@@ -188,7 +188,12 @@
   // on a phone the chosen one opens up underneath with the rest, and its
   // OPEN DROP, instead of a prompt over the small globe.
   var rows = document.getElementById("dw-rows"), rowBtns = [], mores = [];
-  var tapped = null;                    // where and when a row was last tapped or clicked
+  var tapped = null;                    // where and when a row was last pressed
+  // whether an element's focus came from the keyboard (where a browser
+  // doesn't know :focus-visible, it is taken to have, as it always was)
+  function byKeys(x) {
+    try { return x.matches(":focus-visible"); } catch (e) { return true; }
+  }
   document.getElementById("dw-count").textContent = String(list.length).padStart(2, "0") + " REC";
   list.forEach(function (d) {
     var item = el("div", "dw-item"), a = el("button", "dw-row"), x = about(d);
@@ -201,14 +206,16 @@
     if (line) a.appendChild(el("span", "dw-line", line));
     a.addEventListener("mouseenter", function () { if (d.i !== sel) setHover({ drop: d.i }); });
     a.addEventListener("mouseleave", function () { if (hover && hover.drop === d.i) setHover(null); });
-    a.addEventListener("focus", function () { select(d.i); });
+    // Focus from the keyboard (Tab, the arrows) chooses the drop at once; a
+    // press chooses it with its click. Chosen as the button took the focus
+    // of a tap, a phone's row opened before the tap's click arrived, and
+    // the click landed on whatever had moved under the finger: another row,
+    // or the drop's own OPEN DROP.
+    a.addEventListener("focus", function () { if (byKeys(a)) select(d.i); });
+    a.addEventListener("pointerdown", function (ev) { tapped = { x: ev.clientX, y: ev.clientY, t: Date.now() }; });
     // from the keyboard (no pointer, so no click count), Enter goes on to
     // the prompt's OPEN DROP, so a second Enter opens it
-    a.addEventListener("click", function (ev) {
-      tapped = ev.detail ? { x: ev.clientX, y: ev.clientY, t: Date.now() } : null;
-      select(d.i);
-      if (!ev.detail) promptFocus();
-    });
+    a.addEventListener("click", function (ev) { select(d.i); if (!ev.detail) promptFocus(); });
     var more = el("div", "dw-more");
     more.hidden = true;
     item.appendChild(a);
