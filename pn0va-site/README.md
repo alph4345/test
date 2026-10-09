@@ -106,28 +106,37 @@ The Drops page is one page with two screens.
 
 - **The world** (`pn0va.com/drops`): the list of drops, each with its
   name, date, title and the first line of its story, and a globe with a
-  point for each. Choosing a drop (a click or Enter on its row, the arrow
-  keys down the list, or a click on its point) turns the globe to it and
-  opens a prompt beside it: its title, when it was placed and how long ago,
-  where it is, its item and hint, the first line of its story, and
-  **OPEN DROP**, the only way in: the globe dives, flashes, and the drop's
-  windows fly in. Pointing at a row only marks its drop's point, and a
-  double-click on a point opens nothing. On a phone the globe is too small
-  to carry all that, so the chosen drop's row opens up underneath instead,
-  with the same (but for where it is and the hint, which its page shows)
-  and an OPEN DROP the width of the list.
+  point for each. It opens with no drop chosen, the globe turned to where
+  the drops are.
+  - **Choose a drop in the list** (a click, Enter, or the arrow keys down
+    it) and the globe flies to it: out and across if it is far, then down
+    as close as the globe goes, the drop in the middle.
+  - **Click a drop's point on the globe** and the globe stays where it is.
+  - Either way a prompt opens beside the point: the drop's title, when it
+    was placed and how long ago, where it is, its item and hint, the first
+    line of its story, **ZOOM IN** (or **ZOOM OUT**, once the globe is as
+    close as it goes) and **OPEN DROP**. Its ×, Esc or a click on bare
+    globe closes it.
+  - **OPEN DROP** is the only way in: the globe dives, flashes, and the
+    drop's windows fly in. Pointing at a row only marks its drop's point,
+    and a double-click on a point opens nothing.
+  - On a phone the globe is too small to carry the prompt, so the chosen
+    drop's row opens up underneath instead, with the same (but for where it
+    is and the hint, which its page shows) and its two buttons the width of
+    the list. A second tap on the row closes it.
 - **A drop** (`pn0va.com/drops#003`): that one drop's record: coordinates,
   street map, hint, brief and item. It has no list of the other drops and no
-  stepping through them. **WORLD MAP** at the head of its top bar, the globe
-  button on the street map, Esc, or the browser's Back pulls back out to the
-  globe, where the next one is chosen. On a phone the page scrolls: the
-  street map takes half the screen, the hint and item photos sit side by
-  side under it, and the brief reads in full.
+  stepping through them. **WORLD MAP**, solid red at the head of its top
+  bar, the globe button on the street map, Esc, or the browser's Back pulls
+  back out to the globe, where that drop is still chosen. On a phone the
+  page scrolls: the street map takes half the screen, the hint and item
+  photos sit side by side under it, the brief reads in full, and WORLD MAP
+  floats at the foot of the screen, always in reach.
 
 On a phone held sideways the list sits beside the globe, as on a desktop,
 and a drop's photos flank its brief. On any screen too short for a drop's
 page to fit (under 560px tall), the page scrolls rather than squeezing the
-street map.
+street map, and WORLD MAP floats at its foot there too.
 
 Every drop has its own address, so a link to `pn0va.com/drops#003` opens on
 that drop, and Back, reload and sharing all work. A drop is marked **NEW**
@@ -205,6 +214,28 @@ deleting it undoes it. Nothing ever says "unclaimed".
 
 Drop 001's brief says it was recovered on 2026.06.28, but it is not marked:
 add `data-claimed="2026.06.28"` to it if it should show.
+
+## 2026.10.09 update
+
+- **No drop is chosen when the page opens.** The world opens on the whole
+  globe, turned to where the drops are, with no prompt and no row lit.
+  Coming back from a drop's page, that drop is still chosen.
+- **The list flies to a drop; the globe shows one where it is.** Choosing
+  a drop in the list now flies the globe to it: out and across when it is
+  far, then down as close as the globe goes (64x), the drop in the middle.
+  The way is van Wijk and Nuij's smooth zoom and pan, the one d3 uses, so
+  the drop never leaves the screen; it takes half a second to a second
+  and a half, by the distance. A click on a drop's point chooses it without moving the globe.
+- **ZOOM IN and ZOOM OUT in the prompt.** Beside OPEN DROP: ZOOM IN flies to
+  the drop; once there it reads ZOOM OUT and goes back to the whole globe,
+  still on the drop. The globe button and the 0 key fly back out the same
+  way, a little quicker than flying in.
+- **The prompt closes.** Its ×, Esc, or a click on bare globe closes it; on
+  a phone, a second tap on the open row.
+- **WORLD MAP stands out.** On a drop's page it is solid red with black
+  letters (as NEW is), larger, with a back arrow. Where the page scrolls
+  (phones, and any screen under 560px tall) it floats at the foot of the
+  screen instead of scrolling away with the top bar.
 
 ## 2026.10.07 update 2
 

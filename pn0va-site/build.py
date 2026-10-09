@@ -907,7 +907,7 @@ WORLD_HTML = """
 <section class="dw-shell" id="dw" aria-label="Drops around the world">
   <section class="dp-panel dw-list" aria-label="Drops" data-fly="left" data-fly-delay="60">
     <div class="dp-panel__head"><span>Drops</span><span class="dp-idx" id="dw-count">&mdash;</span></div>
-    <p class="dw-help"><b>Help</b>Pick a drop, then open.</p>
+    <p class="dw-help"><b>Help</b>Pick a drop to fly to it.</p>
     <div class="dp-panel__body" id="dw-rows"></div>
   </section>
   <section class="dp-panel dw-stage" aria-label="World" data-fly="right" data-fly-delay="60">
@@ -1127,7 +1127,8 @@ html.dw-ready .dp-shell{ grid-template-columns:minmax(0,1fr); }
 /* A drop's details, wherever they show (the prompt, the popup over its
    point, the row opened on a phone): labels in the pixel face, what they
    say in the body face, which reads at any size. */
-.dw-callout.is-drop, .dw-card{ width:max-content; max-width:min(260px, calc(100% - 16px)); white-space:normal; }
+.dw-callout.is-drop{ width:max-content; max-width:min(260px, calc(100% - 16px)); white-space:normal; }
+.dw-card{ width:max-content; max-width:min(284px, calc(100% - 16px)); white-space:normal; }
 .dw-callout .dw-place, .dw-card .dw-place{ display:block; color:var(--pn-ink); white-space:normal; }
 .dw-title{
   display:block; margin:3px 0 2px;
@@ -1168,7 +1169,7 @@ html.dw-ready .dp-shell{ grid-template-columns:minmax(0,1fr); }
   color:var(--pn-ink-muted);
 }
 .dw-card[hidden]{ display:none; }
-.dw-card > b{ display:block; font-weight:400; font-size:10px; color:var(--pn-signal); }
+.dw-card > b{ display:block; padding-right:24px; font-weight:400; font-size:10px; color:var(--pn-signal); }
 .dw-card > em{ display:block; font-style:normal; color:var(--pn-red); }
 .dw-card.is-in{ animation:dw-card-in .16s ease-out; }
 @keyframes dw-card-in{ from{ opacity:0; transform:translateY(5px) scale(.97); } }
@@ -1184,6 +1185,29 @@ html.dw-ready .dp-shell{ grid-template-columns:minmax(0,1fr); }
 .dw-open:hover{ color:var(--pn-signal); background:var(--pn-red-20); box-shadow:var(--pn-glow-hover); }
 .dw-open:focus-visible{ outline:2px solid var(--pn-focus); outline-offset:2px; }
 @media (prefers-reduced-motion:reduce){ .dw-card.is-in, .dw-open .cur{ animation:none; } }
+/* OPEN DROP sits beside ZOOM IN (ZOOM OUT once the globe is as close as it
+   goes); the x at the prompt's corner closes it. */
+.dw-acts{ display:flex; gap:6px; margin-top:9px; }
+.dw-acts > *{ flex:1 1 auto; min-width:0; margin:0; justify-content:center; white-space:nowrap; }
+.dw-acts .dw-open{ font-size:8.5px; letter-spacing:.12em; }
+.dw-zoomto{
+  display:flex; align-items:center; gap:6px; min-height:30px; padding:0 9px;
+  font:inherit; font-size:8.5px; letter-spacing:.12em; text-transform:uppercase; cursor:pointer;
+  color:var(--pn-ink); background:none; border:1px solid var(--pn-red-50); border-radius:var(--pn-radius-sm);
+  transition:color var(--pn-dur-state) ease, background var(--pn-dur-state) ease,
+             border-color var(--pn-dur-state) ease;
+}
+.dw-zoomto svg{ width:13px; height:13px; flex:0 0 auto; fill:none; stroke:var(--pn-red); stroke-width:1.5; }
+.dw-zoomto:hover{ color:var(--pn-signal); border-color:var(--pn-red); background:var(--pn-red-07); }
+.dw-zoomto:focus-visible{ outline:2px solid var(--pn-focus); outline-offset:2px; }
+.dw-x{
+  position:absolute; top:4px; right:4px; width:26px; height:26px; padding:0;
+  display:grid; place-items:center; cursor:pointer;
+  color:var(--pn-ink-muted); background:none; border:0; border-radius:2px;
+}
+.dw-x svg{ width:10px; height:10px; fill:none; stroke:currentColor; stroke-width:1.6; }
+.dw-x:hover{ color:var(--pn-signal); background:var(--pn-red-20); }
+.dw-x:focus-visible{ outline:2px solid var(--pn-focus); outline-offset:-2px; }
 /* On a phone the chosen row opens up underneath (drops-world.js): the rest
    of the details and its OPEN DROP, the width of the list, a thumb's height. */
 .dw-more{
@@ -1194,7 +1218,8 @@ html.dw-ready .dp-shell{ grid-template-columns:minmax(0,1fr); }
 .dw-more[hidden]{ display:none; }
 .dw-more > em{ display:block; font-style:normal; color:var(--pn-red); }
 .dw-more .dw-title{ margin-top:0; }
-.dw-more .dw-open{ justify-content:center; min-height:44px; margin-top:10px; font-size:10px; }
+.dw-more .dw-acts{ margin:10px 0 0 -32px; }      /* out under the number: room for both */
+.dw-more .dw-acts > *{ min-height:44px; font-size:9px; }
 .dw-more .dw-teaser{ display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical; overflow:hidden; }
 .dw-item.is-open .dw-line{ display:none; }       /* the details say it in full */
 
@@ -1224,30 +1249,49 @@ html.dw-ready .dp-shell{ grid-template-columns:minmax(0,1fr); }
 .dw-zoom button:focus-visible{ outline:2px solid var(--pn-focus); outline-offset:2px; }
 
 /* WORLD MAP: the way back, heading the drop's top bar where the word
-   "Frequency" was. A real button, framed and lit in red, with Esc beside it
-   for keyboards. */
+   "Frequency" was. The loudest thing on the screen: solid red with black
+   letters (as NEW is), a back arrow and the globe, and Esc beside them for
+   keyboards. */
 .dp-bar .dp-panel__head > .dp-world-back + span{ display:none; }
-.dp-world-back{
+.dp-world-back, .dw-home{
   display:flex; align-items:center; gap:9px; flex:0 0 auto;
-  margin:0; min-height:30px; padding:0 10px; cursor:pointer; text-align:left;
-  font:inherit; font-size:9px; letter-spacing:.16em; text-transform:uppercase;
-  color:var(--pn-ink-strong); background:var(--pn-red-07);
+  margin:0; min-height:38px; padding:0 14px 0 10px; cursor:pointer; text-align:left;
+  font:inherit; font-size:10px; letter-spacing:.16em; text-transform:uppercase; white-space:nowrap;
+  color:var(--pn-void); background:var(--pn-red);
   border:2px solid var(--pn-red); border-radius:var(--pn-radius-sm);
-  box-shadow:0 0 14px var(--pn-red-30);
-  transition:color var(--pn-dur-state) ease, background var(--pn-dur-state) ease,
-             box-shadow var(--pn-dur-state) ease;
+  box-shadow:0 0 18px var(--pn-red-50);
+  transition:box-shadow var(--pn-dur-state) ease, filter var(--pn-dur-state) ease;
 }
-.dp-world-back svg{
-  width:16px; height:16px; flex:0 0 auto;
-  fill:none; stroke:var(--pn-red); stroke-width:1.3;
+.dp-world-back .arr, .dw-home .arr{ font-size:9px; }
+.dp-world-back svg, .dw-home svg{
+  width:17px; height:17px; flex:0 0 auto;
+  fill:none; stroke:var(--pn-void); stroke-width:1.4;
 }
-.dp-world-back .key{
-  margin-left:auto; padding:3px 4px 2px; font-size:7px; letter-spacing:.1em;
-  color:var(--pn-ash); border:1px solid var(--pn-slate); border-radius:2px;
+.dp-world-back .key, .dw-home .key{
+  margin-left:4px; padding:3px 4px 2px; font-size:7px; letter-spacing:.1em;
+  color:var(--pn-void); border:1px solid rgba(0,0,0,.45); border-radius:2px;
 }
-.dp-world-back:hover{ color:var(--pn-signal); background:var(--pn-red-20); box-shadow:var(--pn-glow-hover); }
-.dp-world-back:focus-visible{ outline:2px solid var(--pn-focus); outline-offset:2px; }
-@media (pointer:coarse){ .dp-world-back .key{ display:none; } }
+.dp-world-back:hover, .dw-home:hover{ filter:brightness(1.12); box-shadow:var(--pn-glow-hover); }
+.dp-world-back:focus-visible, .dw-home:focus-visible{ outline:2px solid var(--pn-focus); outline-offset:3px; }
+@media (pointer:coarse){ .dp-world-back .key, .dw-home .key{ display:none; } }
+
+/* Where a drop's page scrolls (a phone; any screen under 560px tall) the
+   bar's head scrolls away with it, so there the way back floats at the
+   foot of the screen instead, a thumb's size, over everything but the
+   help, and the page keeps room under its last line for it. */
+.dw-home{ display:none; }
+@media (max-width:900px), (max-height:560px){
+  html.dw-ready .dp-bar .dp-world-back{ display:none; }
+  html.js[data-view="drop"] .dw-home{
+    display:flex; position:fixed; z-index:400; left:50%; bottom:max(14px, env(safe-area-inset-bottom));
+    transform:translateX(-50%); min-height:48px; padding:0 20px 0 16px; font-size:11px;
+    animation:dw-home-in .3s ease-out .35s both;
+  }
+  html:has(.dp-help[open]) .dw-home{ display:none; }
+  html.dw-ready .dp-shell{ padding-bottom:84px; }
+}
+@keyframes dw-home-in{ from{ opacity:0; transform:translate(-50%, 18px); } }
+@media (prefers-reduced-motion:reduce){ html.js[data-view="drop"] .dw-home{ animation:none; } }
 
 /* ...and on the street map, the globe under recentre */
 .dp-recenter.dp-to-world a{ display:grid; place-items:center; text-indent:0; }
@@ -1266,12 +1310,10 @@ html.dw-ready .dp-shell{ grid-template-columns:minmax(0,1fr); }
   .dw-zoom button{ width:40px; height:40px; }
   .dw-open{ min-height:40px; }
   /* The drop screen: no strip of drops above the bar now, so the record
-     starts at the top. The way back heads the bar, a thumb's size (40px);
-     the help is its "?", and the drop's place name loses its "Memory ·". */
+     starts at the top. The way back floats at the foot of the screen (see
+     WORLD MAP); the help is the bar's "?", and the drop's place name loses
+     its "Memory ·". */
   html.dw-ready .dp-shell{ grid-template-rows:minmax(0,1fr); }
-  .dp-world-back{ min-height:40px; padding:0 12px; font-size:10px; white-space:nowrap; }
-  .dp-world-back svg{ width:18px; height:18px; }
-  .dp-world-back .key{ display:none; }
   .dp-bar .dp-help > summary{ min-height:36px; min-width:36px; justify-content:center; padding:0; }
   .dp-bar .dp-help > summary .lbl{ display:none; }
   .dp-bar #dp-rev{ font-size:0; letter-spacing:0; }
