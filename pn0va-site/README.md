@@ -236,6 +236,17 @@ add `data-claimed="2026.06.28"` to it if it should show.
   letters (as NEW is), larger, with a back arrow. Where the page scrolls
   (phones, and any screen under 560px tall) it floats at the foot of the
   screen instead of scrolling away with the top bar.
+- **Smooth flights on slower phones too.** Close in, two things made each
+  frame costly: the globe's light and sheen, a curve spread over a globe
+  many times the screen and all but flat there, which now fade out as the
+  globe comes in; and the drops' glowing points, now drawn once and
+  stamped. Map files that arrive mid-flight are read once the globe is
+  still, and the second level of detail is read while the page is idle
+  (250 KB as served; asked to save data, or on a slow connection, only
+  once the world is pointed at or touched). With the processor slowed
+  four times, as on a modest phone, a flight in went from about 6 frames a
+  second to 10 the first time and 15 after; at full speed, from about 31
+  to 45.
 
 ## 2026.10.07 update 2
 

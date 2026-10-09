@@ -397,14 +397,35 @@
     canvas.hidden = true;
   }
 
+  // A file that comes in while the globe is moving waits to be read until it
+  // is still, one a frame: reading one takes tens of milliseconds, several
+  // times that on a slower phone, and in the middle of a flight it stalled
+  // the flight. Meanwhile the globe draws the finest level it already has.
+  var waiting = [], reading = false;
+  function readSoon() {
+    if (reading || !waiting.length || inMotion) return;
+    reading = true;
+    requestAnimationFrame(function () {
+      reading = false;
+      if (inMotion) return;               // moving again: at the next stop
+      waiting.shift()();
+      readSoon();
+    });
+  }
   function load(name) {
     if (files[name]) return files[name];
     var f = files[name] = { ready: false, pieces: [], places: [] };
     var lvl = +name.split("/")[0];
+    function lost() {
+      f.ready = true;                   // nothing there: the map goes on without it
+      draw();
+    }
     fetch(WORLD + name + ".json" + (WORLD_V ? "?v=" + WORLD_V : "")).then(function (r) {
       if (!r.ok) throw new Error(r.status);
-      return r.json();
-    }).then(function (t) {
+      if (!inMotion) return r.json().then(read);
+      waiting.push(function () { r.json().then(read).catch(lost); });
+    }).catch(lost);
+    function read(t) {
       if (t.index) index = t.index;
       var size = index ? index.levels[lvl].piece : 360, byKey = {};
       ["land", "lakes", "coast", "borders", "states"].forEach(function (layer) {
@@ -429,10 +450,7 @@
       f.places = t.places || [];
       f.ready = true;
       draw();
-    }).catch(function () {
-      f.ready = true;                   // nothing there: the map goes on without it
-      draw();
-    });
+    }
     return f;
   }
 
@@ -713,12 +731,18 @@
     ctx.clearRect(0, 0, W, H);
     face(view);
 
-    // sea: ember, lit from the upper left by the one chroma
+    // sea: ember, lit from the upper left by the one chroma. The light and
+    // the sheen below are a curve across the whole globe: close in, where it
+    // is many times the screen and all but flat, they fade out (spread over
+    // a globe that size they were the costliest thing in a frame).
+    var whole = Math.hypot(CX, CY), lights = clamp((4 * whole - s) / (2 * whole), 0, 1);
     ctx.beginPath(); ctx.arc(CX, CY, s, 0, 2 * Math.PI);
     ctx.fillStyle = EMBER; ctx.fill();
-    var lit = ctx.createRadialGradient(CX - s * .38, CY - s * .42, s * .05, CX, CY, s * 1.02);
-    lit.addColorStop(0, "rgba(255,22,9,.16)"); lit.addColorStop(.6, "rgba(255,22,9,.05)"); lit.addColorStop(1, "rgba(255,22,9,0)");
-    ctx.fillStyle = lit; ctx.fill();
+    if (lights > 0) {
+      var lit = ctx.createRadialGradient(CX - s * .38, CY - s * .42, s * .05, CX, CY, s * 1.02);
+      lit.addColorStop(0, "rgba(255,22,9,.16)"); lit.addColorStop(.6, "rgba(255,22,9,.05)"); lit.addColorStop(1, "rgba(255,22,9,0)");
+      ctx.globalAlpha = lights; ctx.fillStyle = lit; ctx.fill(); ctx.globalAlpha = 1;
+    }
 
     // the map: land in slate, lakes in the sea's ember, borders in taupe
     // over a dark edge, so they hold their own against the land, thickening
@@ -739,10 +763,12 @@
     stroke(pieces, "coast", 0.7, ASH, 0.85);
 
     // a linen sheen where the light falls, over land and sea alike
-    ctx.beginPath(); ctx.arc(CX, CY, s, 0, 2 * Math.PI);
-    var sheen = ctx.createRadialGradient(CX - s * .4, CY - s * .45, 0, CX - s * .2, CY - s * .2, s * 1.1);
-    sheen.addColorStop(0, "rgba(232,226,220,.10)"); sheen.addColorStop(1, "rgba(232,226,220,0)");
-    ctx.fillStyle = sheen; ctx.fill();
+    if (lights > 0) {
+      ctx.beginPath(); ctx.arc(CX, CY, s, 0, 2 * Math.PI);
+      var sheen = ctx.createRadialGradient(CX - s * .4, CY - s * .45, 0, CX - s * .2, CY - s * .2, s * 1.1);
+      sheen.addColorStop(0, "rgba(232,226,220,.10)"); sheen.addColorStop(1, "rgba(232,226,220,0)");
+      ctx.globalAlpha = lights; ctx.fillStyle = sheen; ctx.fill(); ctx.globalAlpha = 1;
+    }
 
     // instruments: the graticule, the equator a little stronger
     ctx.beginPath(); path(graticule(view));
@@ -771,6 +797,7 @@
     drawDrops(lay, rest);
     zoomButtons();
     if (sel >= 0) zoomLabels();
+    if (!inMotion) readSoon();
   }
 
   /* --- the drops on the globe --------------------------------------------- */
@@ -913,16 +940,28 @@
     }
   }
 
-  // Points of one colour as one shape: the glow is the costly part of a
-  // point, and this way it is drawn once for all of them.
+  // Glowing points. The glow is the costly part of a point, so each colour,
+  // size and glow is drawn once, into a little canvas of its own, and
+  // stamped where it is wanted: a glow worked out afresh on every frame held
+  // a flight to a few frames a second on a slower phone.
+  var sprites = {};
+  function sprite(colour, r, blur) {
+    var key = colour + "|" + Math.round(r * 4) + "|" + blur + "|" + DPR;
+    if (sprites[key]) return sprites[key];
+    var pad = Math.ceil(r + blur + 2), size = 2 * pad, c = document.createElement("canvas");
+    c.width = c.height = Math.ceil(size * DPR);
+    var g = c.getContext("2d");
+    g.setTransform(DPR, 0, 0, DPR, 0, 0);
+    g.shadowColor = RED; g.shadowBlur = blur;
+    g.beginPath(); g.arc(pad, pad, Math.round(r * 4) / 4, 0, 2 * Math.PI);
+    g.fillStyle = colour; g.fill();
+    return (sprites[key] = { c: c, pad: pad, size: size });
+  }
   function dots(qs, colour, blur) {
-    if (!qs.length) return;
-    ctx.save();
-    ctx.shadowColor = RED; ctx.shadowBlur = blur;
-    ctx.beginPath();
-    qs.forEach(function (q) { ctx.moveTo(q.x + q.r, q.y); ctx.arc(q.x, q.y, q.r, 0, 2 * Math.PI); });
-    ctx.fillStyle = colour; ctx.fill();
-    ctx.restore();
+    qs.forEach(function (q) {
+      var sp = sprite(colour, q.r, blur);
+      ctx.drawImage(sp.c, q.x - sp.pad, q.y - sp.pad, sp.size, sp.size);
+    });
   }
   function rings(qs, colour) {
     if (!qs.length) return;
@@ -1721,5 +1760,22 @@
     else window.addEventListener("resize", function () { if (size()) draw(); });
     if (size()) draw();
     if (document.fonts) document.fonts.ready.then(draw);
+    // The next level of detail, which any zoom or flight past the whole
+    // globe needs, read while the page is idle rather than in the first
+    // flight (the largest file: 250 KB as served, three times that read).
+    // Asked to save data, or on a slow connection, it waits for a sign of
+    // interest instead: the pointer, the keyboard or a finger on the world.
+    var idle = window.requestIdleCallback ? function (fn) { requestIdleCallback(fn, { timeout: 3000 }); }
+                                          : function (fn) { setTimeout(fn, 1500); };
+    var early = function () {
+      if (files["0"] && files["0"].ready) load("1");
+      else setTimeout(function () { idle(early); }, 800);
+    };
+    var net = navigator.connection;
+    if (net && (net.saveData || /2g/.test(net.effectiveType || ""))) {
+      ["pointerover", "focusin", "touchstart"].forEach(function (type) {
+        world.addEventListener(type, function () { idle(early); }, { once: true, passive: true });
+      });
+    } else idle(early);
   }
 })();
