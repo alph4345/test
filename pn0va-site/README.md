@@ -747,6 +747,24 @@ builds in a row byte-identical · every page at 1440 and 390px, JavaScript
 on and off: no console errors, failed requests, sideways scrolling or
 outside requests.
 
+**2026.10.09, update 3**, clean and flat builds, desktop and phone: the
+world listing and plotting the three drop points; choosing a point by the
+list, the arrow keys and the globe; its prompt, popup and phone row word
+for word; OPEN POINT, the point's page with its drop and the sticker,
+WORLD MAP, Esc, Back and Forward; links to a point, to a drop, and to ones
+that don't exist · a test copy with several drops at a point (three at
+one, two at another, a claimed drop, a point whose only drop is claimed):
+NEW and CLAIMED in both lists and the prompts, the claimed date in the
+item's head where it fits, choosing drops by click, tap and the arrow keys
+with the address following, no new history and the windows staying put,
+Back and Forward between points · 12 widths from 320 to 1920px, phones on
+their side and tablets: every drop's row, the item photo and the whole
+story shown, nothing overlapping or scrolling sideways · a new point
+outside the street map named by the build · every earlier suite run again
+· two builds byte-identical · every page at 1440 and 390px, JavaScript on
+and off: no console errors, failed requests, sideways scrolling or outside
+requests.
+
 **2026.10.09, update 2**, clean and flat builds, desktop and phone: a drop
 chosen on the globe and then another in the list, on the whole globe and
 close in: the globe turns to it and keeps its zoom; the test copy's

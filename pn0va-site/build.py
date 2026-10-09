@@ -1057,11 +1057,6 @@ html.dw-ready .dp-shell{ grid-template-columns:minmax(0,1fr); }
 .dw-callout.is-drop{ width:max-content; max-width:min(260px, calc(100% - 16px)); white-space:normal; }
 .dw-card{ width:max-content; max-width:min(284px, calc(100% - 16px)); white-space:normal; }
 .dw-callout .dw-place, .dw-card .dw-place{ display:block; color:var(--pn-ink); white-space:normal; }
-.dw-title{
-  display:block; margin:3px 0 2px;
-  font-family:var(--pn-face-body); font-size:13px; font-style:italic; line-height:1.3;
-  letter-spacing:0; text-transform:none; color:var(--pn-ink-strong);
-}
 .dw-at{ display:block; }
 /* how many drops, when the latest was left and how long ago: one line with
    dots between, or more where they don't fit, and then no dot (it sits in
@@ -1146,7 +1141,6 @@ html.dw-ready .dp-shell{ grid-template-columns:minmax(0,1fr); }
 }
 .dw-more[hidden]{ display:none; }
 .dw-more > em{ display:block; font-style:normal; color:var(--pn-red); }
-.dw-more .dw-title{ margin-top:0; }
 .dw-more .dw-acts{ margin:10px 0 0 -32px; }      /* out under the number: room for both */
 .dw-more .dw-acts > *{ min-height:44px; font-size:9px; }
 .dw-more .dw-teaser{ display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical; overflow:hidden; }
