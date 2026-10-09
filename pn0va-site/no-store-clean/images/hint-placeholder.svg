@@ -1,7 +1,0 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 300">
-  <rect width="400" height="300" fill="#0a0000"/>
-  <rect x="6" y="6" width="388" height="288" fill="none" stroke="#ff1609" stroke-width="2" stroke-dasharray="14 8"/>
-  <text x="200" y="140" fill="#ff1609" font-family="monospace" font-size="64" text-anchor="middle" font-weight="bold">?</text>
-  <text x="200" y="195" fill="#B0A49B" font-family="monospace" font-size="18" text-anchor="middle" letter-spacing="4">HINT PHOTO</text>
-  <text x="200" y="225" fill="#883333" font-family="monospace" font-size="12" text-anchor="middle">replace with your image</text>
-</svg>

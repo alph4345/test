@@ -77,22 +77,26 @@ your host offers it.
 
 **Everything on the page is public**, including what the page doesn't display:
 
-- The page source lists every drop's exact coordinates (to about 10 cm), hint
-  and caption, including claimed ones.
+- The page source lists every drop point's exact coordinates (to about
+  10 cm), and every drop's photo, caption and story, including claimed ones.
 - Files on the server can be fetched even when no page links to them. Folder
   listings are now switched off, but a guessable name like
-  `images/drop-004-hint.jpg` can still be opened. Don't upload a drop's photos
+  `images/item-004.jpg` can still be opened. Don't upload a drop's photo
   until you publish it.
 - Never put an answer, code or other secret in the page or its scripts.
-  Anything secret, like hints that unlock over time, needs a small server.
+  Anything secret, like a story that unlocks over time, needs a small server.
 
 **In the real world:**
 
-- Coordinates plus dates show where you were and when, so keep drops away from
-  home and work and publish after you've left the area.
-- Drop #002's coordinates are 31 m from the centre of Alcatraz Island, which is
-  National Park Service land. Leaving items there generally needs permission,
-  and many parks have rules on caches.
+- Coordinates plus dates show where you were and when, so keep drop points
+  away from home and work and publish after you've left the area. A point you
+  return to makes your visits easier to predict; vary the times.
+- Point 02's coordinates (drop #002) are 31 m from the centre of Alcatraz
+  Island, which is National Park Service land. Leaving items there generally
+  needs permission, and many parks have rules on caches.
+- A sticker put on a wall, rail or sign can count as graffiti or littering.
+  Stuck to the drop itself (its box, bag or tag), it marks the drop without
+  marking the place.
 
 **The map** no longer depends on anyone. Carto now answers keyless requests
 with "API key required" tiles, so the streets come from a file on your own
@@ -167,14 +171,14 @@ scripts you'll use (Square, analytics); adding it now risks breaking them.
 
 ### Drops
 
-- Every drop uses the same placeholder hint and item images.
+- Every drop uses the same placeholder item image.
 - Drop #001's text says it was found: its item caption reads "Found &
-  claimed" and its brief ends "Recovered 2026.06.28." The page doesn't mark it
+  claimed" and its story ends "Recovered 2026.06.28." The page doesn't mark it
   claimed until you add `data-claimed="2026.06.28"` to it (README, *Marking a
-  drop claimed*). `data-status` does nothing and can go from `drops.html`.
+  drop claimed*).
 - With JavaScript off, the Drops page is an empty frame: the records are
   filled in by the script, and always have been. The build could also write
-  each drop out as plain text for that case.
+  each point and its drops out as plain text for that case.
 - The "100 m" and "250 m" ring labels overlap at the default zoom.
 
 ### Store

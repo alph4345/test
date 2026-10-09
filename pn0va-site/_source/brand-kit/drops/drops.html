@@ -140,22 +140,38 @@
 <!-- ============================================================
      HOW TO ADD A DROP
      ------------------------------------------------------------
-     The SECTION is "Drops" (plural). A single record is "DROP #001".
-     ------------------------------------------------------------
-     1. Copy one <article class="dp-entry"> block below.
-     2. Put the NEWEST first — the manifest and the tally are both
-        built by counting these blocks at runtime, top to bottom.
-     3. Set the data-* attributes on the <article>:
-          data-n        designation number, e.g. "003"
+     Drops are left at DROP POINTS: places used again and again.
+     A point is "POINT #03", a single drop "DROP #003". Each point
+     is a <section class="dp-point"> below, and the drops left
+     there are the <article class="dp-entry"> blocks inside it.
+     NEWEST first, points and drops alike: the lists are built by
+     reading these blocks top to bottom.
+
+     A NEW DROP AT A POINT YOU ALREADY HAVE
+     1. Copy one <article class="dp-entry"> block into that point's
+        <section>, above the drops already there.
+     2. Set the data-* attributes on the <article>:
+          data-n        drop number, three digits, e.g. "004" (one
+                        count across all the points)
           data-placed   YYYY.MM.DD
-          data-status   "open" or "recovered"
+          data-title    the drop's name
+          data-item     the photo of the item; data-itemcap its caption
+          data-claimed  YYYY.MM.DD, only once you know the drop was
+                        found (or data-claimed alone, with no date):
+                        CLAIMED shows on the point's page. Leave it off
+                        and nothing shows.
+     3. Write its story: a paragraph or two.
+
+     A NEW DROP POINT
+     1. Copy a whole <section class="dp-point"> block, put it first,
+        and keep one drop in it (step 2 above).
+     2. Set the data-* attributes on the <section>:
+          data-n        point number, two digits, e.g. "04"
+          data-place    the point's name
           data-lat / data-lng    decimal degrees, signed
-          data-zoom     leaflet zoom, 13-16 is usually right
-          data-place    short place label for the readout bar
-     4. Swap the two images and the caption text.
-     5. Write the brief. Two or three short paragraphs.
-     6. Bump ?v= on every stylesheet and script link above.
-     Nothing else needs touching — no CSS, no JS.
+          data-zoom     street map zoom, 13-16 is usually right
+     Then run python build.py, which fetches the street map for a
+     new place. Nothing else needs touching — no CSS, no JS.
      ============================================================ -->
 
 <nav class="pn-nav">
@@ -166,24 +182,20 @@
 <main class="dp-shell">
 
   <!-- ============ MANIFEST RAIL ============ -->
-  <section class="dp-panel dp-manifest" aria-label="Drops manifest">
+  <section class="dp-panel dp-manifest" aria-label="Drop points">
     <div class="dp-panel__head">
-      <span>Drops</span>
+      <span>Points</span>
       <span class="dp-idx" id="dp-count">—</span>
     </div>
     <div class="dp-panel__body" id="dp-rows"></div>
-    <div class="dp-tally">
-      <span>Open <b id="dp-open">—</b></span>
-      <span>Recovered <b id="dp-done">—</b></span>
-    </div>
   </section>
 
   <!-- ============ DETAIL ============ -->
   <div class="dp-detail">
 
     <!-- FREQUENCY BAR — the codec's tuned readout. The coordinates are the
-         frequency: they are what you tune to in order to reach a drop. -->
-    <section class="dp-panel dp-codec dp-bar" aria-label="Drop frequency">
+         frequency: they are what you tune to in order to reach a point. -->
+    <section class="dp-panel dp-codec dp-bar" aria-label="Drop point frequency">
       <div class="dp-panel__head">
         <span>Frequency</span>
         <span class="dp-headgroup">
@@ -199,17 +211,18 @@
             </summary>
             <div class="dp-help__panel" role="note">
               <h3>What is a drop?</h3>
-              <p>Loot left by the operator at a real location. You get the
-                 coordinates, a photo of the item and a hint to its hiding
-                 place &mdash; enough to go and find it. Each one carries a
-                 short piece of lore too.</p>
+              <p>Loot left by the operator at a real place. Drops are left
+                 at drop points, places the operator comes back to, and each
+                 one is in plain sight, marked with a P_N0VA sticker. A
+                 point's page lists every drop left there: when, a photo of
+                 the item, and a short piece of lore.</p>
             </div>
           </details>
           <span class="dp-idx" id="dp-rev">Memory · <span id="r-place">—</span></span>
         </span>
       </div>
       <div class="dp-panel__body">
-        <span class="dp-desig"><span class="hash">DROP&nbsp;#</span><span id="r-n">—</span></span>
+        <span class="dp-desig"><span class="hash">POINT&nbsp;#</span><span id="r-n">—</span></span>
 
         <span class="dp-freq">
           <span class="v"><span id="r-lat">—</span><span class="u">°N</span></span>
@@ -217,15 +230,14 @@
         </span>
 
         <span class="dp-meta">
-          <dl class="dp-readout"><dt>Placed</dt><dd id="r-placed">—</dd></dl>
-          <dl class="dp-readout"><dt>Elapsed</dt><dd><span id="r-days">—</span><span class="u">d</span></dd></dl>
-          <span class="dp-status dp-status--open" id="r-status">—</span>
+          <dl class="dp-readout"><dt>Latest</dt><dd id="r-placed">—</dd></dl>
+          <dl class="dp-readout"><dt>Drops</dt><dd id="r-count">—</dd></dl>
         </span>
       </div>
     </section>
 
     <!-- map -->
-    <section class="dp-panel dp-map dp-scan" aria-label="Drop location">
+    <section class="dp-panel dp-map dp-scan" aria-label="Drop point location">
       <div class="dp-panel__head">
         <span>Location</span>
         <span class="dp-idx">Carto dark · OSM</span>
@@ -238,22 +250,23 @@
       </div>
     </section>
 
-    <!-- BOTTOM STRIP — the codec's two portrait frames sitting with the
-         dialogue box, which is what frees the whole upper area for the map. -->
+    <!-- BOTTOM STRIP — the drops left at this point, the chosen one's
+         transmission (its story) and a portrait frame with its item. No
+         hint: every drop is in plain sight, marked with the sticker. -->
     <div class="dp-strip">
-      <figure class="dp-panel dp-slot dp-slot--hint" style="margin:0">
-        <div class="dp-panel__head"><span>Hint</span><span class="dp-idx">IMG-A</span></div>
-        <div class="dp-panel__body dp-panel__body--flush"><img id="s-hint" src="images/hint-placeholder.svg" alt=""></div>
-        <figcaption id="s-hintcap">—</figcaption>
-      </figure>
+      <section class="dp-panel dp-log" aria-label="Drops at this point">
+        <div class="dp-panel__head"><span>Drops</span><span class="dp-idx" id="r-logn">—</span></div>
+        <div class="dp-panel__body" id="dp-log"></div>
+        <p class="dp-sticker"><img src="images/logo.svg" alt="The P_N0VA sticker">Look for the sticker</p>
+      </section>
 
-      <section class="dp-panel dp-codec dp-brief" aria-label="Drop brief">
+      <section class="dp-panel dp-codec dp-brief" aria-label="Drop transmission">
         <div class="dp-panel__head"><span>Transmission</span><span class="dp-idx" id="r-title">—</span></div>
         <div class="dp-panel__body" id="dp-brief"></div>
       </section>
 
       <figure class="dp-panel dp-slot dp-slot--item" style="margin:0">
-        <div class="dp-panel__head"><span>Item</span><span class="dp-idx">IMG-B</span></div>
+        <div class="dp-panel__head"><span>Item</span><span class="dp-item-claimed" id="r-claimed" hidden></span><span class="dp-idx" id="r-dropn">—</span></div>
         <div class="dp-panel__body dp-panel__body--flush"><img id="s-item" src="images/item-placeholder.svg" alt=""></div>
         <figcaption id="s-itemcap">—</figcaption>
       </figure>
@@ -263,46 +276,53 @@
 </main>
 
 <!-- ============================================================
-     DROP RECORDS — newest first. Content only; no styling here.
+     DROP POINTS and their DROPS — newest first. Content only; no
+     styling here.
      ============================================================ -->
 <div hidden id="dp-data">
 
-  <article class="dp-entry" data-n="003" data-placed="2026.07.20" data-status="open"
-           data-lat="37.802139" data-lng="-122.4058" data-zoom="15"
-           data-place="Telegraph Hill"
-           data-title="Stairs and Parrots"
-           data-hint="images/hint-placeholder.svg" data-hintcap="Count the landings"
-           data-item="images/item-placeholder.svg" data-itemcap="Enamel pin — Game Boy">
-    <p>Placed at dusk, halfway up a staircase most people take at a jog. If you
-       hear the flock before you see it, you have gone too far.</p>
-    <p>Take the item, leave something of equal or greater mystery, and sign the
-       logbook. Bring your own pen — the last one walked off.</p>
-  </article>
+  <section class="dp-point" data-n="03" data-place="Telegraph Hill"
+           data-lat="37.802139" data-lng="-122.4058" data-zoom="15">
 
-  <article class="dp-entry" data-n="002" data-placed="2026.07.04" data-status="open"
-           data-lat="37.826977" data-lng="-122.422955" data-zoom="14"
-           data-place="Island Signal"
-           data-title="Island Signal"
-           data-hint="images/hint-placeholder.svg" data-hintcap="Look past the water"
-           data-item="images/item-placeholder.svg" data-itemcap="What you're looking for">
-    <p>This one required a boat ride to place. It sits within sight of one of the
-       most photographed views around, tucked where thousands of people walk past
-       every week without a second glance.</p>
-    <p>Hidden in plain sight, exactly the way I like it.</p>
-  </article>
+    <article class="dp-entry" data-n="003" data-placed="2026.07.20"
+             data-title="Stairs and Parrots"
+             data-item="images/item-placeholder.svg" data-itemcap="Enamel pin — Game Boy">
+      <p>Placed at dusk, halfway up a staircase most people take at a jog. If you
+         hear the flock before you see it, you have gone too far.</p>
+      <p>Take the item, leave something of equal or greater mystery, and sign the
+         logbook. Bring your own pen — the last one walked off.</p>
+    </article>
 
-  <article class="dp-entry" data-n="001" data-placed="2026.06.15" data-status="recovered"
-           data-lat="37.769420" data-lng="-122.486214" data-zoom="14"
-           data-place="West Woods"
-           data-title="The First Drop"
-           data-hint="images/hint-placeholder.svg" data-hintcap="Where the path splits"
-           data-item="images/item-placeholder.svg" data-itemcap="Found &amp; claimed">
-    <p>Somewhere among the trees west of the city, beneath a landmark that has
-       watched over the spot for more than a century. I hid it here because this
-       is where the whole idea started — the first place I ever went looking for
-       something that wasn't on any map.</p>
-    <p>Recovered 2026.06.28. The logbook stays behind for the next visitor.</p>
-  </article>
+  </section>
+
+  <section class="dp-point" data-n="02" data-place="Island Signal"
+           data-lat="37.826977" data-lng="-122.422955" data-zoom="14">
+
+    <article class="dp-entry" data-n="002" data-placed="2026.07.04"
+             data-title="Island Signal"
+             data-item="images/item-placeholder.svg" data-itemcap="What you're looking for">
+      <p>This one required a boat ride to place. It sits within sight of one of the
+         most photographed views around, tucked where thousands of people walk past
+         every week without a second glance.</p>
+      <p>Hidden in plain sight, exactly the way I like it.</p>
+    </article>
+
+  </section>
+
+  <section class="dp-point" data-n="01" data-place="West Woods"
+           data-lat="37.769420" data-lng="-122.486214" data-zoom="14">
+
+    <article class="dp-entry" data-n="001" data-placed="2026.06.15"
+             data-title="The First Drop"
+             data-item="images/item-placeholder.svg" data-itemcap="Found &amp; claimed">
+      <p>Somewhere among the trees west of the city, beneath a landmark that has
+         watched over the spot for more than a century. I hid it here because this
+         is where the whole idea started — the first place I ever went looking for
+         something that wasn't on any map.</p>
+      <p>Recovered 2026.06.28. The logbook stays behind for the next visitor.</p>
+    </article>
+
+  </section>
 
 </div>
 

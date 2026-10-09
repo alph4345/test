@@ -78,8 +78,9 @@ PAGE_META = {
     "blog.html":     ("blog", "Posts from P_N0VA on development, creative projects "
                               "and building this site."),
     "projects.html": ("projects", "Projects by P_N0VA: web, animation and game experiments."),
-    "drops.html":    ("drops", "Drops: items P_N0VA has hidden at real locations, each "
-                               "with coordinates, a photo hint and a little lore."),
+    "drops.html":    ("drops", "Drops: items P_N0VA leaves at drop points around the world, "
+                               "in plain sight and marked with a P_N0VA sticker, each with a "
+                               "photo of the item and a little lore."),
     "store.html":    ("store", "Handmade layered wood and acrylic pins, keychains and "
                                "custom art plates from P_N0VA."),
     "about.html":    ("about", "About P_N0VA, the operator behind the site."),
@@ -705,7 +706,7 @@ DROPS_BAR_CSS = """
 /* --------------------------------------------------------------------------
    FREQUENCY BAR HEIGHT — added by build.py
    drops.css means the bar to "stay about 70px and give the height back to
-   the map", but Placed and Elapsed are <dl>s, and a browser gives every <dl>
+   the map", but Latest and Drops are <dl>s, and a browser gives every <dl>
    1em of margin above and below: the bar was 96px on a desktop and 113px on
    a phone. Without the margins it is 75px and 85px, and the map gets the rest.
    -------------------------------------------------------------------------- */
@@ -715,9 +716,9 @@ DROPS_BAR_CSS = """
 DROPS_PHONE_CSS = """
 /* --------------------------------------------------------------------------
    PHONE FREQUENCY BAR — added by build.py
-   One row could not hold DROP #003, both coordinates and the status chip:
+   One row could not hold POINT #03, both coordinates and the readouts:
    below ~700px they were drawn on top of each other. It is two rows now —
-   identity and state on top, the coordinates across the full width below.
+   identity and readouts on top, the coordinates across the full width below.
 
    The bar's head also stays. It holds the only "What is a drop?" button,
    so hiding it left phone visitors no way to open the explainer. Only the
@@ -743,9 +744,9 @@ DROPS_PHONE_CSS = """
   .dp-bar .dp-headgroup{ flex:1 1 auto; min-width:0; justify-content:space-between; }
   .dp-bar #dp-rev{ min-width:0; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
 
-  /* Placed and Elapsed were hidden here "because they live in the help
-     panel", which never showed them, so phones had neither. Elapsed fits
-     on nearly any phone; the placed date joins it where there is room. */
+  /* The readouts were hidden here "because they live in the help panel",
+     which never showed them, so phones had neither. The count of drops
+     fits on any phone; the latest drop's date joins it where there is room. */
   .dp-meta .dp-readout:nth-of-type(2){ display:flex; }
 
   /* The channel strip's rows kept the desktop list's width:100%, so each
@@ -753,8 +754,8 @@ DROPS_PHONE_CSS = """
      say they were there. Sized to their content, several show at once. */
   .dp-row{ width:auto; }
 }
-/* Widths measured with the widest values, DROP #888 and 8888 days: the
-   placed date fits from 520px, and below 340px the elapsed readout doesn't. */
+/* Widths measured with the widest values, POINT #88 and 888 drops: the
+   latest date fits from 520px, and below 340px the count doesn't. */
 @media (min-width:520px) and (max-width:900px){
   .dp-meta .dp-readout:nth-of-type(1){ display:flex; }
 }
@@ -839,24 +840,6 @@ def self_hosted_map_html(html: str) -> str:
     return html.replace("Carto dark · OSM", "OpenStreetMap", 1)
 
 
-# --- open / claimed: removed ---------------------------------------------------
-# Every drop showed OPEN or CLAIMED from a data-status set by hand, so the page
-# claimed to know something nobody had confirmed. Drops have no status now; a
-# data-status left in drops.html is ignored.
-def omit_status_html(html: str) -> str:
-    """drops.html: no status chip in the frequency bar, no Open/Recovered tally."""
-    html, a = re.subn(r'\n[ \t]*<div class="dp-tally">.*?</div>', "", html, count=1, flags=re.S)
-    html, b = re.subn(r'\n[ \t]*<span class="dp-status[^"]*" id="r-status">[^<]*</span>', "",
-                      html, count=1)
-    if not (a and b):
-        sys.exit("drops.html changed; update omit_status_html() in build.py")
-    # the how-to comment at the top: data-claimed replaced data-status
-    return html.replace('data-status   "open" or "recovered"',
-                        'data-claimed  YYYY.MM.DD, only once you know the drop was found:\n'
-                        '                        CLAIMED shows on its page, in the lists and\n'
-                        '                        on the globe. Leave it off and nothing shows.', 1)
-
-
 def fly_in_drops(html: str) -> str:
     """drops.html: the About page's window entrance, for the six panels.
 
@@ -867,7 +850,7 @@ def fly_in_drops(html: str) -> str:
     panels = [('class="dp-panel dp-manifest"', "left", 60),
               ('class="dp-panel dp-codec dp-bar"', "top", 60),
               ('class="dp-panel dp-map dp-scan"', "right", 140),
-              ('class="dp-panel dp-slot dp-slot--hint"', "bottom", 140),
+              ('class="dp-panel dp-log"', "bottom", 140),
               ('class="dp-panel dp-codec dp-brief"', "bottom", 200),
               ('class="dp-panel dp-slot dp-slot--item"', "bottom", 260)]
     for cls, where, delay in panels:
@@ -882,12 +865,12 @@ def fly_in_drops(html: str) -> str:
 
 
 # --- the world view: the Drops page's first screen ----------------------------
-# A globe with a point for every drop and the list of drops beside it; choosing
-# one dives into the drop's record, all on one page (drops#003 is drop 003).
-# drops-world.js does it, with d3-geo. The map it draws is Natural Earth at
-# four levels of detail, made once by tools/make-world into _source/world/data;
-# the landmarks are _source/world/landmarks.json. The record screen itself is
-# the brand kit's, with names and a claimed mark added by drops-world.js.
+# A globe with every drop point on it and the list of points beside it; OPEN
+# POINT dives into the point's page, all on one page (drops#03 is point 03,
+# drops#003 drop 003 at its point). drops-world.js does it, with d3-geo. The
+# map it draws is Natural Earth at four levels of detail, made once by
+# tools/make-world into _source/world/data; the landmarks are
+# _source/world/landmarks.json. The point's screen is the brand kit's.
 WORLD_SRC = ROOT / "_source/world"
 
 
@@ -901,13 +884,13 @@ def world_version() -> str:
     return h.hexdigest()[:8]
 
 WORLD_HTML = """
-<!-- ============ WORLD: every drop on the globe (drops-world.js) ============
+<!-- ========= WORLD: every drop point on the globe (drops-world.js) =========
      The first screen. html[data-view] says which one is showing; without
-     JavaScript this one stays hidden and the drops read as one long page. -->
-<section class="dw-shell" id="dw" aria-label="Drops around the world">
-  <section class="dp-panel dw-list" aria-label="Drops" data-fly="left" data-fly-delay="60">
-    <div class="dp-panel__head"><span>Drops</span><span class="dp-idx" id="dw-count">&mdash;</span></div>
-    <p class="dw-help"><b>Help</b>Pick a drop to find it.</p>
+     JavaScript this one stays hidden. -->
+<section class="dw-shell" id="dw" aria-label="Drop points around the world">
+  <section class="dp-panel dw-list" aria-label="Drop points" data-fly="left" data-fly-delay="60">
+    <div class="dp-panel__head"><span>Drop points</span><span class="dp-idx" id="dw-count">&mdash;</span></div>
+    <p class="dw-help"><b>Help</b>Pick a point to find it.</p>
     <div class="dp-panel__body" id="dw-rows"></div>
   </section>
   <section class="dp-panel dw-stage" aria-label="World" data-fly="right" data-fly-delay="60">
@@ -915,7 +898,7 @@ WORLD_HTML = """
     <div class="dp-panel__body dw-globe" id="dw-globe">
       <canvas id="dw-canvas" aria-hidden="true"></canvas>
       <div class="dw-callout" id="dw-callout" aria-hidden="true" hidden></div>
-      <div class="dw-card" id="dw-card" role="group" aria-label="Chosen drop" hidden></div>
+      <div class="dw-card" id="dw-card" role="group" aria-label="Chosen point" hidden></div>
     </div>
   </section>
 </section>
@@ -947,62 +930,12 @@ def world_view(html: str) -> str:
     return html
 
 
-def drops_api_js(js: str) -> str:
-    """drops.js: open on the drop in the address, say when the drop changes,
-    let drops-world.js open one, and label the hemispheres properly."""
-    subs = [
-        ("""    el.lat.textContent    = mag(d.lat);
-    el.lng.textContent    = mag(d.lng);
-""", """    el.lat.textContent    = mag(d.lat);
-    el.lng.textContent    = mag(d.lng);
-    /* the unit says which side of the equator and of Greenwich (build.py) */
-    el.lat.nextElementSibling.textContent = "\\u00b0" + (+d.lat < 0 ? "S" : "N");
-    el.lng.nextElementSibling.textContent = "\\u00b0" + (+d.lng < 0 ? "W" : "E");
-"""),
-        ("""    moveMap(+d.lat, +d.lng, +(d.zoom || 15));
-  }
-""", """    moveMap(+d.lat, +d.lng, +(d.zoom || 15));
-    document.dispatchEvent(new CustomEvent("pn0va:drop", { detail: { index: i } }));
-  }
-"""),
-        ("""  buildManifest();
-  show(0);
-  setTimeout(function(){ if (map) map.invalidateSize(); }, 250);
-})();""", """  buildManifest();
-  /* drops#003 opens on drop 003 (build.py; see drops-world.js) */
-  var start = 0;
-  entries.forEach(function (e, i) { if ("#" + e.dataset.n === location.hash) start = i; });
-  show(start);
-  setTimeout(function(){ if (map) map.invalidateSize(); }, 250);
-
-  /* For drops-world.js, which moves between the world view and a drop. */
-  window.pn0vaDrops = {
-    entries: entries,
-    current: function () { return current; },
-    map: function () { return map; },
-    /* Show drop i in a panel that has just become visible. Size the map
-       first: while hidden, Leaflet measured it as nothing. */
-    open: function (i) {
-      if (map) map.invalidateSize({ pan: false });
-      current = -1;
-      show(i);
-    }
-  };
-})();"""),
-    ]
-    for old, new in subs:
-        if js.count(old) != 1:
-            sys.exit("drops.js changed; update drops_api_js() in build.py")
-        js = js.replace(old, new)
-    return js
-
-
 DROPS_WORLD_CSS = """
 /* --------------------------------------------------------------------------
    WORLD VIEW — added by build.py (drops-world.js)
-   The page's first screen: the list of drops beside a globe. html[data-view]
-   says which screen shows; it is set from the address before the page draws
-   (drops#003 is a drop), so the other screen never flashes past.
+   The page's first screen: the list of drop points beside a globe.
+   html[data-view] says which screen shows; it is set from the address before
+   the page draws (drops#03 is a point), so the other screen never flashes past.
    -------------------------------------------------------------------------- */
 html.js[data-view="world"] .dp-shell{ display:none; }
 html:not(.js) .dw-shell, html.js:not([data-view="world"]) .dw-shell{ display:none; }
@@ -1032,7 +965,7 @@ html:not(.js) .dw-shell, html.js:not([data-view="world"]) .dw-shell{ display:non
 .dw-item:has(> .dw-row[aria-current="true"])::before{
   content:""; position:absolute; left:0; top:0; bottom:0; width:3px; background:var(--pn-red); z-index:1;
 }
-/* the second line: the drop's title and the start of its story */
+/* the second line: how many drops, and the latest one's title */
 .dw-line{
   grid-column:2 / -1; min-width:0; white-space:normal;
   font-family:var(--pn-face-body); font-size:12px; line-height:1.45; letter-spacing:0; text-transform:none;
@@ -1063,44 +996,38 @@ html:not(.js) .dw-shell, html.js:not([data-view="world"]) .dw-shell{ display:non
   25%, 75%{ background:var(--pn-red-20); }
 }
 
-/* NEW: a drop's first week. Red, like the pointer: it is where to look. */
+/* NEW: a point's latest drop, its first week. Red, like the pointer: it is
+   where to look. */
 .dp-new{
   display:inline-block; align-self:center; justify-self:end; padding:3px 4px 2px;
   font-size:7px; line-height:1; letter-spacing:.14em; text-transform:uppercase;
   color:var(--pn-void); background:var(--pn-red); border-radius:2px;
 }
 
-/* CLAIMED: the owner's mark (data-claimed in drops.html). In the lists a
-   quiet tag; on the drop's page a chip in the frequency bar and a word in
-   the item's head. A drop without the mark shows nothing either way. */
+/* CLAIMED: the owner's mark (data-claimed in drops.html). In the list of
+   points a quiet tag, once every drop at the point is claimed; on a point's
+   page (drops.js), a tag in its list of drops and a word in the item's head,
+   in red beside its label: the photo is left clear, so whoever comes later
+   can still see what was there. A drop without the mark shows nothing. */
 .dp-claimed-tag{
   display:inline-block; align-self:center; justify-self:end; padding:2px 4px 1px;
   font-size:7px; line-height:1; letter-spacing:.14em; text-transform:uppercase;
   color:var(--pn-ink-muted); border:1px solid var(--pn-ash); border-radius:2px;
 }
-.dp-claimed{
-  display:inline-flex; align-items:center; gap:.7em; min-height:22px; padding:0 7px; flex:0 0 auto;
-  font-size:8px; letter-spacing:.14em; text-transform:uppercase; white-space:nowrap;
-  border-radius:2px; border:1px solid var(--pn-red);
-  color:var(--pn-red); background:var(--pn-red-07);
-}
-.dp-claimed[hidden]{ display:none; }
-@media (max-width:520px){ .dp-claimed .d{ display:none; } }
-/* the item's own head says so too, in red beside its label: the photo is
-   left clear, so whoever comes later can still see what was there */
 .dp-item-claimed{
   min-width:0; color:var(--pn-red); letter-spacing:.14em;
   white-space:nowrap; overflow:hidden; text-overflow:ellipsis;
 }
 .dp-item-claimed[hidden]{ display:none; }
-/* ...and the photo's tag (IMG-B) beside it stays on one line */
+/* ...and the drop's number beside it stays on one line; the date it was
+   claimed shows where the item is wide enough for it */
 .dp-slot .dp-panel__head > .dp-idx{ flex:0 0 auto; white-space:nowrap; }
-@media (max-width:520px){ .dp-item-claimed .d{ display:none; } }
+.dp-slot--item{ container-type:inline-size; }
+@container (max-width:330px){ .dp-item-claimed .d{ display:none; } }
 
-/* One drop at a time: the drop screen has no list of the others (the world
-   has that) and no way to step through them, so the record takes the whole
-   width. drops-world.js sets dw-ready; should it not run, drops.js's list
-   stays, the only way between drops then. */
+/* One point at a time: its screen has no list of the others (the world has
+   that), so the point takes the whole width. drops-world.js sets dw-ready;
+   should it not run, drops.js's list stays, the only way between points then. */
 html.dw-ready .dp-manifest{ display:none; }
 html.dw-ready .dp-shell{ grid-template-columns:minmax(0,1fr); }
 
@@ -1124,8 +1051,8 @@ html.dw-ready .dp-shell{ grid-template-columns:minmax(0,1fr); }
 .dw-callout:not(.is-drop) > span{ display:block; }     /* a place's lines; a drop's are its details' */
 .dw-callout > em{ display:block; font-style:normal; color:var(--pn-red); }
 
-/* A drop's details, wherever they show (the prompt, the popup over its
-   point, the row opened on a phone): labels in the pixel face, what they
+/* A point's details, wherever they show (the prompt, the popup over it on
+   the globe, the row opened on a phone): labels in the pixel face, what they
    say in the body face, which reads at any size. */
 .dw-callout.is-drop{ width:max-content; max-width:min(260px, calc(100% - 16px)); white-space:normal; }
 .dw-card{ width:max-content; max-width:min(284px, calc(100% - 16px)); white-space:normal; }
@@ -1136,9 +1063,10 @@ html.dw-ready .dp-shell{ grid-template-columns:minmax(0,1fr); }
   letter-spacing:0; text-transform:none; color:var(--pn-ink-strong);
 }
 .dw-at{ display:block; }
-/* when it was placed, and how long ago: one line with a dot between, or
-   two where they don't fit, and then no dot (it sits in the gap, and a
-   half that wraps takes its dot outside the line, where it is cut off) */
+/* how many drops, when the latest was left and how long ago: one line with
+   dots between, or more where they don't fit, and then no dot (it sits in
+   the gap, and a part that wraps takes its dot outside the line, where it
+   is cut off) */
 .dw-when{ display:flex; flex-wrap:wrap; column-gap:1.5em; overflow:hidden; }
 .dw-when > span{ position:relative; white-space:nowrap; }
 .dw-when > span + span::before{ content:"\\00B7"; position:absolute; right:100%; width:1.5em; text-align:center; }
@@ -1152,14 +1080,15 @@ html.dw-ready .dp-shell{ grid-template-columns:minmax(0,1fr); }
   font-family:var(--pn-face-display); font-weight:400; font-size:7.5px; letter-spacing:.14em;
   text-transform:uppercase; color:var(--pn-red); margin-right:7px;
 }
+.kv i{ color:var(--pn-ink-strong); }          /* a drop's title */
 .dw-teaser{
   display:block; margin-top:6px; quotes:"\\201C" "\\201D";
   font-family:var(--pn-face-body); font-size:12px; font-style:italic; line-height:1.45;
   letter-spacing:0; text-transform:none; color:var(--pn-ink-muted);
 }
 
-/* The prompt: by the chosen drop whenever the globe is still, all there is
-   to say about it and OPEN DROP, the one way into it. It pops in as a menu
+/* The prompt: by the chosen point whenever the globe is still, all there is
+   to say about it and OPEN POINT, the one way into it. It pops in as a menu
    window would, the cursor blinking. */
 .dw-card{
   position:absolute; z-index:3; padding:7px 9px 9px;
@@ -1185,7 +1114,7 @@ html.dw-ready .dp-shell{ grid-template-columns:minmax(0,1fr); }
 .dw-open:hover{ color:var(--pn-signal); background:var(--pn-red-20); box-shadow:var(--pn-glow-hover); }
 .dw-open:focus-visible{ outline:2px solid var(--pn-focus); outline-offset:2px; }
 @media (prefers-reduced-motion:reduce){ .dw-card.is-in, .dw-open .cur{ animation:none; } }
-/* OPEN DROP sits beside ZOOM IN (ZOOM OUT once the globe is as close as it
+/* OPEN POINT sits beside ZOOM IN (ZOOM OUT once the globe is as close as it
    goes); the x at the prompt's corner closes it. */
 .dw-acts{ display:flex; gap:6px; margin-top:9px; }
 .dw-acts > *{ flex:1 1 auto; min-width:0; margin:0; justify-content:center; white-space:nowrap; }
@@ -1209,7 +1138,7 @@ html.dw-ready .dp-shell{ grid-template-columns:minmax(0,1fr); }
 .dw-x:hover{ color:var(--pn-signal); background:var(--pn-red-20); }
 .dw-x:focus-visible{ outline:2px solid var(--pn-focus); outline-offset:-2px; }
 /* On a phone the chosen row opens up underneath (drops-world.js): the rest
-   of the details and its OPEN DROP, the width of the list, a thumb's height. */
+   of the details and its OPEN POINT, the width of the list, a thumb's height. */
 .dw-more{
   padding:2px 14px 14px 46px; background:var(--pn-red-07);
   font-size:8px; line-height:1.8; letter-spacing:.14em; text-transform:uppercase;
@@ -1248,7 +1177,7 @@ html.dw-ready .dp-shell{ grid-template-columns:minmax(0,1fr); }
 .dw-zoom button[aria-disabled="true"]{ color:var(--pn-ink-faint); cursor:default; }
 .dw-zoom button:focus-visible{ outline:2px solid var(--pn-focus); outline-offset:2px; }
 
-/* WORLD MAP: the way back, heading the drop's top bar where the word
+/* WORLD MAP: the way back, heading the point's top bar where the word
    "Frequency" was. The loudest thing on the screen: solid red with black
    letters (as NEW is), a back arrow and the globe, and Esc beside them for
    keyboards. */
@@ -1275,7 +1204,7 @@ html.dw-ready .dp-shell{ grid-template-columns:minmax(0,1fr); }
 .dp-world-back:focus-visible, .dw-home:focus-visible{ outline:2px solid var(--pn-focus); outline-offset:3px; }
 @media (pointer:coarse){ .dp-world-back .key, .dw-home .key{ display:none; } }
 
-/* Where a drop's page scrolls (a phone; any screen under 560px tall) the
+/* Where a point's page scrolls (a phone; any screen under 560px tall) the
    bar's head scrolls away with it, so there the way back floats at the
    foot of the screen instead, a thumb's size, over everything but the
    help, and the page keeps room under its last line for it. */
@@ -1309,10 +1238,10 @@ html.dw-ready .dp-shell{ grid-template-columns:minmax(0,1fr); }
   .dw-list .dw-help{ display:none; }          /* the opened row says what to do */
   .dw-zoom button{ width:40px; height:40px; }
   .dw-open{ min-height:40px; }
-  /* The drop screen: no strip of drops above the bar now, so the record
+  /* The point's screen: no strip of points above the bar now, so the point
      starts at the top. The way back floats at the foot of the screen (see
-     WORLD MAP); the help is the bar's "?", and the drop's place name loses
-     its "Memory ·". */
+     WORLD MAP); the help is the bar's "?", and the point's name loses its
+     "Memory ·". */
   html.dw-ready .dp-shell{ grid-template-rows:minmax(0,1fr); }
   .dp-bar .dp-help > summary{ min-height:36px; min-width:36px; justify-content:center; padding:0; }
   .dp-bar .dp-help > summary .lbl{ display:none; }
@@ -1324,11 +1253,11 @@ html.dw-ready .dp-shell{ grid-template-columns:minmax(0,1fr); }
 }
 
 /* --------------------------------------------------------------------------
-   A DROP ON A PHONE — a page that scrolls, so nothing is left out. Held to
-   one screen it dropped the hint and item photos on every phone under 680px
-   tall (an iPhone in Safari among them) and left the brief two lines in a
-   box. The street map keeps half the screen; the photos sit side by side
-   under it, and the brief reads in full. (The world stays one screen.)
+   A POINT ON A PHONE — a page that scrolls, so nothing is left out. Held to
+   one screen it dropped the item photo on every phone under 680px tall (an
+   iPhone in Safari among them) and left the brief two lines in a box. The
+   street map keeps half the screen; under it the drops left there, then the
+   chosen one's brief in full and its item. (The world stays one screen.)
    -------------------------------------------------------------------------- */
 @media (max-width:900px){
   html.js[data-view="drop"] body:has(.dp-shell){ overflow:auto; }
@@ -1336,62 +1265,46 @@ html.dw-ready .dp-shell{ grid-template-columns:minmax(0,1fr); }
   html.dw-ready .dp-detail{ grid-template-rows:auto auto auto; }
   html.dw-ready .dp-map{ height:52vh; height:52svh; min-height:240px; }
   html.dw-ready .dp-strip{
-    grid-template-columns:minmax(0,1fr) minmax(0,1fr); grid-template-areas:"hint item" "brief brief";
+    grid-template-columns:minmax(0,3fr) minmax(0,2fr); grid-template-areas:"log log" "brief item";
   }
+  html.dw-ready .dp-log{ height:auto; }
+  html.dw-ready .dp-log .dp-panel__body{ flex:0 1 auto; max-height:min(330px, 60vh); }
+  html.dw-ready .dp-logrow{ padding:12px 12px 11px; }
+  html.dw-ready .dp-sticker{ display:flex; padding:9px 12px; font-size:9px; }
   html.dw-ready .dp-slot{ display:flex; height:auto; }
   html.dw-ready .dp-slot .dp-panel__body{ flex:0 0 auto; aspect-ratio:4/3; }
   html.dw-ready .dp-brief{ height:auto; }
   html.dw-ready .dp-brief .dp-panel__body{ overflow:visible; }
   html.dw-ready .dp-brief .dp-panel__body p{ font-size:14px; line-height:1.6; }
 }
+@media (max-width:599px){
+  html.dw-ready .dp-strip{ grid-template-columns:minmax(0,1fr); grid-template-areas:"log" "brief" "item"; }
+}
 
 /* --------------------------------------------------------------------------
    ON ITS SIDE — a phone held sideways is wide and short. Stacked, the globe
    was a strip 120px tall over a list no taller, too short for the chosen
-   drop's row to open in: they sit side by side instead, as on a desktop,
-   each the full height. A drop's photos flank its brief, as on a desktop,
-   rather than each filling the screen.
+   point's row to open in: they sit side by side instead, as on a desktop,
+   each the full height. A point's drops and the item flank the brief, as
+   on a desktop, rather than each filling the screen.
    -------------------------------------------------------------------------- */
 @media (max-width:900px) and (min-width:560px) and (orientation:landscape){
   .dw-shell{ grid-template-columns:minmax(270px,40%) minmax(0,1fr); grid-template-rows:minmax(0,1fr); }
   .dw-stage{ order:0; }
   html.dw-ready .dp-strip{
-    grid-template-columns:minmax(0,.82fr) minmax(0,2fr) minmax(0,.82fr); grid-template-areas:"hint brief item";
+    grid-template-columns:minmax(0,1fr) minmax(0,2fr) minmax(0,.82fr); grid-template-areas:"log brief item";
   }
 }
 
 /* A wide screen that is short (a big phone on its side, a window halved):
-   the drop's page scrolls, rather than squeezing the street map to a
-   sliver between the bar and the photos. */
+   the point's page scrolls, rather than squeezing the street map to a
+   sliver between the bar and the drops. */
 @media (min-width:901px) and (max-height:560px){
   html.js[data-view="drop"] body:has(.dp-shell){ overflow:auto; }
   html.dw-ready .dp-shell{ height:auto; min-height:100vh; min-height:100dvh; }
   html.dw-ready .dp-detail{ grid-template-rows:auto max(280px, 64vh) clamp(164px,23vh,212px); }
 }
 """
-
-
-def omit_status_js(js: str) -> str:
-    """drops.js: rows without OPEN / CLAIMED, and nothing written to the
-    chip and tally omit_status_html() removed."""
-    subs = [
-        ("""'<span class="dp-row__d">' + e.dataset.placed + '</span>' +
-        '<span class="dp-row__s ' + (live ? "is-open" : "is-done") + '">' +
-          (live ? "OPEN" : "CLAIMED") + '</span>';
-""", """'<span class="dp-row__d">' + e.dataset.placed + '</span>';
-"""),
-        ("""    el.open.textContent  = open;
-    el.done.textContent  = entries.length - open;
-""", ""),
-        ("""    el.status.textContent = live ? "Open" : "Claimed";
-    el.status.className   = "dp-status " + (live ? "dp-status--open" : "dp-status--done");
-""", ""),
-    ]
-    for old, new in subs:
-        if old not in js:
-            sys.exit("drops.js changed; update omit_status_js() in build.py")
-        js = js.replace(old, new, 1)
-    return js
 
 
 # Appended to style.css (home page only).
@@ -1499,7 +1412,7 @@ def build(with_shop: bool):
     drops = drops.replace('<link rel="stylesheet" href="drops.css',
                           '<link rel="stylesheet" href="page-style.css?v=' + VER +
                           '">\n<link rel="stylesheet" href="drops.css')
-    drops = world_view(fly_in_drops(omit_status_html(self_hosted_map_html(drops))))
+    drops = world_view(fly_in_drops(self_hosted_map_html(drops)))
     (out / "drops.html").write_text(drops, encoding="utf-8", newline=NL)
 
     # No FIREFLY_CSS here: the living layer belongs to the home page only.
@@ -1510,8 +1423,8 @@ def build(with_shop: bool):
                                    + DROPS_BAR_CSS + DROPS_PHONE_CSS + DROPS_MAP_CSS
                                    + DROPS_WORLD_CSS, encoding="utf-8", newline=NL)
     (out / "drops.js").write_text(
-        drops_api_js(omit_status_js(self_hosted_map_js(
-            (BRAND / "drops/drops.js").read_text(encoding="utf-8")))),
+        self_hosted_map_js(
+            (BRAND / "drops/drops.js").read_text(encoding="utf-8")),
         encoding="utf-8", newline=NL)
     shutil.copy(MAP_SRC / "drops-map.js", out / "drops-map.js")
     (out / "vendor/protomaps-leaflet").mkdir(parents=True, exist_ok=True)
@@ -1528,8 +1441,10 @@ def build(with_shop: bool):
     if (MAP_SRC / "drops.pmtiles").exists():
         (out / "maps").mkdir(exist_ok=True)
         shutil.copy(MAP_SRC / "drops.pmtiles", out / "maps/drops.pmtiles")
-    for img in (BRAND / "drops/images").glob("*.svg"):
-        shutil.copy(img, out / "images")
+    # the drops' item photos, whatever their format (the placeholder is an SVG)
+    for img in sorted((BRAND / "drops/images").iterdir()):
+        if img.suffix.lower() in (".svg", ".png", ".jpg", ".jpeg", ".webp", ".gif"):
+            shutil.copy(img, out / "images")
     shutil.rmtree(out / "images/geocache", ignore_errors=True)   # page is gone
     # the placeholder art still carried the retired yellow
     for svg in (out / "images").rglob("*.svg"):
@@ -2567,7 +2482,7 @@ def stamp_assets(folder: pathlib.Path):
             js.write_text(atlas.sub(sub, text), encoding="utf-8", newline=NL)
 
     pat = re.compile(r'((?:href|src)=")([^"?]+\.(?:css|js))\?v=[^"]*(")')
-    img = re.compile(r'((?:href|src|content|data-hint|data-item|data-map|data-landmarks)=")'
+    img = re.compile(r'((?:href|src|content|data-item|data-map|data-landmarks)=")'
                      r'((?:' + re.escape(SITE_URL) + r')?[^":?#]+\.(?:png|svg|ico|jpe?g|webp|gif|pmtiles|json))'
                      r'(?:\?v=[^"]*)?(")')
     for html in folder.rglob("*.html"):
@@ -2598,11 +2513,12 @@ def check_js(folder: pathlib.Path):
 
 
 def map_gaps():
-    """The drops the street map does not cover, as "DROP #004 (33.3902, -111.8684)".
+    """The drop points the street map does not cover, as
+    "POINT #04 (33.3902, -111.8684)".
 
-    None means there is no map file at all. One map file covers every drop; it
-    only needs making again when a drop sits outside the area it was cut for,
-    so compare the drops in drops.html with the list tools/make-map.py
+    None means there is no map file at all. One map file covers every point;
+    it only needs making again when a point sits outside the area it was cut
+    for, so compare the points in drops.html with the list tools/make-map.py
     recorded inside the file.
     """
     import gzip, json, math
@@ -2625,14 +2541,15 @@ def map_gaps():
 
     html = (BRAND / "drops/drops.html").read_text(encoding="utf-8")
     outside = []
-    for m in re.finditer(r'<article class="dp-entry"(.*?)>', html, re.S):
-        attrs = dict(re.findall(r'data-(n|lat|lng)="([^"]*)"', m.group(1)))
+    for m in re.finditer(r'<(section class="dp-point"|article class="dp-entry")(.*?)>', html, re.S):
+        attrs = dict(re.findall(r'data-(n|lat|lng)="([^"]*)"', m.group(2)))
         if "lat" not in attrs or "lng" not in attrs:
             continue
         here = (float(attrs["lat"]), float(attrs["lng"]))
+        what = "POINT" if "dp-point" in m.group(1) else "DROP"
         # covered = at least 1 km of detail on every side of the marker
         if not any(km_between(here, d) <= km - 1 for d in made_for):
-            outside.append(f"DROP #{attrs.get('n', '?')} ({here[0]:.4f}, {here[1]:.4f})")
+            outside.append(f"{what} #{attrs.get('n', '?')} ({here[0]:.4f}, {here[1]:.4f})")
     return outside
 
 
@@ -2642,10 +2559,10 @@ def have_map_tools() -> bool:
 
 
 def ensure_map() -> None:
-    """Before building, cut the street map again if a drop is outside it.
+    """Before building, cut the street map again if a drop point is outside it.
 
-    So adding a drop somewhere new takes nothing but adding it to drops.html
-    and building: tools/make-map.py fetches the area around every drop from
+    So adding a point somewhere new takes nothing but adding it to drops.html
+    and building: tools/make-map.py fetches the area around every point from
     the newest OpenStreetMap build (build.protomaps.com), a few MB per city.
     Without the tools or a connection the build goes on with the map it has,
     and check_map() says so at the end.
@@ -2661,7 +2578,7 @@ def ensure_map() -> None:
 
 
 def check_map() -> None:
-    """After building, say if a drop is still without a street map."""
+    """After building, say if a drop point is still without a street map."""
     gaps = map_gaps()
     if gaps == []:
         return

@@ -1,14 +1,14 @@
 #!/usr/bin/env python3
 """
 Download the map for the Drops page: OpenStreetMap streets, water, parks and
-place names around every drop, as one file the site serves itself.
+place names around every drop point, as one file the site serves itself.
 
     pip install pmtiles requests
     python tools/make-map.py
 
 Writes _source/map/drops.pmtiles, which build.py copies into every build as
-maps/drops.pmtiles. build.py runs this itself when a drop is outside the map,
-so adding a drop somewhere new needs no separate step.
+maps/drops.pmtiles. build.py runs this itself when a drop point is outside the
+map, so adding a point somewhere new needs no separate step.
 
 Why a file and not a map service: Carto started answering keyless requests
 with "API key required" tiles, which broke the page overnight. A file on your
@@ -18,12 +18,12 @@ no one, and cannot be switched off by somebody else.
 Where it comes from: Protomaps publishes the whole world as one PMTiles
 archive every day (https://build.protomaps.com). PMTiles is built to be read
 in pieces over plain HTTP, so this script asks for only the tiles near your
-drops, not the ~120 GB planet:
+drop points, not the ~120 GB planet:
 
-  * close-up detail (zoom 12-15) within DETAIL_KM of each drop;
-  * a wider view (zoom 8-11) within CONTEXT_KM of each drop.
+  * close-up detail (zoom 12-15) within DETAIL_KM of each point;
+  * a wider view (zoom 8-11) within CONTEXT_KM of each point.
 
-Each drop gets its own area, so drops in two cities cost two small areas,
+Each point gets its own area, so points in two cities cost two small areas,
 not everything in between: one box around San Francisco and Arizona together
 would be a thousand kilometres across.
 
@@ -68,15 +68,17 @@ def brand_kit() -> pathlib.Path:
 
 
 def drop_points() -> list[tuple[float, float]]:
+    """Where the drop points are (a <section class="dp-point">), and any drop
+    that has a place of its own."""
     html = (brand_kit() / "drops" / "drops.html").read_text(encoding="utf-8")
     pts = []
-    for m in re.finditer(r'<article class="dp-entry"(.*?)>', html, re.S):
+    for m in re.finditer(r'<(?:section class="dp-point"|article class="dp-entry")(.*?)>', html, re.S):
         lat = re.search(r'data-lat="([-\d.]+)"', m.group(1))
         lng = re.search(r'data-lng="([-\d.]+)"', m.group(1))
         if lat and lng:
             pts.append((float(lat.group(1)), float(lng.group(1))))
     if not pts:
-        sys.exit("no drops with data-lat / data-lng found in drops.html")
+        sys.exit("no drop points with data-lat / data-lng found in drops.html")
     return pts
 
 
@@ -200,13 +202,13 @@ def main():
         wanted |= tiles_in(box(lat, lng, DETAIL_KM), DETAIL_ZOOMS)
         boxes.append(box(lat, lng, CONTEXT_KM))
         wanted |= tiles_in(boxes[-1], CONTEXT_ZOOMS)
-    # the header's bounds hold every area; its centre is the newest drop
+    # the header's bounds hold every area; its centre is the newest point
     context = (min(b[0] for b in boxes), min(b[1] for b in boxes),
                max(b[2] for b in boxes), max(b[3] for b in boxes))
     mid = pts[0]
 
     url = args.source or latest_build()
-    print(f"  {len(pts)} drops -> {len(wanted)} tiles from {url}")
+    print(f"  {len(pts)} drop points -> {len(wanted)} tiles from {url}")
     src = Remote(url)
     h, meta, tiles = extract(src, wanted)
     if not tiles:
@@ -221,7 +223,7 @@ def main():
         "center_zoom": 14,
         "center_lon_e7": round(mid[1] * 1e7), "center_lat_e7": round(mid[0] * 1e7),
     }
-    # build.py reads the drop list back, to warn when a new drop is outside
+    # build.py reads the list of points back, to warn when a new one is outside
     meta["pn0va"] = {"source": url, "drops": [[lat, lng] for lat, lng in pts],
                      "detail_km": DETAIL_KM,
                      "detail_zooms": [DETAIL_ZOOMS[0], DETAIL_ZOOMS[-1]],

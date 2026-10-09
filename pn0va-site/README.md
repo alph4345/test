@@ -60,8 +60,8 @@ keyless requests with "API key required" tiles, which blanked the map; the
 site no longer asks Carto (or anyone else) for anything.
 
 - `maps/drops.pmtiles` holds OpenStreetMap streets, water, parks and names
-  around the drops: close-up detail within 4 km of each drop and a wider view
-  30 km out. One file, read in small pieces, so a visitor downloads only what
+  around the drop points: close-up detail within 4 km of each point and a
+  wider view 30 km out. One file, read in small pieces, so a visitor downloads only what
   they look at.
 - `drops-map.js` paints it in the site palette with protomaps-leaflet
   (`vendor/protomaps-leaflet/`, BSD licence), inside the same Leaflet map, so
@@ -70,17 +70,19 @@ site no longer asks Carto (or anyone else) for anything.
   contributors (ODbL); the attribution on the map is required and in place.
 
 **The map in this folder** was made 2026-09-28 from OpenStreetMap data of
-2026-09-27: 10.8 MB, covering the three San Francisco drops. A visitor who
-looks at all three downloads about 200 KB of it.
+2026-09-27: 10.8 MB, covering the three San Francisco drop points. A visitor
+who looks at all three downloads about 200 KB of it.
 
-**One map file serves every drop, and a new drop gets its map by itself.**
-Add the drop to `drops.html` and run `python build.py`. If the drop is more
-than about 3 km from every drop the map was made for, the build first
-fetches the area around each drop from the newest daily world map published
-by Protomaps (build.protomaps.com), then builds. Each drop gets its own area,
-so drops in two cities cost two small areas, not everything between them. A
-test drop in Mesa, Arizona added 6 MB to the map and under 30 seconds to the
-build. Upload the new `maps/drops.pmtiles` along with the rest of the folder.
+**One map file serves every drop point, and a new point gets its map by
+itself.** Add the point to `drops.html` and run `python build.py`. If it is
+more than about 3 km from every point the map was made for, the build first
+fetches the area around each point from the newest daily world map
+published by Protomaps (build.protomaps.com), then builds. Each point gets
+its own area, so points in two cities cost two small areas, not everything
+between them. A test point in Mesa, Arizona added 6 MB to the map and under
+30 seconds to the build. A new drop at a point you already have needs no
+map at all. Upload the new `maps/drops.pmtiles` along with the rest of the
+folder.
 
 The build needs two Python packages for that, installed once:
 
@@ -89,7 +91,7 @@ pip install pmtiles requests
 ```
 
 Without them, or offline, the build carries on with the map it has and names
-the drops it doesn't cover; the page shows those on plain ground. With no map
+the points it doesn't cover; the page shows those on plain ground. With no map
 file at all, it shows the rings and marker on plain ground plus a link to the
 location on OpenStreetMap, not error tiles. `python tools/make-map.py` remakes
 the map on demand, for instance to pick up newer streets.
@@ -100,78 +102,88 @@ preview (see *Local preview*). Python's `http.server` does not, and a page
 opened by double-clicking cannot read a file in parts at all: both show the
 rings on plain ground instead of streets.
 
-### The Drops page: the world, then a drop
+### The Drops page: the world, then a drop point
 
-The Drops page is one page with two screens.
+Drops are left at **drop points**: places the operator comes back to, with
+any number of drops left at each over time. Every drop is in plain sight,
+marked with a P_N0VA sticker, so there are no hints. The Drops page is one
+page with two screens.
 
-- **The world** (`pn0va.com/drops`): the list of drops, each with its
-  name, date, title and the first line of its story, and a globe with a
-  point for each. It opens with no drop chosen, the globe turned to where
-  the drops are.
-  - **Choose a drop in the list** (a click, Enter, or the arrow keys down
-    it) and the globe turns to it, the drop in the middle, at the zoom you
+- **The world** (`pn0va.com/drops`): the list of drop points, each with its
+  number and name, when its latest drop was left, how many drops have been
+  left there and the latest one's title and first line, and a globe with a
+  point for each. It opens with no point chosen, the globe turned to where
+  the points are.
+  - **Choose a point in the list** (a click, Enter, or the arrow keys down
+    it) and the globe turns to it, the point in the middle, at the zoom you
     are at: from far off it flies out and back down to that zoom.
-  - **Click a drop's point on the globe** and the globe stays where it is.
-  - Either way a prompt opens beside the point: the drop's title, when it
-    was placed and how long ago, where it is, its item and hint, the first
-    line of its story, **ZOOM IN** (or **ZOOM OUT**, once the globe is as
-    close as it goes), the one thing that zooms to a drop, and
-    **OPEN DROP**. Its ×, Esc or a click on bare globe closes it.
-  - **OPEN DROP** is the only way in: the globe dives, flashes, and the
-    drop's windows fly in. Pointing at a row only marks its drop's point,
-    and a double-click on a point opens nothing.
+  - **Click a point on the globe** and the globe stays where it is.
+  - Either way a prompt opens beside it: how many drops, when the latest
+    was left and how long ago, where the point is, the latest drop's
+    number, title and item and the first line of its story, **ZOOM IN** (or
+    **ZOOM OUT**, once the globe is as close as it goes), the one thing that
+    zooms to a point, and **OPEN POINT**. Its ×, Esc or a click on bare
+    globe closes it.
+  - **OPEN POINT** is the only way in: the globe dives, flashes, and the
+    point's windows fly in. Pointing at a row only marks its point on the
+    globe, and a double-click on a point opens nothing.
   - On a phone the globe is too small to carry the prompt, so the chosen
-    drop's row opens up underneath instead, with the same (but for where it
-    is and the hint, which its page shows) and its two buttons the width of
-    the list. A second tap on the row closes it.
-- **A drop** (`pn0va.com/drops#003`): that one drop's record: coordinates,
-  street map, hint, brief and item. It has no list of the other drops and no
-  stepping through them. **WORLD MAP**, solid red at the head of its top
-  bar, the globe button on the street map, Esc, or the browser's Back pulls
-  back out to the globe, where that drop is still chosen. On a phone the
-  page scrolls: the street map takes half the screen, the hint and item
-  photos sit side by side under it, the brief reads in full, and WORLD MAP
-  floats at the foot of the screen, always in reach.
+    point's row opens up underneath instead, with the same (but for where
+    it is, which its page shows) and its two buttons the width of the list.
+    A second tap on the row closes it.
+- **A drop point** (`pn0va.com/drops#03`): its number, coordinates, when its
+  latest drop was left and how many there are; its street map; and along
+  the bottom, **the drops left there**, newest first, each with its number,
+  title and date, and NEW or CLAIMED; the chosen drop's story
+  (Transmission) and the photo of its item; and under the list, the sticker
+  to look for. It opens on the newest drop. Choose another in the list (a
+  click, or the arrow keys up and down it) and its story and item show in
+  place. **WORLD MAP**, solid red at the head of the top bar, the globe
+  button on the street map, Esc, or the browser's Back pulls back out to
+  the globe, where that point is still chosen. On a phone the page
+  scrolls: the street map takes half the screen, then the drops, the chosen
+  one's story in full and its item, and WORLD MAP floats at the foot of the
+  screen, always in reach.
 
 On a phone held sideways the list sits beside the globe, as on a desktop,
-and a drop's photos flank its brief. On any screen too short for a drop's
-page to fit (under 560px tall), the page scrolls rather than squeezing the
-street map, and WORLD MAP floats at its foot there too.
+and a point's drops and item flank the story. On any screen too short for a
+point's page to fit (under 560px tall), the page scrolls rather than
+squeezing the street map, and WORLD MAP floats at its foot there too.
 
-Every drop has its own address, so a link to `pn0va.com/drops#003` opens on
-that drop, and Back, reload and sharing all work. A drop is marked **NEW**
-for its first week, in the list and in its prompt.
-
-Adding a drop hasn't changed: one `<article class="dp-entry">` in
-`drops.html`, then `python build.py`. The globe reads the same records, and
-what the list, the prompt and the popup say comes from them too:
-`data-title` (left out where it only repeats `data-place`), `data-placed`,
-`data-itemcap`, `data-hintcap` and the first sentence of the brief. There is
-nothing more to fill in.
+Every point and every drop has its own address. `pn0va.com/drops#03` opens
+on point 03 and its newest drop; `pn0va.com/drops#003` opens on drop 003, at
+the point it was left at. Choosing a drop on a point's page puts its
+address in the address bar, without adding a step to Back, so a link
+copied from there opens on that drop. Back, reload and sharing all work.
+A point is marked **NEW** while its latest drop is in its first week (in
+the list, in its prompt, and red on the globe), and that drop is marked
+NEW in the point's own list.
 
 The globe is drawn in the brand palette from `tokens.css`: ember sea, slate
 land, ash coasts, taupe borders over a dark edge (thickening as you come in)
 and dashed taupe state lines, a linen sheen and names, red for the
-instruments (graticule, rim, pointer, NEW) and bone for the drop you are on.
+instruments (graticule, rim, pointer, NEW) and bone for the point you are on.
 
 It is a map: coast, lakes, country borders, state and province lines, and the
 names of countries, states, cities, peaks and landmarks, each named once there
 is room for it. It zooms with its **+** and **−** buttons, the mouse wheel, a
 pinch, or the + − 0 keys, from the whole globe down to a city (64 times
 closer). The coastline is redrawn finer as you come in, so its shape holds and
-only sharpens; the street map on each drop's own screen takes over from there.
+only sharpens; the street map on each point's own screen takes over from there.
 The globe button below the zoom buttons goes back to the whole globe.
 
-Every drop has its own point, which grows as you zoom in. Drops too close
-together to tell apart, like the three in San Francisco, sit on a small ring
-around the spot they share, each on a thread back to it, in the order they
-really lie (Alcatraz on top); zoom in and they move apart onto their own
-spots. Point at anything for what it is: a drop's number, name, title,
-date, item and the start of its story; a city's state or country, a peak's
-height, a landmark's note. On a touch screen, tap it. Close in, a landmark's name goes ahead of the city it stands
-in (at 64x the Colosseum shows over Rome), but every name gives way to the
-drops' points and the prompt, so the landmarks right beside a drop, most of
-San Francisco's, stay hidden.
+Every drop point has its own mark, which grows as you zoom in. Points too
+close together to tell apart, like the three in San Francisco, sit on a
+small ring around the spot they share, each on a thread back to it, in the
+order they really lie (Alcatraz on top); zoom in and they move apart onto
+their own spots. Point at anything for what it is: a drop point's number,
+name, how many drops and when the latest was left, and that drop's title,
+item and the start of its story; a city's state or country, a peak's
+height, a landmark's note. On a touch screen, tap it. Close in, a
+landmark's name goes ahead of the city it stands in (at 64x the Colosseum
+shows over Rome), but every name gives way to the points and the prompt,
+so the landmarks right beside a point, most of San Francisco's, stay
+hidden. A point whose drops are all claimed is drawn hollow.
 
 Its files:
 
@@ -182,7 +194,7 @@ Its files:
   of detail. The whole globe is one file of 305 KB (106 KB as the
   `.htaccess` compresses it); closer in, the page fetches only the part in
   view. 10.4 MB in 308 files, of which a visitor who zooms all the way in on
-  a drop downloads about 420 KB compressed. `tools/make-world/` made it, and
+  a point downloads about 420 KB compressed. `tools/make-world/` made it, and
   only needs running again for newer borders (see the top of
   `make-world.mjs`);
 - `maps/landmarks.json`, from `_source/world/landmarks.json`: 148 landmarks
@@ -192,9 +204,51 @@ Its files:
   pixel, so two landmarks a few streets apart can't both show: one a city is
   plenty.
 
-With reduced motion on, the screens and drops change without the dive or the
-flights. With JavaScript off, the world view stays hidden and the page is the
-drop frame it always was.
+With reduced motion on, the screens change without the dive or the flights.
+With JavaScript off, the world view stays hidden and the page is the point
+frame it always was.
+
+### Adding a drop, or a drop point
+
+Everything is in `drops.html`, in the brand kit's `drops` folder (or the
+snapshot in `_source/brand-kit/drops/`); the comment at its top says the
+same. Each point is a `<section class="dp-point">`, and the drops left there
+are the `<article class="dp-entry">` blocks inside it, newest first. Points
+go newest first too.
+
+```html
+<section class="dp-point" data-n="03" data-place="Telegraph Hill"
+         data-lat="37.802139" data-lng="-122.4058" data-zoom="15">
+
+  <article class="dp-entry" data-n="004" data-placed="2026.10.12"
+           data-title="Back on the Stairs"
+           data-item="images/item-004.jpg" data-itemcap="Patch, red on black">
+    <p>Its story, a paragraph or two.</p>
+  </article>
+
+  <article class="dp-entry" data-n="003" data-placed="2026.07.20" ...>
+    ...
+  </article>
+
+</section>
+```
+
+- **A new drop at a point you have:** copy an `<article>` into the point's
+  `<section>`, above the drops already there. `data-n` is the drop's number,
+  three digits, one count across all the points; `data-placed` the date;
+  `data-title` its name; `data-item` the photo of the item and
+  `data-itemcap` its caption. Then write its story.
+- **A new point:** copy a whole `<section>` to the top, with one drop in it.
+  `data-n` is the point's number, two digits; `data-place` its name;
+  `data-lat` and `data-lng` where it is, in decimal degrees; `data-zoom` how
+  close its street map opens (13 to 16 is usually right).
+- **The item photo:** put it in the same `drops/images/` folder as the
+  placeholder (JPEG, PNG, WebP, GIF or SVG; about 1200 pixels wide is
+  plenty) and name it in `data-item`.
+
+Then run `python build.py`. For a point in a new place it fetches the street
+map first (see *The Drops map*). Nothing else needs touching: the globe, the
+lists, the prompts and the point's page all read these blocks.
 
 ### Marking a drop claimed
 
@@ -205,15 +259,35 @@ found, add `data-claimed` with the date to its `<article>` in `drops.html`:
 <article class="dp-entry" data-n="001" data-placed="2026.06.15" data-claimed="2026.06.28" ...>
 ```
 
-and run `python build.py`. The drop then says **CLAIMED** with the date in its
-frequency bar and in the title of its item window (just **CLAIMED** on a
-narrow phone), **CLAIMED** in the world list in place of NEW and in its
-prompt on the globe, and its point turns hollow. The item photo is left alone, so later visitors still see
-what was left there. `data-claimed` without a date shows **CLAIMED** alone;
-deleting it undoes it. Nothing ever says "unclaimed".
+and run `python build.py`. On its point's page the drop is then tagged
+**CLAIMED** in the list of drops, in place of NEW, and the head of its item
+window says **CLAIMED** with the date (just **CLAIMED** where the window is
+too narrow for both). The item photo is left alone, so later visitors still
+see what was left there. Once every drop at a point is claimed, the point
+says **CLAIMED** in the world list and in its prompt, and turns hollow on
+the globe. `data-claimed` without a date shows **CLAIMED** alone; deleting
+it undoes it. Nothing ever says "unclaimed".
 
-Drop 001's brief says it was recovered on 2026.06.28, but it is not marked:
+Drop 001's story says it was recovered on 2026.06.28, but it is not marked:
 add `data-claimed="2026.06.28"` to it if it should show.
+
+## 2026.10.09 update 3
+
+- **Drop points.** Drops are now left at drop points, places the operator
+  comes back to. The world lists the points and the globe shows one mark
+  for each. A point's page lists every drop left there, newest first, with
+  its number, title, date and NEW or CLAIMED, and shows the chosen one's
+  story and item photo. The three drops so far are at three points, one
+  each: 03 Telegraph Hill, 02 Island Signal and 01 West Woods.
+- **No hints.** Every drop is in plain sight, marked with a P_N0VA sticker.
+  The hint photo is gone; a point's page shows the sticker to look for
+  instead, and "What is a drop?" says so.
+- **Addresses.** `drops#03` is point 03; `drops#003` is drop 003, opened at
+  its point, so links to drops from before still work.
+- **OPEN POINT** replaces OPEN DROP. The list and the prompt say how many
+  drops a point has, when the latest was left, and its title.
+- **Item photos in any web format.** The build used to copy only SVG files
+  from `drops/images/`; it now copies JPEG, PNG, WebP and GIF photos too.
 
 ## 2026.10.09 update 2
 

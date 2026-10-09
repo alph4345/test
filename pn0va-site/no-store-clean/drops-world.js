@@ -1,31 +1,34 @@
 /* ==========================================================================
    DROPS — the world view
    --------------------------------------------------------------------------
-   One page, two screens. The WORLD: a globe with a point for every drop and
-   the list of drops with their names and dates. A DROP: the record drops.js
-   already draws (frequency bar, street map, hint, brief, item).
+   One page, two screens. The WORLD: a globe with every drop point on it
+   and the list of points, each with how many drops were left there and
+   when the latest was. A POINT: the page drops.js draws (frequency bar,
+   street map, the drops left there, the chosen one's story and item).
 
      drops         the world
-     drops#003     drop 003 (a link to one drop opens straight on it)
+     drops#03      point 03 (a link to one point opens straight on it)
+     drops#003     drop 003, on the page of the point it was left at
 
-   The world opens with no drop chosen, the globe turned to where the drops
-   are. Choose one in the list (a click, Enter or the arrow keys) and the
-   globe turns to it, the drop in the middle, at the zoom it is at (from
-   far off it flies out and back down to that zoom). Click a drop's point
-   on the globe instead and the globe stays where it is. Either way a
-   prompt opens by the point: what the drop is (its title, when it was
-   placed, where, its item and hint, the first line of its story), ZOOM IN
-   (ZOOM OUT once there), the one thing that zooms to a drop, and OPEN
-   DROP. On a phone, where the globe is small, the same opens under the
-   drop's row instead. The prompt's x, Esc, or a click on bare globe
-   closes it.
+   The world opens with no point chosen, the globe turned to where the
+   points are. Choose one in the list (a click, Enter or the arrow keys)
+   and the globe turns to it, the point in the middle, at the zoom it is at
+   (from far off it flies out and back down to that zoom). Click a point on
+   the globe instead and the globe stays where it is. Either way a prompt
+   opens by the point: what is there (how many drops, when the latest was
+   left, its title, item and the first line of its story, and where the
+   point is), ZOOM IN (ZOOM OUT once there), the one thing that zooms to a
+   point, and OPEN POINT. On a phone, where the globe is small, the same
+   opens under the point's row instead. The prompt's x, Esc, or a click on
+   bare globe closes it.
 
-   OPEN DROP is the only way in: the globe dives, the list flies off, and
-   the drop's windows fly in with the About page's flight and red
-   after-images, at twice its speed. The drop screen shows that one drop;
-   WORLD MAP (heading its top bar, or floating at the foot of the screen
-   where the page scrolls, and on the street map), Esc or the browser's
-   Back pulls back out to the globe.
+   OPEN POINT is the only way in: the globe dives, the list flies off, and
+   the point's windows fly in with the About page's flight and red
+   after-images, at twice its speed. The point's screen shows that one
+   point; choosing one of its drops keeps the address in step (drops#003),
+   so a link from there opens on that drop. WORLD MAP (heading its top bar,
+   or floating at the foot of the screen where the page scrolls, and on the
+   street map), Esc or the browser's Back pulls back out to the globe.
 
    The globe is a map: coast, lakes, country borders, state and province
    lines, and the names of countries, states, cities, peaks and landmarks.
@@ -35,30 +38,30 @@
    simplified to the pixel, so zooming in only sharpens it. Landmarks come
    from maps/landmarks.json, which is meant to be added to.
 
-   Every drop has its own point, which grows as you zoom in. Drops too close
-   to tell apart sit on a ring round the spot they share, each on a thread
-   back to it. Hover a point for what the drop is (as the prompt says it,
-   short of where and the hint), or a city, peak or landmark for what it is
-   (pointing at a drop in the list marks its point too). Zoom with + and -,
-   the mouse wheel, a pinch, or the + - 0 keys; the globe button goes back
-   to the whole globe.
+   Every point has its own mark, which grows as you zoom in. Points too
+   close to tell apart sit on a ring round the spot they share, each on a
+   thread back to it. Hover one for what is there (as the prompt says it,
+   short of where), or a city, peak or landmark for what it is (pointing at
+   a point in the list marks it on the globe too). Zoom with + and -, the
+   mouse wheel, a pinch, or the + - 0 keys; the globe button goes back to
+   the whole globe.
 
-   It reads the same <article class="dp-entry"> records as drops.js, so a
-   new drop is on the globe with nothing more to do. A drop is NEW for its
-   first week. One marked data-claimed="2026.06.28" (or just data-claimed)
-   shows CLAIMED on its page, in both lists and on the globe; a drop without
-   it shows nothing either way.
+   It reads the same <section class="dp-point"> records as drops.js, so a
+   new point, or a new drop at one, is on the globe with nothing more to
+   do. A point is NEW while its latest drop is in its first week. Once every
+   drop left at a point is marked data-claimed, the point is drawn hollow,
+   CLAIMED in the list; a drop without the mark shows nothing either way.
 
    Colours come from tokens.css: an ember sea, slate land, ash coasts and
    state lines, taupe borders, red instruments (graticule, rim, pointer),
-   linen points and names, bone for the drop you are on.
+   linen points and names, bone for the point you are on.
    ========================================================================== */
 
 (function () {
   "use strict";
 
-  var NEW_DAYS = 7;                     // a drop is NEW for its first week
-  var ZOOM_MAX = 64;                    // a city and its surroundings; the drop's own map has the streets
+  var NEW_DAYS = 7;                     // a point is NEW for its latest drop's first week
+  var ZOOM_MAX = 64;                    // a city and its surroundings; the point's own map has the streets
   var LABEL_BIAS = 0.4;                 // names a little sparser than a web map's
 
   // A wireframe globe, on every way back to the whole world.
@@ -79,7 +82,7 @@
   var fly = function () { return window.pn0vaFly; };   // page-script.js loads after this
   var reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
   var TITLE = document.title;
-  // the drop screen loses drops.js's list from here on (see the CSS)
+  // the point's screen loses drops.js's list of points from here on (see the CSS)
   root.classList.add("dw-ready");
 
   /* --- palette: the brand tokens ----------------------------------------- */
@@ -90,7 +93,7 @@
       TAUPE = tok("--pn-taupe", "#B0A49B"), ASH = tok("--pn-ash", "#7A716B"),
       SLATE = tok("--pn-slate", "#3A3532");
 
-  /* --- the drops ---------------------------------------------------------- */
+  /* --- the drop points ---------------------------------------------------- */
   function daysSince(stamp) {
     var p = String(stamp).split(".");
     var then = new Date(+p[0], +p[1] - 1, +p[2]);
@@ -102,16 +105,20 @@
     var v = (e.getAttribute("data-claimed") || "").trim();
     return /^(no|false|0)$/i.test(v) ? null : v;
   }
+  // A point: where it is and the drops left there, newest first. NEW while
+  // its latest drop is in its first week (and not claimed: the item is
+  // gone, however recent the drop); claimed once every drop there is.
   var list = drops.entries.map(function (e, i) {
-    var d = e.dataset;
-    return { i: i, n: d.n, placed: d.placed || "", place: d.place || d.title || "",
-             lat: parseFloat(d.lat), lng: parseFloat(d.lng),
-             isNew: daysSince(d.placed) < NEW_DAYS, claimed: claimedOf(e) };
+    var d = e.dataset, left = drops.drops(i), latest = left[0] || null;
+    return { i: i, n: d.n || "", place: d.place || "", lat: parseFloat(d.lat), lng: parseFloat(d.lng),
+             drops: left, latest: latest, placed: latest ? latest.dataset.placed || "" : "",
+             isNew: !!latest && claimedOf(latest) === null && daysSince(latest.dataset.placed) < NEW_DAYS,
+             claimed: left.length > 0 && left.every(function (x) { return claimedOf(x) !== null; }) };
   });
-  function indexOf(n) {
-    for (var i = 0; i < list.length; i++) if (list[i].n === n) return i;
-    return -1;
-  }
+  // drops#03 is point 03, drops#003 drop 003 at its point: [point, drop]
+  function find(id) { return id ? drops.find(id) : null; }
+  function title(i) { return TITLE.replace(/DROPS$/, "POINT #" + list[i].n); }
+  function plural(n, one) { return n + " " + one + (n === 1 ? "" : "s"); }
   function hasPos(d) { return isFinite(d.lat) && isFinite(d.lng); }
   function coords(d) {
     return Math.abs(d.lat).toFixed(4) + "°" + (d.lat < 0 ? "S" : "N") + "  " +
@@ -124,27 +131,24 @@
     if (text != null) x.textContent = text;
     return x;
   }
-  // Claimed outranks NEW: the item is gone, however recent the drop.
   function tagFor(d) {
-    if (d.claimed !== null) return el("span", "dp-claimed-tag", "Claimed");
+    if (d.claimed) return el("span", "dp-claimed-tag", "Claimed");
     if (d.isNew) return el("span", "dp-new", "New");
     return null;
   }
 
-  /* --- what each drop's record says --------------------------------------- */
-  // Its title (unless it only repeats the place), the captions of its item
-  // and hint photos, and the first sentence of its brief, as a teaser.
+  /* --- what each point has to say ----------------------------------------- */
+  // Its latest drop: its number and title, the caption of its item, and the
+  // first sentence of its story, as a teaser.
   function about(d) {
-    var e = drops.entries[d.i], ds = e.dataset, p = e.querySelector("p");
+    var e = d.latest;
+    if (!e) return { n: "", title: "", item: "", teaser: "" };
+    var ds = e.dataset, p = e.querySelector("p");
     var text = p ? p.textContent.replace(/\s+/g, " ").trim() : "";
     var first = text.match(/^.+?[.!?](?=\s|$)/);
-    return {
-      title: ds.title && ds.title.toLowerCase() !== d.place.toLowerCase() ? ds.title : "",
-      item: ds.itemcap || "", hint: ds.hintcap || "",
-      teaser: first ? first[0] : text
-    };
+    return { n: ds.n || "", title: ds.title || "", item: ds.itemcap || "", teaser: first ? first[0] : text };
   }
-  // how long ago it was placed: "79 days ago"
+  // how long ago the latest drop was left: "79 days ago"
   function age(d) {
     var n = Math.floor(daysSince(d.placed));
     if (!isFinite(n) || n < 0) return "";
@@ -154,28 +158,28 @@
   function kv(label, value) {
     var s = el("span", "kv");
     s.appendChild(el("b", null, label));
-    s.appendChild(document.createTextNode(value));
+    s.appendChild(typeof value === "string" ? document.createTextNode(value) : value);
     return s;
   }
-  // What there is to say about drop d, into box (after its number and
-  // place). how: "popup" over a point; "prompt", the chosen drop's, by its
-  // point, with where it is, the hint and OPEN DROP; "row", the same opened
-  // under its row on a phone, kept short (where it is and the hint are on
-  // the drop's own page) so the rows round it stay in view.
+  // What there is to say about point d, into box (after its number and
+  // name). how: "popup" over it on the globe; "prompt", the chosen point's,
+  // by it, with where it is and OPEN POINT; "row", the same opened under its
+  // row on a phone, kept short (where it is is on the point's own page) so
+  // the rows round it stay in view.
   function describe(box, d, how) {
-    var x = about(d), a = age(d), when = el("span", "dw-when");
-    if (x.title) box.appendChild(el("i", "dw-title", x.title));
-    when.appendChild(el("span", null, "Placed " + d.placed));       // two halves, each kept
-    if (a) when.appendChild(el("span", null, a));                    // whole (see the CSS)
+    var x = about(d), a = age(d), when = el("span", "dw-when"), many = d.drops.length !== 1;
+    when.appendChild(el("span", null, plural(d.drops.length, "drop")));     // each part kept
+    if (d.placed) when.appendChild(el("span", null, (many ? "Latest " : "Left ") + d.placed));
+    if (a) when.appendChild(el("span", null, a));                         // whole (see the CSS)
     box.appendChild(when);
-    if (d.claimed !== null) box.appendChild(el("em", null, "Claimed" + (d.claimed ? " " + d.claimed : "")));
+    if (d.claimed) box.appendChild(el("em", null, many ? "All claimed" : "Claimed"));
     else if (d.isNew) box.appendChild(el("em", null, "New"));
     if (how === "prompt" && hasPos(d)) box.appendChild(el("span", "dw-at", coords(d)));
+    if (x.title) box.appendChild(kv("Drop #" + x.n, el("i", null, x.title)));
     if (x.item) box.appendChild(kv("Item", x.item));
-    if (how === "prompt" && x.hint) box.appendChild(kv("Hint", x.hint));
     if (x.teaser) box.appendChild(el("q", "dw-teaser", x.teaser));
     if (how === "popup") return;
-    // ZOOM IN / ZOOM OUT, for a drop the globe can show, and OPEN DROP
+    // ZOOM IN / ZOOM OUT, for a point the globe can show, and OPEN POINT
     var acts = el("div", "dw-acts");
     if (hasGlobe && hasPos(d)) {
       var zb = el("button", "dw-zoomto");
@@ -189,7 +193,7 @@
     }
     var go = el("a", "dw-open");
     go.href = "#" + d.n;
-    go.innerHTML = '<span class="cur" aria-hidden="true">&#9656;</span>Open drop';
+    go.innerHTML = '<span class="cur" aria-hidden="true">&#9656;</span>Open point';
     if (how === "row") go.addEventListener("click", function (ev) { if (ghost(ev)) ev.preventDefault(); });
     acts.appendChild(go);
     box.appendChild(acts);
@@ -223,13 +227,14 @@
   }
 
   /* --- the list ----------------------------------------------------------- */
-  // A row chooses its drop: the globe turns to it, at the zoom it is at,
-  // and the prompt opens there. It never opens the drop itself, and never
-  // zooms (ZOOM IN does). Pointing at a row only marks the drop's point, so
-  // running the mouse down the list doesn't send the globe about.
-  // Each row says what the drop is (its title and the start of its story);
-  // on a phone the chosen one opens up underneath with the rest, and its
-  // OPEN DROP, instead of a prompt over the small globe.
+  // A row chooses its point: the globe turns to it, at the zoom it is at,
+  // and the prompt opens there. It never opens the point itself, and never
+  // zooms (ZOOM IN does). Pointing at a row only marks the point on the
+  // globe, so running the mouse down the list doesn't send the globe about.
+  // Each row says what is there (how many drops, the latest one's title and
+  // the start of its story); on a phone the chosen one opens up underneath
+  // with the rest, and its OPEN POINT, instead of a prompt over the small
+  // globe.
   var rows = document.getElementById("dw-rows"), rowBtns = [], mores = [];
   var tapped = null;                    // where and when a row was last pressed
   var quiet = false;                    // a row focused by this script, not chosen by it
@@ -238,7 +243,7 @@
   function byKeys(x) {
     try { return x.matches(":focus-visible"); } catch (e) { return true; }
   }
-  document.getElementById("dw-count").textContent = String(list.length).padStart(2, "0") + " REC";
+  document.getElementById("dw-count").textContent = String(list.length).padStart(2, "0") + " PTS";
   list.forEach(function (d) {
     var item = el("div", "dw-item"), a = el("button", "dw-row"), x = about(d);
     a.type = "button";
@@ -246,19 +251,21 @@
     a.appendChild(el("span", "dw-place", d.place));
     a.appendChild(tagFor(d) || el("span"));
     a.appendChild(el("span", "dw-date", d.placed));
-    var line = [x.title, x.teaser].filter(Boolean).join(" — ");
-    if (line) a.appendChild(el("span", "dw-line", line));
+    var line = plural(d.drops.length, "drop") +
+               (x.title ? (d.drops.length > 1 ? " \u00b7 latest \u201c" : " \u00b7 \u201c") + x.title + "\u201d" : "") +
+               (x.teaser ? " \u2014 " + x.teaser : "");
+    a.appendChild(el("span", "dw-line", line));
     a.addEventListener("mouseenter", function () { if (d.i !== sel) setHover({ drop: d.i }); });
     a.addEventListener("mouseleave", function () { if (hover && hover.drop === d.i) setHover(null); });
-    // Focus from the keyboard (Tab, the arrows) chooses the drop at once; a
+    // Focus from the keyboard (Tab, the arrows) chooses the point at once; a
     // press chooses it with its click. Chosen as the button took the focus
     // of a tap, a phone's row opened before the tap's click arrived, and
     // the click landed on whatever had moved under the finger: another row,
-    // or the drop's own OPEN DROP.
+    // or the point's own OPEN POINT.
     a.addEventListener("focus", function () { if (!quiet && byKeys(a)) select(d.i, "fly"); });
     a.addEventListener("pointerdown", function (ev) { tapped = { x: ev.clientX, y: ev.clientY, t: Date.now() }; });
     // From the keyboard (no pointer, so no click count), Enter goes on to
-    // the prompt's OPEN DROP, so a second Enter opens it. A row opened
+    // the prompt's OPEN POINT, so a second Enter opens it. A row opened
     // underneath (a phone) closes again at a second tap.
     a.addEventListener("click", function (ev) {
       if (ev.detail && d.i === sel && docked()) { select(-1); return; }
@@ -274,8 +281,8 @@
     mores.push(more);
   });
 
-  // Where the prompt goes: by the drop's point on the globe, or under its
-  // row: on a phone, and wherever the globe can't show the drop.
+  // Where the prompt goes: by the point on the globe, or under its row: on
+  // a phone, and wherever the globe can't show the point.
   var narrow = window.matchMedia("(max-width: 900px)");
   function docked() { return narrow.matches || !hasGlobe || !hasPos(list[sel] || {}); }
   function dock() {
@@ -305,9 +312,9 @@
   }
   if (narrow.addEventListener) narrow.addEventListener("change", onNarrow); else narrow.addListener(onNarrow);
 
-  // The drop screen shows one drop: drops.js's list of them is hidden (see
-  // the CSS), and the way back, a real button so nobody has to hunt for it,
-  // heads its top bar in place of the word "Frequency". Where the drop's
+  // A point's screen shows one point: drops.js's list of them is hidden
+  // (see the CSS), and the way back, a real button so nobody has to hunt
+  // for it, heads its top bar in place of the word "Frequency". Where the
   // page scrolls (a phone, a short screen) that would scroll away with it:
   // there the way back floats at the foot of the screen instead, always in
   // reach. The CSS shows the one or the other.
@@ -349,27 +356,6 @@
       }
     });
     street.addControl(new ToWorld());
-  }
-
-  // CLAIMED on the drop's page: a chip at the head of the frequency bar
-  // (its readouts have no room to spare), and the word in the item's own
-  // head, so the photo stays clear for whoever looks later. Nothing for a
-  // drop that isn't marked.
-  var chip = el("span", "dp-claimed");
-  chip.hidden = true;
-  var head = document.querySelector(".dp-bar .dp-headgroup");
-  if (head) head.insertBefore(chip, head.firstChild);
-  var itemMark = el("span", "dp-item-claimed");
-  itemMark.hidden = true;
-  var itemHead = document.querySelector(".dp-slot--item .dp-panel__head");
-  if (itemHead && itemHead.lastElementChild) itemHead.insertBefore(itemMark, itemHead.lastElementChild);
-  function showClaimed(i) {
-    var d = list[i], on = !!d && d.claimed !== null;
-    chip.hidden = itemMark.hidden = !on;
-    chip.textContent = on ? "Claimed" : "";
-    if (on && d.claimed) chip.appendChild(el("span", "d", d.claimed));
-    itemMark.textContent = on ? "Claimed" : "";
-    if (on && d.claimed) itemMark.appendChild(el("span", "d", " " + d.claimed));
   }
 
   /* --- the map's data ----------------------------------------------------- */
@@ -488,10 +474,10 @@
 
   /* --- the view ------------------------------------------------------------ */
   var W = 0, H = 0, R = 0, DPR = 1, CX = 0, CY = 0, halo = null, inMotion = false;
-  var sel = -1;                         // the chosen drop: none, until one is chosen
-  var CLOSE = ZOOM_MAX;                 // how close the globe flies in to a drop
+  var sel = -1;                         // the chosen point: none, until one is chosen
+  var CLOSE = ZOOM_MAX;                 // how close the globe flies in to a point
 
-  // Where the drops are: the middle of them all, which the globe faces
+  // Where the points are: the middle of them all, which the globe faces
   // while none is chosen.
   var HOME = (function () {
     var x = 0, y = 0, z = 0;
@@ -504,8 +490,8 @@
     return [Math.atan2(y, x) / RAD, clamp(Math.atan2(z, Math.hypot(x, y)) / RAD, -60, 60)];
   })();
   function home(z) { return { lng: HOME[0], lat: HOME[1], zoom: z, dive: 1 }; }
-  // A drop in the middle of the globe at zoom z (none, or one the globe
-  // can't show: where the drops are).
+  // A point in the middle of the globe at zoom z (none, or one the globe
+  // can't show: where the points are).
   function aim(i, z) {
     var d = list[i];
     if (!d || !hasPos(d)) return home(z);
@@ -514,7 +500,7 @@
   // What the globe faces: a centre, the zoom chosen with the buttons, wheel
   // or pinch, and a dive that multiplies it while a drop opens or closes.
   var view = home(1);
-  // Diving: the drop dead centre, the globe six times bigger.
+  // Diving: the point dead centre, the globe six times bigger.
   function dive(i) {
     var d = list[i] || {};
     return hasPos(d) ? { lng: d.lng, lat: d.lat, zoom: view.zoom, dive: 6 } : aim(i, view.zoom);
@@ -805,7 +791,7 @@
     if (!inMotion) readSoon();
   }
 
-  /* --- the drops on the globe --------------------------------------------- */
+  /* --- the points on the globe -------------------------------------------- */
   // Points grow with the zoom (a fifth power: about twice the size at 32x),
   // and the room each needs grows with them.
   function radii() {
@@ -825,16 +811,16 @@
     pts.forEach(function (q) { if (q.i === sel) shown = q; });
     return { pts: pts, shown: shown, rr: rr, labels: (index ? R * view.zoom / index.R : view.zoom) >= 3 };
   }
-  // A drop's number sits on the side away from the spot it was moved off
-  // (the outside of its ring), or to the right of a drop that wasn't moved.
-  var NUM_W = 23;                       // three digits of the pixel face at 7px
+  // A point's number sits on the side away from the spot it was moved off
+  // (the outside of its ring), or to the right of a point that wasn't moved.
   function numberAt(q) {
+    var w = 7 * list[q.i].n.length + 2;   // the pixel face at 7px: 7px a digit
     var dx = q.x - q.at[0], dy = q.y - q.at[1], d = Math.hypot(dx, dy);
     var right = d < 2 || dx >= -0.3 * d;
-    var x = right ? q.x + q.r + 4 : q.x - q.r - 4 - NUM_W;
-    return { x: x, y: q.y + (d < 2 ? 0 : (dy / d) * 4), box: [x - 1, q.y - 6, x + NUM_W + 1, q.y + 6] };
+    var x = right ? q.x + q.r + 4 : q.x - q.r - 4 - w;
+    return { x: x, y: q.y + (d < 2 ? 0 : (dy / d) * 4), box: [x - 1, q.y - 6, x + w + 1, q.y + 6] };
   }
-  // the room the drops, their numbers and the pointer take on screen
+  // the room the points, their numbers and the pointer take on screen
   function dropBoxes(lay) {
     var out = [];
     lay.pts.forEach(function (q) {
@@ -849,11 +835,11 @@
     return out;
   }
 
-  // Drops within `room` of each other (directly or through a neighbour)
+  // Points within `room` of each other (directly or through a neighbour)
   // form a group, set out on a ring around the group's middle in the order
   // they really lie round it, turned to match (in San Francisco, Alcatraz
   // is the top one). As the zoom parts them, the ring eases into their true
-  // places; by the time they are `room` apart they are there. A drop with
+  // places; by the time they are `room` apart they are there. A point with
   // room around it never moves.
   function spreadOut(pts, room) {
     var up = pts.map(function (q, k) { return k; });
@@ -903,7 +889,7 @@
 
   function drawDrops(lay, rest) {
     var pts = lay.pts, shown = lay.shown;
-    // threads from moved points back to where the drops are, marked in ash
+    // threads from moved points back to where they really are, marked in ash
     var moved = pts.filter(function (q) { return Math.hypot(q.x - q.at[0], q.y - q.at[1]) > 2; });
     if (moved.length) {
       ctx.save();
@@ -918,13 +904,13 @@
     }
     if (shown) pointer(shown, rest);            // under the points, so it hides none
     var others = pts.filter(function (q) { return q !== shown; });
-    var claimed = others.filter(function (q) { return list[q.i].claimed !== null; });
-    var open = others.filter(function (q) { return list[q.i].claimed === null; });
+    var claimed = others.filter(function (q) { return list[q.i].claimed; });
+    var open = others.filter(function (q) { return !list[q.i].claimed; });
     dots(open.filter(function (q) { return !list[q.i].isNew; }), LINEN, 9);
     dots(open.filter(function (q) { return list[q.i].isNew; }), RED, 9);
-    rings(claimed, ASH);                        // claimed: hollow, the item is gone
+    rings(claimed, ASH);                        // every drop claimed: hollow, the items are gone
     if (shown) dots([shown], BONE, 14);
-    // the pointed-at drop gets a ring of its own
+    // the pointed-at point gets a ring of its own
     var hv = hover && hover.drop != null && hover.drop !== sel && pts.filter(function (q) { return q.i === hover.drop; })[0];
     if (hv) {
       ctx.beginPath(); ctx.arc(hv.x, hv.y, hv.r + 5, 0, 2 * Math.PI);
@@ -938,7 +924,7 @@
       others.forEach(function (q) {
         var at = numberAt(q);
         ctx.strokeText(list[q.i].n, at.x, at.y);
-        ctx.fillStyle = list[q.i].claimed !== null ? ASH : LINEN;
+        ctx.fillStyle = list[q.i].claimed ? ASH : LINEN;
         ctx.fillText(list[q.i].n, at.x, at.y);
       });
       ctx.restore();
@@ -995,22 +981,22 @@
   }
 
   /* --- the prompt and the callout ------------------------------------------ */
-  // The prompt sits by the chosen drop whenever the globe is still: all
-  // there is to say about it (see describe) and OPEN DROP, the way into it.
-  // The callout says what the mouse (or a tap) is on: another drop, much as
+  // The prompt sits by the chosen point whenever the globe is still: all
+  // there is to say about it (see describe) and OPEN POINT, the way into it.
+  // The callout says what the mouse (or a tap) is on: another point, much as
   // the prompt does, or a city, a peak, a landmark. Each keeps clear of the
   // points, the pointer, the zoom buttons and the other.
   var hover = null;                     // { drop: i } or { place: [...] }, under the mouse
   var calloutKey = "", cardKey = "", wantFocus = false, focusLate = 0;
-  // the prompt's x: closes it, the keyboard going back to the drop's row
+  // the prompt's x: closes it, the keyboard going back to the point's row
   var closer = el("button", "dw-x");
   closer.type = "button";
   closer.title = "Close (Esc)";
   closer.setAttribute("aria-label", "Close");
   closer.innerHTML = '<svg viewBox="0 0 10 10" aria-hidden="true" focusable="false"><path d="M1.5 1.5l7 7M8.5 1.5l-7 7"/></svg>';
   closer.addEventListener("click", function (ev) { var i = sel; select(-1); if (!ev.detail) focusRow(i); });
-  function dropHead(box, d) {
-    box.appendChild(el("b", null, "Drop #" + d.n));
+  function pointHead(box, d) {
+    box.appendChild(el("b", null, "Point #" + d.n));
     box.appendChild(el("span", "dw-place", d.place));
   }
   var KIND = { c: "Country", s: "State / province", k: "Capital", t: "City", p: "Peak", l: "Landmark" };
@@ -1062,7 +1048,7 @@
       cardKey = "d" + sel;
       card.textContent = "";
       card.appendChild(closer);
-      dropHead(card, d);
+      pointHead(card, d);
       describe(card, d, "prompt");
       card.hidden = false;
       card.classList.remove("is-in");
@@ -1074,7 +1060,7 @@
     if (wantFocus) { wantFocus = false; card.querySelector(".dw-open").focus({ preventScroll: true }); }
     return b;
   }
-  // Enter on a row goes on to the prompt's OPEN DROP: at once when it opens
+  // Enter on a row goes on to the prompt's OPEN POINT: at once when it opens
   // under the row, or as soon as the globe has flown and it opens there.
   function promptFocus() {
     clearTimeout(focusLate);
@@ -1086,15 +1072,15 @@
     focusLate = setTimeout(function () { wantFocus = false; }, 2400);
   }
 
-  // The callout: what the mouse or a tap is on. Not the chosen drop, whose
-  // prompt by its point says all that already; but where that prompt is
-  // under the drop's row (a narrow window), its point says it too.
+  // The callout: what the mouse or a tap is on. Not the chosen point, whose
+  // prompt by it says all that already; but where that prompt is under the
+  // point's row (a narrow window), the point on the globe says it too.
   function placeCallout(lay, rest, avoid) {
     var target = null;
     if (hover && hover.drop != null && (hover.drop !== sel || docked())) {
       var q = lay.pts.filter(function (p) { return p.i === hover.drop; })[0], d = q && list[q.i];
       if (q) target = { key: "d" + q.i, x: q.x, y: q.y, r: q.r,
-                        make: function (box) { dropHead(box, d); describe(box, d, "popup"); } };
+                        make: function (box) { pointHead(box, d); describe(box, d, "popup"); } };
     } else if (hover && hover.place) {
       var pl = hover.place;
       if (d3.geoDistance([pl[2], pl[3]], [view.lng, view.lat]) < Math.PI / 2) {
@@ -1119,7 +1105,7 @@
   /* --- names on the map ------------------------------------------------------ */
   // Countries, states, capitals, cities, peaks and landmarks, each from the
   // zoom Natural Earth gives it (landmarks: their own). The most important
-  // first; a name that would overlap one already down, a drop or the
+  // first; a name that would overlap one already down, a point or the
   // callout is left out.
   var STYLE = {
     c: { font: "8px 'Press Start 2P', monospace", size: 8, fill: TAUPE, alpha: 0.8, upper: true },
@@ -1252,8 +1238,8 @@
     });
   }
 
-  // Fly to drop i (none: where the drops are) at zoom z, as close as the
-  // globe goes unless told: the drop ends in the middle. The way is van Wijk
+  // Fly to point i (none: where the points are) at zoom z, as close as the
+  // globe goes unless told: the point ends in the middle. The way is van Wijk
   // and Nuij's smooth zooming and panning, as d3's interpolateZoom draws it:
   // out as far as the distance needs, across, and back down, never losing
   // sight of where it is going. Its length sets the time it takes; pace
@@ -1286,13 +1272,13 @@
     }
     return { at: at, length: Math.abs(S) };
   }
-  // The prompt's ZOOM IN flies to its drop; ZOOM OUT, from as close as the
-  // globe goes, back out to the whole globe, still on the drop.
+  // The prompt's ZOOM IN flies to its point; ZOOM OUT, from as close as the
+  // globe goes, back out to the whole globe, still on the point.
   function zoomToggle() {
     if (sel < 0) return;
     if (view.zoom >= CLOSE - 1e-6) flyTo(sel, 1, 0.65); else flyTo(sel);
   }
-  // drop i in the middle of the globe, as it is
+  // point i in the middle of the globe, as it is
   function centred(i) {
     var d = list[i];
     return !!d && hasPos(d) && hasGlobe &&
@@ -1326,7 +1312,7 @@
   }
 
   // Zoom to z, keeping the ground at screen point p where it is. Unless
-  // that is the chosen drop, the globe is no longer pointed at it.
+  // that is the chosen point, the globe is no longer pointed at it.
   function zoomTo(z, p, ms, onDrop) {
     var me = ++anim, z0 = view.zoom, g = groundAt(p);
     if (!onDrop) aimed = -1;
@@ -1370,9 +1356,9 @@
   zoomAll.innerHTML = GLOBE;
   if (hasGlobe) box.appendChild(zoomBox);
 
-  // + and -: a doubling at a time, about the chosen drop while the globe is
-  // still pointed at it (so it stays where it is), otherwise about the
-  // centre: dragged off to Europe, + goes into Europe, not back to the drop
+  // + and -: a doubling at a time, about the chosen point while the globe
+  // is still pointed at it (so it stays where it is), otherwise about the
+  // centre: dragged off to Europe, + goes into Europe, not back to the point
   // sitting at the edge.
   function zoomBy(dir) {
     var l = Math.log2(view.zoom);
@@ -1387,8 +1373,8 @@
     var p = proj([d.lng, d.lat]);
     return p[0] > 8 && p[0] < W - 8 && p[1] > 8 && p[1] < H - 8 ? p : null;
   }
-  // 0 and the globe button: back out to the whole globe, on the chosen drop
-  // (none: where the drops are).
+  // 0 and the globe button: back out to the whole globe, on the chosen
+  // point (none: where the points are).
   function whole() {
     if (zoomAll.getAttribute("aria-disabled") !== "true") flyTo(sel, 1, 0.65);
   }
@@ -1409,15 +1395,15 @@
   }
 
   /* --- choosing ------------------------------------------------------------ */
-  // Choosing a drop: the list marks it, and its prompt opens (by its point
-  // once the globe is still, or under its row on a phone). It is never
+  // Choosing a point: the list marks it, and its prompt opens (by it on the
+  // globe once the globe is still, or under its row on a phone). It is never
   // opened from here. how: "fly" turns the globe to it, at the zoom it is
   // at (the list), "stay" leaves the globe where it is (a click on its
   // point), "jump" turns the globe to it at once, "hold" leaves it for a
   // dive about to take it there. Chosen again while the globe is on its way
   // to it, the globe carries on; one already in the middle just opens its
   // prompt. -1 chooses none: the prompt closes.
-  var aimed = -1;                       // the drop + and - zoom about, while the globe stays on it
+  var aimed = -1;                       // the point + and - zoom about, while the globe stays on it
   function select(i, how) {
     if (i >= 0 && !list[i]) return;
     var again = i === sel && aimed === i;
@@ -1437,16 +1423,17 @@
   }
 
   // Keys. World: arrows walk the list (choosing as they go), Enter on a
-  // drop goes on to its OPEN DROP, + - 0 zoom. A drop: Esc goes back, and
-  // the arrows pan the street map while it has focus. drops.js never sees
-  // the arrows: it would step to the next drop, and a drop's screen shows
-  // that one drop. With Alt, Ctrl or Cmd they are the browser's (Alt+Left
-  // is Back).
+  // point goes on to its OPEN POINT, + - 0 zoom. A point: Esc goes back,
+  // the arrows walk its list of drops (drops.js does that) and pan the
+  // street map while it has focus. drops.js sees no other arrows: it would
+  // step to the next point, and a point's screen shows that one point. With
+  // Alt, Ctrl or Cmd they are the browser's (Alt+Left is Back).
   document.addEventListener("keydown", function (ev) {
     var t = ev.target;
     if (t && t.closest && t.closest("input, textarea, select, [contenteditable]")) return;
     var step = { ArrowDown: 1, ArrowRight: 1, ArrowUp: -1, ArrowLeft: -1 }[ev.key];
     var plain = !(ev.altKey || ev.ctrlKey || ev.metaKey);
+    if (step && root.dataset.view !== "world" && t && t.closest && t.closest("#dp-log")) return;
     if (step) {
       ev.stopImmediatePropagation();
       if (!plain) return;
@@ -1606,7 +1593,7 @@
   // nothing of its own to scroll
   card.addEventListener("wheel", wheelZoom, { passive: false });
 
-  // The world view has its own "What is a drop?" (the drop screen's lives
+  // The world view has its own "What is a drop?" (the point screen's lives
   // in a panel that is hidden here); like that one, a click outside closes it.
   var worldHelp = document.getElementById("dw-help");
   if (worldHelp) document.addEventListener("click", function (ev) {
@@ -1645,34 +1632,34 @@
   function nextFrame() {
     return new Promise(function (done) { requestAnimationFrame(done); setTimeout(done, 50); });
   }
-  // The drop's windows set off first, and only once they are on their way
+  // The point's windows set off first, and only once they are on their way
   // (the browser flies them, after-images and all, from then on) does
-  // drops.js put the drop in them: its street map takes a moment to draw,
+  // drops.js put the point in them: its street map takes a moment to draw,
   // which would otherwise hold them at the edge of the screen. They are
-  // still off it when it does.
-  async function arrive(i, scope) {
-    if (!moving()) { drops.open(i); return; }
+  // still off it when it does. j: the drop chosen there.
+  async function arrive(i, j, scope) {
+    if (!moving()) { drops.open(i, j); return; }
     var landed = fly().enter(scope, IN);
     await nextFrame(); await nextFrame();
-    drops.open(i);
+    drops.open(i, j);
     await landed;
   }
 
-  async function toDrop(i) {
+  async function toDrop(i, j) {
     if (root.dataset.view === "drop") {
-      // the address changed from one drop to another (typed, or a link):
-      // the record's windows fly out, and back in with that drop
-      if (drops.current() === i) return;
+      // the address changed (typed, a link, Back): another drop at this
+      // point is just chosen; for another point the windows fly out, and
+      // back in with it
+      if (drops.current() === i) { drops.show(i, j); return; }
       if (moving()) {
         await fly().exit(detail, OUT);
-        if (next && next.i >= 0) { i = next.i; next = null; }   // asked for again meanwhile
+        if (next && next.i >= 0) { i = next.i; j = next.j; next = null; }   // asked for again meanwhile
       }
       if (fly()) fly().reset(detail);
-      window.scrollTo(0, 0);                    // a phone scrolls a drop's page
-      await arrive(i, detail);
+      window.scrollTo(0, 0);                    // a phone scrolls a point's page
+      await arrive(i, j, detail);
       return;
     }
-    var d = list[i];
     var fromWorld = world.contains(document.activeElement);
     hover = null;
     select(i, "hold");
@@ -1684,9 +1671,9 @@
     window.scrollTo(0, 0);
     if (moving()) flash();
     if (fly()) fly().reset(world);
-    document.title = TITLE.replace(/DROPS$/, "DROP #" + d.n);
+    document.title = title(i);
     if (fromWorld) backButton().focus({ preventScroll: true });   // the keyboard's way back
-    await arrive(i, shell);                     // drops.open sizes the map, now it can be seen
+    await arrive(i, j, shell);                  // drops.open sizes the map, now it can be seen
   }
 
   async function toWorld() {
@@ -1694,7 +1681,7 @@
     var i = Math.max(0, drops.current()), fromDrop = shell.contains(document.activeElement);
     if (moving()) await fly().exit(shell, OUT);
     root.dataset.view = "world";
-    window.scrollTo(0, 0);                      // wherever the drop's page was scrolled to
+    window.scrollTo(0, 0);                      // wherever the point's page was scrolled to
     if (moving()) flash();
     if (fly()) fly().reset(shell);
     document.title = TITLE;
@@ -1703,7 +1690,7 @@
     if (fromDrop) focusRow(i);
     if (moving()) {
       fly().enter(listPanel, IN);
-      view = dive(i); draw();                   // start inside the drop we left
+      view = dive(i); draw();                   // start inside the point we left
       await turnTo(aim(i, view.zoom), 600, easeOut);   // and pull back out, to the zoom we left
     }
   }
@@ -1716,52 +1703,57 @@
     busy = (async function () {
       while (next) {
         var j = next; next = null;
-        try { await (j.i >= 0 ? toDrop(j.i) : toWorld()); } catch (e) { console.error(e); }
+        try { await (j.i >= 0 ? toDrop(j.i, j.j) : toWorld()); } catch (e) { console.error(e); }
       }
       busy = null;
     })();
   }
 
-  // The address decides the screen: drops#003 is drop 003, anything else the
-  // world. OPEN DROP is a link to it, so Back, reload and sharing just work.
+  // The address decides the screen: drops#03 is point 03, drops#003 drop 003
+  // at its point, anything else the world. OPEN POINT is a link to the point,
+  // so Back, reload and sharing just work.
   function hashId() {
     try { return decodeURIComponent(location.hash.slice(1)); }
     catch (e) { return ""; }                    // a mangled address: the world
   }
   function route(initial) {
-    var i = indexOf(hashId());
+    var at = find(hashId()), i = at ? at[0] : -1;
     if (i < 0 && location.hash) history.replaceState(null, "", location.pathname + location.search);
     if (initial) {                               // no animation on arrival
       root.dataset.view = i < 0 ? "world" : "drop";
-      if (i >= 0) { document.title = TITLE.replace(/DROPS$/, "DROP #" + list[i].n); sel = i; }
+      if (i >= 0) { document.title = title(i); sel = i; }
       return;
     }
     if (i >= 0 && root.dataset.view === "world") history.replaceState({ fromWorld: true }, "");
-    go({ i: i });
+    go({ i: i, j: at ? at[1] : 0 });
   }
   window.addEventListener("hashchange", function () { route(false); });
 
   // WORLD MAP: step back if we came from the world, so Back and Forward stay
-  // one step apart; otherwise (a shared link to one drop) go forward to it.
+  // one step apart; otherwise (a shared link to one point) go forward to it.
   function toWorldByHand() {
     if (history.state && history.state.fromWorld) { history.back(); return; }
     history.pushState(null, "", location.pathname + location.search);
     go({ i: -1 });
   }
 
-  // Keep the claimed chip, the address and the title in step with the drop
-  // showing; the address without adding history.
+  // Keep the address and the title in step with the point showing and the
+  // drop chosen there, the address without adding history: left as it is
+  // while it already says them (the point's own, opened on its newest drop),
+  // else the drop's, so a link shared from here opens on that drop.
   document.addEventListener("pn0va:drop", function (ev) {
-    showClaimed(ev.detail.index);
-    if (root.dataset.view !== "drop") return;
     var d = list[ev.detail.index];
-    history.replaceState(history.state, "", "#" + d.n);
-    document.title = TITLE.replace(/DROPS$/, "DROP #" + d.n);
+    if (root.dataset.view !== "drop" || !d) return;
+    var j = ev.detail.drop, at = find(hashId());
+    if (!at || at[0] !== d.i || at[1] !== Math.max(j, 0)) {
+      var e = d.drops[j];
+      history.replaceState(history.state, "", "#" + (e ? e.dataset.n : d.n));
+    }
+    document.title = title(d.i);
   });
 
   /* --- start --------------------------------------------------------------- */
   route(true);
-  showClaimed(drops.current());
   if (sel >= 0) select(sel, "jump");
   if (hasGlobe) {
     if (window.ResizeObserver) new ResizeObserver(function () { if (size()) draw(); }).observe(box);
