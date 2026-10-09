@@ -245,8 +245,8 @@ add `data-claimed="2026.06.28"` to it if it should show.
   (250 KB as served; asked to save data, or on a slow connection, only
   once the world is pointed at or touched). With the processor slowed
   four times, as on a modest phone, a flight in went from about 6 frames a
-  second to 10 the first time and 15 after; at full speed, from about 31
-  to 45.
+  second to about 10 the first time and 15 after; at full speed it runs at
+  about 45.
 
 ## 2026.10.07 update 2
 
@@ -663,6 +663,22 @@ turning at about 60 frames a second on a desktop and 47 on a phone · two
 builds in a row byte-identical · every page at 1440 and 390px, JavaScript
 on and off: no console errors, failed requests, sideways scrolling or
 outside requests.
+
+**2026.10.09**, clean and flat builds, desktop and phone: nothing chosen
+on arrival; the list flying to each drop, which lands in the middle at
+64x; a click on a point choosing it with the globe unmoved; ZOOM IN and
+ZOOM OUT; the prompt closed by its ×, Esc, a click on bare globe and a
+second tap on a phone's row; keys (arrows, Tab, Enter, Esc, + − 0), wheel
+and pinch; OPEN DROP, WORLD MAP in the bar or floating at the foot of the
+screen, Back, Forward and links; a double tap on a phone's row opening
+nothing · 12 widths from 320 to 1920px, phones on their side and tablets:
+the prompt inside the globe or the chosen row in view, one OPEN DROP and
+one way back in view, nothing scrolling sideways · Save-Data honoured ·
+screen changes timed as before (about 1.4 seconds in, 1.2 out); flights
+timed frame by frame at full speed and with the processor slowed four
+times · two builds byte-identical · every page at 1440 and 390px,
+JavaScript on and off: no console errors, failed requests, sideways
+scrolling or outside requests.
 
 **2026.10.07, update 2**, clean and flat builds, desktop and phone: one
 OPEN DROP on screen at every step, by the chosen drop's point on a desktop
