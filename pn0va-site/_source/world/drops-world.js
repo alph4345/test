@@ -207,9 +207,12 @@
     return '<svg viewBox="0 0 16 16" aria-hidden="true" focusable="false"><circle cx="6.5" cy="6.5" r="4.6"/>' +
            '<path d="M10 10l4.4 4.4M4.4 6.5h4.2' + (plus ? "M6.5 4.4v4.2" : "") + '"/></svg>';
   }
-  // ZOOM IN until the globe is as close as it goes, ZOOM OUT from there.
+  // ZOOM IN until the globe is as close as it goes, ZOOM OUT from there: by
+  // the zoom a turn is heading for, not the one it passes through (a short
+  // way at 64x dips a hair below it, and the label flickered).
+  var heading = null;
   function zoomLabels() {
-    var out = view.zoom >= CLOSE - 1e-6;
+    var out = (heading != null ? heading : view.zoom) >= CLOSE - 1e-6;
     [card, rows].forEach(function (box) {
       Array.prototype.forEach.call(box.querySelectorAll(".dw-zoomto"), function (b) {
         if (b.dataset.out === String(out)) return;
@@ -1225,7 +1228,7 @@
   // flight: a way worked out by flyTo, which the turn follows instead.
   function turnTo(to, ms, curve, flight) {
     var me = ++anim;
-    if (!hasGlobe || reduceMotion || !ms || !W) { inMotion = false; view = to; draw(); return Promise.resolve(); }
+    if (!hasGlobe || reduceMotion || !ms || !W) { inMotion = false; heading = null; view = to; draw(); return Promise.resolve(); }
     var from = view, a = [from.lng, from.lat], b = [to.lng, to.lat];
     var arc = d3.geoInterpolate(a, b), far = d3.geoDistance(a, b);
     var z0 = Math.log(from.zoom), z1 = Math.log(to.zoom), v0 = Math.log(from.dive), v1 = Math.log(to.dive);
@@ -1233,7 +1236,7 @@
     var dip = flight ? 0 : Math.max(0, (z0 + z1) / 2 - fits);
     if (dip > 0.3) ms *= 1.4;
     var t0 = performance.now();
-    inMotion = true;
+    inMotion = true; heading = to.zoom;
     return new Promise(function (done) {
       (function step(t) {
         if (me !== anim) return done();
@@ -1242,7 +1245,7 @@
         else z = Math.exp(z0 + (z1 - z0) * e - dip * 4 * e * (1 - e));
         var ll = arc(u);
         view = { lng: ll[0], lat: ll[1], zoom: z, dive: Math.exp(v0 + (v1 - v0) * e) };
-        if (k >= 1) { inMotion = false; view = to; }   // the last frame settles the callout
+        if (k >= 1) { inMotion = false; heading = null; view = to; }   // the last frame settles the callout
         draw();
         if (k < 1) requestAnimationFrame(step); else done();
       })(t0);
@@ -1327,14 +1330,14 @@
   function zoomTo(z, p, ms, onDrop) {
     var me = ++anim, z0 = view.zoom, g = groundAt(p);
     if (!onDrop) aimed = -1;
-    if (reduceMotion || !ms) { inMotion = false; zoomAbout(g, p, z); draw(); return; }
+    if (reduceMotion || !ms) { inMotion = false; heading = null; zoomAbout(g, p, z); draw(); return; }
     var t0 = performance.now();
-    inMotion = true;
+    inMotion = true; heading = z;
     (function step(t) {
       if (me !== anim) return;
       var k = Math.min(1, (t - t0) / ms);
       zoomAbout(g, p, z0 * Math.pow(z / z0, ease(k)));
-      if (k >= 1) inMotion = false;
+      if (k >= 1) { inMotion = false; heading = null; }
       draw();
       if (k < 1) requestAnimationFrame(step);
     })(t0);
@@ -1508,7 +1511,7 @@
     canvas.setPointerCapture(ev.pointerId);
     var two = twoFingers();
     if (two) {
-      drag = null; anim++; inMotion = true; aimed = -1;
+      drag = null; anim++; inMotion = true; heading = null; aimed = -1;
       pinch = { gap: Math.max(1, two.gap), zoom: view.zoom, g: groundAt(two.mid) };
       return;
     }
@@ -1532,7 +1535,7 @@
     }
     var dx = ev.clientX - drag.x, dy = ev.clientY - drag.y;
     if (!drag.moved && Math.hypot(dx, dy) < 4) return;
-    drag.moved = true; anim++; inMotion = true; hover = null; aimed = -1;
+    drag.moved = true; anim++; inMotion = true; heading = null; hover = null; aimed = -1;
     var k = 180 / Math.PI / scale(view);
     view = { lng: drag.v.lng - dx * k, lat: clamp(drag.v.lat + dy * k, -80, 80), zoom: view.zoom, dive: view.dive };
     canvas.style.cursor = "grabbing";
@@ -1593,7 +1596,7 @@
     var z = clamp(view.zoom * Math.exp(-dy * (ev.ctrlKey ? 0.01 : 0.004)), 1, ZOOM_MAX);
     if (Math.abs(z - view.zoom) < 1e-6) return;
     var r = canvas.getBoundingClientRect(), p = [ev.clientX - r.left, ev.clientY - r.top];
-    anim++; inMotion = true; aimed = -1;
+    anim++; inMotion = true; heading = null; aimed = -1;
     zoomAbout(groundAt(p), p, z);
     draw();
     settleSoon();
