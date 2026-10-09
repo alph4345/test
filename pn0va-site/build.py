@@ -907,7 +907,7 @@ WORLD_HTML = """
 <section class="dw-shell" id="dw" aria-label="Drops around the world">
   <section class="dp-panel dw-list" aria-label="Drops" data-fly="left" data-fly-delay="60">
     <div class="dp-panel__head"><span>Drops</span><span class="dp-idx" id="dw-count">&mdash;</span></div>
-    <p class="dw-help"><b>Help</b>Pick a drop to fly to it.</p>
+    <p class="dw-help"><b>Help</b>Pick a drop to find it.</p>
     <div class="dp-panel__body" id="dw-rows"></div>
   </section>
   <section class="dp-panel dw-stage" aria-label="World" data-fly="right" data-fly-delay="60">

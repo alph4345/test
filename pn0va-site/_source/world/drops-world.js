@@ -10,13 +10,15 @@
 
    The world opens with no drop chosen, the globe turned to where the drops
    are. Choose one in the list (a click, Enter or the arrow keys) and the
-   globe flies to it: the drop in the middle, as close as the globe goes.
-   Click a drop's point on the globe instead and the globe stays where it
-   is. Either way a prompt opens by the point: what the drop is (its title,
-   when it was placed, where, its item and hint, the first line of its
-   story), ZOOM IN (ZOOM OUT once there) and OPEN DROP. On a phone, where
-   the globe is small, the same opens under the drop's row instead. The
-   prompt's x, Esc, or a click on bare globe closes it.
+   globe turns to it, the drop in the middle, at the zoom it is at (from
+   far off it flies out and back down to that zoom). Click a drop's point
+   on the globe instead and the globe stays where it is. Either way a
+   prompt opens by the point: what the drop is (its title, when it was
+   placed, where, its item and hint, the first line of its story), ZOOM IN
+   (ZOOM OUT once there), the one thing that zooms to a drop, and OPEN
+   DROP. On a phone, where the globe is small, the same opens under the
+   drop's row instead. The prompt's x, Esc, or a click on bare globe
+   closes it.
 
    OPEN DROP is the only way in: the globe dives, the list flies off, and
    the drop's windows fly in with the About page's flight and red
@@ -218,10 +220,10 @@
   }
 
   /* --- the list ----------------------------------------------------------- */
-  // A row chooses its drop: the globe flies to it and the prompt opens
-  // there. It never opens the drop itself. Pointing at a row only marks the
-  // drop's point, so running the mouse down the list doesn't send the globe
-  // about.
+  // A row chooses its drop: the globe turns to it, at the zoom it is at,
+  // and the prompt opens there. It never opens the drop itself, and never
+  // zooms (ZOOM IN does). Pointing at a row only marks the drop's point, so
+  // running the mouse down the list doesn't send the globe about.
   // Each row says what the drop is (its title and the start of its story);
   // on a phone the chosen one opens up underneath with the rest, and its
   // OPEN DROP, instead of a prompt over the small globe.
@@ -1287,10 +1289,10 @@
     if (sel < 0) return;
     if (view.zoom >= CLOSE - 1e-6) flyTo(sel, 1, 0.65); else flyTo(sel);
   }
-  // the globe as close as it goes, on drop i
-  function atDrop(i) {
+  // drop i in the middle of the globe, as it is
+  function centred(i) {
     var d = list[i];
-    return !!d && hasPos(d) && hasGlobe && view.zoom >= CLOSE - 1e-6 &&
+    return !!d && hasPos(d) && hasGlobe &&
            d3.geoDistance([d.lng, d.lat], [view.lng, view.lat]) * R * view.zoom < 4;
   }
 
@@ -1406,11 +1408,12 @@
   /* --- choosing ------------------------------------------------------------ */
   // Choosing a drop: the list marks it, and its prompt opens (by its point
   // once the globe is still, or under its row on a phone). It is never
-  // opened from here. how: "fly" takes the globe to it (the list), "stay"
-  // leaves the globe where it is (a click on its point), "jump" turns the
-  // globe to it at once, "hold" leaves it for a dive about to take it there.
-  // Chosen again while the globe is on its way to it, or there already, the
-  // globe carries on. -1 chooses none: the prompt closes.
+  // opened from here. how: "fly" turns the globe to it, at the zoom it is
+  // at (the list), "stay" leaves the globe where it is (a click on its
+  // point), "jump" turns the globe to it at once, "hold" leaves it for a
+  // dive about to take it there. Chosen again while the globe is on its way
+  // to it, the globe carries on; one already in the middle just opens its
+  // prompt. -1 chooses none: the prompt closes.
   var aimed = -1;                       // the drop + and - zoom about, while the globe stays on it
   function select(i, how) {
     if (i >= 0 && !list[i]) return;
@@ -1426,8 +1429,8 @@
     if (root.dataset.view !== "world") { view = aim(i, view.zoom); return; }
     if (how === "stay") { draw(); return; }
     if (how === "jump") { turnTo(aim(i, view.zoom), 0); return; }
-    if (again && (inMotion || atDrop(i))) { draw(); return; }
-    flyTo(i);
+    if ((again && inMotion) || (!inMotion && centred(i))) { draw(); return; }
+    flyTo(i, view.zoom);
   }
 
   // Keys. World: arrows walk the list (choosing as they go), Enter on a

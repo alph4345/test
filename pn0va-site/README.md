@@ -109,14 +109,14 @@ The Drops page is one page with two screens.
   point for each. It opens with no drop chosen, the globe turned to where
   the drops are.
   - **Choose a drop in the list** (a click, Enter, or the arrow keys down
-    it) and the globe flies to it: out and across if it is far, then down
-    as close as the globe goes, the drop in the middle.
+    it) and the globe turns to it, the drop in the middle, at the zoom you
+    are at: from far off it flies out and back down to that zoom.
   - **Click a drop's point on the globe** and the globe stays where it is.
   - Either way a prompt opens beside the point: the drop's title, when it
     was placed and how long ago, where it is, its item and hint, the first
     line of its story, **ZOOM IN** (or **ZOOM OUT**, once the globe is as
-    close as it goes) and **OPEN DROP**. Its ×, Esc or a click on bare
-    globe closes it.
+    close as it goes), the one thing that zooms to a drop, and
+    **OPEN DROP**. Its ×, Esc or a click on bare globe closes it.
   - **OPEN DROP** is the only way in: the globe dives, flashes, and the
     drop's windows fly in. Pointing at a row only marks its drop's point,
     and a double-click on a point opens nothing.
@@ -214,6 +214,15 @@ deleting it undoes it. Nothing ever says "unclaimed".
 
 Drop 001's brief says it was recovered on 2026.06.28, but it is not marked:
 add `data-claimed="2026.06.28"` to it if it should show.
+
+## 2026.10.09 update 2
+
+- **The list no longer zooms.** Choosing a drop in the list turns the globe
+  to it, the drop in the middle, at the zoom you are at: on the whole globe
+  it stays the whole globe, and close in it stays close in, flying out and
+  back down when the next drop is far away. The prompt's ZOOM IN is what
+  takes you close. Choosing a drop on the globe and then another in the
+  list no longer pulls you all the way in.
 
 ## 2026.10.09 update
 
@@ -663,6 +672,13 @@ turning at about 60 frames a second on a desktop and 47 on a phone · two
 builds in a row byte-identical · every page at 1440 and 390px, JavaScript
 on and off: no console errors, failed requests, sideways scrolling or
 outside requests.
+
+**2026.10.09, update 2**, clean and flat builds, desktop and phone: a drop
+chosen on the globe and then another in the list, on the whole globe and
+close in: the globe turns to it and keeps its zoom; the test copy's
+Arizona drop reached from San Francisco the same way, at the whole globe
+and at 64x; ZOOM IN and ZOOM OUT; and every suite from 2026.10.09 run
+again.
 
 **2026.10.09**, clean and flat builds, desktop and phone: nothing chosen
 on arrival; the list flying to each drop, which lands in the middle at
