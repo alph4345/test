@@ -948,19 +948,21 @@
   function sprite(colour, r, blur) {
     var key = colour + "|" + Math.round(r * 4) + "|" + blur + "|" + DPR;
     if (sprites[key]) return sprites[key];
-    var pad = Math.ceil(r + blur + 2), size = 2 * pad, c = document.createElement("canvas");
-    c.width = c.height = Math.ceil(size * DPR);
-    var g = c.getContext("2d");
+    var pad = Math.ceil(r + blur + 2), c = document.createElement("canvas");
+    c.width = c.height = 2 * Math.ceil(pad * DPR);
+    var g = c.getContext("2d"), mid = c.width / 2 / DPR;
     g.setTransform(DPR, 0, 0, DPR, 0, 0);
     g.shadowColor = RED; g.shadowBlur = blur;
-    g.beginPath(); g.arc(pad, pad, Math.round(r * 4) / 4, 0, 2 * Math.PI);
+    g.beginPath(); g.arc(mid, mid, Math.round(r * 4) / 4, 0, 2 * Math.PI);
     g.fillStyle = colour; g.fill();
-    return (sprites[key] = { c: c, pad: pad, size: size });
+    return (sprites[key] = { c: c, mid: mid, size: c.width / DPR });
   }
+  // stamped on whole device pixels, a copy of the stamp: between them it
+  // would be blurred
   function dots(qs, colour, blur) {
     qs.forEach(function (q) {
       var sp = sprite(colour, q.r, blur);
-      ctx.drawImage(sp.c, q.x - sp.pad, q.y - sp.pad, sp.size, sp.size);
+      ctx.drawImage(sp.c, Math.round((q.x - sp.mid) * DPR) / DPR, Math.round((q.y - sp.mid) * DPR) / DPR, sp.size, sp.size);
     });
   }
   function rings(qs, colour) {
