@@ -832,6 +832,27 @@ builds in a row byte-identical · every page at 1440 and 390px, JavaScript
 on and off: no console errors, failed requests, sideways scrolling or
 outside requests.
 
+**2026.10.10**, clean and flat builds, desktop and phone: the world
+listing and plotting the zones; their prompts, popups and phone rows word
+for word; OPEN ZONE, the zone's page headed by its name, WORLD MAP, Esc,
+Back, Forward, and links to zones, to drops and to ones that don't exist ·
+ZOOM IN flying down to a zone's street level, + and the wheel stopping
+there, 64x still the limit away from the zones, and 0, − and the globe
+button going back out; close in, the street map's streets drawn in red
+(12% of the globe red at street level, against 0.4% on the whole globe),
+zooming in at about 50 frames a second on a desktop and 55 on a phone ·
+the test copy's spot photos: three for one drop in date order, turned by
+the arrows, the arrow keys and a swipe on a phone, round from the last to
+the first, each with its name and date; a drop with one photo and one with
+none; the placeholders loading in every build · the street map opening at
+street level, zooming from 8 to 19 · a zone opened from a link centred on
+its marker, 15 times out of 15 in each build · 12 widths from 320 to
+1920px, phones on their side and tablets: nothing overlapping or scrolling
+sideways · screen changes timed as before (about 1.4 seconds in, 1.2 out),
+and the globe turning as fast as before · two builds byte-identical ·
+every page at 1440 and 390px, JavaScript on and off: no console errors,
+failed requests, sideways scrolling or outside requests.
+
 **2026.10.09, update 3**, clean and flat builds, desktop and phone: the
 world listing and plotting the three drop points; choosing a point by the
 list, the arrow keys and the globe; its prompt, popup and phone row word
