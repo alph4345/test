@@ -6,6 +6,61 @@ import { splitModel, fitPlate, printTransform } from './split.js';
 export { DOWELS } from './split.js';
 import { toBinarySTL } from './stl.js';
 
+// Filament of every triangle, for the "colour by filament" view: filament
+// zones (op 'paint') first, then the part the triangle came from.
+function zoneTester(design) {
+  const s = design.scale || 1;
+  const zones = design.parts.filter((p) => p.op === 'paint' && !p.hidden).map((p) => {
+    const r = (p.rot || [0, 0, 0]).map((d) => (d * Math.PI) / 180);
+    const st = p.stretch || [1, 1, 1];
+    return { p, r, st, pos: (p.pos || [0, 0, 0]).map((v) => v * s) };
+  });
+  if (!zones.length) return null;
+  const inv = (z, x, y, w) => {
+    // undo translation, then rotations Z, Y, X (Euler XYZ order reversed)
+    let px = x - z.pos[0], py = y - z.pos[1], pz = w - z.pos[2];
+    let c = Math.cos(-z.r[2]), sn = Math.sin(-z.r[2]);
+    [px, py] = [px * c - py * sn, px * sn + py * c];
+    c = Math.cos(-z.r[1]); sn = Math.sin(-z.r[1]);
+    [px, pz] = [px * c + pz * sn, -px * sn + pz * c];
+    c = Math.cos(-z.r[0]); sn = Math.sin(-z.r[0]);
+    [py, pz] = [py * c - pz * sn, py * sn + pz * c];
+    return [px / s / z.st[0], py / s / z.st[1], pz / s / z.st[2]];
+  };
+  return (x, y, w) => {
+    let hit = 0;
+    for (const z of zones) {
+      const [a, b, c] = inv(z, x, y, w);
+      const p = z.p;
+      let inside = false;
+      if (p.type === 'box') inside = Math.abs(a) <= p.size[0] / 2 && Math.abs(b) <= p.size[1] / 2 && Math.abs(c) <= p.size[2] / 2;
+      else if (p.type === 'cylinder') {
+        const t = Math.min(1, Math.max(0, b / p.height + 0.5));
+        const r = p.r1 + ((p.r2 ?? p.r1) - p.r1) * t;
+        inside = Math.abs(b) <= p.height / 2 && a * a + c * c <= r * r;
+      } else if (p.type === 'sphere') inside = a * a + b * b + c * c <= p.r * p.r;
+      if (inside) hit = +p.filament || 1; // later zones win
+    }
+    return hit;
+  };
+}
+
+function triFilaments(data, design, zoneAt) {
+  const { verts, tris, triTags } = data;
+  const out = new Int8Array(triTags.length);
+  for (let t = 0; t < triTags.length; t++) {
+    const tag = triTags[t];
+    let f = tag >= 0 ? +design.parts[tag]?.filament || 1 : tag <= -100 ? +design.features[-100 - tag]?.filament || 1 : 0;
+    if (zoneAt) {
+      const a = tris[t * 3] * 3, b = tris[t * 3 + 1] * 3, c = tris[t * 3 + 2] * 3;
+      const z = zoneAt((verts[a] + verts[b] + verts[c]) / 3, (verts[a + 1] + verts[b + 1] + verts[c + 1]) / 3, (verts[a + 2] + verts[b + 2] + verts[c + 2]) / 3);
+      if (z) f = z;
+    }
+    out[t] = f;
+  }
+  return out;
+}
+
 function meshData(m, tags) {
   const mesh = m.getMesh();
   const np = mesh.numProp;
@@ -92,8 +147,10 @@ export function runBuild(M, design, { mode = 'model', withStl = false } = {}) {
       || ((a.bb.min[1] + a.bb.max[1]) - (b.bb.min[1] + b.bb.max[1]))
       || ((a.bb.min[0] + a.bb.max[0]) - (b.bb.min[0] + b.bb.max[0])));
     let n = 0;
+    const zoneAt = zoneTester(design);
     const pieces = out.map((b) => {
       const data = meshData(b.m, tags);
+      data.triFil = triFilaments(data, design, zoneAt);
       const fit = fitPlate(vertsOf(b.m.hull()), plate);
       const name = b.kind === 'piece' ? (mode === 'split' ? `Piece ${++n}` : 'Full model') : b.name;
       const piece = { name, kind: b.kind, side: b.side, bbox: b.bb, volume: b.m.volume(), fit, filament: b.filament, ...data };

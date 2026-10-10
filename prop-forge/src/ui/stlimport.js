@@ -3,6 +3,15 @@
 // IndexedDB) so undo history and autosave stay small.
 
 export function parseSTL(buffer) {
+  return weld(readSoup(buffer), true);
+}
+
+// same, but keeps the file's coordinates (no centring)
+export function parseSTLRaw(buffer) {
+  return weld(readSoup(buffer), false);
+}
+
+function readSoup(buffer) {
   const bytes = new Uint8Array(buffer);
   const head = new TextDecoder().decode(bytes.subarray(0, Math.min(bytes.length, 1024)));
   const dv = new DataView(buffer);
@@ -20,10 +29,10 @@ export function parseSTL(buffer) {
     soup = new Float32Array(binCount * 9);
     for (let i = 0; i < binCount; i++) for (let k = 0; k < 9; k++) soup[i * 9 + k] = dv.getFloat32(84 + i * 50 + 12 + k * 4, true);
   }
-  return weld(soup);
+  return soup;
 }
 
-function weld(soup) {
+function weld(soup, centre) {
   const map = new Map();
   const verts = [];
   const tris = new Uint32Array(soup.length / 3);
@@ -39,7 +48,7 @@ function weld(soup) {
     tris[i / 3] = id;
   }
   // centre on the origin
-  const c = min.map((v, k) => (v + max[k]) / 2);
+  const c = centre ? min.map((v, k) => (v + max[k]) / 2) : [0, 0, 0];
   const v = new Float32Array(verts);
   for (let i = 0; i < v.length; i++) v[i] -= c[i % 3];
   // drop degenerate triangles
@@ -112,7 +121,25 @@ export async function putMesh(id, mesh) {
   try { d.transaction('meshes', 'readwrite').objectStore('meshes').put({ verts: mesh.verts, tris: mesh.tris }, id); } catch { /* storage unavailable */ }
 }
 
+// models bundled with the app (templates made from the creator's STLs)
+export async function decodeBuiltin(key) {
+  const { MODELS } = await import('../templates/bundled-models.js');
+  const b64 = MODELS[key];
+  if (!b64) return null;
+  const bin = Uint8Array.from(atob(b64), (c) => c.charCodeAt(0));
+  const stream = new Blob([bin]).stream().pipeThrough(new DecompressionStream('gzip'));
+  const buf = await new Response(stream).arrayBuffer();
+  const [nv, nt] = new Uint32Array(buf.slice(0, 8));
+  return { verts: new Float32Array(buf.slice(8, 8 + nv * 4)), tris: new Uint32Array(buf.slice(8 + nv * 4, 8 + nv * 4 + nt * 4)) };
+}
+
 export async function loadMeshes(ids) {
+  for (const id of ids) {
+    if (id.startsWith('builtin:') && !cache.has(id)) {
+      const m = await decodeBuiltin(id.slice(8));
+      if (m) cache.set(id, m);
+    }
+  }
   const missing = ids.filter((id) => !cache.has(id));
   if (missing.length) {
     const d = await db();

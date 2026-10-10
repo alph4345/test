@@ -21,7 +21,7 @@ export function transferList(result) {
   const t = [];
   if (result && result.pieces) {
     for (const p of result.pieces) {
-      t.push(p.verts.buffer, p.tris.buffer, p.triTags.buffer);
+      t.push(p.verts.buffer, p.tris.buffer, p.triTags.buffer, p.triFil.buffer);
       if (p.stl) t.push(p.stl);
       for (const q of p.parts || []) t.push(q.verts.buffer, q.stl);
     }

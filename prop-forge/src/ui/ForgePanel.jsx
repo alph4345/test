@@ -3,11 +3,11 @@ import { TEMPLATES, CATEGORIES } from '../templates/index.js';
 import { store, replaceDesign, libraryList, librarySave, libraryDelete, toast, setUI } from '../state.js';
 import { designSilhouettes } from './silhouette.js';
 import { download } from './zip.js';
-import { packMeshes, unpackMeshes } from './stlimport.js';
+import { packMeshes, unpackMeshes, loadMeshes } from './stlimport.js';
 import { Section, Help } from './controls.jsx';
 
-function Thumb({ design }) {
-  const sils = useMemo(() => designSilhouettes(design), [design]);
+function Thumb({ design, thumb }) {
+  const sils = useMemo(() => (thumb && thumb.length ? thumb : designSilhouettes(design)), [design, thumb]);
   let minX = Infinity, minY = Infinity, maxX = -Infinity, maxY = -Infinity;
   for (const s of sils) for (const [x, y] of s.poly) { minX = Math.min(minX, x); maxX = Math.max(maxX, x); minY = Math.min(minY, y); maxY = Math.max(maxY, y); }
   if (!sils.length) return <svg class="thumb" />;
@@ -33,9 +33,11 @@ export function ForgePanel() {
     && (!q || `${t.name} ${t.source} ${t.category}`.toLowerCase().includes(q.toLowerCase())));
   const lib = libraryList();
 
-  const pick = (t) => {
+  const pick = async (t) => {
     const d = t.build();
     d.meta = { ...(d.meta || {}), templateId: t.id };
+    const ids = d.parts.filter((p) => p.type === 'mesh').map((p) => p.meshRef);
+    if (ids.length) await loadMeshes(ids);
     replaceDesign(d);
     setUI({ tab: 'shape', refit: true });
     toast(`Loaded ${t.name}. Edit the shape, add inserts, then split it for your printer.`);
@@ -69,11 +71,11 @@ export function ForgePanel() {
         <div class="cards">
           {shown.map(({ t, d }) => (
             <button key={t.id} class={`card${store.design.meta?.templateId === t.id ? ' current' : ''}`} onClick={() => pick(t)}>
-              <Thumb design={d} />
+              <Thumb design={d} thumb={t.thumb} />
               <span class="card-name">{t.name}</span>
               <span class="card-src">{t.source}</span>
               <span class="card-blurb">{t.blurb}</span>
-              {t.credit && <span class="card-credit" title={t.credit}>Traced from a reference model (credit in project)</span>}
+              {t.credit && <span class="card-credit">{t.credit}</span>}
             </button>
           ))}
         </div>

@@ -119,10 +119,12 @@ export class Viewport {
       const { piece, index } = mesh.userData;
       const attr = mesh.geometry.getAttribute('color');
       const cache = new Map();
+      const fil = piece.triFil;
       for (let t = 0; t < piece.triTags.length; t++) {
         const tag = piece.triTags[t];
-        let col = cache.get(tag);
-        if (!col) { c.set(colorOf(piece, index, tag)); col = [c.r, c.g, c.b]; cache.set(tag, col); }
+        const key = fil ? tag * 32 + fil[t] : tag;
+        let col = cache.get(key);
+        if (!col) { c.set(colorOf(piece, index, tag, fil ? fil[t] : 0)); col = [c.r, c.g, c.b]; cache.set(key, col); }
         for (let k = 0; k < 3; k++) attr.setXYZ(t * 3 + k, col[0], col[1], col[2]);
       }
       attr.needsUpdate = true;

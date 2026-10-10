@@ -79,7 +79,8 @@ export function App() {
         const tab = store.ui.tab;
         if (!hit) { if (tab !== 'split') setUI({ sel: null }); return; }
         if (hit.kind === 'mesh' && hit.tag <= -100) { const f = store.design.features[-100 - hit.tag]; if (f) setUI({ sel: { kind: 'feature', id: f.id }, tab: 'inserts' }); return; }
-        if (hit.kind === 'feature') setUI({ sel: { kind: 'feature', id: hit.id }, tab: 'inserts' });
+        if (hit.kind === 'feature' && store.design.parts.some((p) => p.id === hit.id)) setUI({ sel: { kind: 'part', id: hit.id }, tab: 'shape' });
+        else if (hit.kind === 'feature') setUI({ sel: { kind: 'feature', id: hit.id }, tab: 'inserts' });
         else if (hit.kind === 'cut') setUI({ sel: { kind: 'cut', id: hit.id } });
         else if (hit.kind === 'mesh' && hit.tag >= 0 && (tab === 'shape' || tab === 'forge')) {
           const part = store.design.parts[hit.tag];
@@ -140,13 +141,14 @@ export function App() {
   });
 
   // push build results into the scene
-  const colorOf = (piece, index, tag) => {
+  const colorOf = (piece, index, tag, triFil) => {
     const sel = store.ui.sel;
     const d = store.design;
     if (store.ui.colorBy === 'piece' && store.build.mode === 'split') return tag === -3 ? mix(pieceColor(index), '#000000', 0.25) : pieceColor(index);
     if (store.ui.colorBy === 'filament') {
       const fils = filamentsOf(d);
       if (piece.filament) return fils[piece.filament - 1]?.color || '#999999';
+      if (triFil) return fils[triFil - 1]?.color || '#999999';
       let f = null;
       if (tag >= 0) f = d.parts[tag]?.filament || 1;
       else if (tag <= -100) f = d.features[-100 - tag]?.filament || 1;
@@ -169,6 +171,12 @@ export function App() {
   useEffect(() => {
     const sc = design.scale || 1;
     const showGhosts = ui.tab === 'inserts';
+    const zoneGhosts = ui.tab === 'shape' ? design.parts.filter((p) => p.op === 'paint' && !p.hidden).map((p) => {
+      const c = p.pos.map((v) => v * sc);
+      if (p.type === 'cylinder') return { id: p.id, type: 'rod', a: [c[0], c[1] - (p.height * sc) / 2, c[2]], b: [c[0], c[1] + (p.height * sc) / 2, c[2]], r: Math.max(p.r1, p.r2 ?? p.r1) * sc };
+      const half = p.type === 'sphere' ? [p.r, p.r, p.r] : p.size.map((v) => v / 2);
+      return { id: p.id, type: 'box', min: c.map((v, i) => v - half[i] * sc), max: c.map((v, i) => v + half[i] * sc) };
+    }) : [];
     const mbox = store.modelBox;
     const ghosts = showGhosts ? design.features.filter((f) => !f.hidden).map((f) => {
       if (f.type === 'channel') return { id: f.id, type: 'rod', a: f.from.map((v) => v * sc), b: f.to.map((v) => v * sc), r: f.diameter / 2 };
@@ -180,7 +188,7 @@ export function App() {
       }
       return { id: f.id, type: 'box', min: f.pos.map((v, i) => v * sc - f.size[i] / 2), max: f.pos.map((v, i) => v * sc + f.size[i] / 2) };
     }) : [];
-    vp.current.setGhosts(ghosts, ui.sel?.id);
+    vp.current.setGhosts(ghosts.concat(zoneGhosts), ui.sel?.id);
     const box = store.modelBox;
     const cutsVis = (ui.tab === 'split' && box) ? design.split.cuts.map((c) => {
       const b = { min: box.min.slice(), max: box.max.slice() };
@@ -281,6 +289,11 @@ export function App() {
               <button onClick={() => vp.current.fit(unionBox(build.pieces) || store.modelBox, 'top')}>Top</button>
               <button onClick={() => vp.current.fit(unionBox(build.pieces) || store.modelBox, 'back')}>Back</button>
               <label class="chk"><input type="checkbox" checked={ui.gizmo} onChange={(e) => setUI({ gizmo: e.target.checked })} /> Move arrows</label>
+              <label class="chk">Colour
+                <select value={ui.colorBy} onChange={(e) => setUI({ colorBy: e.target.value })}>
+                  <option value="part">parts</option><option value="filament">filament</option><option value="piece">pieces</option>
+                </select>
+              </label>
               {selPart && (selPart.type === 'profile' || selPart.type === 'lathe') && ui.tab === 'shape' && (
                 <label class="chk"><input type="checkbox" checked={ui.editorOpen} onChange={(e) => setUI({ editorOpen: e.target.checked })} /> Outline editor</label>
               )}

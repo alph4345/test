@@ -13,7 +13,10 @@ Snapmaker U1 and template sizes) is in [RESEARCH.md](RESEARCH.md).
 
 ## Workflow
 
-1. **Forge**: pick a template (27 so far: Buster Sword, Zangetsu, Dragon
+1. **Forge**: pick a template. The Buster Sword (Budward) and Revolver
+   gunblade (Chemvaldes) models are bundled as-is with their creator's
+   permission, ready to split, with filament zones; editable node-based
+   versions sit next to them. Others (27 so far: Buster Sword, Zangetsu, Dragon
    Slayer, Master Sword, Kingdom Key, Revolver Gunblade, Leviathan Axe,
    Mjolnir, Star Shield, Laser Sword Hilt, Reaper Scythe, plus longsword,
    claymore, katana, scimitar, dagger, kunai, axes, warhammer, maces, spear,
@@ -72,7 +75,13 @@ the page is opened from disk. UI is Preact + Three.js.
 
 ### Adding a template
 
-Templates live in `src/templates/` (`popculture.js`, `classic.js`). The Buster Sword and Revolver gunblade proportions come from the Thingiverse models credited in `popculture.js`. Each
+Templates live in `src/templates/` (`popculture.js`, `classic.js`). The bundled Buster Sword and Revolver gunblade meshes are the creator's own
+models, regenerated with `node scripts/bundle-models.mjs <buster_sword_complete.stl> <gunblade files dir>`
+into `src/templates/bundled-models.js`.
+
+**Filament zones** (Shape tab → Filament zone) colour part of a model with
+another filament without adding material, which is how a single-mesh model
+like the bundled Buster gets a black hilt and a brown grip on the U1. Each
 one is a function returning parts built with the helpers in `helpers.js`:
 `blade()` (outline with sharp/bevelled points), `flat()`, `lathe()`
 (revolved profile for grips and pommels), `box()`, `cyl()`, `sphere()`,

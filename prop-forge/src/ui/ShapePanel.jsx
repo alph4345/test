@@ -37,6 +37,7 @@ function newPart(kind, at) {
     case 'cylinder': return cyl('New cylinder', 20, 20, 40, [0, y, 0], { color: COLORS.dark });
     case 'sphere': return sphere('New sphere', 20, [0, y, 0], { color: COLORS.dark });
     case 'hole': return hole('New hole', 15, [0, y, 0], 200);
+    case 'zone': return { ...box('Filament zone', [120, 120, 120], [0, y, 0], { op: 'paint', color: '#8f6bd8' }), filament: 2 };
     case 'cutshape': return flat('New cut-out shape', [P(-20, y - 20), P(20, y - 20), P(20, y + 20), P(-20, y + 20)], 200, { op: 'subtract', color: COLORS.dark });
     default: return null;
   }
@@ -81,12 +82,13 @@ function PartEditor({ part, idx }) {
     <Section title={`Edit: ${part.name}`} right={<span class="badge">{TYPE_LABEL[part.type]}</span>}>
       <Text label="Name" value={part.name} onChange={(v) => set({ name: v }, 'name')} />
       <div class="two">
-        <Select label="Mode" value={part.op || 'add'} options={[['add', 'Add material'], ['subtract', 'Cut away (hole)']]} onChange={(v) => set({ op: v })} />
+        <Select label="Mode" value={part.op || 'add'} options={[['add', 'Add material'], ['subtract', 'Cut away (hole)'], ...(['box', 'cylinder', 'sphere'].includes(part.type) ? [['paint', 'Filament zone']] : [])]} onChange={(v) => set({ op: v })} />
         <Color label="Colour" value={part.color} onChange={(v) => set({ color: v }, 'color')} />
       </div>
       {part.op !== 'subtract' && (
         <FilamentPick value={part.filament} filaments={filamentsOf(d)} onChange={(v) => set({ filament: v })} />
       )}
+      {part.op === 'paint' && <Help>A filament zone adds no material: whatever part of the model is inside it prints with this filament. Use it to colour areas of an imported model. See it with "Colour by: Filament" in the Split tab.</Help>}
       {part.op === 'subtract' && (
         <Select label="Cut from" value={part.target || ''} hint="Cut only one part, e.g. the opening of a loop guard without cutting the grip inside it"
           options={[['', 'Everything it touches'], ...addParts.map((p) => [p.id, p.name])]} onChange={(v) => set({ target: v || undefined })} />
@@ -183,7 +185,7 @@ export function ShapePanel() {
       <Section title="Design">
         <Text label="Name" value={d.name} onChange={(v) => edit((dd) => { dd.name = v; }, 'name')} />
         <div class="two">
-          <Num label="Overall length" unit="mm" value={length} step={10} min={50}
+          <Num label="Overall length" unit="mm" value={length && Math.round(length)} step={10} min={50}
             hint="Scales the whole prop. Inserts keep their real sizes (a 3/8 in dowel stays 3/8 in)."
             onChange={(v) => { if (length && v > 20) edit((dd) => { dd.scale = (dd.scale || 1) * (v / length); }, 'len'); }} />
           <Num label="Scale" unit="%" value={Math.round((d.scale || 1) * 1000) / 10} step={1} min={5} max={500}
@@ -200,7 +202,7 @@ export function ShapePanel() {
             <li key={p.id} class={p.id === sel ? 'on' : ''} onClick={() => setUI({ sel: { kind: 'part', id: p.id }, pointSel: null })}>
               <span class="dot" style={{ background: p.op === 'subtract' ? 'transparent' : p.color, borderColor: p.color }} />
               <span class="nm">{p.name}</span>
-              <span class="muted small">{p.op === 'subtract' ? 'hole' : TYPE_LABEL[p.type]}</span>
+              <span class="muted small">{p.op === 'subtract' ? 'hole' : p.op === 'paint' ? 'filament zone' : TYPE_LABEL[p.type]}</span>
               {p.op !== 'subtract' && <span class="fil-badge" title={`Filament ${p.filament || 1}`} style={{ background: filamentsOf(d)[(p.filament || 1) - 1]?.color }}>{p.filament || 1}</span>}
               <button class="icon" title={p.hidden ? 'Show' : 'Hide'} onClick={(e) => { e.stopPropagation(); edit((dd) => { const q = dd.parts.find((x) => x.id === p.id); q.hidden = !q.hidden; }); }}>{p.hidden ? '◌' : '●'}</button>
             </li>
@@ -216,6 +218,7 @@ export function ShapePanel() {
           <button onClick={() => add('sphere')}>Sphere</button>
           <button onClick={() => add('hole')}>Round hole</button>
           <button onClick={() => add('cutshape')}>Shaped cut-out</button>
+          <button onClick={() => add('zone')} title="Colour part of a model with another filament (no material added)">Filament zone</button>
           <label class="btn" title="Bring in an STL (e.g. from Thingiverse/Printables) to split, add inserts and joints to">
             Import STL…<input type="file" accept=".stl,model/stl" hidden onChange={(e) => { const f = e.target.files[0]; e.target.value = ''; if (f) importSTL(f).catch((err) => toast(`Import failed: ${err.message}`)); }} />
           </label>

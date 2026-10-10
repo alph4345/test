@@ -1,4 +1,5 @@
 import { P, COLORS as C, blade, flat, lathe, box, cyl, sphere, hole, ring, gripPoints, dowel, bay, design, uid } from './helpers.js';
+import { THUMBS } from './bundled-models.js';
 
 // Filament slots used below (see defaultFilaments): 1 silver, 2 black,
 // 3 brown, 4 gold. Change them per part in the Shape tab.
@@ -36,9 +37,9 @@ export const busterSword = {
 };
 
 export const gunblade = {
-  id: 'revolver-gunblade', name: 'Revolver Gunblade', category: 'Pop culture', source: 'Final Fantasy VIII',
-  blurb: '87 cm gunblade: broad blade with a hooked tip, revolver frame with chamber window and trigger guard, curved grip.',
-  credit: 'Outlines traced from "Gunblade" by Chemvaldes (thingiverse.com/thing:3825730, CC BY-SA).',
+  id: 'revolver-gunblade', name: 'Revolver Gunblade (editable)', category: 'Pop culture', source: 'Final Fantasy VIII',
+  blurb: 'Node-editable version: 87 cm gunblade with a hooked tip, chamber window, trigger guard and curved grip.',
+  credit: 'Outlines traced from Chemvaldes\' gunblade model (thingiverse.com/thing:3825730).',
   build() {
     const frame = uid(), handle = uid();
     return design('Revolver Gunblade', [
@@ -283,4 +284,51 @@ export const reaperScythe = {
   },
 };
 
-export default [busterSword, zangetsu, dragonSlayer, masterSword, kingdomKey, gunblade, leviathanAxe, mjolnir, starShield, laserSword, reaperScythe];
+// ---- the creator's own models, bundled as meshes -------------------------
+
+const meshPart = (name, key, o = {}) => ({
+  id: uid(), name, type: 'mesh', op: 'add', meshRef: `builtin:${key}`, unit: 1,
+  color: o.color || C.steel, pos: o.pos || [0, 0, 0], rot: o.rot || [0, 0, 0], stretch: [1, 1, 1],
+  copies: { mode: 'none', count: 2 }, filament: o.filament || 1,
+});
+const zone = (name, part, filament) => ({ ...part, name, op: 'paint', color: '#8f6bd8', filament });
+const thumbOf = (keys, colors) => keys.flatMap((k, i) => (THUMBS[k] || []).map((poly) => ({ poly, color: colors[i] })));
+
+export const busterModel = {
+  id: 'buster-sword-model', name: 'Buster Sword (Budward model)', category: 'Pop culture', source: 'Final Fantasy VII / Crisis Core',
+  blurb: 'Your detailed 1:1 model: engraved hilt, circuit grooves, materia holes. Filament zones colour the hilt and grip.',
+  credit: 'Model by Budward (thingiverse.com/thing:1794243), bundled with the creator\'s permission.',
+  thumb: thumbOf(['buster'], [C.steel]),
+  build() {
+    return design('Buster Sword (model)', [
+      meshPart('Buster Sword', 'buster', { filament: F.silver }),
+      zone('Hilt zone', box('', [240, 75, 90], [0, -37.5, 0]), F.black),
+      zone('Grip zone', cyl('', 26, 26, 393, [0, -271.5, 0]), F.brown),
+    ], {
+      features: [dowel('Handle dowel', [0, -484, 0], [0, 260, 0], 12.7)],
+      meta: { handle: { from: [0, -484, 0], to: [0, 260, 0] }, bayPos: [0, 90, 0], baySize: [70, 40, 20] },
+    });
+  },
+};
+
+export const gunbladeModel = {
+  id: 'revolver-gunblade-model', name: 'Revolver Gunblade (Chemvaldes model)', category: 'Pop culture', source: 'Final Fantasy VIII',
+  blurb: 'Your gunblade parts assembled: blade, tip, frame and grips, with a rotating chamber on a pin.',
+  credit: 'Model by Chemvaldes (thingiverse.com/thing:3825730), bundled with the creator\'s permission. Chamber and pin rebuilt as clean cylinders.',
+  thumb: thumbOf(['gunblade_blade', 'gunblade_blade_tip', 'gunblade_frame', 'gunblade_handle'], [C.steel, C.steel, C.dark, C.wrap]),
+  build() {
+    return design('Revolver Gunblade (model)', [
+      meshPart('Blade', 'gunblade_blade', { filament: F.silver }),
+      meshPart('Blade tip', 'gunblade_blade_tip', { filament: F.silver }),
+      meshPart('Frame', 'gunblade_frame', { color: C.dark, filament: F.black }),
+      meshPart('Grip', 'gunblade_handle', { color: C.wrap, filament: F.brown }),
+      cyl('Revolver chamber', 25.7, 25.7, 64, [3, 67, 0], { color: C.steel, filament: F.silver }),
+      cyl('Chamber pin', 4, 4, 80, [3, 67, 0], { color: C.steel, filament: F.silver }),
+    ], {
+      features: [dowel('Blade rod', [-2, 100, 0], [-2, 520, 0], 4)],
+      meta: { handle: { from: [-55, -130, 0], to: [-6, 120, 0] }, bayPos: [8, 135, 0], baySize: [40, 50, 22] },
+    });
+  },
+};
+
+export default [busterModel, gunbladeModel, busterSword, zangetsu, dragonSlayer, masterSword, kingdomKey, gunblade, leviathanAxe, mjolnir, starShield, laserSword, reaperScythe];

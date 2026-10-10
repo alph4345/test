@@ -83,8 +83,8 @@ Round Shield: 80 cm with a hand hole behind a hollow boss and a grip bar.
 
 | Prop | Used | Source |
 |---|---|---|
-| Buster Sword | 1.81 m; blade 205 × 41 mm, 60 mm bevel, 336 mm clipped tip | measured from [Budward's model](https://www.thingiverse.com/thing:1794243) (CC BY-NC-SA) |
-| Revolver gunblade | 0.87 m, traced outlines | [Chemvaldes' model](https://www.thingiverse.com/thing:3825730) (CC BY-SA) |
+| Buster Sword | 1.81 m; blade 205 × 41 mm, 60 mm bevel, 336 mm clipped tip | the user's own model ([Budward on Thingiverse](https://www.thingiverse.com/thing:1794243)), bundled as a template |
+| Revolver gunblade | 0.87 m | the user's own model ([Chemvaldes on Thingiverse](https://www.thingiverse.com/thing:3825730)), bundled as a template |
 | Master Sword | 1.24 m, guard 250 mm | [life-size model listing](https://www.cgtrader.com/3d-print-models/games-toys/toys/master-sword-from-zelda-breath-of-the-wild), [Proplica 105 cm](https://zeldauniverse.net/2024/05/31/new-proplica-master-sword-to-be-released-september-2024/) |
 | Zangetsu (Shikai) | ~1.7 m ("body length") | [Instructables build](https://instructables.com/Zangetsu-Shikai-Version), Proplica Tensa Zangetsu 121 cm for comparison |
 | Leviathan Axe | ~0.92 m, head ~35 cm | [licensed foam replica 94 × 35 cm](https://www.halloweencostumes.com/leviathan-axe.html) |

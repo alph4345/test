@@ -3,12 +3,16 @@ import assert from 'node:assert/strict';
 import { initManifold } from '../src/engine/manifold.js';
 import { runBuild, autoSplit } from '../src/engine/index.js';
 import { TEMPLATES } from '../src/templates/index.js';
+import { decodeBuiltin } from '../src/ui/stlimport.js';
 
 const M = await initManifold();
 
 for (const t of TEMPLATES) {
-  test(`template ${t.id} builds and splits`, () => {
+  test(`template ${t.id} builds and splits`, async () => {
     const d = t.build();
+    const meshes = {};
+    for (const p of d.parts) if (p.type === 'mesh') meshes[p.meshRef] = await decodeBuiltin(p.meshRef.slice(8));
+    d.__meshes = meshes;
     const r = runBuild(M, d);
     assert.deepEqual(r.warnings, [], r.warnings.join('; '));
     const main = r.pieces.filter((p) => p.kind === 'piece');

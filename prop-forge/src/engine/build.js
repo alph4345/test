@@ -28,6 +28,7 @@ export function buildModel(M, design, tags) {
   const adds = [], subs = [];
   const targeted = new Map(); // part id -> subtract solids aimed at it
   const solids = [];
+  const zones = []; // filament zones: colour a region without adding material
   design.parts.forEach((part, idx) => {
     if (part.hidden) return;
     let inst;
@@ -38,6 +39,7 @@ export function buildModel(M, design, tags) {
     if (!inst.length) { warnings.push(`Part "${part.name}" has an invalid shape.`); return; }
     let solid = inst.length === 1 ? inst[0] : M.Manifold.union(inst);
     if (s !== 1) solid = solid.scale(s);
+    if (part.op === 'paint') { zones.push({ filament: +part.filament || 1, solid }); return; }
     solid = tags.tag(solid, idx);
     if (part.op === 'subtract') {
       if (part.target) {
@@ -53,6 +55,7 @@ export function buildModel(M, design, tags) {
     adds.push(final);
     materials.push({ filament: +part.filament || 1, solid: final });
   }
+  materials.push(...zones);
   if (!adds.length) return { model: null, lids: [], materials, warnings: warnings.concat('Nothing to build: add a part.') };
   let model = adds.length === 1 ? adds[0] : M.Manifold.union(adds);
   if (subs.length) model = model.subtract(subs.length === 1 ? subs[0] : M.Manifold.union(subs));
