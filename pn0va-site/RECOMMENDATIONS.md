@@ -77,21 +77,31 @@ your host offers it.
 
 **Everything on the page is public**, including what the page doesn't display:
 
-- The page source lists every drop point's exact coordinates (to about
-  10 cm), and every drop's photo, caption and story, including claimed ones.
+- The page source lists every drop zone's exact coordinates (to about
+  10 cm), and every drop's photos, caption and story, including claimed ones.
 - Files on the server can be fetched even when no page links to them. Folder
   listings are now switched off, but a guessable name like
-  `images/item-004.jpg` can still be opened. Don't upload a drop's photo
-  until you publish it.
+  `images/item-004.jpg` or `images/item4_092326.jpg` can still be opened.
+  Keep a drop's photos out of `drops/images/` until you publish it: the
+  build copies everything in that folder.
+- **Photos carry where and when they were taken.** A phone writes its GPS
+  position, the time and its model into every photo. For a photo of the
+  spot that is the zone, which is public anyway, but a photo of the item
+  taken at home gives your home away. Take it out before adding the photo:
+  on Windows, right-click the photo, *Properties*, *Details*, *Remove
+  Properties and Personal Information*, *Create a copy with all possible
+  properties removed*; on an iPhone, turn off *Location* under *Options* at
+  the top of the share sheet before saving or sending it.
 - Never put an answer, code or other secret in the page or its scripts.
   Anything secret, like a story that unlocks over time, needs a small server.
 
 **In the real world:**
 
-- Coordinates plus dates show where you were and when, so keep drop points
-  away from home and work and publish after you've left the area. A point you
-  return to makes your visits easier to predict; vary the times.
-- Point 02's coordinates (drop #002) are 31 m from the centre of Alcatraz
+- Coordinates plus dates show where you were and when (a spot photo's name
+  carries its date, and the page shows it), so keep drop zones away from
+  home and work and publish after you've left the area. A zone you return
+  to makes your visits easier to predict; vary the times.
+- Zone 02's coordinates (drop #002) are 31 m from the centre of Alcatraz
   Island, which is National Park Service land. Leaving items there generally
   needs permission, and many parks have rules on caches.
 - A sticker put on a wall, rail or sign can count as graffiti or littering.
@@ -171,15 +181,19 @@ scripts you'll use (Square, analytics); adding it now risks breaking them.
 
 ### Drops
 
-- Every drop uses the same placeholder item image.
+- Every drop uses the same placeholder item image, and none has a photo of
+  the spot yet (README, *Adding a drop, or a drop zone*).
+- A phone's photos are 3 to 5 MB each, and the build copies them as they
+  are. Make them about 1600 pixels on the long side first (on Windows,
+  Photos, *Resize image*), or the spot window will be slow to turn on a
+  phone.
 - Drop #001's text says it was found: its item caption reads "Found &
   claimed" and its story ends "Recovered 2026.06.28." The page doesn't mark it
   claimed until you add `data-claimed="2026.06.28"` to it (README, *Marking a
   drop claimed*).
 - With JavaScript off, the Drops page is an empty frame: the records are
   filled in by the script, and always have been. The build could also write
-  each point and its drops out as plain text for that case.
-- The "100 m" and "250 m" ring labels overlap at the default zoom.
+  each zone and its drops out as plain text for that case.
 
 ### Store
 

@@ -2,10 +2,10 @@
    DROPS — page styles
    rev 2026.10.09 · requires tokens.css + components.css first
    --------------------------------------------------------------------------
-   Layout is an MGS inventory screen: a manifest rail of drop points you
+   Layout is an MGS inventory screen: a manifest rail of drop zones you
    select from, and a detail pane that swaps. Everything is framed as
    equipment — panels have bezels and corner brackets, every value carries a
-   label and a unit, and a point is designated (POINT #02) rather than titled.
+   label and a unit, and a zone is designated (ZONE 02) under its name.
 
    Single-screen: the page never scrolls. Panels scroll internally.
    ========================================================================== */
@@ -54,30 +54,31 @@
 .dp-help{ position:relative; display:inline-block; }
 
 /* A labelled control, not a bare glyph — "?" alone asks the visitor to guess
-   what it explains, and gives nothing to aim at on a phone. */
+   what it explains, and gives nothing to aim at on a phone. But a quiet one:
+   no box, the muted ink, red only when pointed at. It is there for whoever
+   wonders; the zone's name is what the bar is for. */
 .dp-help > summary{
   position:relative; list-style:none; cursor:help;
   display:inline-flex; align-items:center; gap:6px;
-  min-height:24px; padding:0 8px 0 5px;
-  border:1px solid var(--pn-red); border-radius:2px;
-  color:var(--pn-red);
+  min-height:24px; padding:0 4px;
+  border:1px solid transparent; border-radius:2px;
+  color:var(--pn-ink-faint);
   transition:color var(--pn-dur-state) ease, background var(--pn-dur-state) ease;
 }
 .dp-help > summary::-webkit-details-marker{ display:none; }
 .dp-help > summary::marker{ content:""; }
 .dp-help > summary .q{
   display:grid; place-items:center; flex:0 0 auto;
-  width:14px; height:14px; border-radius:50%;
-  background:var(--pn-red); color:var(--pn-void);
-  font-size:8px; line-height:1;
+  width:12px; height:12px; border-radius:50%;
+  border:1px solid currentColor; color:inherit;
+  font-size:7px; line-height:1;
 }
 .dp-help > summary .lbl{
-  font-size:8px; letter-spacing:.14em; text-transform:uppercase; white-space:nowrap;
+  font-size:7px; letter-spacing:.14em; text-transform:uppercase; white-space:nowrap;
 }
-.dp-help > summary:hover{ color:var(--pn-signal); border-color:var(--pn-signal); }
+.dp-help > summary:hover{ color:var(--pn-red); }
 .dp-help > summary:focus-visible{ outline:2px solid var(--pn-focus); outline-offset:2px; }
-.dp-help[open] > summary{ background:var(--pn-red); color:var(--pn-void); }
-.dp-help[open] > summary .q{ background:var(--pn-void); color:var(--pn-red); }
+.dp-help[open] > summary{ color:var(--pn-red); border-color:var(--pn-red-50); }
 
 /* An absolutely-positioned child escapes the UA's details-hiding, so the
    panel stays laid out when closed unless this says otherwise. */
@@ -131,15 +132,19 @@ html:not(.js) .dp-help__panel::after{
 /* the live value the operator is reading = bone */
 .dp-readout--live dd{ color:var(--pn-signal); }
 
-/* Designation — the record's identity, not a title.
-   Red, not bone: it's the channel LABEL, while the coordinates beside it are
-   the tuned value you actually read. Keeping the two different colours makes
-   that hierarchy legible, and it hands another slot of bone back to scarcity. */
+/* Designation — the zone's name, big and in bone, the first thing read,
+   with its number over it in red, the channel's label. The coordinates
+   beside it are the tuned value; the name says where that is. */
 .dp-desig{
-  font-size:clamp(15px,2.4vw,20px); letter-spacing:.1em;
-  color:var(--pn-red); font-variant-numeric:tabular-nums; white-space:nowrap;
+  display:flex; flex-direction:column; gap:5px; min-width:0; margin:0;
+  font-weight:400; font-variant-numeric:tabular-nums;
 }
-.dp-desig .hash{ color:var(--pn-red); opacity:.72; }
+.dp-desig__n{ font-size:9px; letter-spacing:.2em; text-transform:uppercase; color:var(--pn-red); white-space:nowrap; }
+.dp-desig__name{
+  font-size:clamp(15px,2.1vw,22px); line-height:1.25; letter-spacing:.06em; text-transform:uppercase;
+  color:var(--pn-signal); text-shadow:0 0 12px rgba(255,22,9,.45);
+  overflow-wrap:anywhere;
+}
 
 /* Scanline wash — analog electronics. Softened once the map stopped being
    red: at .16 over a red ground it was pushing the whole panel into strain. */
@@ -201,9 +206,9 @@ html.js body:has(.dp-shell){ overflow:hidden; }
    -------------------------------------------------------------------------- */
 .dp-detail{
   display:grid; gap:10px; min-height:0;
-  /* the strip gained height so the photo can actually be looked at; the
+  /* the strip gained height so the photos can actually be looked at; the
      map still takes every pixel left over and stays the largest panel */
-  grid-template-rows:auto minmax(0,1fr) clamp(164px,23vh,212px);
+  grid-template-rows:auto minmax(0,1fr) clamp(172px,25vh,236px);
   grid-template-areas:
     "freq"
     "map"
@@ -211,13 +216,13 @@ html.js body:has(.dp-shell){ overflow:hidden; }
 }
 .dp-bar   { grid-area:freq; }
 .dp-map   { grid-area:map; }
-/* The drops at the point and the chosen one's item flank its transmission,
-   the way the codec sets its speakers either side of what's being said. DOM
-   order matches visual order — drops, transmission, item — so nothing needs
-   grid-area placement here. */
+/* The drops at the zone, then the chosen one's spot, transmission and
+   item, the way the codec sets its speakers either side of what's being
+   said. DOM order matches visual order — drops, spot, transmission, item —
+   so nothing needs grid-area placement here. */
 .dp-strip {
   grid-area:strip; display:grid; gap:10px; min-height:0;
-  grid-template-columns:minmax(200px,1fr) minmax(0,2fr) minmax(150px,.82fr);
+  grid-template-columns:minmax(190px,1fr) minmax(0,1.3fr) minmax(0,1.3fr) minmax(140px,.78fr);
 }
 
 /* --- the frequency bar ---------------------------------------------------
@@ -265,7 +270,7 @@ html.js body:has(.dp-shell){ overflow:hidden; }
 html:not(.js) .dp-map-fallback{ display:block; }
 html:not(.js) .dp-mapcanvas{ display:none; }
 
-/* photo slot — the codec's portrait frame */
+/* photo slots — the codec's portrait frames */
 .dp-slot .dp-panel__body{ padding:0; display:grid; place-items:center; overflow:hidden; }
 .dp-slot img{ width:100%; height:100%; object-fit:cover; display:block; opacity:.92; }
 .dp-slot figcaption{
@@ -274,18 +279,49 @@ html:not(.js) .dp-mapcanvas{ display:none; }
   flex:0 0 auto; line-height:1.4;
 }
 
-/* brief — the codec dialogue box */
+/* brief — the codec dialogue box. Its head names the drop, on one line,
+   cut short where the panel is narrow. */
+.dp-brief .dp-panel__head > .dp-idx{ min-width:0; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
 .dp-brief .dp-panel__body p{
   font-family:var(--pn-face-body); font-size:12.5px; line-height:1.6;
   margin:0 0 8px; color:var(--pn-ink); max-width:74ch;
 }
 .dp-brief .dp-panel__body p:last-child{ margin-bottom:0; }
 
+/* --- the spot: where the drop is, in photos -------------------------------
+   The whole photo, letterboxed, so nothing of the place is cropped away; a
+   click opens it full size. Arrows at its sides when it has more than one;
+   its file's name and date under it. */
+.dp-spot .dp-panel__body{ position:relative; background:#000; }
+/* a sideways swipe is the page's to turn the photo with; up and down still
+   scroll, and a pinch still zooms */
+.dp-spot .dp-panel__body > a{ display:block; width:100%; height:100%; cursor:zoom-in; touch-action:pan-y pinch-zoom; }
+.dp-spot img{ object-fit:contain; opacity:1; }
+.dp-spot figcaption{ white-space:nowrap; overflow:hidden; text-overflow:ellipsis; text-transform:none; letter-spacing:.08em; }
+.dp-spot__go{
+  position:absolute; top:50%; z-index:2; width:34px; height:44px; margin-top:-22px; padding:0;
+  display:grid; place-items:center; cursor:pointer;
+  background:rgba(0,0,0,.72); border:1px solid var(--pn-red-50); border-radius:var(--pn-radius-sm);
+  transition:background var(--pn-dur-state) ease, border-color var(--pn-dur-state) ease;
+}
+.dp-spot__go[hidden]{ display:none; }
+.dp-spot__prev{ left:6px; }
+.dp-spot__next{ right:6px; }
+.dp-spot__go .tri{
+  width:0; height:0; border-top:8px solid transparent; border-bottom:8px solid transparent;
+}
+.dp-spot__prev .tri{ border-right:11px solid var(--pn-red); margin-right:2px; }
+.dp-spot__next .tri{ border-left:11px solid var(--pn-red); margin-left:2px; }
+.dp-spot__go:hover{ background:var(--pn-red-20); border-color:var(--pn-red); }
+.dp-spot__go:hover .tri{ border-left-color:var(--pn-signal); border-right-color:var(--pn-signal); }
+.dp-spot__prev:hover .tri{ border-left-color:transparent; }
+.dp-spot__next:hover .tri{ border-right-color:transparent; }
+.dp-spot__go:focus-visible{ outline:2px solid var(--pn-focus); outline-offset:2px; }
+
 /* --- the drops at a point ------------------------------------------------
    A list, newest first: each drop's number and title, NEW for its first
    week or CLAIMED once it is marked so, and under the title the date it was
-   left. The chosen one is lit, as in the manifest. Under the list, the
-   sticker every drop carries. */
+   left. The chosen one is lit, as in the manifest. */
 .dp-log > .dp-panel__body{ padding:0; }
 .dp-logrow{
   position:relative; display:grid; grid-template-columns:auto minmax(0,1fr) auto;
@@ -323,20 +359,6 @@ html:not(.js) .dp-mapcanvas{ display:none; }
 /* NEW is red, like the pointer: it is where to look. CLAIMED is quiet. */
 .dp-logrow__s.is-new{ color:var(--pn-void); background:var(--pn-red); }
 .dp-logrow__s.is-claimed{ padding:2px 3px 1px; color:var(--pn-ink-muted); border:1px solid var(--pn-ash); }
-
-/* The sticker: the logo every drop is marked with, so there is no need for
-   a hint. It is what to look for. */
-.dp-sticker{
-  display:flex; align-items:center; gap:10px; flex:0 0 auto; margin:0;
-  padding:5px 11px; border-top:1px solid var(--pn-hairline);
-  font-size:8px; line-height:1.5; letter-spacing:.14em; text-transform:uppercase;
-  color:var(--pn-ink-muted);
-}
-.dp-sticker img{
-  flex:0 0 auto; width:34px; height:auto; padding:3px 5px; box-sizing:content-box;
-  background:#000; border:1px solid var(--pn-red-50); border-radius:4px;
-  transform:rotate(-4deg);
-}
 
 /* entries: only the current one renders */
 .dp-entry{ display:none; }
@@ -396,11 +418,11 @@ html:not(.js) .dp-entry{ display:contents; }   /* no JS: show them all, stacked 
 
   .dp-strip{
     grid-template-columns:1fr 1fr;
-    grid-template-areas:"log item" "brief brief";
+    grid-template-areas:"log spot" "brief item";
     height:auto; gap:8px;
   }
   .dp-log{ grid-area:log; height:clamp(88px,13vh,120px); }
-  .dp-sticker{ display:none; }              /* no room: the help says it */
+  .dp-slot--spot{ grid-area:spot; }
   .dp-slot--item{ grid-area:item; }
   .dp-slot{ height:clamp(88px,13vh,120px); }
   .dp-brief{ grid-area:brief; height:clamp(74px,11vh,104px); }

@@ -12,8 +12,11 @@
    accurate to about a pixel at the zoom it is drawn at, so zooming in only
    ever sharpens it. Each file carries coast, land, lakes, country borders
    and state/province lines, and the names shown at its zoom: countries,
-   states and provinces, cities and peaks. The page loads level 0 at once
-   and the other files only for the part of the world in view.
+   states and provinces, cities and peaks. From level 1 they carry roads
+   (highways apart), rivers and built-up areas too, each from the zoom
+   Natural Earth shows it at. The page loads level 0 at once and the other
+   files only for the part of the world in view. (Closer in than level 3,
+   near a drop zone, the page draws the street map's own data instead.)
 
    The output is committed (_source/world/data), so this only needs running
    to rebuild it:
@@ -303,6 +306,9 @@ async function main() {
     nations: await ne("ne_50m_admin_0_countries"),
     states50: await ne("ne_50m_admin_1_states_provinces"),
     stateLabels: await ne("ne_10m_admin_1_label_points"),
+    roads: await ne("ne_10m_roads"),
+    rivers: await ne("ne_10m_rivers_lake_centerlines"),
+    urban: await ne("ne_10m_urban_areas"),
   };
   // State and province lines only, not statistical or regional boundaries.
   // Zoomed out, the 1:50m set, which has them for nine large countries (the
@@ -321,6 +327,21 @@ async function main() {
   });
   const lakesT = topology({ lakes: src.lakes }, 1e6);
   const allPlaces = places(src);
+  // Roads, rivers and built-up areas, each from the web zoom Natural Earth
+  // gives it (min_zoom), so a level carries only what shows at its zooms.
+  // Highways (and beltways, bypasses, expressways) apart from the rest, to
+  // be drawn heavier. Ferries are left out: they are not roads on the ground.
+  src.urban.features.forEach(f => {
+    const g = f.geometry;
+    if (g && g.type === "Polygon") g.coordinates = d3Wound(g.coordinates);
+    if (g && g.type === "MultiPolygon") g.coordinates = g.coordinates.map(d3Wound);
+  });
+  const isHighway = p => p.expressway === 1 || /^(Major Highway|Beltway|Bypass)$/.test(p.type);
+  const upToZoom = (fc, z, keep = () => true) => ({ type: "FeatureCollection",
+    features: fc.features.filter(f => f.geometry && f.properties.min_zoom <= z && keep(f.properties)) });
+  // the most each level carries: the whole world's highways at level 1 would
+  // be a heavy file for a view that shows only continents
+  const ROADS_FROM = { 1: 3, 2: 7.1, 3: 99 }, RIVERS_FROM = { 1: 4.7, 2: 7, 3: 99 }, URBAN_FROM = { 1: 3.7, 2: 7, 3: 99 };
 
   fs.rmSync(OUT, { recursive: true, force: true });
   fs.mkdirSync(OUT, { recursive: true });
@@ -341,11 +362,28 @@ async function main() {
     const lakes = withBoxes(polygonsOf(client.feature(lkT, lkT.objects.lakes)));
     const upTo = webZoom(L.until) + 1e-9;
     const shown = allPlaces.filter(p => p[4] <= upTo);
+    const lineLayer = (fc, from, keep) => {
+      if (!L.id) return [];
+      const fcL = upToZoom(fc, Math.min(upTo, from), keep);
+      if (!fcL.features.length) return [];
+      const t = simplified(topology({ l: fcL }, 1e6), w * 2);
+      return lineBoxes(linesOf(client.mesh(t, t.objects.l)));
+    };
+    const highways = lineLayer(src.roads, ROADS_FROM[L.id], p => p.featurecla === "Road" && isHighway(p));
+    const roads = lineLayer(src.roads, ROADS_FROM[L.id], p => p.featurecla === "Road" && !isHighway(p));
+    const rivers = lineLayer(src.rivers, RIVERS_FROM[L.id]);
+    let urban = [];
+    if (L.id) {
+      const fcU = upToZoom(src.urban, Math.min(upTo, URBAN_FROM[L.id]));
+      const uT = simplified(topology({ urban: fcU }, 1e6), w * 2, w * 16);   // under 4 x 4 px go
+      urban = withBoxes(polygonsOf(client.feature(uT, uT.objects.urban)));
+    }
 
     const files = [];
     for (let fx = -180; fx < 180; fx += L.file) for (let fy = -90; fy < 90; fy += L.file) {
       const fbox = [fx, fy, fx + L.file, fy + L.file];
-      const objects = { land: [], lakes: [], coast: [], borders: [], states: [] };
+      const objects = { land: [], lakes: [], coast: [], borders: [], states: [],
+                        urban: [], rivers: [], roads: [], highways: [] };
       for (let px = fx; px < fx + L.file; px += L.piece) for (let py = fy; py < fy + L.file; py += L.piece) {
         const box = [px, py, px + L.piece, py + L.piece];
         const key = Math.round((px + 180) / L.piece) + "," + Math.round((py + 90) / L.piece);
@@ -359,6 +397,10 @@ async function main() {
         add("coast", "MultiLineString", clipLines(coast, box));
         add("borders", "MultiLineString", clipLines(borders, box));
         add("states", "MultiLineString", clipLines(states, box));
+        add("urban", "MultiPolygon", clipPolygons(urban, box));
+        add("rivers", "MultiLineString", clipLines(rivers, box));
+        add("roads", "MultiLineString", clipLines(roads, box));
+        add("highways", "MultiLineString", clipLines(highways, box));
       }
       const here = shown.filter(p => p[2] >= fbox[0] && p[2] < fbox[2] && p[3] >= fbox[1] && p[3] < fbox[3]);
       if (!objects.land.length && !objects.lakes.length && !objects.coast.length && !here.length) continue;

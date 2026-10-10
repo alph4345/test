@@ -1,15 +1,16 @@
 /* ==========================================================================
-   DROPS — drop points and the drops left at them
-   rev 2026.10.09
+   DROPS — drop zones and the drops left at them
+   rev 2026.10.10
    --------------------------------------------------------------------------
-   Content lives in the HTML: each drop point is a <section class="dp-point">
+   Content lives in the HTML: each drop zone is a <section class="dp-zone">
    with data-* attributes, holding the drops left there as <article
    class="dp-entry"> blocks, newest first. This file reads them at runtime
-   and never needs editing to add a point or a drop.
+   and never needs editing to add a zone or a drop.
 
-   A point's screen: the frequency bar (its number, coordinates, latest drop
-   and how many), the street map round it, the list of its drops, and the
-   chosen drop's transmission (its story) and item.
+   A zone's screen: the frequency bar (its name and number, coordinates,
+   latest drop and how many), the street map round it, the list of its
+   drops, and the chosen drop's spot (its photos, to cycle through), its
+   transmission (its story) and its item.
 
    Two registers, kept apart on purpose:
      This page is register A only — instrument. The living layer (fireflies)
@@ -29,13 +30,15 @@
   var ATTR = '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>' +
              ' contributors &copy; <a href="https://carto.com/attributions">CARTO</a>';
 
-  /* Range rings, in metres, round the point: the scale of the ground you
-     will be walking, so these are information, not decoration. */
-  var RINGS = [100, 250, 500];
+  /* Range rings, in metres, round the zone: the scale of the ground you
+     will be walking, so these are information, not decoration. Sized for
+     street level, where a zone opens. */
+  var RINGS = [50, 100, 250];
 
-  var entries = [].slice.call(document.querySelectorAll(".dp-point"));
+  /* .dp-point: what a zone was called for a day; still read */
+  var entries = [].slice.call(document.querySelectorAll(".dp-zone, .dp-point"));
   if (!entries.length) return;
-  /* each point's drops, newest first */
+  /* each zone's drops, newest first */
   var dropsOf = entries.map(function (pt) {
     return [].filter.call(pt.children, function (c) { return c.classList.contains("dp-entry"); });
   });
@@ -59,8 +62,17 @@
     item:    document.getElementById("s-item"),
     itemc:   document.getElementById("s-itemcap"),
     dropn:   document.getElementById("r-dropn"),
-    claimed: document.getElementById("r-claimed")
+    claimed: document.getElementById("r-claimed"),
+    spot:    document.getElementById("s-spot"),
+    spotA:   document.getElementById("s-spotlink"),
+    spotc:   document.getElementById("s-spotcap"),
+    spotn:   document.getElementById("r-spotn"),
+    prev:    document.getElementById("s-spotprev"),
+    next:    document.getElementById("s-spotnext")
   };
+  /* The placeholders as the page names them: the build roots and stamps
+     those paths, so they load wherever the page is served from. */
+  var NO_ITEM = el.item.getAttribute("src"), NO_SPOT = el.spot.getAttribute("src");
 
   /* --- helpers ---------------------------------------------------------- */
 
@@ -85,7 +97,7 @@
   }
   function plural(n, one){ return n + " " + one + (n === 1 ? "" : "s"); }
 
-  /* --- manifest: the points --------------------------------------------- */
+  /* --- manifest: the zones ---------------------------------------------- */
 
   function buildManifest(){
     var frag = document.createDocumentFragment();
@@ -102,12 +114,12 @@
       frag.appendChild(b);
     });
     el.rows.appendChild(frag);
-    el.count.textContent = String(entries.length).padStart(2, "0") + " PTS";
+    el.count.textContent = String(entries.length).padStart(2, "0") + (entries.length === 1 ? " ZONE" : " ZONES");
   }
 
-  /* --- a point ------------------------------------------------------------ */
+  /* --- a zone ------------------------------------------------------------- */
 
-  /* Point i, with its drop j chosen (its newest, unless told). */
+  /* Zone i, with its drop j chosen (its newest, unless told). */
   function show(i, j){
     if (!entries[i]) return;
     j = dropsOf[i][j] ? j : 0;
@@ -135,14 +147,15 @@
     buildLog(drops);
 
     el.osm.href = "https://www.openstreetmap.org/?mlat=" + d.lat + "&mlon=" + d.lng +
-                  "#map=" + (d.zoom || 15) + "/" + d.lat + "/" + d.lng;
+                  "#map=" + (d.zoom || 17) + "/" + d.lat + "/" + d.lng;
 
-    moveMap(+d.lat, +d.lng, +(d.zoom || 15));
+    moveMap(+d.lat, +d.lng, +(d.zoom || 17));
     pick(j);
   }
 
-  /* The drops left at the point, newest first: number, title, date, and
-     NEW or CLAIMED. Choosing one shows its transmission and its item. */
+  /* The drops left at the zone, newest first: number, title, date, and
+     NEW or CLAIMED. Choosing one shows its spot, its transmission and its
+     item. */
   function buildLog(drops){
     el.log.textContent = "";
     el.logn.textContent = plural(drops.length, "drop");
@@ -165,7 +178,7 @@
     });
   }
 
-  /* --- a drop at the point ------------------------------------------------- */
+  /* --- a drop at the zone -------------------------------------------------- */
 
   function pick(j){
     var drops = dropsOf[current], e = drops && drops[j];
@@ -182,7 +195,7 @@
 
     el.title.textContent = x.title || "";
     el.dropn.textContent = "#" + x.n;
-    el.item.src = x.item || "images/item-placeholder.svg";
+    el.item.src = x.item || NO_ITEM;
     el.item.alt = "The item left at drop " + x.n;
     el.itemc.textContent = x.itemcap || "";
     /* CLAIMED in the item's head, the photo left clear; the date where the
@@ -201,27 +214,90 @@
       el.brief.appendChild(p.cloneNode(true));
     });
 
+    spots(photosOf(e), x.n);
+
     document.dispatchEvent(new CustomEvent("pn0va:drop", { detail: { index: current, drop: j } }));
   }
 
-  /* A point with no drop at it yet: nothing to show but the place. */
+  /* --- the spot: photos of where the drop is -------------------------------
+     A drop's photos are in its data-photos, in date order (build.py fills it
+     in from the images named item<n>_<MMDDYY>, item4_092326.jpg for drop
+     004 on 2026.09.23). The arrows, the arrow keys and a swipe go round
+     them; each says its file's name and the date in it. */
+  var photos = [], shown = 0, dropN = "";
+  function photosOf(e){
+    return (e.getAttribute("data-photos") || "").split(/\s+/).filter(Boolean);
+  }
+  /* "item4_092326b.jpg" -> "2026.09.23"; "" where the name has no date */
+  function dateIn(name){
+    var m = /_(\d\d)(\d\d)(\d\d)[a-z0-9-]*\.[a-z0-9]+$/i.exec(name);
+    if (!m || +m[1] < 1 || +m[1] > 12 || +m[2] < 1 || +m[2] > 31) return "";
+    return "20" + m[3] + "." + m[1] + "." + m[2];
+  }
+  function spots(list, n){
+    photos = list; shown = 0; dropN = n || "";
+    el.prev.hidden = el.next.hidden = photos.length < 2;
+    showSpot();
+  }
+  function showSpot(){
+    if (!photos.length){
+      el.spot.src = el.spotA.href = NO_SPOT;
+      el.spot.alt = "No photo of the spot yet";
+      el.spotc.textContent = "No photo of the spot yet";
+      el.spotn.textContent = "—";
+      return;
+    }
+    var src = photos[shown], name = decodeURIComponent(src.split("/").pop().split("?")[0]), date = dateIn(name);
+    el.spot.src = el.spotA.href = src;
+    el.spot.alt = "The spot" + (dropN ? " where drop " + dropN + " was left" : "") +
+                  (date ? ", photographed " + date : "") + (photos.length > 1 ? " (photo " + (shown + 1) + " of " + photos.length + ")" : "");
+    el.spotc.textContent = name + (date ? " · " + date : "");
+    el.spotn.textContent = photos.length > 1 ? (shown + 1) + "/" + photos.length : (date || "1/1");
+    /* the next one ready before it is asked for */
+    if (photos.length > 1) (new Image()).src = photos[(shown + 1) % photos.length];
+  }
+  function turn(step){
+    if (photos.length < 2) return;
+    shown = (shown + step + photos.length) % photos.length;
+    showSpot();
+  }
+  el.prev.addEventListener("click", function(){ turn(-1); });
+  el.next.addEventListener("click", function(){ turn(1); });
+  /* a swipe across the photo turns it; the tap that opens it full size
+     is not taken for one */
+  (function(){
+    var at = null, swiped = false;
+    el.spotA.addEventListener("pointerdown", function(ev){ at = { x: ev.clientX, y: ev.clientY }; swiped = false; });
+    el.spotA.addEventListener("pointerup", function(ev){
+      if (!at) return;
+      var dx = ev.clientX - at.x, dy = ev.clientY - at.y;
+      at = null;
+      if (Math.abs(dx) > 40 && Math.abs(dx) > 2 * Math.abs(dy) && photos.length > 1){ swiped = true; turn(dx < 0 ? 1 : -1); }
+    });
+    el.spotA.addEventListener("pointercancel", function(){ at = null; });
+    el.spotA.addEventListener("click", function(ev){ if (swiped){ ev.preventDefault(); swiped = false; } });
+    el.spotA.addEventListener("dragstart", function(ev){ ev.preventDefault(); });
+  })();
+
+  /* A zone with no drop at it yet: nothing to show but the place. */
   function nothingYet(){
     chosen = -1;
     el.title.textContent = "—";
     el.dropn.textContent = "—";
-    el.item.src = "images/item-placeholder.svg";
+    el.item.src = NO_ITEM;
     el.item.alt = "";
     el.itemc.textContent = "—";
     el.claimed.hidden = true;
     el.claimed.textContent = "";
     el.brief.innerHTML = "";
+    spots([], "");
     document.dispatchEvent(new CustomEvent("pn0va:drop", { detail: { index: current, drop: -1 } }));
   }
 
   /* --- map -------------------------------------------------------------- */
 
   var rings = [], ringLabels = [];
-  var home = null;              // where the current point actually is
+  var home = null;              // where the current zone actually is
   var recenterBtn = null;
 
   function buildMap(lat, lng, zoom){
@@ -261,8 +337,8 @@
     RINGS.forEach(function(r, i){
       rings.push(L.circle([lat, lng], {
         radius:r, className:"dp-ring", interactive:false,
-        color:"#FF1609", weight:1, opacity:.30 - i * .06,
-        fill:true, fillColor:"#FF1609", fillOpacity:i === 0 ? .05 : .02,
+        color:"#FFFFFF", weight:1.2, opacity:.55 - i * .1,
+        fill:true, fillColor:"#FFFFFF", fillOpacity:i === 0 ? .06 : .025,
         dashArray:i === 0 ? null : "3 5"
       }).addTo(map));
 
@@ -282,7 +358,7 @@
        RECENTER. The map is draggable, so the marker can be pushed off screen
        with no way back — switching records and returning was the only reset.
        This is the standard "locate" affordance, drawn as a reticle to match
-       the +/- bars, and it dims itself when you are already on the point.
+       the +/- bars, and it dims itself when you are already on the zone.
        ------------------------------------------------------------------ */
     var Recenter = L.Control.extend({
       options: { position: "topleft" },
@@ -290,9 +366,9 @@
         var box = L.DomUtil.create("div", "leaflet-bar dp-recenter");
         var a = L.DomUtil.create("a", "", box);
         a.href = "#";
-        a.title = "Recenter on the point";
+        a.title = "Recenter on the zone";
         a.setAttribute("role", "button");
-        a.setAttribute("aria-label", "Recenter on the point");
+        a.setAttribute("aria-label", "Recenter on the zone");
         L.DomEvent.on(a, "click", L.DomEvent.stop);
         L.DomEvent.on(a, "click", recenter);
         recenterBtn = box;
@@ -303,6 +379,7 @@
 
     map.on("move zoom viewreset", drawGraticule);
     map.on("moveend zoomend", markHome);
+    map.on("zoomend", fitRingLabels);
     placeRingLabels(lat, lng);
     drawGraticule();
     markHome();
@@ -330,7 +407,7 @@
     markHome();
   }
 
-  /* Dim the control while the view already matches the point, so it reads as
+  /* Dim the control while the view already matches the zone, so it reads as
      state rather than as a button that may or may not do anything. */
   function markHome(){
     if (!map || !home || !recenterBtn) return;
@@ -345,12 +422,25 @@
     recenterBtn.classList.toggle("is-home", put);
   }
 
-  /* Ring labels ride due east of centre, just inside each ring. */
+  /* Ring labels ride due east of centre, from each ring's edge. */
   function placeRingLabels(lat, lng){
     if (!map) return;
     var mPerDeg = 111320 * Math.cos(lat * Math.PI / 180);
     RINGS.forEach(function(r, i){
       ringLabels[i].setLatLng([lat, lng + (r / mPerDeg)]);
+    });
+    fitRingLabels();
+  }
+  /* ...and show only where there is room for them: past the crosshair's
+     arm (41px out) and short of the next ring's label. Zoomed out, the
+     inner rings close up on the marker and their labels give way. */
+  function fitRingLabels(){
+    if (!map || !home) return;
+    var mpp = 40075016.686 * Math.cos(home.lat * Math.PI / 180) / Math.pow(2, map.getZoom() + 8);
+    RINGS.forEach(function(r, i){
+      var out = r / mpp, room = i + 1 < RINGS.length ? (RINGS[i + 1] - r) / mpp : Infinity;
+      var tag = ringLabels[i].getElement();
+      if (tag) tag.style.visibility = out >= 44 && room >= 36 ? "" : "hidden";
     });
   }
 
@@ -390,9 +480,10 @@
   }
 
   /* --- keyboard: the arrows walk the list they are in ---------------------
-     In the list of drops, from one drop to the next at this point; in the
-     list of points, from point to point. Nowhere else: on the rest of the
-     screen they are the page's (or the street map's). */
+     In the list of drops, from one drop to the next at this zone; on the
+     spot, round its photos; in the list of zones, from zone to zone.
+     Nowhere else: on the rest of the screen they are the page's (or the
+     street map's). */
 
   document.addEventListener("keydown", function(ev){
     /* target is document itself when nothing is focused in some browsers,
@@ -405,6 +496,8 @@
       var j = chosen + step;
       if (dropsOf[current][j]){ pick(j); el.log.children[j].focus(); }
       ev.preventDefault();
+    } else if (t.closest(".dp-spot")){
+      if (ev.key === "ArrowLeft" || ev.key === "ArrowRight"){ turn(step); ev.preventDefault(); }
     } else if (t.closest("#dp-rows")){
       var i = current + step;
       if (entries[i]){ show(i); el.rows.children[i].focus(); }
@@ -413,6 +506,14 @@
   });
 
   window.addEventListener("resize", function(){ if (map) map.invalidateSize(); });
+  /* ...and whenever the map's box changes size with the window as it was:
+     as the page starts, the world view gives the map the list's column,
+     sometimes after the map is drawn. The centre stays where it was;
+     hidden (nothing by nothing), the map is left alone. */
+  if (window.ResizeObserver) new ResizeObserver(function(es){
+    var r = es[es.length - 1].contentRect;
+    if (map && r.width && r.height) map.invalidateSize();
+  }).observe(document.getElementById("dp-map"));
 
   /* --- help panel ------------------------------------------------------
      <details> already gives us open/close, keyboard operation and Esc for
@@ -431,8 +532,8 @@
 
   buildManifest();
 
-  /* drops#03 opens on point 03, drops#003 on the point drop 003 was left at,
-     with that drop chosen; anything else, on the newest point */
+  /* drops#03 opens on zone 03, drops#003 on the zone drop 003 was left at,
+     with that drop chosen; anything else, on the newest zone */
   function find(id){
     for (var i = 0; i < entries.length; i++){
       if (entries[i].dataset.n === id) return [i, 0];
@@ -445,7 +546,7 @@
   show(at[0], at[1]);
   setTimeout(function(){ if (map) map.invalidateSize(); }, 250);
 
-  /* For drops-world.js, which moves between the world view and a point. */
+  /* For drops-world.js, which moves between the world view and a zone. */
   window.pn0vaDrops = {
     entries: entries,
     drops: function (i) { return dropsOf[i] || []; },
@@ -453,9 +554,9 @@
     current: function () { return current; },
     chosen: function () { return chosen; },
     map: function () { return map; },
-    /* Point i with drop j chosen, on the screen as it is. */
+    /* Zone i with drop j chosen, on the screen as it is. */
     show: function (i, j) { show(i, j); },
-    /* Show point i (drop j chosen) in a panel that has just become visible.
+    /* Show zone i (drop j chosen) in a panel that has just become visible.
        Size the map first: while hidden, Leaflet measured it as nothing. */
     open: function (i, j) {
       if (map) map.invalidateSize({ pan: false });

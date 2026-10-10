@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>P_N0VA — DROPS</title>
-<meta name="description" content="Drops: items P_N0VA leaves at drop points around the world, in plain sight and marked with a P_N0VA sticker, each with a photo of the item and a little lore.">
+<meta name="description" content="Drops: items P_N0VA leaves at drop zones around the world, in plain sight and marked with a P_N0VA sticker, each with a photo of the item and a little lore.">
 <link rel="canonical" href="https://pn0va.com/drops">
 <link rel="icon" href="favicon.ico?v=99a8a369" sizes="32x32">
 <link rel="icon" href="favicon.svg?v=5e2fc924" type="image/svg+xml">
@@ -13,7 +13,7 @@
 <meta property="og:type" content="website">
 <meta property="og:site_name" content="P_N0VA">
 <meta property="og:title" content="P_N0VA — DROPS">
-<meta property="og:description" content="Drops: items P_N0VA leaves at drop points around the world, in plain sight and marked with a P_N0VA sticker, each with a photo of the item and a little lore.">
+<meta property="og:description" content="Drops: items P_N0VA leaves at drop zones around the world, in plain sight and marked with a P_N0VA sticker, each with a photo of the item and a little lore.">
 <meta property="og:url" content="https://pn0va.com/drops">
 <meta property="og:image" content="https://pn0va.com/images/og-image.png?v=40ae7efb">
 <meta property="og:image:width" content="1200">
@@ -28,7 +28,7 @@
 <link rel="stylesheet" href="vendor/leaflet/leaflet.css?v=ec929f11">
 <link rel="stylesheet" href="tokens.css?v=cf68e78a">
 <link rel="stylesheet" href="page-style.css?v=74603506">
-<link rel="stylesheet" href="drops.css?v=f0c4d99a">
+<link rel="stylesheet" href="drops.css?v=a12c4894">
 <style>
 /* Self-hosted faces — no Google Fonts request, no CDN failure mode. */
 @font-face{
@@ -112,16 +112,19 @@
 .dp-recenter a:hover{ color:var(--pn-signal)!important; }
 .dp-recenter a:focus-visible{ outline:2px solid var(--pn-focus); outline-offset:2px; }
 .dp-recenter.is-home a{ color:var(--pn-ink-faint)!important; }
-/* marker: the diamond you liked, now with a targeting crosshair through it */
+/* marker: the diamond you liked, now with a targeting crosshair through it.
+   Bone, as the chosen zone is on the globe, outlined in black and glowing
+   red, so it stands clear of the red streets under it. */
 .dp-marker{ position:relative; width:14px; height:14px; }
 .dp-marker i{
   position:absolute; inset:0; transform:rotate(45deg);
-  background:var(--pn-red);
-  box-shadow:0 0 10px 3px var(--pn-red), 0 0 18px 6px var(--pn-red-50);
+  background:var(--pn-bone);
+  box-shadow:0 0 0 2px var(--pn-void), 0 0 10px 4px var(--pn-red), 0 0 20px 8px var(--pn-red-50);
 }
 .dp-marker::before,
 .dp-marker::after{
-  content:""; position:absolute; background:var(--pn-red); opacity:.55;
+  content:""; position:absolute; background:var(--pn-bone); opacity:.6;
+  box-shadow:0 0 0 1px rgba(0,0,0,.6);
 }
 .dp-marker::before{ left:50%; top:-26px; width:1px; height:74px; margin-left:-.5px; }
 .dp-marker::after { top:50%; left:-26px; height:1px; width:74px; margin-top:-.5px; }
@@ -130,15 +133,16 @@
   .dp-marker i{ animation:dp-ping 3.4s var(--pn-org-ease) infinite; }
 }
 @keyframes dp-ping{
-  0%,100%{ box-shadow:0 0 10px 3px var(--pn-red), 0 0 18px 6px var(--pn-red-50) }
-  50%    { box-shadow:0 0 14px 5px var(--pn-red), 0 0 30px 11px var(--pn-red-50) }
+  0%,100%{ box-shadow:0 0 0 2px var(--pn-void), 0 0 10px 4px var(--pn-red), 0 0 20px 8px var(--pn-red-50) }
+  50%    { box-shadow:0 0 0 2px var(--pn-void), 0 0 14px 6px var(--pn-red), 0 0 32px 13px var(--pn-red-50) }
 }
 
-/* range rings — vector overlay, so they scale with the map */
+/* range rings — vector overlay, so they scale with the map. Bone, like the
+   marker: the red is the streets'. */
 .dp-ring{ pointer-events:none; }
 .dp-ring-label{
-  font-size:8px; letter-spacing:.16em; color:var(--pn-red);
-  white-space:nowrap; text-shadow:0 0 6px #000, 0 0 3px #000;
+  font-size:8px; letter-spacing:.16em; color:var(--pn-bone);
+  white-space:nowrap; text-shadow:0 0 6px #000, 0 0 3px #000, 0 0 2px #000;
 }
 
 /* graticule: edge ticks + live bounds, the mm-ruler habit applied to a map */
@@ -158,36 +162,43 @@
 <!-- ============================================================
      HOW TO ADD A DROP
      ------------------------------------------------------------
-     Drops are left at DROP POINTS: places used again and again.
-     A point is "POINT #03", a single drop "DROP #003". Each point
-     is a <section class="dp-point"> below, and the drops left
-     there are the <article class="dp-entry"> blocks inside it.
-     NEWEST first, points and drops alike: the lists are built by
-     reading these blocks top to bottom.
+     Drops are left at DROP ZONES: places used again and again.
+     A zone is "ZONE 03", a single drop "DROP #003". Each zone is
+     a <section class="dp-zone"> below, and the drops left there
+     are the <article class="dp-entry"> blocks inside it. NEWEST
+     first, zones and drops alike: the lists are built by reading
+     these blocks top to bottom.
 
-     A NEW DROP AT A POINT YOU ALREADY HAVE
-     1. Copy one <article class="dp-entry"> block into that point's
+     A NEW DROP AT A ZONE YOU ALREADY HAVE
+     1. Copy one <article class="dp-entry"> block into that zone's
         <section>, above the drops already there.
      2. Set the data-* attributes on the <article>:
           data-n        drop number, three digits, e.g. "004" (one
-                        count across all the points)
+                        count across all the zones)
           data-placed   YYYY.MM.DD
           data-title    the drop's name
           data-item     the photo of the item; data-itemcap its caption
           data-claimed  YYYY.MM.DD, only once you know the drop was
                         found (or data-claimed alone, with no date):
-                        CLAIMED shows on the point's page. Leave it off
+                        CLAIMED shows on the zone's page. Leave it off
                         and nothing shows.
      3. Write its story: a paragraph or two.
+     4. Photos of the spot: put them in the images folder named
+        item<drop number>_<MMDDYY>.jpg, e.g. item4_092326.jpg for
+        drop 004 on 2026.09.23 (item4_092326b.jpg for a second
+        that day). build.py finds them; the page shows them in date
+        order, with arrows, and says each one's name and date. Or
+        list them yourself: data-photos="images/a.jpg images/b.jpg".
 
-     A NEW DROP POINT
-     1. Copy a whole <section class="dp-point"> block, put it first,
+     A NEW DROP ZONE
+     1. Copy a whole <section class="dp-zone"> block, put it first,
         and keep one drop in it (step 2 above).
      2. Set the data-* attributes on the <section>:
-          data-n        point number, two digits, e.g. "04"
-          data-place    the point's name
+          data-n        zone number, two digits, e.g. "04"
+          data-place    the zone's name
           data-lat / data-lng    decimal degrees, signed
-          data-zoom     street map zoom, 13-16 is usually right
+          data-zoom     how close its street map opens: 17 is
+                        street level, 16-18 is usually right
      Then run python build.py, which fetches the street map for a
      new place. Nothing else needs touching — no CSS, no JS.
      ============================================================ -->
@@ -207,13 +218,13 @@
 
 
 
-<!-- ========= WORLD: every drop point on the globe (drops-world.js) =========
+<!-- ========= WORLD: every drop zone on the globe (drops-world.js) ==========
      The first screen. html[data-view] says which one is showing; without
      JavaScript this one stays hidden. -->
-<section class="dw-shell" id="dw" aria-label="Drop points around the world">
-  <section class="dp-panel dw-list" aria-label="Drop points" data-fly="left" data-fly-delay="60">
-    <div class="dp-panel__head"><span>Drop points</span><span class="dp-idx" id="dw-count">&mdash;</span></div>
-    <p class="dw-help"><b>Help</b>Pick a point to find it.</p>
+<section class="dw-shell" id="dw" aria-label="Drop zones around the world">
+  <section class="dp-panel dw-list" aria-label="Drop zones" data-fly="left" data-fly-delay="60">
+    <div class="dp-panel__head"><span>Drop zones</span><span class="dp-idx" id="dw-count">&mdash;</span></div>
+    <p class="dw-help"><b>Help</b>Pick a zone to find it.</p>
     <div class="dp-panel__body" id="dw-rows"></div>
   </section>
   <section class="dp-panel dw-stage" aria-label="World" data-fly="right" data-fly-delay="60">
@@ -224,17 +235,17 @@
             </summary>
             <div class="dp-help__panel" role="note">
               <h3>What is a drop?</h3>
-              <p>Loot left by the operator at a real place. Drops are left
-                 at drop points, places the operator comes back to, and each
-                 one is in plain sight, marked with a P_N0VA sticker. A
-                 point's page lists every drop left there: when, a photo of
-                 the item, and a short piece of lore.</p>
+              <p>Something the operator leaves at a real place for whoever
+                 finds it. Drops are left at drop zones, places the operator
+                 comes back to, each in plain sight and marked with a P_N0VA
+                 sticker. A zone's page lists every drop left there: photos
+                 of the spot and of the item, and a short piece of lore.</p>
             </div>
           </details></div>
     <div class="dp-panel__body dw-globe" id="dw-globe">
       <canvas id="dw-canvas" aria-hidden="true"></canvas>
       <div class="dw-callout" id="dw-callout" aria-hidden="true" hidden></div>
-      <div class="dw-card" id="dw-card" role="group" aria-label="Chosen point" hidden></div>
+      <div class="dw-card" id="dw-card" role="group" aria-label="Chosen zone" hidden></div>
     </div>
   </section>
 </section>
@@ -242,9 +253,9 @@
 <main class="dp-shell">
 
   <!-- ============ MANIFEST RAIL ============ -->
-  <section class="dp-panel dp-manifest" data-fly="left" data-fly-delay="60" aria-label="Drop points">
+  <section class="dp-panel dp-manifest" data-fly="left" data-fly-delay="60" aria-label="Drop zones">
     <div class="dp-panel__head">
-      <span>Points</span>
+      <span>Zones</span>
       <span class="dp-idx" id="dp-count">—</span>
     </div>
     <div class="dp-panel__body" id="dp-rows"></div>
@@ -253,17 +264,17 @@
   <!-- ============ DETAIL ============ -->
   <div class="dp-detail">
 
-    <!-- FREQUENCY BAR — the codec's tuned readout. The coordinates are the
-         frequency: they are what you tune to in order to reach a point. -->
-    <section class="dp-panel dp-codec dp-bar" data-fly="top" data-fly-delay="60" aria-label="Drop point frequency">
+    <!-- FREQUENCY BAR — the codec's tuned readout: the zone's name, the one
+         thing to read first, and its coordinates, the frequency you tune to
+         in order to reach it. -->
+    <section class="dp-panel dp-codec dp-bar" data-fly="top" data-fly-delay="60" aria-label="Drop zone">
       <div class="dp-panel__head">
         <span>Frequency</span>
         <span class="dp-headgroup">
           <!-- <details> so the explainer opens with no JavaScript at all, and
                gets keyboard support and Esc from the browser for free. It
                lives in the frequency bar because that panel is the top row in
-               BOTH layouts — in the phone layout the manifest drops to the
-               bottom, so an explainer parked there would never be found. -->
+               BOTH layouts. Quiet: it is there for whoever wonders. -->
           <details class="dp-help" id="dp-help">
             <summary title="What is a drop?">
               <span class="q" aria-hidden="true">?</span>
@@ -271,18 +282,17 @@
             </summary>
             <div class="dp-help__panel" role="note">
               <h3>What is a drop?</h3>
-              <p>Loot left by the operator at a real place. Drops are left
-                 at drop points, places the operator comes back to, and each
-                 one is in plain sight, marked with a P_N0VA sticker. A
-                 point's page lists every drop left there: when, a photo of
-                 the item, and a short piece of lore.</p>
+              <p>Something the operator leaves at a real place for whoever
+                 finds it. Drops are left at drop zones, places the operator
+                 comes back to, each in plain sight and marked with a P_N0VA
+                 sticker. A zone's page lists every drop left there: photos
+                 of the spot and of the item, and a short piece of lore.</p>
             </div>
           </details>
-          <span class="dp-idx" id="dp-rev">Memory · <span id="r-place">—</span></span>
         </span>
       </div>
       <div class="dp-panel__body">
-        <span class="dp-desig"><span class="hash">POINT&nbsp;#</span><span id="r-n">—</span></span>
+        <h1 class="dp-desig"><span class="dp-desig__n">Zone&nbsp;<span id="r-n">—</span></span><span class="dp-desig__name" id="r-place">—</span></h1>
 
         <span class="dp-freq">
           <span class="v"><span id="r-lat">—</span><span class="u">°N</span></span>
@@ -297,7 +307,7 @@
     </section>
 
     <!-- map -->
-    <section class="dp-panel dp-map dp-scan" data-fly="right" data-fly-delay="140" aria-label="Drop point location">
+    <section class="dp-panel dp-map dp-scan" data-fly="right" data-fly-delay="140" aria-label="Drop zone location">
       <div class="dp-panel__head">
         <span>Location</span>
         <span class="dp-idx">OpenStreetMap</span>
@@ -310,17 +320,26 @@
       </div>
     </section>
 
-    <!-- BOTTOM STRIP — the drops left at this point, the chosen one's
-         transmission (its story) and a portrait frame with its item. No
-         hint: every drop is in plain sight, marked with the sticker. -->
+    <!-- BOTTOM STRIP — the drops left at this zone; for the one chosen, the
+         spot it was left at (its photos, to cycle through), its
+         transmission (its story) and a portrait frame with its item. -->
     <div class="dp-strip">
-      <section class="dp-panel dp-log" data-fly="bottom" data-fly-delay="140" aria-label="Drops at this point">
+      <section class="dp-panel dp-log" data-fly="bottom" data-fly-delay="140" aria-label="Drops at this zone">
         <div class="dp-panel__head"><span>Drops</span><span class="dp-idx" id="r-logn">—</span></div>
         <div class="dp-panel__body" id="dp-log"></div>
-        <p class="dp-sticker"><img src="images/logo.svg?v=6946a8c0" alt="The P_N0VA sticker">Look for the sticker</p>
       </section>
 
-      <section class="dp-panel dp-codec dp-brief" data-fly="bottom" data-fly-delay="200" aria-label="Drop transmission">
+      <figure class="dp-panel dp-slot dp-slot--spot dp-spot" data-fly="bottom" data-fly-delay="180" style="margin:0" aria-label="The spot">
+        <div class="dp-panel__head"><span>Spot</span><span class="dp-idx" id="r-spotn">—</span></div>
+        <div class="dp-panel__body dp-panel__body--flush">
+          <a id="s-spotlink" href="images/spot-placeholder.svg?v=42f2cfe1" target="_blank" rel="noopener"><img id="s-spot" src="images/spot-placeholder.svg?v=42f2cfe1" alt=""></a>
+          <button class="dp-spot__go dp-spot__prev" id="s-spotprev" type="button" aria-label="Earlier photo" hidden><span class="tri" aria-hidden="true"></span></button>
+          <button class="dp-spot__go dp-spot__next" id="s-spotnext" type="button" aria-label="Later photo" hidden><span class="tri" aria-hidden="true"></span></button>
+        </div>
+        <figcaption id="s-spotcap">—</figcaption>
+      </figure>
+
+      <section class="dp-panel dp-codec dp-brief" data-fly="bottom" data-fly-delay="220" aria-label="Drop transmission">
         <div class="dp-panel__head"><span>Transmission</span><span class="dp-idx" id="r-title">—</span></div>
         <div class="dp-panel__body" id="dp-brief"></div>
       </section>
@@ -336,13 +355,13 @@
 </main>
 
 <!-- ============================================================
-     DROP POINTS and their DROPS — newest first. Content only; no
+     DROP ZONES and their DROPS — newest first. Content only; no
      styling here.
      ============================================================ -->
 <div hidden id="dp-data">
 
-  <section class="dp-point" data-n="03" data-place="Telegraph Hill"
-           data-lat="37.802139" data-lng="-122.4058" data-zoom="15">
+  <section class="dp-zone" data-n="03" data-place="Telegraph Hill"
+           data-lat="37.802139" data-lng="-122.4058" data-zoom="17">
 
     <article class="dp-entry" data-n="003" data-placed="2026.07.20"
              data-title="Stairs and Parrots"
@@ -355,8 +374,8 @@
 
   </section>
 
-  <section class="dp-point" data-n="02" data-place="Island Signal"
-           data-lat="37.826977" data-lng="-122.422955" data-zoom="14">
+  <section class="dp-zone" data-n="02" data-place="Island Signal"
+           data-lat="37.826977" data-lng="-122.422955" data-zoom="17">
 
     <article class="dp-entry" data-n="002" data-placed="2026.07.04"
              data-title="Island Signal"
@@ -369,8 +388,8 @@
 
   </section>
 
-  <section class="dp-point" data-n="01" data-place="West Woods"
-           data-lat="37.769420" data-lng="-122.486214" data-zoom="14">
+  <section class="dp-zone" data-n="01" data-place="West Woods"
+           data-lat="37.769420" data-lng="-122.486214" data-zoom="17">
 
     <article class="dp-entry" data-n="001" data-placed="2026.06.15"
              data-title="The First Drop"
@@ -388,12 +407,12 @@
 
 <script src="vendor/leaflet/leaflet.js?v=5a640ff8"></script>
 <script src="vendor/protomaps-leaflet/protomaps-leaflet.js?v=9d8eec24"></script>
-<script src="drops-map.js?v=03518c33" data-map="maps/drops.pmtiles?v=0a2d46bf"></script>
-<script src="drops.js?v=51d59785"></script>
+<script src="drops-map.js?v=c472e168" data-map="maps/drops.pmtiles?v=0a2d46bf"></script>
+<script src="drops.js?v=4c1c802b"></script>
 <script src="vendor/world/d3-array.min.js?v=08cb6252"></script>
 <script src="vendor/world/d3-geo.min.js?v=b7604723"></script>
 <script src="vendor/world/topojson-client.min.js?v=bc057598"></script>
-<script src="drops-world.js?v=af5f3d37" data-world="maps/world/" data-world-v="c0cbfae2" data-landmarks="maps/landmarks.json?v=a9e7a54f"></script>
+<script src="drops-world.js?v=1aa99e96" data-world="maps/world/" data-world-v="42189bc6" data-landmarks="maps/landmarks.json?v=a9e7a54f"></script>
 <script src="page-script.js?v=af4e1a21"></script>
 </body>
 </html>

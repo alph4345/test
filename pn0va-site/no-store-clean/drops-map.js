@@ -18,43 +18,48 @@
   var me = document.currentScript;
   var FILE = me && me.dataset.map ? new URL(me.dataset.map, me.src).href : null;
 
-  /* The palette. The ground is the site's slate, streets climb toward ash,
-     names are linen and bone on halos of the sea colour. Red stays off the
-     terrain: it belongs to the instruments drawn on top of it. */
-  var SEA = "#1B1918", LAND = "#403B37", ZONE = "#3B3633", PARK = "#3A3D35",
-      BLDG = "#37322F", CASE = "#2B2725", MINOR = "#5E5752", MAJOR = "#736B65",
-      HWY = "#857C75", RAIL = "#4C4642",
+  /* The palette. The ground is the site's slate and the water near black;
+     buildings stand a shade up from the ground. The streets are red, the
+     brand's one chroma, brighter and heavier the bigger the road, so the
+     map's scale reads at a glance and the ground between them stays quiet.
+     Names are bone and linen on halos of the water colour, and the
+     instruments drawn on top (the marker, the rings) are bone, to stand
+     clear of the red. The globe draws the same streets in the same red. */
+  var SEA = "#141010", LAND = "#3D3834", ZONE = "#3A3431", PARK = "#333729",
+      BLDG = "#8A7F78", CASE = "#141010", PIER = "#4A433F",
+      HWY = "#FF1609", MAJOR = "#E3170C", MINOR = "#A3150C", OTHER = "#73130D",
+      TUNNEL = "#4A1410", RAIL = "#B0A49B",
       INK = "#E8E2DC", BONE = "#FFFFFF", TAUPE = "#B0A49B", ASH = "#7A716B";
 
   var FLAVOR = {
     background: SEA, earth: LAND, water: SEA,
     park_a: PARK, park_b: PARK, wood_a: PARK, wood_b: PARK, scrub_a: PARK, scrub_b: PARK,
     zoo: PARK, glacier: ZONE, sand: ZONE, beach: ZONE, hospital: ZONE, industrial: ZONE,
-    school: ZONE, military: ZONE, pedestrian: ZONE, aerodrome: ZONE, runway: MINOR,
-    pier: MINOR, buildings: BLDG,
+    school: ZONE, military: ZONE, pedestrian: PIER, aerodrome: ZONE, runway: PIER,
+    pier: PIER, buildings: BLDG,
 
     tunnel_other_casing: CASE, tunnel_minor_casing: CASE, tunnel_link_casing: CASE,
     tunnel_major_casing: CASE, tunnel_highway_casing: CASE,
-    tunnel_other: ZONE, tunnel_minor: ZONE, tunnel_link: ZONE, tunnel_major: ZONE,
-    tunnel_highway: ZONE,
+    tunnel_other: TUNNEL, tunnel_minor: TUNNEL, tunnel_link: TUNNEL, tunnel_major: TUNNEL,
+    tunnel_highway: TUNNEL,
 
     minor_service_casing: CASE, minor_casing: CASE, link_casing: CASE,
     major_casing_late: CASE, highway_casing_late: CASE, major_casing_early: CASE,
     highway_casing_early: CASE,
-    other: MINOR, minor_service: MINOR, minor_a: MINOR, minor_b: MINOR,
+    other: OTHER, minor_service: OTHER, minor_a: MINOR, minor_b: MINOR,
     link: MAJOR, major: MAJOR, highway: HWY,
 
     bridges_other_casing: CASE, bridges_minor_casing: CASE, bridges_link_casing: CASE,
     bridges_major_casing: CASE, bridges_highway_casing: CASE,
-    bridges_other: MINOR, bridges_minor: MINOR, bridges_link: MAJOR, bridges_major: MAJOR,
+    bridges_other: OTHER, bridges_minor: MINOR, bridges_link: MAJOR, bridges_major: MAJOR,
     bridges_highway: HWY,
 
     railway: RAIL, boundaries: ASH,
 
-    roads_label_minor: TAUPE, roads_label_minor_halo: SEA,
-    roads_label_major: INK, roads_label_major_halo: SEA,
-    ocean_label: ASH,
-    subplace_label: TAUPE, subplace_label_halo: SEA,
+    roads_label_minor: INK, roads_label_minor_halo: SEA,
+    roads_label_major: BONE, roads_label_major_halo: SEA,
+    ocean_label: TAUPE,
+    subplace_label: INK, subplace_label_halo: SEA,
     city_label: BONE, city_label_halo: SEA,
     state_label: ASH, state_label_halo: SEA,
     country_label: ASH,
@@ -69,9 +74,9 @@
   var ATTR = '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>' +
              ' contributors &middot; <a href="https://protomaps.com">Protomaps</a>';
 
-  /* Street names from zoom 15, where a drop usually opens (the library's
-     default waits until 16), and no shop or café icons: the instrument
-     shows ground and names, nothing that competes with the marker. */
+  /* Street names from zoom 15 (the library's default waits until 16), and
+     no shop or café icons: the instrument shows ground and names, nothing
+     that competes with the marker. */
   function labels() {
     return protomapsL.labelRules(FLAVOR, "en")
       .filter(function (r) { return r.dataLayer !== "pois"; })

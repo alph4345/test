@@ -59,28 +59,36 @@ The street map is **served by the site itself**. Carto began answering
 keyless requests with "API key required" tiles, which blanked the map; the
 site no longer asks Carto (or anyone else) for anything.
 
-- `maps/drops.pmtiles` holds OpenStreetMap streets, water, parks and names
-  around the drop points: close-up detail within 4 km of each point and a
-  wider view 30 km out. One file, read in small pieces, so a visitor downloads only what
-  they look at.
+- `maps/drops.pmtiles` holds OpenStreetMap streets, water, parks, buildings
+  and names around the drop zones: close-up detail within 4 km of each zone
+  and a wider view 30 km out. One file, read in small pieces, so a visitor
+  downloads only what they look at. A zone's page shows it as a street map,
+  and the globe draws the same streets once it comes in close to a zone.
 - `drops-map.js` paints it in the site palette with protomaps-leaflet
   (`vendor/protomaps-leaflet/`, BSD licence), inside the same Leaflet map, so
-  the rings, marker, graticule and recenter button are unchanged.
+  the rings, marker, graticule and recenter button are unchanged. The
+  streets are red, so the grid, the scale and the landmarks read at a
+  glance: highways in the brand red, main roads a shade darker, side
+  streets darker again and lanes and paths darkest. Railways are taupe,
+  buildings taupe on slate ground, parks a dark olive, water near black,
+  and the names bone and linen. The zone is a bone diamond with a red glow,
+  inside bone rings at 50, 100 and 250 m; zoomed out, a ring's label gives
+  way where it has no room.
 - No key, no usage limits, no account. The data is © OpenStreetMap
   contributors (ODbL); the attribution on the map is required and in place.
 
 **The map in this folder** was made 2026-09-28 from OpenStreetMap data of
-2026-09-27: 10.8 MB, covering the three San Francisco drop points. A visitor
+2026-09-27: 10.8 MB, covering the three San Francisco drop zones. A visitor
 who looks at all three downloads about 200 KB of it.
 
-**One map file serves every drop point, and a new point gets its map by
-itself.** Add the point to `drops.html` and run `python build.py`. If it is
-more than about 3 km from every point the map was made for, the build first
-fetches the area around each point from the newest daily world map
-published by Protomaps (build.protomaps.com), then builds. Each point gets
-its own area, so points in two cities cost two small areas, not everything
-between them. A test point in Mesa, Arizona added 6 MB to the map and under
-30 seconds to the build. A new drop at a point you already have needs no
+**One map file serves every drop zone, and a new zone gets its map by
+itself.** Add the zone to `drops.html` and run `python build.py`. If it is
+more than about 3 km from every zone the map was made for, the build first
+fetches the area around each zone from the newest daily world map
+published by Protomaps (build.protomaps.com), then builds. Each zone gets
+its own area, so zones in two cities cost two small areas, not everything
+between them. A test zone in Mesa, Arizona added 6 MB to the map and under
+30 seconds to the build. A new drop at a zone you already have needs no
 map at all. Upload the new `maps/drops.pmtiles` along with the rest of the
 folder.
 
@@ -91,10 +99,11 @@ pip install pmtiles requests
 ```
 
 Without them, or offline, the build carries on with the map it has and names
-the points it doesn't cover; the page shows those on plain ground. With no map
-file at all, it shows the rings and marker on plain ground plus a link to the
-location on OpenStreetMap, not error tiles. `python tools/make-map.py` remakes
-the map on demand, for instance to pick up newer streets.
+the zones it doesn't cover; the page shows those on plain ground, and the
+globe stops at 64x over them. With no map file at all, it shows the rings
+and marker on plain ground plus a link to the location on OpenStreetMap, not
+error tiles. `python tools/make-map.py` remakes the map on demand, for
+instance to pick up newer streets.
 
 **The server must send parts of files** (HTTP "range requests"). Apache,
 LiteSpeed, Netlify, GitHub Pages and Cloudflare all do, and so does the
@@ -102,88 +111,113 @@ preview (see *Local preview*). Python's `http.server` does not, and a page
 opened by double-clicking cannot read a file in parts at all: both show the
 rings on plain ground instead of streets.
 
-### The Drops page: the world, then a drop point
+### The Drops page: the world, then a drop zone
 
-Drops are left at **drop points**: places the operator comes back to, with
+Drops are left at **drop zones**: places the operator comes back to, with
 any number of drops left at each over time. Every drop is in plain sight,
-marked with a P_N0VA sticker, so there are no hints. The Drops page is one
-page with two screens.
+marked with a P_N0VA sticker, and its page shows photos of the spot, so
+there are no hints. The Drops page is one page with two screens.
 
-- **The world** (`pn0va.com/drops`): the list of drop points, each with its
+- **The world** (`pn0va.com/drops`): the list of drop zones, each with its
   number and name, when its latest drop was left, how many drops have been
   left there and the latest one's title and first line, and a globe with a
-  point for each. It opens with no point chosen, the globe turned to where
-  the points are.
-  - **Choose a point in the list** (a click, Enter, or the arrow keys down
-    it) and the globe turns to it, the point in the middle, at the zoom you
+  mark for each. It opens with no zone chosen, the globe turned to where
+  the zones are.
+  - **Choose a zone in the list** (a click, Enter, or the arrow keys down
+    it) and the globe turns to it, the zone in the middle, at the zoom you
     are at: from far off it flies out and back down to that zoom.
-  - **Click a point on the globe** and the globe stays where it is.
+  - **Click a zone on the globe** and the globe stays where it is.
   - Either way a prompt opens beside it: how many drops, when the latest
-    was left and how long ago, where the point is, the latest drop's
+    was left and how long ago, where the zone is, the latest drop's
     number, title and item and the first line of its story, **ZOOM IN** (or
     **ZOOM OUT**, once the globe is as close as it goes), the one thing that
-    zooms to a point, and **OPEN POINT**. Its ×, Esc or a click on bare
-    globe closes it.
-  - **OPEN POINT** is the only way in: the globe dives, flashes, and the
-    point's windows fly in. Pointing at a row only marks its point on the
-    globe, and a double-click on a point opens nothing.
+    zooms to a zone, and **OPEN ZONE**. ZOOM IN flies all the way down to
+    street level, the scale the zone's own street map opens at. Its ×, Esc
+    or a click on bare globe closes the prompt.
+  - **OPEN ZONE** is the only way in: the globe dives, flashes, and the
+    zone's windows fly in. Pointing at a row only marks its zone on the
+    globe, and a double-click on a zone opens nothing.
   - On a phone the globe is too small to carry the prompt, so the chosen
-    point's row opens up underneath instead, with the same (but for where
+    zone's row opens up underneath instead, with the same (but for where
     it is, which its page shows) and its two buttons the width of the list.
     A second tap on the row closes it.
-- **A drop point** (`pn0va.com/drops#03`): its number, coordinates, when its
-  latest drop was left and how many there are; its street map; and along
+- **A drop zone** (`pn0va.com/drops#03`): its name, large, under its number
+  (ZONE 03 over TELEGRAPH HILL), its coordinates, when its latest drop was
+  left and how many there are; its street map, at street level; and along
   the bottom, **the drops left there**, newest first, each with its number,
-  title and date, and NEW or CLAIMED; the chosen drop's story
-  (Transmission) and the photo of its item; and under the list, the sticker
-  to look for. It opens on the newest drop. Choose another in the list (a
-  click, or the arrow keys up and down it) and its story and item show in
-  place. **WORLD MAP**, solid red at the head of the top bar, the globe
-  button on the street map, Esc, or the browser's Back pulls back out to
-  the globe, where that point is still chosen. On a phone the page
-  scrolls: the street map takes half the screen, then the drops, the chosen
-  one's story in full and its item, and WORLD MAP floats at the foot of the
+  title and date, and NEW or CLAIMED. Beside the list, everything about the
+  drop chosen in it: **Spot**, the photos of where it was left;
+  **Transmission**, its story; and **Item**, the photo of what was left. It
+  opens on the newest drop. Choose another in the list (a click, or the
+  arrow keys up and down it) and its photos and story show in place.
+  **WORLD MAP**, solid red at the head of the top bar, the globe button on
+  the street map, Esc, or the browser's Back pulls back out to the globe,
+  where that zone is still chosen. On a phone the page scrolls: the street
+  map takes half the screen, then the drops, the spot, the chosen one's
+  story in full and its item, and WORLD MAP floats at the foot of the
   screen, always in reach.
 
-On a phone held sideways the list sits beside the globe, as on a desktop,
-and a point's drops and item flank the story. On any screen too short for a
-point's page to fit (under 560px tall), the page scrolls rather than
-squeezing the street map, and WORLD MAP floats at its foot there too.
+**The spot's photos.** Each shows its file's name and the date in it, and
+the window's head counts them (1/3). The arrows on the photo and a swipe
+across it go through them, earliest first and round again from the last,
+and so do the left and right arrow keys once the photo or an arrow has the
+focus (Tab to it, or click an arrow). A click on the photo opens it full
+size. A drop with one photo shows its date in the head instead of a count;
+one with none says it has no photo of the spot yet.
 
-Every point and every drop has its own address. `pn0va.com/drops#03` opens
-on point 03 and its newest drop; `pn0va.com/drops#003` opens on drop 003, at
-the point it was left at. Choosing a drop on a point's page puts its
-address in the address bar, without adding a step to Back, so a link
-copied from there opens on that drop. Back, reload and sharing all work.
-A point is marked **NEW** while its latest drop is in its first week (in
-the list, in its prompt, and red on the globe), and that drop is marked
-NEW in the point's own list.
+**"What is a drop?"**, the small ? in the corner of the top bar, says what
+a drop is and what a zone's page shows, for whoever wonders.
+
+On a phone held sideways the list sits beside the globe, as on a desktop,
+and a zone's windows sit two by two: the drops beside the spot, the story
+beside the item. On any screen too short for a zone's page to fit (under
+560px tall), the page scrolls rather than squeezing the street map, and
+WORLD MAP floats at its foot there too.
+
+Every zone and every drop has its own address. `pn0va.com/drops#03` opens
+on zone 03 and its newest drop; `pn0va.com/drops#003` opens on drop 003, at
+the zone it was left at. Choosing a drop on a zone's page puts its address
+in the address bar, without adding a step to Back, so a link copied from
+there opens on that drop. Back, reload and sharing all work. A zone is
+marked **NEW** while its latest drop is in its first week (in the list, in
+its prompt, and red on the globe), and that drop is marked NEW in the
+zone's own list.
 
 The globe is drawn in the brand palette from `tokens.css`: ember sea, slate
-land, ash coasts, taupe borders over a dark edge (thickening as you come in)
-and dashed taupe state lines, a linen sheen and names, red for the
-instruments (graticule, rim, pointer, NEW) and bone for the point you are on.
+land with built-up areas a shade lighter, ember lakes and rivers, roads in
+red (highways brightest), country borders in bone over a dark edge
+(thickening as you come in), dashed taupe state lines, ash coasts, a linen
+sheen and names, red for the instruments (graticule, rim, pointer, NEW) and
+bone for the zone you are on.
 
-It is a map: coast, lakes, country borders, state and province lines, and the
-names of countries, states, cities, peaks and landmarks, each named once there
-is room for it. It zooms with its **+** and **−** buttons, the mouse wheel, a
+It is a map: coast, lakes, rivers, the built-up areas of cities, highways
+and main roads, country borders, state and province lines, and the names of
+countries, states, cities, peaks and landmarks, each named once there is
+room for it. It zooms with its **+** and **−** buttons, the mouse wheel, a
 pinch, or the + − 0 keys, from the whole globe down to a city (64 times
-closer). The coastline is redrawn finer as you come in, so its shape holds and
-only sharpens; the street map on each point's own screen takes over from there.
-The globe button below the zoom buttons goes back to the whole globe.
+closer) anywhere, and near a drop zone on down to street level: within
+4 km of a zone as close as its street map opens, and within 30 km close
+enough to see its main streets. There the globe draws the street map's own
+streets, parks, water and neighbourhood names, so the way down from the
+whole Earth to the zone's corner never cuts to another map. The coastline
+is redrawn finer as you come in, so its shape holds and only sharpens, and
+the grid of latitude and longitude grows finer with it, down to a
+thousandth of a degree. The globe button below the zoom buttons goes back
+to the whole globe.
 
-Every drop point has its own mark, which grows as you zoom in. Points too
+Every drop zone has its own mark, which grows as you zoom in. Zones too
 close together to tell apart, like the three in San Francisco, sit on a
 small ring around the spot they share, each on a thread back to it, in the
 order they really lie (Alcatraz on top); zoom in and they move apart onto
-their own spots. Point at anything for what it is: a drop point's number,
-name, how many drops and when the latest was left, and that drop's title,
-item and the start of its story; a city's state or country, a peak's
-height, a landmark's note. On a touch screen, tap it. Close in, a
-landmark's name goes ahead of the city it stands in (at 64x the Colosseum
-shows over Rome), but every name gives way to the points and the prompt,
-so the landmarks right beside a point, most of San Francisco's, stay
-hidden. A point whose drops are all claimed is drawn hollow.
+their own spots. Point at anything for what it is: a zone's number, name,
+how many drops and when the latest was left, and that drop's title, item
+and the start of its story; a city's state or country, a peak's height, a
+landmark's note. On a touch screen, tap it. Close in, a landmark's name goes
+ahead of the city it stands in (at 64x the Colosseum shows over Rome), but
+every name gives way to the zones and the prompt, so the landmarks right
+beside a zone, like most of San Francisco's, wait until you come in close
+enough to give them room. A zone whose drops are all claimed is drawn
+hollow.
 
 Its files:
 
@@ -191,34 +225,37 @@ Its files:
 - `vendor/world/`: d3-geo, d3-array and topojson-client (ISC licence), about
   60 KB;
 - `maps/world/`: the map, from Natural Earth (public domain), at four levels
-  of detail. The whole globe is one file of 305 KB (106 KB as the
-  `.htaccess` compresses it); closer in, the page fetches only the part in
-  view. 10.4 MB in 308 files, of which a visitor who zooms all the way in on
-  a point downloads about 420 KB compressed. `tools/make-world/` made it, and
-  only needs running again for newer borders (see the top of
-  `make-world.mjs`);
+  of detail, the closer three with rivers, built-up areas and roads. The
+  whole globe is one file of 305 KB (109 KB as the `.htaccess` compresses
+  it), and the next level, read while the page is idle, one of 1.1 MB
+  (390 KB); closer in, the page fetches only the part in view. 22.6 MB in
+  308 files. A visitor who zooms all the way in on a zone downloads about
+  750 KB of it, compressed (650 KB on a phone), and 250 to 420 KB of the
+  street map. `tools/make-world/` made it, and only needs running again for
+  newer borders or roads (see the top of `make-world.mjs`);
 - `maps/landmarks.json`, from `_source/world/landmarks.json`: 148 landmarks
   around the world, each a name, a position, the zoom it appears from (1 is
-  the whole globe, 64 the closest) and the note shown when pointed at. Add
-  your own the same way and rebuild. At 64x the globe shows about 300 m to a
-  pixel, so two landmarks a few streets apart can't both show: one a city is
-  plenty.
+  the whole globe, 64 the closest away from the zones) and the note shown
+  when pointed at. Add your own the same way and rebuild. At 64x the globe
+  shows about 300 m to a pixel, so two landmarks a few streets apart can't
+  both show: one a city is plenty.
 
 With reduced motion on, the screens change without the dive or the flights.
-With JavaScript off, the world view stays hidden and the page is the point
+With JavaScript off, the world view stays hidden and the page is the zone
 frame it always was.
 
-### Adding a drop, or a drop point
+### Adding a drop, or a drop zone
 
 Everything is in `drops.html`, in the brand kit's `drops` folder (or the
 snapshot in `_source/brand-kit/drops/`); the comment at its top says the
-same. Each point is a `<section class="dp-point">`, and the drops left there
-are the `<article class="dp-entry">` blocks inside it, newest first. Points
-go newest first too.
+same. Each zone is a `<section class="dp-zone">`, and the drops left there
+are the `<article class="dp-entry">` blocks inside it, newest first. Zones
+go newest first too. (A `dp-point` section, from before zones, still
+works.)
 
 ```html
-<section class="dp-point" data-n="03" data-place="Telegraph Hill"
-         data-lat="37.802139" data-lng="-122.4058" data-zoom="15">
+<section class="dp-zone" data-n="03" data-place="Telegraph Hill"
+         data-lat="37.802139" data-lng="-122.4058" data-zoom="17">
 
   <article class="dp-entry" data-n="004" data-placed="2026.10.12"
            data-title="Back on the Stairs"
@@ -233,22 +270,33 @@ go newest first too.
 </section>
 ```
 
-- **A new drop at a point you have:** copy an `<article>` into the point's
+- **A new drop at a zone you have:** copy an `<article>` into the zone's
   `<section>`, above the drops already there. `data-n` is the drop's number,
-  three digits, one count across all the points; `data-placed` the date;
+  three digits, one count across all the zones; `data-placed` the date;
   `data-title` its name; `data-item` the photo of the item and
   `data-itemcap` its caption. Then write its story.
-- **A new point:** copy a whole `<section>` to the top, with one drop in it.
-  `data-n` is the point's number, two digits; `data-place` its name;
-  `data-lat` and `data-lng` where it is, in decimal degrees; `data-zoom` how
-  close its street map opens (13 to 16 is usually right).
-- **The item photo:** put it in the same `drops/images/` folder as the
-  placeholder (JPEG, PNG, WebP, GIF or SVG; about 1200 pixels wide is
-  plenty) and name it in `data-item`.
+- **A new zone:** copy a whole `<section>` to the top, with one drop in it.
+  `data-n` is the zone's number, two digits; `data-place` its name, which
+  heads its page; `data-lat` and `data-lng` where it is, in decimal
+  degrees; `data-zoom` how close its street map opens: 17 is street level,
+  15 or 16 shows more of the neighbourhood. Either way the map zooms from 8
+  out to 19 in.
+- **Photos of the spot:** put them in the same `drops/images/` folder,
+  named `item`, the drop's number, `_` and the date as MMDDYY:
+  `item4_092326.jpg` is drop 004's spot on 2026.09.23. A second photo the
+  same day takes a letter after the date (`item4_092326b.jpg`). The build
+  finds them and puts them in date order; the page shows each one's name
+  and date. JPEG, PNG, WebP, GIF or SVG; about 1600 pixels on the long side
+  is plenty. To choose the photos and their order yourself, list them in
+  the drop's `data-photos`, separated by spaces
+  (`data-photos="images/a.jpg images/b.jpg"`, so no spaces in the names);
+  the build leaves that alone.
+- **The item photo:** put it in the same folder (JPEG, PNG, WebP, GIF or
+  SVG; about 1200 pixels wide is plenty) and name it in `data-item`.
 
-Then run `python build.py`. For a point in a new place it fetches the street
+Then run `python build.py`. For a zone in a new place it fetches the street
 map first (see *The Drops map*). Nothing else needs touching: the globe, the
-lists, the prompts and the point's page all read these blocks.
+lists, the prompts and the zone's page all read these blocks.
 
 ### Marking a drop claimed
 
@@ -259,17 +307,52 @@ found, add `data-claimed` with the date to its `<article>` in `drops.html`:
 <article class="dp-entry" data-n="001" data-placed="2026.06.15" data-claimed="2026.06.28" ...>
 ```
 
-and run `python build.py`. On its point's page the drop is then tagged
+and run `python build.py`. On its zone's page the drop is then tagged
 **CLAIMED** in the list of drops, in place of NEW, and the head of its item
 window says **CLAIMED** with the date (just **CLAIMED** where the window is
-too narrow for both). The item photo is left alone, so later visitors still
-see what was left there. Once every drop at a point is claimed, the point
+too narrow for both). The photos are left alone, so later visitors still
+see what was left there. Once every drop at a zone is claimed, the zone
 says **CLAIMED** in the world list and in its prompt, and turns hollow on
 the globe. `data-claimed` without a date shows **CLAIMED** alone; deleting
 it undoes it. Nothing ever says "unclaimed".
 
 Drop 001's story says it was recovered on 2026.06.28, but it is not marked:
 add `data-claimed="2026.06.28"` to it if it should show.
+
+## 2026.10.10 update
+
+- **Drop zones.** Drop points are now drop zones, everywhere: the list, the
+  prompt's **OPEN ZONE**, the zone's page and its title. Addresses are
+  unchanged (`drops#03` for a zone, `drops#003` for a drop).
+- **The zone's name heads its page**, large, under its number: ZONE 03
+  over TELEGRAPH HILL. "What is a drop?" is rewritten and quieter, a small
+  ? in the corner of the top bar.
+- **Photos of the spot.** The sticker window is gone. Each drop has a Spot
+  window with photos of where it was left, which the build picks up from
+  `drops/images/` by their names (`item3_092326.jpg`: drop 003,
+  2026.09.23). Arrows, the arrow keys and a swipe go through them; each
+  shows its file's name and date. Choosing a drop in the list shows
+  everything about it beside the list: Spot, Transmission (narrower now)
+  and Item.
+- **The street map opens at street level** (zoom 17, from 14 and 15), and
+  zooms two steps closer or all the way out to the region. Its streets are
+  red, brighter and wider the bigger the road, so the scale and the
+  landmarks read at a glance; buildings taupe, parks olive, names bone.
+  Its rings are at 50, 100 and 250 m (from 100, 250 and 500), and their
+  labels no longer overlap: zoomed out, the inner ones give way.
+- **The globe goes down to street level near a zone.** Anywhere else it
+  still stops at 64x; within 4 km of a zone it comes on in to the scale
+  the zone's street map opens at, and ZOOM IN takes it there, so the globe
+  hands over where the street map begins. Close in, it draws the street
+  map's own streets, parks, water and neighbourhood names.
+- **More on the globe close in:** rivers, cities' built-up areas, highways
+  and main roads from Natural Earth, coming in from about 3x; borders in
+  bone; and the latitude and longitude grid down to a thousandth of a
+  degree. The world map grew from 10.4 to 22.6 MB on the server; what a
+  visitor downloads is above.
+- **Stronger cursors.** OPEN ZONE has a solid red wedge that steps toward
+  what it opens, and WORLD MAP a solid black one pointing back, stepping
+  that way when pointed at.
 
 ## 2026.10.09 update 3
 
@@ -606,11 +689,13 @@ returning customers' saved carts will mismatch.
 
 ## Before deploying
 
-1. Replace the placeholder art in `images/store/`, `images/blog/`,
-   `images/about/`, and the two drop placeholders in `images/`. Put it in the
-   source (`_source/website-fixed/images/`, the brand kit's `drops/images/`;
-   the store placeholders are written by `build.py`), not in the build
-   folders, which the next build wipes.
+1. Replace the placeholder art in `images/store/`, `images/blog/` and
+   `images/about/`, and give the drops their photos of the spot and the
+   item (see *Adding a drop, or a drop zone*); the two drop placeholders in
+   `images/` stand in for any a drop doesn't have. Put it in the source
+   (`_source/website-fixed/images/`, the brand kit's `drops/images/`; the
+   store placeholders are written by `build.py`), not in the build folders,
+   which the next build wipes.
 2. Wire up Square — see **STORE-SETUP.md**, which covers the three checkout
    modes, a working serverless endpoint, and what else you need before listing
    anything for real.
