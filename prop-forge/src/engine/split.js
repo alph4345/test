@@ -155,6 +155,102 @@ function jointPins(M, ctx, j) {
   };
 }
 
+// Centre of the outer contour and room around it (for screw joints).
+function axisOf(polys) {
+  let outer = null, best = 0;
+  for (const p of polys) { const a = signedArea(p); if (Math.abs(a) > best) { best = Math.abs(a); outer = p; } }
+  if (!outer) return null;
+  let cx = 0, cy = 0, A = 0;
+  for (let i = 0, n = outer.length; i < n; i++) {
+    const [x0, y0] = outer[i], [x1, y1] = outer[(i + 1) % n];
+    const c = x0 * y1 - x1 * y0;
+    A += c; cx += (x0 + x1) * c; cy += (y0 + y1) * c;
+  }
+  if (Math.abs(A) < 1e-9) return null;
+  cx /= 3 * A; cy /= 3 * A;
+  if (!pointInPolys([outer], cx, cy)) return null;
+  // room to the outside, and the biggest inner hole around the centre
+  const room = distToPolys([outer], cx, cy);
+  let hole = 0;
+  for (const p of polys) {
+    if (p === outer) continue;
+    if (pointInPolys([p], cx, cy)) hole = Math.max(hole, ...p.map(([x, y]) => Math.hypot(x - cx, y - cy)));
+  }
+  return { cx, cy, room, hole };
+}
+
+export const HARDWARE = {
+  M5: { rod: 5.3, insert: 6.4, insertLen: 10, nutAF: 8, nutLen: 15, label: 'M5' },
+  M6: { rod: 6.3, insert: 8.0, insertLen: 12.7, nutAF: 10, nutLen: 18, label: 'M6' },
+  M8: { rod: 8.3, insert: 10.2, insertLen: 12.7, nutAF: 13, nutLen: 24, label: 'M8' },
+  'quarter': { rod: 6.6, insert: 8.0, insertLen: 12.7, nutAF: 11.2, nutLen: 22.2, label: '1/4"-20' },
+  'fivesixteenth': { rod: 8.2, insert: 10.2, insertLen: 12.7, nutAF: 12.8, nutLen: 22.2, label: '5/16"-18' },
+};
+
+// Printed screw thread: a rounded (sinusoidal) single-start thread, the
+// profile that prints most reliably. Made by twisting an off-centre circle
+// along the axis, so male and female always share the same helix.
+function jointThread(M, ctx, j) {
+  const { pos, dir, polys, sec } = ctx;
+  const ax = axisOf(polys);
+  if (!ax) return null;
+  const wall = j.wall == null ? 3 : +j.wall;
+  let D = +j.diameter || 0;
+  if (!D) D = Math.min(40, Math.floor((ax.room - wall) * 2));
+  let pitch = +j.pitch || Math.max(2.5, Math.min(6, D / 5));
+  const e = pitch * 0.22; // thread depth is 2e
+  const clr = j.clearance == null ? 0.3 : +j.clearance;
+  const r0 = D / 2 - e;
+  if (D < 8 || r0 - e < ax.hole + 2 || D / 2 > ax.room - 1) return null;
+  const L = +j.length || Math.max(12, Math.min(40, D * 1.1));
+  const span = L + 6;
+  const z0 = pos - span, z1 = pos + span;
+  const turns = (z1 - z0) / pitch;
+  const helix = (r) => {
+    const cs = M.CrossSection.circle(r, 48).translate([e, 0]);
+    return cs.extrude(z1 - z0, Math.ceil(turns * 24), turns * 360).translate([ax.cx, ax.cy, z0]);
+  };
+  const slab = (a, b) => M.Manifold.cube([1e4, 1e4, Math.abs(b - a)], false).translate([-5e3, -5e3, Math.min(a, b)]);
+  let male = helix(r0).intersect(slab(pos - dir * 1, pos + dir * (L - 0.5)));
+  // keep any channel running through the joint open
+  male = male.intersect(prism(sec, pos - dir * 1.5, pos + dir * L));
+  let socket = helix(r0 + clr).intersect(slab(pos - dir * 1, pos + dir * (L + 0.8)));
+  // lead-in chamfer so the thread starts easily
+  const mouth = M.Manifold.cylinder(2.5, D / 2 + clr + 1.5, D / 2 - e, 48, false);
+  socket = socket.add(dir > 0 ? mouth.translate([ax.cx, ax.cy, pos - 0.01]) : mouth.mirror([0, 0, 1]).translate([ax.cx, ax.cy, pos + 0.01]));
+  return {
+    male, socket,
+    note: `screw thread Ø${D.toFixed(0)} mm, ${pitch.toFixed(1)} mm pitch, ${L.toFixed(0)} mm long (unscrews)`,
+  };
+}
+
+// Metal hardware: a threaded-rod stud glued into one piece, and a heat-set
+// insert or glued-in coupling nut in the other. Strongest take-apart joint.
+function jointHardware(M, ctx, j) {
+  const { pos, dir, polys } = ctx;
+  const ax = axisOf(polys);
+  if (!ax) return null;
+  const hw = HARDWARE[j.size || 'M8'] || HARDWARE.M8;
+  const nut = j.hardware === 'nut';
+  const outerR = nut ? (hw.nutAF / Math.sqrt(3)) + 0.2 : hw.insert / 2;
+  if (outerR + 2.4 > ax.room || ax.hole > hw.rod / 2) return null;
+  const studIn = +j.depth || Math.max(20, hw.rod * 3);
+  const sockLen = nut ? hw.nutLen + 1 : hw.insertLen + 0.5;
+  const studOut = (nut ? hw.nutLen / 2 : hw.insertLen) + 1;
+  const cyl = (r, a, b, seg = 32) => M.Manifold.cylinder(Math.abs(b - a), r, r, seg, false).translate([ax.cx, ax.cy, Math.min(a, b)]);
+  // owner piece: hole for the stud (epoxied in)
+  const ownerHole = cyl(hw.rod / 2, pos + dir * 0.5, pos - dir * studIn);
+  // other piece: insert / nut pocket at the face, rod clearance beyond it
+  let otherHole = (nut ? cyl(outerR, pos - dir * 0.5, pos + dir * sockLen, 6) : cyl(outerR, pos - dir * 0.5, pos + dir * sockLen))
+    .add(cyl(hw.rod / 2 + 0.4, pos, pos + dir * (sockLen + 6)));
+  const rodLen = Math.round(studIn + studOut - 1);
+  return {
+    ownerHole, otherHole,
+    note: `${hw.label} threaded rod (${rodLen} mm) + ${nut ? 'coupling nut' : 'heat-set insert'} (unscrews)`,
+    bomItem: `${hw.label} threaded rod, ${rodLen} mm long, plus one ${hw.label} ${nut ? `coupling nut (${hw.nutLen} mm)` : 'heat-set insert'}; epoxy the rod into one piece`,
+  };
+}
+
 function jointKey(M, ctx, j) {
   const { framed, pos, dir, polys } = ctx;
   const wall = 2.4;
@@ -278,6 +374,8 @@ export function applyJoints(M, P, A, B, cut, tags) {
       if (t === 'pins') return jointPins(M, ctx, j0);
       if (t === 'key') return jointKey(M, ctx, j0);
       if (t === 'tabs') return jointTabs(M, ctx, j0);
+      if (t === 'thread') return jointThread(M, ctx, j0);
+      if (t === 'hardware') return jointHardware(M, ctx, j0);
       return null;
     };
     r = run(type);
@@ -291,6 +389,10 @@ export function applyJoints(M, P, A, B, cut, tags) {
       fA = fA.subtract(holes); fB = fB.subtract(holes);
       if (r.pins) extras.push({ m: fromFrame(r.pins, axis), name: `Pins (${r.pinInfo.count}× ${r.pinInfo.d} mm)`, kind: 'pins' });
       else bom.push({ d: r.pinInfo.d, qty: r.pinInfo.count, length: Math.round(r.pinInfo.length) });
+    } else if (type === 'hardware') {
+      const own = tags.tag(r.ownerHole, TAG_JOINT), oth = tags.tag(r.otherHole, TAG_JOINT);
+      if (flip) { fB = fB.subtract(own); fA = fA.subtract(oth); } else { fA = fA.subtract(own); fB = fB.subtract(oth); }
+      bom.push({ text: r.bomItem, qty: 1 });
     } else if (type === 'tabs') {
       const socket = tags.tag(r.socket, TAG_JOINT);
       const maleTab = framed.intersect(tags.tag(r.maleRegion, TAG_JOINT));
@@ -389,19 +491,33 @@ export function fitPlate(verts, plate, { ups = ['z', 'x', 'y'], margin = 3 } = {
   return first;
 }
 
-export function orientForPrint(verts, fit, plate) {
+// Rotation + translation that lays a piece on the bed as chosen by
+// fitPlate. Returned as a function so every filament volume of a piece
+// gets exactly the same placement.
+export function printTransform(refVerts, fit, plate) {
   const f = ORIENT[fit.up];
   const a = (fit.angle * Math.PI) / 180, c = Math.cos(a), s = Math.sin(a);
-  const out = new Float32Array(verts.length);
-  for (let i = 0; i < verts.length; i += 3) {
-    const p = f([verts[i], verts[i + 1], verts[i + 2]]);
-    out[i] = p[0] * c - p[1] * s;
-    out[i + 1] = p[0] * s + p[1] * c;
-    out[i + 2] = p[2];
-  }
+  const map = (verts) => {
+    const out = new Float32Array(verts.length);
+    for (let i = 0; i < verts.length; i += 3) {
+      const p = f([verts[i], verts[i + 1], verts[i + 2]]);
+      out[i] = p[0] * c - p[1] * s;
+      out[i + 1] = p[0] * s + p[1] * c;
+      out[i + 2] = p[2];
+    }
+    return out;
+  };
+  const ref = map(refVerts);
   const min = [Infinity, Infinity, Infinity], max = [-Infinity, -Infinity, -Infinity];
-  for (let i = 0; i < out.length; i++) { const k = i % 3; if (out[i] < min[k]) min[k] = out[i]; if (out[i] > max[k]) max[k] = out[i]; }
+  for (let i = 0; i < ref.length; i++) { const k = i % 3; if (ref[i] < min[k]) min[k] = ref[i]; if (ref[i] > max[k]) max[k] = ref[i]; }
   const off = [plate.x / 2 - (min[0] + max[0]) / 2, plate.y / 2 - (min[1] + max[1]) / 2, -min[2]];
-  for (let i = 0; i < out.length; i++) out[i] += off[i % 3];
-  return out;
+  return (verts) => {
+    const out = map(verts);
+    for (let i = 0; i < out.length; i++) out[i] += off[i % 3];
+    return out;
+  };
+}
+
+export function orientForPrint(verts, fit, plate) {
+  return printTransform(verts, fit, plate)(verts);
 }

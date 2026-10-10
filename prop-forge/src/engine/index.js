@@ -1,8 +1,8 @@
 // Engine entry: one call turns a design into displayable / printable
 // pieces. Runs inside a Web Worker in the app, and directly in tests.
 import { withArena } from './manifold.js';
-import { buildModel, TagMap } from './build.js';
-import { splitModel, fitPlate, orientForPrint } from './split.js';
+import { buildModel, TagMap, materialRegions, partitionByFilament } from './build.js';
+import { splitModel, fitPlate, printTransform } from './split.js';
 export { DOWELS } from './split.js';
 import { toBinarySTL } from './stl.js';
 
@@ -57,7 +57,7 @@ export function runBuild(M, design, { mode = 'model', withStl = false } = {}) {
   return withArena(() => {
     const tags = new TagMap();
     const t0 = Date.now();
-    const { model, lids, warnings } = buildModel(M, design, tags);
+    const { model, lids, warnings, materials } = buildModel(M, design, tags);
     if (!model || model.isEmpty()) return { pieces: [], warnings: warnings.length ? warnings : ['Model is empty.'], reports: [] };
     const plate = design.split?.plate || DEFAULT_PLATE;
     let bodies = [];
@@ -72,10 +72,19 @@ export function runBuild(M, design, { mode = 'model', withStl = false } = {}) {
     }
     lids.forEach((l) => bodies.push({ m: l.m, kind: 'lid', name: l.name, side: l.side }));
 
+    const used = new Set(materials.map((x) => x.filament));
+    const byFilament = mode === 'split' && design.split?.byFilament && used.size > 1;
+    const regions = (withStl || byFilament) && used.size > 1 ? materialRegions(M, materials) : null;
     // separate loose bodies so each printable part is its own piece
     const out = [];
     for (const b of bodies) {
-      for (const m of b.kind === 'pins' ? [b.m] : separateBodies(M, b.m)) out.push({ ...b, m });
+      for (const m of b.kind === 'pins' ? [b.m] : separateBodies(M, b.m)) {
+        if (byFilament && b.kind !== 'pins') {
+          for (const part of partitionByFilament(M, m, regions)) {
+            for (const mm of separateBodies(M, part.m)) out.push({ ...b, m: mm, filament: part.filament });
+          }
+        } else out.push({ ...b, m });
+      }
     }
     out.forEach((b) => { b.bb = bboxOf(b.m); });
     const order = { piece: 0, lid: 1, pins: 2 };
@@ -87,8 +96,18 @@ export function runBuild(M, design, { mode = 'model', withStl = false } = {}) {
       const data = meshData(b.m, tags);
       const fit = fitPlate(vertsOf(b.m.hull()), plate);
       const name = b.kind === 'piece' ? (mode === 'split' ? `Piece ${++n}` : 'Full model') : b.name;
-      const piece = { name, kind: b.kind, side: b.side, bbox: b.bb, volume: b.m.volume(), fit, ...data };
-      if (withStl) piece.stl = toBinarySTL(orientForPrint(data.verts, fit, plate), data.tris, name);
+      const piece = { name, kind: b.kind, side: b.side, bbox: b.bb, volume: b.m.volume(), fit, filament: b.filament, ...data };
+      if (withStl) {
+        const tf = printTransform(data.verts, fit, plate);
+        piece.stl = toBinarySTL(tf(data.verts), data.tris, name);
+        // per-filament volumes in the same print position (multi-material)
+        const split = b.filament ? [{ filament: b.filament, m: b.m }] : regions ? partitionByFilament(M, b.m, regions) : [{ filament: [...used][0] || 1, m: b.m }];
+        piece.parts = split.map(({ filament, m }) => {
+          const md = m === b.m ? data : meshData(m, tags);
+          const verts = tf(md.verts);
+          return { filament, verts, tris: md.tris, stl: toBinarySTL(verts, md.tris, `${name} filament ${filament}`) };
+        });
+      }
       return piece;
     });
     return { pieces, warnings, reports, ms: Date.now() - t0 };

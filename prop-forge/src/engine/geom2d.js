@@ -21,57 +21,83 @@ export function expandSymmetric(points) {
   const half = points.map((p, i) =>
     i === 0 || i === points.length - 1 ? { ...p, x: 0 } : { ...p, x: Math.abs(p.x) });
   const mirror = [];
-  for (let i = half.length - 2; i >= 1; i--) mirror.push({ ...half[i], x: -half[i].x });
+  const flip = (h) => (h ? [-h[0], h[1]] : undefined);
+  for (let i = half.length - 2; i >= 1; i--) {
+    const q = { ...half[i], x: -half[i].x };
+    // walking backwards swaps incoming and outgoing handles
+    const hi = flip(half[i].ho), ho = flip(half[i].hi);
+    delete q.hi; delete q.ho;
+    if (hi) q.hi = hi;
+    if (ho) q.ho = ho;
+    mirror.push(q);
+  }
   return half.concat(mirror);
 }
 
-function hermite(p0, p1, m0, m1, t) {
-  const t2 = t * t, t3 = t2 * t;
-  const h00 = 2 * t3 - 3 * t2 + 1, h10 = t3 - 2 * t2 + t;
-  const h01 = -2 * t3 + 3 * t2, h11 = t3 - t2;
-  return [
-    h00 * p0[0] + h10 * m0[0] + h01 * p1[0] + h11 * m1[0],
-    h00 * p0[1] + h10 * m0[1] + h01 * p1[1] + h11 * m1[1],
-  ];
+// Cubic Bezier control points for segment i -> i+1. Points may carry
+// explicit handles (hi = incoming, ho = outgoing, offsets from the point);
+// otherwise curve points ('c') get automatic smooth handles and corner
+// points get none (straight towards the neighbour).
+export function autoHandle(points, i, closed, which) {
+  const n = points.length;
+  const p = points[i];
+  const h = which === 'in' ? p.hi : p.ho;
+  if (h) return h;
+  if (!p.c || (!closed && (i === 0 || i === n - 1))) return null;
+  const a = points[(i - 1 + n) % n], b = points[(i + 1) % n];
+  const mx = (b.x - a.x) / 6, my = (b.y - a.y) / 6;
+  return which === 'in' ? [-mx, -my] : [mx, my];
 }
 
-// Points carry {x, y, s (sharp edge), c (curve through this point)}.
-// Returns [{p:[x,y], s:boolean}] densely sampled. Corner points (c=false)
-// are kept exactly; curve points get a Catmull-Rom style tangent.
+export function segmentControls(points, i, closed) {
+  const n = points.length;
+  const j = (i + 1) % n;
+  const a = points[i], b = points[j];
+  const ho = autoHandle(points, i, closed, 'out');
+  const hi = autoHandle(points, j, closed, 'in');
+  if (!ho && !hi) return null; // straight line
+  const P0 = [a.x, a.y], P3 = [b.x, b.y];
+  const P1 = ho ? [a.x + ho[0], a.y + ho[1]] : [a.x + (b.x - a.x) / 3, a.y + (b.y - a.y) / 3];
+  const P2 = hi ? [b.x + hi[0], b.y + hi[1]] : [b.x - (b.x - a.x) / 3, b.y - (b.y - a.y) / 3];
+  return [P0, P1, P2, P3];
+}
+
+export function bezierPoint(c, t) {
+  const u = 1 - t;
+  const a = u * u * u, b = 3 * u * u * t, d = 3 * u * t * t, e = t * t * t;
+  return [a * c[0][0] + b * c[1][0] + d * c[2][0] + e * c[3][0], a * c[0][1] + b * c[1][1] + d * c[2][1] + e * c[3][1]];
+}
+
+// Point halfway along segment i (on the curve), for "insert point" handles.
+export function segmentMidpoint(points, i, closed) {
+  const c = segmentControls(points, i, closed);
+  const a = points[i], b = points[(i + 1) % points.length];
+  return c ? bezierPoint(c, 0.5) : [(a.x + b.x) / 2, (a.y + b.y) / 2];
+}
+
+// Points carry {x, y, s (sharp edge), c (curve through this point),
+// hi/ho (optional Bezier handles)}. Returns [{p:[x,y], s:boolean}] densely
+// sampled. Corner points are kept exactly.
 export function sampleCurve(points, closed, step = 6) {
   const n = points.length;
   if (n < 2) return points.map((p) => ({ p: [p.x, p.y], s: !!p.s }));
-  const P = points.map((p) => [p.x, p.y]);
-  const get = (i) => (closed ? P[(i + n) % n] : P[Math.max(0, Math.min(n - 1, i))]);
-  const tangent = (i, segFrom, segTo) => {
-    const pt = points[closed ? (i + n) % n : i];
-    if (!pt.c || (!closed && (i === 0 || i === n - 1))) {
-      return [(segTo[0] - segFrom[0]) * 0.0, (segTo[1] - segFrom[1]) * 0.0];
-    }
-    const a = get(i - 1), b = get(i + 1);
-    return [(b[0] - a[0]) * 0.5, (b[1] - a[1]) * 0.5];
-  };
   const out = [];
   const segs = closed ? n : n - 1;
   for (let i = 0; i < segs; i++) {
     const j = (i + 1) % n;
-    const a = P[i], b = P[j];
     const pa = points[i], pb = points[j];
-    out.push({ p: a.slice(), s: !!pa.s });
-    const len = Math.hypot(b[0] - a[0], b[1] - a[1]);
-    if (!pa.c && !pb.c) continue; // straight segment
-    let m0 = tangent(i, a, b), m1 = tangent(j, a, b);
-    // a corner end of a curved segment points straight at the other end
-    if (!pa.c) m0 = [(b[0] - a[0]), (b[1] - a[1])];
-    if (!pb.c) m1 = [(b[0] - a[0]), (b[1] - a[1])];
-    const k = Math.max(2, Math.min(40, Math.ceil(len / step)));
+    out.push({ p: [pa.x, pa.y], s: !!pa.s });
+    const c = segmentControls(points, i, closed);
+    if (!c) continue; // straight segment
+    const len = Math.hypot(c[1][0] - c[0][0], c[1][1] - c[0][1]) + Math.hypot(c[2][0] - c[1][0], c[2][1] - c[1][1]) + Math.hypot(c[3][0] - c[2][0], c[3][1] - c[2][1]);
+    const k = Math.max(2, Math.min(48, Math.ceil(len / step)));
     for (let t = 1; t < k; t++) {
       const u = t / k;
       const s = pa.s && pb.s ? true : (!pa.s && !pb.s ? false : (u < 0.5 ? !!pa.s : !!pb.s));
-      out.push({ p: hermite(a, b, m0, m1, u), s });
+      out.push({ p: bezierPoint(c, u), s });
     }
   }
-  if (!closed) out.push({ p: P[n - 1].slice(), s: !!points[n - 1].s });
+  if (!closed) out.push({ p: [points[n - 1].x, points[n - 1].y], s: !!points[n - 1].s });
   // drop near-duplicate consecutive points
   const clean = [];
   for (const q of out) {

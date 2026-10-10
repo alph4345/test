@@ -28,6 +28,7 @@ const base = (name, type, o) => ({
   rot: o.rot || [0, 0, 0],
   stretch: o.stretch || [1, 1, 1],
   copies: o.copies || { mode: 'none', count: 2 },
+  filament: o.filament || 1,
   ...(o.target ? { target: o.target } : {}),
   ...(o.hidden ? { hidden: true } : {}),
 });
@@ -105,6 +106,15 @@ export function bay(name, pos, size, o = {}) {
   };
 }
 
+export function defaultFilaments() {
+  return [
+    { name: 'Silver / grey', color: '#c3c8cf' },
+    { name: 'Black', color: '#2b2d31' },
+    { name: 'Brown', color: '#7a4f2c' },
+    { name: 'Gold', color: '#d4a63a' },
+  ];
+}
+
 export function design(name, parts, { features = [], meta = {} } = {}) {
   return {
     version: 1,
@@ -113,7 +123,8 @@ export function design(name, parts, { features = [], meta = {} } = {}) {
     parts,
     features,
     meta,
-    split: { plate: { x: 256, y: 256, z: 256, name: 'Bambu Lab X1 / P1 / A1' }, cuts: [] },
+    filaments: defaultFilaments(),
+    split: { plate: { x: 270, y: 270, z: 270, name: 'Snapmaker U1 (4 toolheads)' }, cuts: [] },
   };
 }
 

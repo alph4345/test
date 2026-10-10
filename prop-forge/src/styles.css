@@ -77,7 +77,10 @@ button, input, select { font: inherit; color: inherit; }
 .pe-img { font-size: 12px; }
 .pe-canvas { position: relative; flex: 1; min-height: 0; }
 .pe-canvas canvas { width: 100%; height: 100%; display: block; outline: none; touch-action: none; cursor: crosshair; }
-.pe-help { position: absolute; top: 6px; right: 10px; font-size: 11px; color: var(--muted); pointer-events: none; text-align: right; }
+.pe-help { position: absolute; top: 6px; left: 50%; transform: translateX(-50%); font-size: 11px; color: var(--muted); pointer-events: none; display: flex; flex-wrap: wrap; justify-content: center; gap: 2px 12px; max-width: calc(100% - 20px); background: color-mix(in srgb, var(--panel) 80%, transparent); padding: 4px 6px; border-radius: 6px; }
+.pe-help .k { font-weight: 600; color: var(--text); }
+.pe-help .k.plus { display: inline-grid; place-items: center; width: 14px; height: 14px; border-radius: 50%; background: #2fbf71; color: #fff; }
+.pe-help .k.sharp { color: #ff7a45; }
 
 /* controls */
 button { background: var(--panel-2); border: 1px solid var(--line); border-radius: 7px; padding: 5px 10px; cursor: pointer; }
@@ -176,3 +179,22 @@ input[type=checkbox] { accent-color: var(--accent); }
   .pe-help { display: none; }
   .title { display: none; }
 }
+
+.grind { margin: 6px 0 4px; }
+.grind svg { width: 100%; height: auto; background: var(--input); border: 1px solid var(--line); border-radius: 8px; display: block; }
+.grind .g-fill { fill: color-mix(in srgb, var(--accent) 35%, transparent); stroke: var(--accent); stroke-width: 1.5; }
+.grind .g-mark { stroke: var(--muted); stroke-dasharray: 3 3; }
+.grind .g-txt { fill: var(--muted); font-size: 10px; }
+.grind figcaption { color: var(--muted); font-size: 11px; margin-top: 2px; }
+
+.field.fil .fil-row { display: flex; gap: 4px; flex-wrap: wrap; }
+.fil-chip { display: inline-flex; align-items: center; gap: 4px; padding: 3px 8px; font-size: 12px; }
+.fil-chip .sw, .fil-list .sw { width: 12px; height: 12px; border-radius: 3px; border: 1px solid rgba(0,0,0,.25); }
+.fil-chip.on { outline: 2px solid var(--accent); background: var(--sel); color: var(--text); border-color: var(--accent); }
+.fil-badge { min-width: 18px; height: 18px; border-radius: 4px; font-size: 10px; display: inline-grid; place-items: center; color: #fff; text-shadow: 0 0 2px #000; border: 1px solid rgba(0,0,0,.3); }
+.fil-list { list-style: none; padding: 0; margin: 4px 0; }
+.fil-list li { display: flex; align-items: center; gap: 6px; margin: 4px 0; }
+.fil-list b { width: 16px; text-align: center; }
+.fil-list input[type=color] { width: 34px; height: 24px; padding: 0 2px; border: 1px solid var(--line); border-radius: 5px; background: var(--input); }
+.fil-list input[type=text] { flex: 1; min-width: 0; }
+.card-credit { color: var(--muted); font-size: 10px; font-style: italic; }

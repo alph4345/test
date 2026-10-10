@@ -7,7 +7,7 @@ import { RoomEnvironment } from 'three/examples/jsm/environments/RoomEnvironment
 import { toCreasedNormals } from 'three/examples/jsm/utils/BufferGeometryUtils.js';
 
 const PIECE_COLORS = ['#e07a5f', '#3d85c6', '#81b29a', '#f2cc8f', '#9b72cf', '#e56b9f', '#4fb0c6', '#c9a227', '#7bc96f', '#d9813b', '#6c8ead', '#b5656d'];
-const TAG_COLORS = { '-1': '#c2553a', '-2': '#d9c9a3', '-3': '#e8a23a', '-4': '#d9c9a3' };
+const TAG_COLORS = { '-1': '#c2553a', '-2': '#d9c9a3', '-3': '#e8a23a', '-4': '#d9c9a3', '-5': '#7a5232' };
 
 export class Viewport {
   constructor(el, cb) {
@@ -101,7 +101,7 @@ export class Viewport {
       let g = new THREE.BufferGeometry();
       g.setAttribute('position', new THREE.BufferAttribute(p.verts, 3));
       g.setIndex(new THREE.BufferAttribute(p.tris, 1));
-      g = toCreasedNormals(g, Math.PI / 5);
+      g = toCreasedNormals(g, Math.PI / 15);
       g.setAttribute('color', new THREE.BufferAttribute(new Float32Array(p.tris.length * 3), 3));
       const mesh = new THREE.Mesh(g, mat);
       mesh.userData = { piece: p, index: i };
@@ -151,7 +151,7 @@ export class Viewport {
     const size = new THREE.Vector3().fromArray(bbox.max).sub(new THREE.Vector3().fromArray(bbox.min));
     const r = size.length() / 2;
     const dist = r / Math.sin((this.camera.fov * Math.PI) / 360) * 1.05;
-    const dir = view === 'side' ? new THREE.Vector3(1, 0.15, 0.05) : view === 'top' ? new THREE.Vector3(0.01, 1, 0.2) : new THREE.Vector3(0.28, 0.12, 1);
+    const dir = view === 'side' ? new THREE.Vector3(1, 0.15, 0.05) : view === 'top' ? new THREE.Vector3(0.01, 1, 0.2) : view === 'back' ? new THREE.Vector3(-0.28, 0.12, -1) : view === 'edge' ? new THREE.Vector3(0.35, 0.9, 0.25) : new THREE.Vector3(0.28, 0.12, 1);
     this.camera.position.copy(c).add(dir.normalize().multiplyScalar(dist));
     this.controls.target.copy(c);
     this.camera.near = Math.max(0.5, dist / 200);
@@ -216,9 +216,9 @@ export class Viewport {
     if (!this.gizmo.dragging) this.proxy.position.fromArray(position);
     this.gizmo.attach(this.proxy);
     const ax = target.axis;
-    this.gizmo.showX = !ax || ax === 'x';
-    this.gizmo.showY = !ax || ax === 'y';
-    this.gizmo.showZ = !ax || ax === 'z';
+    this.gizmo.showX = !ax || ax.includes('x');
+    this.gizmo.showY = !ax || ax.includes('y');
+    this.gizmo.showZ = !ax || ax.includes('z');
   }
 
   pick(e) {

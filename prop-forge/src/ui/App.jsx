@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from 'preact/hooks';
-import { useStore, store, edit, setUI, setBuild, setModelBox, undo, redo, canUndo, canRedo, subscribe } from '../state.js';
+import { useStore, store, edit, setUI, setBuild, setModelBox, undo, redo, canUndo, canRedo, subscribe, filamentsOf, bumpMeshes } from '../state.js';
+import { loadMeshes } from './stlimport.js';
 import { previewBuild } from '../engine/client.js';
 import { Viewport, pieceColor, tagColor } from './Viewport.js';
 import { ProfileEditor } from './ProfileEditor.jsx';
@@ -77,6 +78,7 @@ export function App() {
       onPick: (hit) => {
         const tab = store.ui.tab;
         if (!hit) { if (tab !== 'split') setUI({ sel: null }); return; }
+        if (hit.kind === 'mesh' && hit.tag <= -100) { const f = store.design.features[-100 - hit.tag]; if (f) setUI({ sel: { kind: 'feature', id: f.id }, tab: 'inserts' }); return; }
         if (hit.kind === 'feature') setUI({ sel: { kind: 'feature', id: hit.id }, tab: 'inserts' });
         else if (hit.kind === 'cut') setUI({ sel: { kind: 'cut', id: hit.id } });
         else if (hit.kind === 'mesh' && hit.tag >= 0 && (tab === 'shape' || tab === 'forge')) {
@@ -94,6 +96,7 @@ export function App() {
             const f = d.features.find((x) => x.id === t.id);
             if (!f) return;
             if (f.type === 'cavity') f.pos = pos.map((v) => r(v / sc));
+            else if (f.type === 'mount') f.pos = [r(pos[0] / sc), r(pos[1] / sc)];
             else {
               const mid = f.from.map((v, i) => (v + f.to[i]) / 2);
               const delta = pos.map((v, i) => v / sc - mid[i]);
@@ -118,7 +121,7 @@ export function App() {
   // rebuild whenever the design or mode changes
   useEffect(() => {
     const mode = splitMode ? 'split' : 'model';
-    const key = mode + JSON.stringify(design);
+    const key = mode + store.meshVersion + JSON.stringify(design);
     if (key === lastSent.current) return;
     lastSent.current = key;
     setUI({ busy: true });
@@ -139,8 +142,17 @@ export function App() {
   // push build results into the scene
   const colorOf = (piece, index, tag) => {
     const sel = store.ui.sel;
+    const d = store.design;
     if (store.ui.colorBy === 'piece' && store.build.mode === 'split') return tag === -3 ? mix(pieceColor(index), '#000000', 0.25) : pieceColor(index);
-    let c = tag >= 0 ? store.design.parts[tag]?.color || '#999999' : tagColor(tag);
+    if (store.ui.colorBy === 'filament') {
+      const fils = filamentsOf(d);
+      if (piece.filament) return fils[piece.filament - 1]?.color || '#999999';
+      let f = null;
+      if (tag >= 0) f = d.parts[tag]?.filament || 1;
+      else if (tag <= -100) f = d.features[-100 - tag]?.filament || 1;
+      return f ? fils[f - 1]?.color || '#999999' : mix(fils[0]?.color || '#999999', '#000000', 0.2);
+    }
+    let c = tag >= 0 ? d.parts[tag]?.color || '#999999' : tag <= -100 ? (d.features[-100 - tag]?.color || '#7a5232') : tagColor(tag);
     if (sel?.kind === 'part' && tag >= 0 && store.design.parts[tag]?.id === sel.id && store.ui.tab === 'shape') c = mix(c, '#ffb347', 0.45);
     return c;
   };
@@ -148,7 +160,7 @@ export function App() {
     const offs = build.mode === 'split' ? explodeOffsets(build.pieces, design.split.cuts, ui.explode) : null;
     vp.current.setPieces(build.pieces, { colorOf, offsets: offs });
   }, [build]);
-  useEffect(() => { vp.current.recolor(colorOf); }, [ui.sel, ui.colorBy, ui.tab, design.parts]);
+  useEffect(() => { vp.current.recolor(colorOf); }, [ui.sel, ui.colorBy, ui.tab, design.parts, design.filaments]);
   useEffect(() => {
     if (build.mode === 'split') vp.current.setOffsets(explodeOffsets(build.pieces, design.split.cuts, ui.explode));
   }, [ui.explode]);
@@ -157,9 +169,17 @@ export function App() {
   useEffect(() => {
     const sc = design.scale || 1;
     const showGhosts = ui.tab === 'inserts';
-    const ghosts = showGhosts ? design.features.filter((f) => !f.hidden).map((f) => (f.type === 'channel'
-      ? { id: f.id, type: 'rod', a: f.from.map((v) => v * sc), b: f.to.map((v) => v * sc), r: f.diameter / 2 }
-      : { id: f.id, type: 'box', min: f.pos.map((v, i) => v * sc - f.size[i] / 2), max: f.pos.map((v, i) => v * sc + f.size[i] / 2) })) : [];
+    const mbox = store.modelBox;
+    const ghosts = showGhosts ? design.features.filter((f) => !f.hidden).map((f) => {
+      if (f.type === 'channel') return { id: f.id, type: 'rod', a: f.from.map((v) => v * sc), b: f.to.map((v) => v * sc), r: f.diameter / 2 };
+      if (f.type === 'mount') {
+        const a = ((f.angle || 0) * Math.PI) / 180, h = (f.span || 100) / 2;
+        const z = mbox ? (f.side === '+z' ? mbox.max[2] + 4 : mbox.min[2] - 4) : 0;
+        const c = [f.pos[0] * sc, f.pos[1] * sc];
+        return { id: f.id, type: 'rod', a: [c[0] - h * Math.cos(a), c[1] - h * Math.sin(a), z], b: [c[0] + h * Math.cos(a), c[1] + h * Math.sin(a), z], r: (f.bar || 10) / 2 };
+      }
+      return { id: f.id, type: 'box', min: f.pos.map((v, i) => v * sc - f.size[i] / 2), max: f.pos.map((v, i) => v * sc + f.size[i] / 2) };
+    }) : [];
     vp.current.setGhosts(ghosts, ui.sel?.id);
     const box = store.modelBox;
     const cutsVis = (ui.tab === 'split' && box) ? design.split.cuts.map((c) => {
@@ -177,13 +197,26 @@ export function App() {
       if (p) { target = { kind: 'part', id: p.id }; pos = p.pos.map((v) => v * sc); }
     } else if (sel?.kind === 'feature' && ui.tab === 'inserts') {
       const f = design.features.find((x) => x.id === sel.id);
-      if (f) { target = { kind: 'feature', id: f.id }; pos = (f.type === 'cavity' ? f.pos : f.from.map((v, i) => (v + f.to[i]) / 2)).map((v) => v * sc); }
+      if (f) {
+        target = { kind: 'feature', id: f.id };
+        if (f.type === 'mount') {
+          const z = store.modelBox ? (f.side === '+z' ? store.modelBox.max[2] + 4 : store.modelBox.min[2] - 4) : 0;
+          pos = [f.pos[0] * sc, f.pos[1] * sc, z];
+          target.axis = 'xy';
+        } else pos = (f.type === 'cavity' ? f.pos : f.from.map((v, i) => (v + f.to[i]) / 2)).map((v) => v * sc);
+      }
     } else if (sel?.kind === 'cut' && ui.tab === 'split' && box) {
       const c = design.split.cuts.find((x) => x.id === sel.id);
       if (c) { target = { kind: 'cut', id: c.id, axis: c.axis }; pos = box.min.map((v, i) => (v + box.max[i]) / 2); pos[AX[c.axis]] = c.pos; }
     }
     vp.current.setGizmo(target, pos, ui.gizmo);
   });
+
+  // imported meshes live in IndexedDB; load the ones this design uses
+  const meshIds = design.parts.filter((p) => p.type === 'mesh').map((p) => p.meshRef).join(',');
+  useEffect(() => {
+    if (meshIds) loadMeshes(meshIds.split(',')).then(() => bumpMeshes());
+  }, [meshIds]);
 
   // keyboard shortcuts
   useEffect(() => {
@@ -246,6 +279,7 @@ export function App() {
               <button onClick={() => vp.current.fit(unionBox(build.pieces) || store.modelBox, 'front')}>Front</button>
               <button onClick={() => vp.current.fit(unionBox(build.pieces) || store.modelBox, 'side')}>Side</button>
               <button onClick={() => vp.current.fit(unionBox(build.pieces) || store.modelBox, 'top')}>Top</button>
+              <button onClick={() => vp.current.fit(unionBox(build.pieces) || store.modelBox, 'back')}>Back</button>
               <label class="chk"><input type="checkbox" checked={ui.gizmo} onChange={(e) => setUI({ gizmo: e.target.checked })} /> Move arrows</label>
               {selPart && (selPart.type === 'profile' || selPart.type === 'lathe') && ui.tab === 'shape' && (
                 <label class="chk"><input type="checkbox" checked={ui.editorOpen} onChange={(e) => setUI({ editorOpen: e.target.checked })} /> Outline editor</label>

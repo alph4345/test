@@ -107,3 +107,19 @@ export function Section({ title, children, right }) {
 export function Help({ children, warn }) {
   return <p class={warn ? 'help warn' : 'help'}>{children}</p>;
 }
+
+export function FilamentPick({ value, filaments, onChange, label = 'Filament' }) {
+  const v = +value || 1;
+  return (
+    <div class="field fil">
+      <span class="lbl">{label}</span>
+      <div class="fil-row">
+        {filaments.map((f, i) => (
+          <button key={i} type="button" class={`fil-chip${v === i + 1 ? ' on' : ''}`} title={`${i + 1}: ${f.name}`} onClick={() => onChange(i + 1)}>
+            <span class="sw" style={{ background: f.color }} />{i + 1}
+          </button>
+        ))}
+      </div>
+    </div>
+  );
+}

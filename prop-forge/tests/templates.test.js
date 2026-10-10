@@ -14,7 +14,7 @@ for (const t of TEMPLATES) {
     const main = r.pieces.filter((p) => p.kind === 'piece');
     const bb = main.reduce((b, p) => ({ min: p.bbox.min.map((v, i) => Math.min(v, b.min[i])), max: p.bbox.max.map((v, i) => Math.max(v, b.max[i])) }), { min: [1e9, 1e9, 1e9], max: [-1e9, -1e9, -1e9] });
     const a = autoSplit(M, d);
-    d.split.cuts = a.cuts.map((c, i) => ({ ...c, id: 'c' + i, joints: [{ type: 'auto' }] }));
+    d.split.cuts = a.cuts.map((c, i) => ({ ...c, id: 'c' + i, joints: [{ type: d.split.defaultJoint || 'auto' }] }));
     const s = runBuild(M, d, { mode: 'split' });
     const pcs = s.pieces.filter((p) => p.kind === 'piece');
     const bad = pcs.filter((p) => !p.fit.fits).length;

@@ -1,9 +1,31 @@
-import { store, edit, setUI } from '../state.js';
+import { store, edit, setUI, filamentsOf, toast, bumpMeshes } from '../state.js';
+import { parseSTL, repairMesh, putMesh } from './stlimport.js';
 import { symmetryPatch } from './ProfileEditor.jsx';
-import { Num, Vec3, Select, Check, Text, Color, Section, Help } from './controls.jsx';
+import { grindHeights } from '../engine/blade.js';
+import { Num, Vec3, Select, Check, Text, Color, Section, Help, FilamentPick } from './controls.jsx';
 import { blade, flat, lathe, box, cyl, sphere, hole, P, COLORS, uid, gripPoints } from '../templates/helpers.js';
 
-const TYPE_LABEL = { profile: 'flat / blade', lathe: 'round', box: 'box', cylinder: 'cylinder', sphere: 'sphere' };
+const TYPE_LABEL = { profile: 'flat / blade', lathe: 'round', box: 'box', cylinder: 'cylinder', sphere: 'sphere', mesh: 'imported' };
+
+async function importSTL(file) {
+  const mesh = parseSTL(await file.arrayBuffer());
+  if (!mesh.tris.length) { toast('That file has no triangles in it.'); return; }
+  const rep = repairMesh(mesh);
+  const id = uid('mesh');
+  await putMesh(id, rep.mesh);
+  const [sx, sy, sz] = mesh.size;
+  const rot = sx > sy && sx >= sz ? [0, 0, 90] : sz > sy && sz > sx ? [-90, 0, 0] : [0, 0, 0];
+  const longest = Math.max(sx, sy, sz);
+  const part = {
+    id: uid(), name: file.name.replace(/\.stl$/i, ''), type: 'mesh', op: 'add', meshRef: id, unit: 1,
+    color: COLORS.steel, pos: [0, 0, 0], rot, stretch: [1, 1, 1], copies: { mode: 'none', count: 2 },
+    info: { tris: rep.mesh.tris.length / 3, repaired: rep.filled, size: mesh.size },
+  };
+  edit((dd) => { dd.parts.push(part); });
+  bumpMeshes();
+  setUI({ sel: { kind: 'part', id: part.id } });
+  toast(`Imported ${part.name}: ${Math.round(longest)} units long${rep.filled ? `, closed ${rep.filled} hole${rep.filled > 1 ? 's' : ''}` : ''}. If it's too small, set Units to cm or inches.`, 7000);
+}
 
 function newPart(kind, at) {
   const y = at;
@@ -20,6 +42,37 @@ function newPart(kind, at) {
   }
 }
 
+// Cross-section from the edge to the middle of the blade, to scale.
+function GrindPreview({ part }) {
+  const T = +part.thickness || 10;
+  const bevel = +part.bevel || 0;
+  const opts = { thickness: T, edge: Math.min(+part.edge || T, T), bevel, grind: part.grind || 'flat', sides: part.sides || 'both' };
+  const span = Math.max(bevel * 1.35, T * 1.5, 10);
+  const W = 300, H = 92, pad = 10;
+  const k = Math.min((W - 2 * pad) / span, (H - 26) / T);
+  const top = [], bot = [];
+  for (let i = 0; i <= 60; i++) {
+    const d = (span * i) / 60;
+    const [a, b] = grindHeights(opts, d, 0);
+    const x = pad + d * k;
+    top.push(`${x.toFixed(1)},${(H / 2 - 8 - a * k).toFixed(1)}`);
+    bot.push(`${x.toFixed(1)},${(H / 2 - 8 - b * k).toFixed(1)}`);
+  }
+  const bx = pad + bevel * k;
+  return (
+    <figure class="grind">
+      <svg viewBox={`0 0 ${W} ${H}`} role="img" aria-label="Blade cross-section">
+        <polygon points={top.concat(bot.reverse()).join(' ')} class="g-fill" />
+        {bevel > 0 && <line x1={bx} x2={bx} y1={6} y2={H - 22} class="g-mark" />}
+        <text x={pad} y={H - 6} class="g-txt">edge {opts.edge} mm</text>
+        {bevel > 0 && <text x={Math.min(bx + 4, W - 110)} y={H - 6} class="g-txt">grind starts {bevel} mm in</text>}
+        <text x={W - pad} y={14} class="g-txt" text-anchor="end">{T} mm</text>
+      </svg>
+      <figcaption>Cross-section from the edge (left) toward the middle, to scale.</figcaption>
+    </figure>
+  );
+}
+
 function PartEditor({ part, idx }) {
   const d = store.design;
   const set = (patch, key) => edit((dd) => { Object.assign(dd.parts[idx], patch); }, key ? `${part.id}-${key}` : null);
@@ -31,17 +84,30 @@ function PartEditor({ part, idx }) {
         <Select label="Mode" value={part.op || 'add'} options={[['add', 'Add material'], ['subtract', 'Cut away (hole)']]} onChange={(v) => set({ op: v })} />
         <Color label="Colour" value={part.color} onChange={(v) => set({ color: v }, 'color')} />
       </div>
+      {part.op !== 'subtract' && (
+        <FilamentPick value={part.filament} filaments={filamentsOf(d)} onChange={(v) => set({ filament: v })} />
+      )}
       {part.op === 'subtract' && (
         <Select label="Cut from" value={part.target || ''} hint="Cut only one part, e.g. the opening of a loop guard without cutting the grip inside it"
           options={[['', 'Everything it touches'], ...addParts.map((p) => [p.id, p.name])]} onChange={(v) => set({ target: v || undefined })} />
       )}
       {part.type === 'profile' && (
         <>
-          <Num label="Thickness" unit="mm" value={part.thickness} min={1} max={150} step={0.5} slider onChange={(v) => set({ thickness: v }, 'th')} hint="Full thickness of the flat middle" />
-          <Num label="Edge thickness" unit="mm" value={part.edge} min={0.8} max={part.thickness} step={0.1} slider onChange={(v) => set({ edge: v }, 'edge')} hint="How thick the 'sharp' edges end up. 1.5–3 mm prints well and is safe." />
-          <Num label="Bevel width" unit="mm" value={part.bevel} min={0} max={150} step={0.5} slider onChange={(v) => set({ bevel: v }, 'bevel')} hint="How far in from the edge the grind starts. 0 = flat slab." />
+          <Num label="Thickness" unit="mm" value={part.thickness} min={1} max={150} step={0.5} slider onChange={(v) => set({ thickness: v }, 'th')} hint="Full thickness of the blade's flat (or the spine)" />
           <Check label="Mirror left/right (edit one half)" checked={part.symmetric} onChange={(v) => set(symmetryPatch(part, v))} />
-          <Help>Orange points/edges in the outline editor are sharpened. Edit the outline below the 3D view.</Help>
+          <h4>Edge grind <span class="muted small">(orange nodes in the outline)</span></h4>
+          <Num label="Grind starts" unit="mm" value={part.bevel} min={0} max={200} step={0.5} slider onChange={(v) => set({ bevel: v }, 'bevel')} hint="How far in from the edge the bevel starts. 0 = flat slab, no edge." />
+          <Num label="Edge thickness" unit="mm" value={part.edge} min={0.4} max={part.thickness} step={0.1} slider onChange={(v) => set({ edge: v }, 'edge')} hint="How sharp the edge ends up. Thinner = sharper looking. 1.5–3 mm prints cleanly and keeps the prop con-safe." />
+          <div class="two">
+            <Select label="Grind shape" value={part.grind || 'flat'} options={[['flat', 'Flat (V)'], ['convex', 'Convex'], ['hollow', 'Hollow']]} onChange={(v) => set({ grind: v })} />
+            <Select label="Ground on" value={part.sides || 'both'} options={[['both', 'Both faces'], ['front', 'Front only (chisel)'], ['back', 'Back only (chisel)']]} onChange={(v) => set({ sides: v })} />
+          </div>
+          <Check label="Distal taper (thinner toward the tip)" checked={part.tipThickness != null} onChange={(v) => set({ tipThickness: v ? Math.round(part.thickness * 0.6 * 10) / 10 : null })} />
+          {part.tipThickness != null && (
+            <Num label="Tip thickness" unit="mm" value={part.tipThickness} min={0.6} max={part.thickness * 2} step={0.5} slider onChange={(v) => set({ tipThickness: v }, 'tip')} hint="Thickness at the far end of the outline (top, +Y); it tapers smoothly from the base." />
+          )}
+          <GrindPreview part={part} />
+          {!(part.points || []).some((q) => q.s) && <Help warn>No node is marked sharp, so there is no edge. Select nodes in the outline editor and press "Sharp" (or "All sharp").</Help>}
         </>
       )}
       {part.type === 'lathe' && (
@@ -65,6 +131,19 @@ function PartEditor({ part, idx }) {
             <Num label="Length" unit="mm" value={part.height} min={0.5} step={1} onChange={(v) => set({ height: v }, 'h')} />
             <Num label="Sides" value={part.sides} min={3} max={128} step={1} onChange={(v) => set({ sides: Math.round(v) }, 'sides')} />
           </div>
+        </>
+      )}
+      {part.type === 'mesh' && (
+        <>
+          <Select label="File units" value={String(part.unit || 1)} options={[['1', 'millimetres'], ['10', 'centimetres (×10)'], ['25.4', 'inches (×25.4)'], ['1000', 'metres (×1000)']]}
+            onChange={(v) => set({ unit: +v })} hint="STL files have no units. If the model came out tiny, it was probably made in cm or inches." />
+          {part.info && <Help>{part.info.tris.toLocaleString()} triangles · {part.info.size.map((v) => Math.round(v * (part.unit || 1))).join(' × ')} mm{part.info.repaired ? ` · ${part.info.repaired} hole${part.info.repaired > 1 ? 's' : ''} closed on import` : ''}</Help>}
+          <div class="row-btns">
+            <button onClick={() => set({ rot: [0, 0, 0] })}>Reset rotation</button>
+            <button onClick={() => set({ rot: [part.rot[0], part.rot[1], (part.rot[2] + 90) % 360] })}>Turn 90° (Z)</button>
+            <button onClick={() => set({ rot: [(part.rot[0] + 90) % 360, part.rot[1], part.rot[2]] })}>Tip 90° (X)</button>
+          </div>
+          <Help>The weapon's length should run along Y (up in the 3D view), with the flat of the blade facing you, so cuts and dowels line up.</Help>
         </>
       )}
       {part.type === 'sphere' && <Num label="Radius" unit="mm" value={part.r} min={1} step={0.5} slider max={300} onChange={(v) => set({ r: v }, 'r')} />}
@@ -111,6 +190,9 @@ export function ShapePanel() {
             onChange={(v) => edit((dd) => { dd.scale = Math.max(0.05, v / 100); }, 'scale')} />
         </div>
         {box && <Help>Size: {Math.round(box.max[0] - box.min[0])} × {Math.round(length)} × {Math.round(box.max[2] - box.min[2])} mm (width × length × thickness)</Help>}
+        {length > 1500 && (
+          <Help warn>Over 150 cm. Many conventions cap props at 150 cm (180 cm for narrow staffs and spears) and ask that bigger props come apart without tools. Use "Screw thread" or "Threaded rod + insert" joints in the Split tab, and check your event's prop rules.</Help>
+        )}
       </Section>
       <Section title="Parts" right={<span class="muted">click a part in 3D to select it</span>}>
         <ul class="list">
@@ -119,6 +201,7 @@ export function ShapePanel() {
               <span class="dot" style={{ background: p.op === 'subtract' ? 'transparent' : p.color, borderColor: p.color }} />
               <span class="nm">{p.name}</span>
               <span class="muted small">{p.op === 'subtract' ? 'hole' : TYPE_LABEL[p.type]}</span>
+              {p.op !== 'subtract' && <span class="fil-badge" title={`Filament ${p.filament || 1}`} style={{ background: filamentsOf(d)[(p.filament || 1) - 1]?.color }}>{p.filament || 1}</span>}
               <button class="icon" title={p.hidden ? 'Show' : 'Hide'} onClick={(e) => { e.stopPropagation(); edit((dd) => { const q = dd.parts.find((x) => x.id === p.id); q.hidden = !q.hidden; }); }}>{p.hidden ? '◌' : '●'}</button>
             </li>
           ))}
@@ -133,6 +216,9 @@ export function ShapePanel() {
           <button onClick={() => add('sphere')}>Sphere</button>
           <button onClick={() => add('hole')}>Round hole</button>
           <button onClick={() => add('cutshape')}>Shaped cut-out</button>
+          <label class="btn" title="Bring in an STL (e.g. from Thingiverse/Printables) to split, add inserts and joints to">
+            Import STL…<input type="file" accept=".stl,model/stl" hidden onChange={(e) => { const f = e.target.files[0]; e.target.value = ''; if (f) importSTL(f).catch((err) => toast(`Import failed: ${err.message}`)); }} />
+          </label>
         </div>
       </Section>
       {selIdx >= 0 && <PartEditor key={d.parts[selIdx].id} part={d.parts[selIdx]} idx={selIdx} />}

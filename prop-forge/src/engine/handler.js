@@ -23,6 +23,7 @@ export function transferList(result) {
     for (const p of result.pieces) {
       t.push(p.verts.buffer, p.tris.buffer, p.triTags.buffer);
       if (p.stl) t.push(p.stl);
+      for (const q of p.parts || []) t.push(q.verts.buffer, q.stl);
     }
   }
   return t;

@@ -1,6 +1,6 @@
 // Turns part descriptions into Manifold solids.
-import { ShapeUtils, Vector2 } from 'three';
-import { expandSymmetric, sampleCurve, ensureCCW, isSimplePolygon, rayHit, signedArea } from './geom2d.js';
+import { expandSymmetric, sampleCurve, ensureCCW, signedArea } from './geom2d.js';
+import { bladeMesh } from './blade.js';
 
 export function profileOutline(part) {
   const pts = part.symmetric ? expandSymmetric(part.points) : part.points;
@@ -20,79 +20,34 @@ export function latheOutline(part) {
   return ensureCCW(poly);
 }
 
-// Inset each outline vertex towards the inside by its bevel width. Returns
-// null if the inset outline is not a simple polygon.
-function insetOutline(P, d) {
-  const n = P.length;
-  const Q = new Array(n);
-  for (let i = 0; i < n; i++) {
-    if (d[i] <= 0) { Q[i] = P[i]; continue; }
-    const a = P[(i - 1 + n) % n], b = P[i], c = P[(i + 1) % n];
-    let ax = b[0] - a[0], ay = b[1] - a[1], cx = c[0] - b[0], cy = c[1] - b[1];
-    const la = Math.hypot(ax, ay) || 1, lc = Math.hypot(cx, cy) || 1;
-    ax /= la; ay /= la; cx /= lc; cy /= lc;
-    const na = [-ay, ax], nc = [-cy, cx];
-    let mx = na[0] + nc[0], my = na[1] + nc[1];
-    const ml = Math.hypot(mx, my);
-    if (ml < 1e-6) { mx = na[0]; my = na[1]; } else { mx /= ml; my /= ml; }
-    const cosHalf = Math.max(0.35, mx * na[0] + my * na[1]);
-    let move = d[i] / cosHalf;
-    const hit = rayHit(P, b, [mx, my], i);
-    move = Math.min(move, hit * 0.45);
-    Q[i] = [b[0] + mx * move, b[1] + my * move];
-  }
-  return isSimplePolygon(Q) ? Q : null;
+function meshSolid(M, data) {
+  const mesh = new M.Mesh({ numProp: 3, vertProperties: data.verts, triVerts: data.tris });
+  mesh.merge();
+  let m;
+  try { m = M.newManifold(mesh); } catch { return null; }
+  if (m.status() !== 'NoError' || m.isEmpty() || m.volume() <= 0) return null;
+  return m;
 }
 
-// Blade-style extrusion: the flat middle is `thickness` thick and every
-// sharp outline point tapers to `edge` over `bevel` mm.
-export function bevelledMesh(M, samples, thickness, edge, bevel) {
-  const P = samples.map((s) => s.p);
-  const n = P.length;
-  const T = thickness / 2;
-  const e = Math.min(edge, thickness) / 2;
-  let scale = 1, Q = null;
-  const base = samples.map((s) => (s.s && bevel > 0 && e < T ? bevel : 0));
-  if (base.every((v) => v === 0)) return null;
-  for (let it = 0; it < 8 && !Q; it++) {
-    Q = insetOutline(P, base.map((v) => v * scale));
-    scale *= 0.7;
-  }
-  if (!Q) return null;
-  const sharp = base.map((v, i) => v > 0 && (Q[i][0] !== P[i][0] || Q[i][1] !== P[i][1]));
-  const verts = [];
-  const add = (x, y, z) => { verts.push(x, y, z); return verts.length / 3 - 1; };
-  const oT = [], oB = [], iT = [], iB = [];
-  for (let i = 0; i < n; i++) {
-    const h = sharp[i] ? e : T;
-    oT[i] = add(P[i][0], P[i][1], h);
-    oB[i] = add(P[i][0], P[i][1], -h);
-    if (sharp[i]) { iT[i] = add(Q[i][0], Q[i][1], T); iB[i] = add(Q[i][0], Q[i][1], -T); }
-    else { iT[i] = oT[i]; iB[i] = oB[i]; }
-  }
-  const tris = [];
-  const poly = (ids) => {
-    const u = [];
-    for (const id of ids) if (u[u.length - 1] !== id) u.push(id);
-    while (u.length > 1 && u[0] === u[u.length - 1]) u.pop();
-    for (let k = 1; k + 1 < u.length; k++) tris.push(u[0], u[k], u[k + 1]);
+// true when a profile part needs the ground-blade mesh rather than a slab
+export function hasGrind(part) {
+  const t = +part.thickness || 10;
+  const sharp = (part.points || []).some((p) => p.s);
+  const taper = part.tipThickness != null && part.tipThickness !== '' && +part.tipThickness !== t;
+  return (sharp && +part.bevel > 0 && +part.edge < t) || taper;
+}
+
+export function bladeOptions(part, samples) {
+  const ys = samples.map((s) => s.p[1]);
+  const t = Math.max(0.4, +part.thickness || 10);
+  return {
+    thickness: t,
+    edge: Math.max(0.4, Math.min(t, +part.edge || t)),
+    bevel: Math.max(0, +part.bevel || 0),
+    grind: part.grind || 'flat',
+    sides: part.sides || 'both',
+    taper: part.tipThickness != null && part.tipThickness !== '' ? { to: Math.max(0.4, +part.tipThickness), y0: Math.min(...ys), y1: Math.max(...ys) } : null,
   };
-  const faces = ShapeUtils.triangulateShape(Q.map((q) => new Vector2(q[0], q[1])), []);
-  for (const [a, b, c] of faces) {
-    tris.push(iT[a], iT[b], iT[c]);
-    tris.push(iB[a], iB[c], iB[b]);
-  }
-  for (let i = 0; i < n; i++) {
-    const j = (i + 1) % n;
-    poly([oT[i], oT[j], iT[j], iT[i]]);
-    poly([oB[i], oB[j], oT[j], oT[i]]);
-    poly([oB[j], oB[i], iB[i], iB[j]]);
-  }
-  const mesh = new M.Mesh({ numProp: 3, vertProperties: new Float32Array(verts), triVerts: new Uint32Array(tris) });
-  mesh.merge();
-  const m = M.newManifold(mesh);
-  if (m.status() !== "NoError" || m.isEmpty() || m.volume() <= 0) return null;
-  return m;
 }
 
 function extrudeFlat(M, poly, thickness) {
@@ -101,15 +56,25 @@ function extrudeFlat(M, poly, thickness) {
   return m;
 }
 
+// Imported meshes are passed alongside the design (they are kept out of
+// the design itself so undo and autosave stay light).
+let meshSource = {};
+export function setMeshSource(m) { meshSource = m || {}; }
+
 // Build the untransformed solid for one part (local coordinates).
-export function partSolid(M, part) {
+export function partSolid(M, part, warn = () => {}) {
   switch (part.type) {
     case 'profile': {
       const samples = profileOutline(part);
       if (samples.length < 3) return null;
       const t = Math.max(0.4, +part.thickness || 10);
-      const bev = bevelledMesh(M, samples, t, +part.edge || t, +part.bevel || 0);
-      return bev || extrudeFlat(M, samples.map((s) => s.p), t);
+      if (hasGrind(part)) {
+        const data = bladeMesh(samples, bladeOptions(part, samples));
+        const m = data && meshSolid(M, data);
+        if (m) return m;
+        warn(`"${part.name}": the edge grind could not be built for this outline (does it cross itself?), so it is shown flat.`);
+      }
+      return extrudeFlat(M, samples.map((s) => s.p), t);
     }
     case 'lathe': {
       const poly = latheOutline(part);
@@ -129,6 +94,21 @@ export function partSolid(M, part) {
     }
     case 'sphere':
       return M.Manifold.sphere(+part.r || 10, Math.max(8, part.sides | 0 || 48));
+    case 'mesh': {
+      const data = meshSource[part.meshRef];
+      if (!data) { warn(`"${part.name}": the imported model's data is missing. Import the STL again.`); return null; }
+      const mesh = new M.Mesh({ numProp: 3, vertProperties: Float32Array.from(data.verts), triVerts: Uint32Array.from(data.tris) });
+      mesh.merge();
+      let m = null;
+      try { m = M.newManifold(mesh); } catch { m = null; }
+      if (!m || m.status() !== 'NoError' || m.isEmpty()) {
+        warn(`"${part.name}": this STL is not watertight (it has holes or loose faces), so it can't be cut or joined. Repair it first (e.g. Windows 3D Builder, Meshmixer, or your slicer's "fix model"), then import it again.`);
+        return null;
+      }
+      if (m.volume() < 0) m = m.mirror([0, 0, 1]).mirror([0, 0, 1]);
+      const u = +part.unit || 1;
+      return u !== 1 ? m.scale(u) : m;
+    }
     default:
       return null;
   }
@@ -144,8 +124,8 @@ export function placeSolid(m, part) {
 }
 
 // All placed copies of a part (mirror / radial array), before global scale.
-export function partInstances(M, part) {
-  let base = partSolid(M, part);
+export function partInstances(M, part, warn) {
+  let base = partSolid(M, part, warn);
   if (!base) return [];
   const st = part.stretch;
   if (st && (st[0] !== 1 || st[1] !== 1 || st[2] !== 1)) base = base.scale(st.map((v) => +v || 1));

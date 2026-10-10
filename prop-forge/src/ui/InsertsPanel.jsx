@@ -1,7 +1,8 @@
-import { store, edit, setUI } from '../state.js';
-import { Num, Vec3, Select, Check, Text, Section, Help } from './controls.jsx';
+import { store, edit, setUI, filamentsOf } from '../state.js';
+import { Num, Vec3, Select, Check, Text, Section, Help, FilamentPick } from './controls.jsx';
 import { dowel, bay, uid } from '../templates/helpers.js';
 import { DOWELS } from '../engine/split.js';
+import { MOUNT_PRESETS } from '../engine/build.js';
 
 const SIDES = [['+z', 'Front face (+Z)'], ['-z', 'Back face (−Z)'], ['+x', 'Right side (+X)'], ['-x', 'Left side (−X)'], ['+y', 'Top end (+Y)'], ['-y', 'Bottom end (−Y)']];
 
@@ -15,6 +16,21 @@ function defaults() {
   const handle = meta.handle || { from: [0, bottom + 5, 0], to: [0, cy, 0] };
   const bladePart = d.parts.find((p) => p.type === 'profile' && /blade|head/i.test(p.name));
   return { s, box, meta, cy, handle, bladePart };
+}
+
+function mount(name, style, pos, angle, side = '-z') {
+  const p = MOUNT_PRESETS[style];
+  return { id: uid('f'), type: 'mount', name, style, side, pos, angle, span: p.span, gap: p.gap, bar: p.bar };
+}
+
+// forearm strap (two loops the strap runs through) plus a hand grip
+// nearer the rim, the layout used on most worn shields
+export function shieldSet(cy = 0) {
+  return [
+    mount('Hand grip', 'grip', [0, cy - 150], 0),
+    mount('Forearm strap loop L', 'loop', [-85, cy + 60], 90),
+    mount('Forearm strap loop R', 'loop', [85, cy + 60], 90),
+  ];
 }
 
 function addFeature(kind) {
@@ -35,6 +51,14 @@ function addFeature(kind) {
     const x = bladePart ? bladePart.pos[0] + (bladePart.symmetric ? 0 : (Math.min(...bladePart.points.map((q) => q.x)) + Math.max(...bladePart.points.map((q) => q.x))) / 2) : 0;
     f = bay('LED strip groove', [x, y0 + (y1 - y0) * 0.45, T], [12, Math.round(len), 8], { lid: { enabled: false } });
     f.lid.enabled = false;
+  }
+  else if (kind === 'grip' || kind === 'loop') {
+    f = mount(kind === 'grip' ? 'Hand grip' : 'Strap loop', kind, [0, cy], 0);
+  } else if (kind === 'shieldset') {
+    const list = shieldSet(cy);
+    edit((dd) => { dd.features.push(...list); });
+    setUI({ sel: { kind: 'feature', id: list[0].id } });
+    return;
   }
   if (!f) return;
   edit((dd) => { dd.features.push(f); });
@@ -91,6 +115,29 @@ function FeatureEditor({ f, idx }) {
           )}
         </>
       )}
+      {f.type === 'mount' && (
+        <>
+          <div class="two">
+            <Select label="Type" value={f.style} options={[['grip', 'Hand grip'], ['loop', 'Strap loop']]}
+              onChange={(v) => set((x) => { x.style = v; Object.assign(x, MOUNT_PRESETS[v]); })} />
+            <Select label="On face" value={f.side || '-z'} options={[['-z', 'Back (−Z)'], ['+z', 'Front (+Z)']]} onChange={(v) => set((x) => { x.side = v; })} />
+          </div>
+          <div class="two">
+            <Num label="Centre X" unit="mm" value={f.pos[0]} step={1} onChange={(v) => set((x) => { x.pos = [v, x.pos[1]]; }, 'px')} />
+            <Num label="Centre Y" unit="mm" value={f.pos[1]} step={1} onChange={(v) => set((x) => { x.pos = [x.pos[0], v]; }, 'py')} />
+          </div>
+          <Num label="Angle" unit="°" value={f.angle || 0} min={-180} max={180} step={5} slider onChange={(v) => set((x) => { x.angle = v; }, 'ang')} />
+          <Num label={f.style === 'grip' ? 'Grip length' : 'Strap opening'} unit="mm" value={f.span} min={20} max={300} step={1} onChange={(v) => set((x) => { x.span = v; }, 'span')}
+            hint={f.style === 'grip' ? 'Post to post. 110–130 mm fits most hands.' : 'Post to post. Strap width + about 8 mm (46 mm for 1.5 in / 38 mm webbing).'} />
+          <div class="two">
+            <Num label="Clearance" unit="mm" value={f.gap} min={2} max={80} step={1} onChange={(v) => set((x) => { x.gap = v; }, 'gap')}
+              hint={f.style === 'grip' ? 'Gap between surface and bar for your fingers (35–40 mm).' : 'Room for the strap thickness (4–6 mm).'} />
+            <Num label="Bar Ø" unit="mm" value={f.bar} min={4} max={50} step={1} onChange={(v) => set((x) => { x.bar = v; }, 'bar')} />
+          </div>
+          <FilamentPick value={f.filament} filaments={filamentsOf(store.design)} onChange={(v) => set((x) => { x.filament = v; })} />
+          <Help>Posts reach down to the surface wherever it is, so this works on domed shields. Print the piece with the hardware facing up, and use 4+ walls.</Help>
+        </>
+      )}
       <div class="row-btns">
         <button onClick={() => edit((dd) => { const c = structuredClone(f); c.id = uid('f'); c.name += ' copy'; dd.features.push(c); })}>Duplicate</button>
         <button class="danger" onClick={() => { edit((dd) => { dd.features.splice(idx, 1); }); setUI({ sel: null }); }}>Delete</button>
@@ -106,7 +153,7 @@ export function InsertsPanel() {
   return (
     <div>
       <Section title="Inserts & compartments">
-        <Help>Hollow spaces cut into the prop: a channel for a wooden dowel or steel rod through the handle (the backbone of the prop), and bays for batteries, LEDs, speakers or boards. Sizes are real millimetres and don't change when you rescale.</Help>
+        <Help>Hollow spaces cut into the prop (a dowel or steel-rod channel through the handle, bays for batteries, LEDs, speakers or boards) and hardware added to it (hand grips and strap loops for shields). Sizes are real millimetres and don't change when you rescale.</Help>
         <div class="add-grid">
           <span class="muted">Add:</span>
           <button onClick={() => addFeature('dowel')}>Handle dowel</button>
@@ -115,13 +162,16 @@ export function InsertsPanel() {
           <button onClick={() => addFeature('battery')}>18650 battery</button>
           <button onClick={() => addFeature('wire')}>Wire channel</button>
           <button onClick={() => addFeature('led')}>LED strip groove</button>
+          <button onClick={() => addFeature('grip')} title="D-handle you hold, e.g. on the back of a shield">Hand grip</button>
+          <button onClick={() => addFeature('loop')} title="Bridge for a nylon or leather strap">Strap loop</button>
+          <button onClick={() => addFeature('shieldset')} title="Forearm strap loops + hand grip">Shield straps set</button>
         </div>
         <ul class="list">
           {d.features.map((f) => (
             <li key={f.id} class={f.id === sel ? 'on' : ''} onClick={() => setUI({ sel: { kind: 'feature', id: f.id } })}>
               <span class="dot ins" />
               <span class="nm">{f.name}</span>
-              <span class="muted small">{f.type === 'channel' ? `Ø${f.diameter}` : f.size.join('×')}</span>
+              <span class="muted small">{f.type === 'channel' ? `Ø${f.diameter}` : f.type === 'mount' ? (f.style === 'grip' ? 'grip' : 'strap loop') : f.size.join('×')}</span>
               <button class="icon" title={f.hidden ? 'Enable' : 'Disable'} onClick={(e) => { e.stopPropagation(); edit((dd) => { const q = dd.features.find((x) => x.id === f.id); q.hidden = !q.hidden; }); }}>{f.hidden ? '◌' : '●'}</button>
             </li>
           ))}

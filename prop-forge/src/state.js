@@ -1,6 +1,9 @@
 // Global app store: the design (undoable, autosaved) plus UI state.
 import { useEffect, useState } from 'preact/hooks';
 import { findTemplate } from './templates/index.js';
+import { defaultFilaments } from './templates/helpers.js';
+
+export const filamentsOf = (d) => (d.filaments && d.filaments.length ? d.filaments : defaultFilaments());
 
 const SAVE_KEY = 'prop-forge:current';
 const LIB_KEY = 'prop-forge:library';
@@ -30,7 +33,10 @@ export const store = {
   },
   build: { pieces: [], warnings: [], reports: [], ms: 0, error: null, mode: 'model' },
   modelBox: null,
+  meshVersion: 0,
 };
+
+export function bumpMeshes() { store.meshVersion++; emit(); }
 
 const subs = new Set();
 const past = [];

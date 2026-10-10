@@ -2,6 +2,7 @@
 // browser allows it (hosted pages); pages opened straight from disk cannot
 // start module workers, so the engine then runs on the main thread.
 import EngineWorker from './worker.js?worker&inline';
+import { meshesFor } from '../ui/stlimport.js';
 
 let nextId = 1;
 const pending = new Map();
@@ -54,6 +55,7 @@ function send(job) {
 }
 
 export function request(kind, design, opts) {
+  if (design.parts.some((p) => p.type === 'mesh')) design = { ...design, __meshes: meshesFor(design) };
   return new Promise((resolve, reject) => {
     const job = { msg: { id: nextId++, kind, design, opts }, resolve, reject };
     if (mode === 'worker') send(job);

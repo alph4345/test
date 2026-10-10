@@ -16,7 +16,7 @@ function crc32(bytes) {
   return (c ^ 0xffffffff) >>> 0;
 }
 
-export function makeZip(files) {
+export function makeZip(files, type = "application/zip") {
   const enc = new TextEncoder();
   const chunks = [];
   const central = [];
@@ -53,7 +53,7 @@ export function makeZip(files) {
   end.setUint16(10, files.length, true);
   end.setUint32(12, cenSize, true);
   end.setUint32(16, offset, true);
-  return new Blob([...chunks, ...central, new Uint8Array(end.buffer)], { type: 'application/zip' });
+  return new Blob([...chunks, ...central, new Uint8Array(end.buffer)], { type });
 }
 
 // Inside the claude.ai artifact viewer, files go through the viewer's
@@ -70,7 +70,7 @@ function getViewerDownloads() {
 }
 if (typeof window !== 'undefined') getViewerDownloads();
 
-const ALLOWED = /\.(zip|json|txt|csv|md|png|svg|pdf|html)$/i;
+const ALLOWED = /\.(zip|json|txt|csv|md|png|svg|pdf|html)$/i; // 3mf/stl get zipped in the viewer
 
 export async function download(blob, filename) {
   const dl = await getViewerDownloads();

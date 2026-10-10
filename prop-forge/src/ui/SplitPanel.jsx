@@ -1,10 +1,11 @@
-import { store, edit, setUI, toast } from '../state.js';
+import { store, edit, setUI, toast, filamentsOf } from '../state.js';
 import { request } from '../engine/client.js';
 import { Num, Select, Check, Section, Help } from './controls.jsx';
 import { uid } from '../templates/helpers.js';
 import { pieceColor } from './Viewport.js';
 
 export const PRINTERS = [
+  ['snapmaker-u1', 'Snapmaker U1 (4 toolheads)', 270, 270, 270],
   ['bambu', 'Bambu Lab X1 / P1 / A1', 256, 256, 256],
   ['bambu-mini', 'Bambu Lab A1 mini', 180, 180, 180],
   ['bambu-h2d', 'Bambu Lab H2D', 325, 320, 325],
@@ -25,6 +26,8 @@ export const JOINTS = [
   ['tabs', 'Puzzle tabs'],
   ['pins', 'Dowel pins'],
   ['key', 'Key peg'],
+  ['thread', 'Screw thread (take apart)'],
+  ['hardware', 'Threaded rod + insert (take apart)'],
   ['none', 'None (glue only)'],
 ];
 
@@ -34,6 +37,8 @@ const JOINT_HELP = {
   tabs: 'Jigsaw-style dovetail knobs through the thickness. Lock the pieces together lengthwise; ideal for flat blades.',
   pins: 'Matching holes in both faces for wooden dowels, steel rod or printed pins. Simple and strong.',
   key: 'A square, round or cross-shaped peg on one side. Cross / square keys stop twisting.',
+  thread: 'A printed screw: one piece screws into the other, no glue or tools. Use it where the prop must come apart for travel or con rules (staffs, polearms, long swords). Works best on round sections; print with 3+ walls.',
+  hardware: 'Strongest take-apart joint: a steel threaded rod is epoxied into one piece and screws into a heat-set insert or glued-in coupling nut in the other. Needs a round-ish section big enough for the insert.',
   none: 'Flat faces. Glue (CA or epoxy) only.',
 };
 
@@ -76,7 +81,20 @@ function JointEditor({ j, onChange, onRemove }) {
           <Num label="Width" unit="mm" placeholder="auto" value={j.size} min={3} max={60} step={0.5} onChange={(v) => set({ size: v })} />
         </div>
       )}
-      {j.type !== 'none' && j.type !== 'auto' && (
+      {j.type === 'thread' && (
+        <div class="three">
+          <Num label="Diameter" unit="mm" placeholder="auto" value={j.diameter} min={8} max={60} step={1} onChange={(v) => set({ diameter: v })} />
+          <Num label="Pitch" unit="mm" placeholder="auto" value={j.pitch} min={2} max={10} step={0.5} onChange={(v) => set({ pitch: v })} />
+          <Num label="Length" unit="mm" placeholder="auto" value={j.length} min={8} max={60} step={1} onChange={(v) => set({ length: v })} />
+        </div>
+      )}
+      {j.type === 'hardware' && (
+        <div class="two">
+          <Select label="Rod size" value={j.size || 'M8'} options={[['M5', 'M5'], ['M6', 'M6'], ['M8', 'M8'], ['quarter', '1/4"-20'], ['fivesixteenth', '5/16"-18']]} onChange={(v) => set({ size: v })} />
+          <Select label="Female side" value={j.hardware || 'insert'} options={[['insert', 'Heat-set insert'], ['nut', 'Coupling nut (glued)']]} onChange={(v) => set({ hardware: v })} />
+        </div>
+      )}
+      {j.type !== 'none' && j.type !== 'auto' && j.type !== 'hardware' && (
         <Num label="Fit clearance" unit="mm" placeholder="default" value={j.clearance} min={0} max={1} step={0.05} onChange={(v) => set({ clearance: v })}
           hint="Gap per side between plug and socket. 0.15–0.25 mm for a snug glue fit; more if your printer over-extrudes." />
       )}
@@ -137,7 +155,8 @@ export function SplitPanel() {
   const split = d.split;
   const plate = split.plate;
   const box = store.modelBox;
-  const preset = PRINTERS.find((p) => p[1] === plate.name) ? PRINTERS.find((p) => p[1] === plate.name)[0] : 'custom';
+  const match = PRINTERS.find((p) => p[1] === plate.name) || PRINTERS.find((p) => p[2] === plate.x && p[3] === plate.y && p[4] === plate.z);
+  const preset = match ? match[0] : 'custom';
   const sel = store.ui.sel?.kind === 'cut' ? store.ui.sel.id : null;
   const idx = split.cuts.findIndex((c) => c.id === sel);
   const b = store.build;
@@ -147,8 +166,9 @@ export function SplitPanel() {
   const auto = async () => {
     setUI({ autoBusy: true });
     try {
-      const r = await request('autosplit', store.design, {});
-      edit((dd) => { dd.split.cuts = r.cuts.map((c) => ({ ...c, id: uid('c'), joints: [{ type: 'auto' }] })); });
+      const dj = store.design.split.defaultJoint;
+      const r = await request('autosplit', store.design, { jointAllowance: dj === 'thread' || dj === 'hardware' ? 44 : undefined });
+      edit((dd) => { dd.split.cuts = r.cuts.map((c) => ({ ...c, id: uid('c'), joints: [{ type: dd.split.defaultJoint || 'auto' }] })); });
       if (!r.limit) setUI({ sel: null });
       toast(r.message);
     } catch (e) { toast(`Auto-split failed: ${e.message}`); }
@@ -157,7 +177,7 @@ export function SplitPanel() {
 
   const addCut = (axis) => {
     const k = { x: 0, y: 1, z: 2 }[axis];
-    const c = { id: uid('c'), axis, pos: box ? Math.round((box.min[k] + box.max[k]) / 2) : 0, joints: [{ type: axis === 'z' ? 'pins' : 'auto' }] };
+    const c = { id: uid('c'), axis, pos: box ? Math.round((box.min[k] + box.max[k]) / 2) : 0, joints: [{ type: axis === 'z' ? 'pins' : (d.split.defaultJoint || 'auto') }] };
     if (axis === 'z') {
       const h = d.meta?.handle;
       const s = d.scale || 1;
@@ -181,8 +201,31 @@ export function SplitPanel() {
           <Num label="Bed Y" unit="mm" value={plate.y} min={50} step={1} onChange={(v) => edit((dd) => { dd.split.plate = { ...dd.split.plate, y: v, name: 'Custom size' }; }, 'py')} />
           <Num label="Height" unit="mm" value={plate.z} min={50} step={1} onChange={(v) => edit((dd) => { dd.split.plate = { ...dd.split.plate, z: v, name: 'Custom size' }; }, 'pz')} />
         </div>
+        <Select label="Joint for new cuts" value={split.defaultJoint || 'auto'} options={JOINTS.filter((x) => x[0] !== 'none')}
+          hint="Used by auto-split and new cuts. Pick a take-apart joint if the prop has to break down for travel."
+          onChange={(v) => edit((dd) => { dd.split.defaultJoint = v; })} />
         <button class="primary wide" disabled={store.ui.autoBusy} onClick={auto}>{store.ui.autoBusy ? 'Working out cuts…' : 'Auto-split to fit my printer'}</button>
         <Help>Pieces are allowed to lie diagonally on the bed. Joints are added automatically; change them per cut below.</Help>
+      </Section>
+      <Section title="Filaments">
+        <Help>Give every part a filament slot (Shape tab). On a multi-toolhead printer like the U1, a piece that holds several filaments prints in one go: the export keeps each filament as its own part in the 3MF.</Help>
+        <ul class="fil-list">
+          {filamentsOf(d).map((f, i) => (
+            <li key={i}>
+              <b>{i + 1}</b>
+              <input type="color" value={f.color} onInput={(e) => edit((dd) => { dd.filaments = filamentsOf(dd).map((x, k) => (k === i ? { ...x, color: e.target.value } : x)); }, `fc${i}`)} />
+              <input type="text" value={f.name} onInput={(e) => edit((dd) => { dd.filaments = filamentsOf(dd).map((x, k) => (k === i ? { ...x, name: e.target.value } : x)); }, `fn${i}`)} />
+              <span class="muted small">{d.parts.filter((p) => p.op !== 'subtract' && !p.hidden && (p.filament || 1) === i + 1).length} parts</span>
+            </li>
+          ))}
+        </ul>
+        <div class="row-btns">
+          <button disabled={filamentsOf(d).length >= 16} onClick={() => edit((dd) => { dd.filaments = [...filamentsOf(dd), { name: `Filament ${filamentsOf(dd).length + 1}`, color: '#8f6bd8' }]; })}>+ Slot</button>
+          <button disabled={filamentsOf(d).length <= 1} onClick={() => edit((dd) => { dd.filaments = filamentsOf(dd).slice(0, -1); })}>− Slot</button>
+        </div>
+        <Check label="Print each filament as its own pieces (single-nozzle printers)" checked={split.byFilament}
+          onChange={(v) => edit((dd) => { dd.split.byFilament = v; })}
+          hint="Cuts every piece along the filament boundaries so each colour prints separately and is glued afterwards. Leave off on the U1." />
       </Section>
       <Section title="Cuts" right={split.cuts.length ? <button class="link danger" onClick={() => { edit((dd) => { dd.split.cuts = []; }); setUI({ sel: null }); }}>clear all</button> : null}>
         <ul class="list">
@@ -205,7 +248,7 @@ export function SplitPanel() {
       {idx >= 0 && <CutEditor key={split.cuts[idx].id} cut={split.cuts[idx]} idx={idx} box={box} report={reports.get(split.cuts[idx].id)} />}
       <Section title="View">
         <Num label="Explode" value={store.ui.explode} min={0} max={200} step={1} slider unit="mm" onChange={(v) => setUI({ explode: v })} />
-        <Check label="Colour each piece" checked={store.ui.colorBy === 'piece'} onChange={(v) => setUI({ colorBy: v ? 'piece' : 'part' })} />
+        <Select label="Colour by" value={store.ui.colorBy} options={[['part', 'Part colours'], ['filament', 'Filament'], ['piece', 'Piece']]} onChange={(v) => setUI({ colorBy: v })} />
       </Section>
       {pieces.length > 0 && (
         <Section title={`Pieces (${pieces.length})`} right={bad ? <span class="bad">{bad} too big</span> : <span class="good">all fit</span>}>
@@ -213,7 +256,7 @@ export function SplitPanel() {
             {pieces.map((p, i) => (
               <li key={i}>
                 <span class="dot" style={{ background: pieceColor(i) }} />
-                <span class="nm">{p.name}</span>
+                <span class="nm">{p.name}{p.filament ? ` (filament ${p.filament})` : ''}</span>
                 <span class="muted small">{Math.round(p.fit.w || 0)}×{Math.round(p.fit.h || 0)}×{Math.round(p.fit.height)} mm · ~{grams(p.volume)} g</span>
                 <span class={p.fit.fits ? 'good' : 'bad'}>{p.fit.fits ? '✓' : '✗'}</span>
               </li>

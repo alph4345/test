@@ -3,6 +3,7 @@ import { TEMPLATES, CATEGORIES } from '../templates/index.js';
 import { store, replaceDesign, libraryList, librarySave, libraryDelete, toast, setUI } from '../state.js';
 import { designSilhouettes } from './silhouette.js';
 import { download } from './zip.js';
+import { packMeshes, unpackMeshes } from './stlimport.js';
 import { Section, Help } from './controls.jsx';
 
 function Thumb({ design }) {
@@ -42,9 +43,11 @@ export function ForgePanel() {
 
   const importFile = (file) => {
     const r = new FileReader();
-    r.onload = () => {
+    r.onload = async () => {
       try {
         const d = JSON.parse(r.result);
+        await unpackMeshes(d.meshes);
+        delete d.meshes;
         if (!Array.isArray(d.parts)) throw new Error('not a Prop Forge project');
         d.features ||= []; d.split ||= { plate: { x: 256, y: 256, z: 256 }, cuts: [] };
         replaceDesign(d);
@@ -70,6 +73,7 @@ export function ForgePanel() {
               <span class="card-name">{t.name}</span>
               <span class="card-src">{t.source}</span>
               <span class="card-blurb">{t.blurb}</span>
+              {t.credit && <span class="card-credit" title={t.credit}>Traced from a reference model (credit in project)</span>}
             </button>
           ))}
         </div>
@@ -78,7 +82,7 @@ export function ForgePanel() {
         <Help>Your work is autosaved in this browser. Save named copies here, or export a project file to back it up.</Help>
         <div class="row-btns">
           <button class="primary" onClick={() => { librarySave(store.design); toast(`Saved "${store.design.name}"`); }}>Save current design</button>
-          <button onClick={() => download(new Blob([JSON.stringify(store.design, null, 1)], { type: 'application/json' }), `${store.design.name || 'prop'}.propforge.json`)}>Export file</button>
+          <button onClick={() => download(new Blob([JSON.stringify({ ...store.design, meshes: packMeshes(store.design) }, null, 1)], { type: 'application/json' }), `${store.design.name || 'prop'}.propforge.json`)}>Export file</button>
           <label class="btn">Open file<input type="file" accept=".json,application/json" hidden onChange={(e) => e.target.files[0] && importFile(e.target.files[0])} /></label>
         </div>
         {lib.length > 0 && (

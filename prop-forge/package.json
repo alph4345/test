@@ -10,6 +10,8 @@
     "test": "node --test tests/*.test.js"
   },
   "dependencies": {
+    "@kninnug/constrainautor": "^4.0.1",
+    "delaunator": "^5.0.1",
     "manifold-3d": "^3.5.4",
     "preact": "^10.27.2",
     "three": "^0.180.0"
