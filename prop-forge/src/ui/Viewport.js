@@ -101,7 +101,8 @@ export class Viewport {
       let g = new THREE.BufferGeometry();
       g.setAttribute('position', new THREE.BufferAttribute(p.verts, 3));
       g.setIndex(new THREE.BufferAttribute(p.tris, 1));
-      g = toCreasedNormals(g, Math.PI / 15);
+      // creased normals look best but are slow on very dense meshes
+      if (p.tris.length / 3 > 150000) { g = g.toNonIndexed(); g.computeVertexNormals(); } else g = toCreasedNormals(g, Math.PI / 15);
       g.setAttribute('color', new THREE.BufferAttribute(new Float32Array(p.tris.length * 3), 3));
       const mesh = new THREE.Mesh(g, mat);
       mesh.userData = { piece: p, index: i };

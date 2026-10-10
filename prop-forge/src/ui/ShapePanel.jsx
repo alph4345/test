@@ -1,5 +1,5 @@
 import { store, edit, setUI, filamentsOf, toast, bumpMeshes } from '../state.js';
-import { parseSTL, repairMesh, putMesh } from './stlimport.js';
+import { importSTL } from './importer.js';
 import { symmetryPatch } from './ProfileEditor.jsx';
 import { grindHeights } from '../engine/blade.js';
 import { Num, Vec3, Select, Check, Text, Color, Section, Help, FilamentPick } from './controls.jsx';
@@ -7,25 +7,6 @@ import { blade, flat, lathe, box, cyl, sphere, hole, P, COLORS, uid, gripPoints 
 
 const TYPE_LABEL = { profile: 'flat / blade', lathe: 'round', box: 'box', cylinder: 'cylinder', sphere: 'sphere', mesh: 'imported' };
 
-async function importSTL(file) {
-  const mesh = parseSTL(await file.arrayBuffer());
-  if (!mesh.tris.length) { toast('That file has no triangles in it.'); return; }
-  const rep = repairMesh(mesh);
-  const id = uid('mesh');
-  await putMesh(id, rep.mesh);
-  const [sx, sy, sz] = mesh.size;
-  const rot = sx > sy && sx >= sz ? [0, 0, 90] : sz > sy && sz > sx ? [-90, 0, 0] : [0, 0, 0];
-  const longest = Math.max(sx, sy, sz);
-  const part = {
-    id: uid(), name: file.name.replace(/\.stl$/i, ''), type: 'mesh', op: 'add', meshRef: id, unit: 1,
-    color: COLORS.steel, pos: [0, 0, 0], rot, stretch: [1, 1, 1], copies: { mode: 'none', count: 2 },
-    info: { tris: rep.mesh.tris.length / 3, repaired: rep.filled, size: mesh.size },
-  };
-  edit((dd) => { dd.parts.push(part); });
-  bumpMeshes();
-  setUI({ sel: { kind: 'part', id: part.id } });
-  toast(`Imported ${part.name}: ${Math.round(longest)} units long${rep.filled ? `, closed ${rep.filled} hole${rep.filled > 1 ? 's' : ''}` : ''}. If it's too small, set Units to cm or inches.`, 7000);
-}
 
 function newPart(kind, at) {
   const y = at;
@@ -139,7 +120,8 @@ function PartEditor({ part, idx }) {
         <>
           <Select label="File units" value={String(part.unit || 1)} options={[['1', 'millimetres'], ['10', 'centimetres (×10)'], ['25.4', 'inches (×25.4)'], ['1000', 'metres (×1000)']]}
             onChange={(v) => set({ unit: +v })} hint="STL files have no units. If the model came out tiny, it was probably made in cm or inches." />
-          {part.info && <Help>{part.info.tris.toLocaleString()} triangles · {part.info.size.map((v) => Math.round(v * (part.unit || 1))).join(' × ')} mm{part.info.repaired ? ` · ${part.info.repaired} hole${part.info.repaired > 1 ? 's' : ''} closed on import` : ''}</Help>}
+          {part.info && <Help>{part.info.tris.toLocaleString()} triangles{part.info.original > part.info.tris ? ` (simplified from ${part.info.original.toLocaleString()})` : ''} · {part.info.size.map((v) => Math.round(v * (part.unit || 1))).join(' × ')} mm{part.info.repaired ? ` · ${part.info.repaired} hole${part.info.repaired > 1 ? 's' : ''} closed on import` : ''}</Help>}
+          {part.info && part.info.watertight === false && <Help warn>This model is not watertight, so it is shown but cannot be cut, joined or hollowed. Repair it (Windows 3D Builder, Meshmixer, or your slicer's repair) and import it again.</Help>}
           <div class="row-btns">
             <button onClick={() => set({ rot: [0, 0, 0] })}>Reset rotation</button>
             <button onClick={() => set({ rot: [part.rot[0], part.rot[1], (part.rot[2] + 90) % 360] })}>Turn 90° (Z)</button>
@@ -220,7 +202,7 @@ export function ShapePanel() {
           <button onClick={() => add('cutshape')}>Shaped cut-out</button>
           <button onClick={() => add('zone')} title="Colour part of a model with another filament (no material added)">Filament zone</button>
           <label class="btn" title="Bring in an STL (e.g. from Thingiverse/Printables) to split, add inserts and joints to">
-            Import STL…<input type="file" accept=".stl,model/stl" hidden onChange={(e) => { const f = e.target.files[0]; e.target.value = ''; if (f) importSTL(f).catch((err) => toast(`Import failed: ${err.message}`)); }} />
+            Add an STL…<input type="file" accept=".stl,model/stl" hidden onChange={(e) => { const f = e.target.files[0]; e.target.value = ''; if (f) importSTL(f).catch((err) => toast(`Import failed: ${err.message}`)); }} />
           </label>
         </div>
       </Section>

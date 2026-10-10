@@ -4,7 +4,7 @@ import { initManifold, withArena } from '../src/engine/manifold.js';
 import { runBuild } from '../src/engine/index.js';
 import { TagMap, buildModel } from '../src/engine/build.js';
 import { splitModel } from '../src/engine/split.js';
-import { findTemplate } from '../src/templates/index.js';
+import { P, blade, flat, lathe, box, design } from '../src/templates/helpers.js';
 import { build3MF } from '../src/ui/threemf.js';
 import { parseSTL, repairMesh } from '../src/ui/stlimport.js';
 
@@ -38,23 +38,54 @@ test('threaded rod + insert joint drills both pieces and lists hardware', () => 
   });
 });
 
+// a 610 mm dished shield, 6 mm shell, like the old star shield fixture
+function shield() {
+  const zf = (r) => 60 * (1 - (r / 305) ** 2) ** 0.9;
+  const pts = [];
+  for (let i = 0; i <= 8; i++) { const r = (305 * i) / 8; pts.push(P(r, zf(r), i && i < 8 ? 'c' : '')); }
+  for (let i = 8; i >= 0; i--) { const r = (305 * i) / 8; pts.push(P(r, zf(r) - 6, i && i < 8 ? 'c' : '')); }
+  const d = design('Shield', [lathe('Dish', pts, { closedRing: true, rot: [90, 0, 0], sides: 96 })]);
+  d.features = [
+    { id: 'g', type: 'mount', name: 'Hand grip', style: 'grip', side: '-z', pos: [0, -150], angle: 0, span: 120, gap: 38, bar: 28 },
+    { id: 'l1', type: 'mount', name: 'Loop L', style: 'loop', side: '-z', pos: [-85, 70], angle: 90, span: 46, gap: 6, bar: 9 },
+    { id: 'l2', type: 'mount', name: 'Loop R', style: 'loop', side: '-z', pos: [85, 70], angle: 90, span: 46, gap: 6, bar: 9 },
+  ];
+  return d;
+}
+
 test('shield grip and strap loops attach to the curved back', () => {
-  const d = findTemplate('star-shield').build();
+  const d = shield();
   const r = runBuild(M, d);
   assert.deepEqual(r.warnings, []);
   assert.equal(r.pieces.length, 1, 'hardware fused to the shield');
   assert.ok(r.pieces[0].bbox.min[2] < -20, 'grip stands off the back');
 });
 
-test('every bladed template part has a real edge grind', () => {
-  for (const id of ['buster-sword', 'zangetsu', 'leviathan-axe', 'battle-axe', 'katana', 'revolver-gunblade']) {
-    const r = runBuild(M, findTemplate(id).build());
-    assert.deepEqual(r.warnings, [], id);
+test('blade outlines get a real edge grind (no silent flat fallback)', () => {
+  const outlines = {
+    // long straight edges with collinear points (used to break the triangulation)
+    cleaver: { pts: [P(-102.5, 0), P(102.5, 0), P(102.5, 1327, 's'), P(-102.5, 991, 's'), P(-102.5, 200, 's'), P(-102.5, 185)], t: 41, e: 2.4, b: 60 },
+    // axe head that used to fall back to flat
+    axe: { pts: [P(12, -35), P(60, -30), P(120, -110, 'c'), P(165, -140, 's'), P(186, 0, 'sc'), P(165, 140, 's'), P(120, 110, 'c'), P(60, 30), P(12, 35)], t: 24, e: 2.5, b: 45 },
+    // curved clipped tip
+    zan: { pts: [P(-110, 0), P(150, 0), P(176, 45, 's'), P(176, 880, 's'), P(150, 1060, 'sc'), P(70, 1180, 'sc'), P(-110, 1265, 's'), P(-110, 1235)], t: 16, e: 2.4, b: 85 },
+  };
+  for (const [name, o] of Object.entries(outlines)) {
+    const d = design(name, [blade('Blade', o.pts, { thickness: o.t, edge: o.e, bevel: o.b })]);
+    const r = runBuild(M, d);
+    assert.deepEqual(r.warnings, [], name);
+    const flatD = design(name, [blade('Blade', o.pts, { thickness: o.t, edge: o.t, bevel: 0 })]);
+    assert.ok(r.pieces[0].volume < runBuild(M, flatD).pieces[0].volume * 0.97, `${name} is ground`);
   }
 });
 
 test('multi-filament pieces export as a valid Orca-style 3MF', async () => {
-  const d = findTemplate('master-sword').build();
+  const d = design('Sword', [
+    blade('Blade', [P(0, 0), P(25, 0), P(21, 640, 's'), P(0, 900, 's')], { symmetric: true, thickness: 9, edge: 1.6, bevel: 20, filament: 1 }),
+    flat('Guard', [P(-120, -20), P(120, -20), P(120, 20), P(-120, 20)], 26, { filament: 2 }),
+    flat('Gem', [P(0, -14), P(10, 0), P(0, 14), P(-10, 0)], 30, { filament: 4 }),
+    lathe('Grip', [P(14, -15), P(14, -230)], { filament: 3 }),
+  ]);
   const r = runBuild(M, d, { mode: 'model', withStl: true });
   const p = r.pieces[0];
   assert.ok(p.parts.length >= 3, 'blade, guard/grip and gold parts are separate');

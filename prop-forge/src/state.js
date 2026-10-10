@@ -1,7 +1,9 @@
 // Global app store: the design (undoable, autosaved) plus UI state.
 import { useEffect, useState } from 'preact/hooks';
 import { findTemplate } from './templates/index.js';
-import { defaultFilaments } from './templates/helpers.js';
+import { defaultFilaments, design as newDesign } from './templates/helpers.js';
+
+export const blankDesign = () => newDesign('New prop', []);
 
 export const filamentsOf = (d) => (d.filaments && d.filaments.length ? d.filaments : defaultFilaments());
 
@@ -15,7 +17,7 @@ function save(key, value) {
   try { localStorage.setItem(key, JSON.stringify(value)); } catch { /* storage full or blocked */ }
 }
 
-const initialDesign = load(SAVE_KEY, null) || findTemplate('buster-sword').build();
+const initialDesign = load(SAVE_KEY, null) || (findTemplate('buster-sword-model') || { build: () => blankDesign() }).build();
 
 export const store = {
   design: initialDesign,

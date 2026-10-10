@@ -13,14 +13,10 @@ Snapmaker U1 and template sizes) is in [RESEARCH.md](RESEARCH.md).
 
 ## Workflow
 
-1. **Forge**: pick a template. The Buster Sword (Budward) and Revolver
-   gunblade (Chemvaldes) models are bundled as-is with their creator's
-   permission, ready to split, with filament zones; editable node-based
-   versions sit next to them. Others (27 so far: Buster Sword, Zangetsu, Dragon
-   Slayer, Master Sword, Kingdom Key, Revolver Gunblade, Leviathan Axe,
-   Mjolnir, Star Shield, Laser Sword Hilt, Reaper Scythe, plus longsword,
-   claymore, katana, scimitar, dagger, kunai, axes, warhammer, maces, spear,
-   glaive, round shield, wizard staff and a blank starter sword).
+1. **Forge**: start from one of your own models (Buster Sword, Revolver
+   gunblade, Zangetsu V1, Tanjiro's katana, Maka's scythe topper; see
+   [REFERENCES.md](REFERENCES.md)), open any STL as a new project, or start
+   blank. The panel also lists weapons waiting for a reference.
 2. **Shape**: set the overall length, click any part to edit it. Blades
    and flat shapes have a vector-style outline editor: drag nodes, click the
    green **+** on any segment to insert a node, right-click (or Delete) to
@@ -31,9 +27,11 @@ Snapmaker U1 and template sizes) is in [RESEARCH.md](RESEARCH.md).
    convex / hollow grind, both faces or one (chisel), and distal taper toward
    the tip, with a to-scale cross-section preview.
    Parts can be added, cut away (holes), mirrored or arrayed radially, and
-   given a filament slot. **Import STL** brings in models from Thingiverse,
-   Printables etc. (small holes are closed automatically) so you can split
-   them and add joints and inserts too.
+   given a filament slot. **STL import** lays the model flat (length along
+   Y), closes small holes, and simplifies very dense meshes (a 627k-triangle
+   Blender export comes in as ~26k with no visible change) so you can split
+   them and add joints and inserts too. Meshes that aren't watertight still
+   show and export as-is.
 3. **Inserts**: handle dowel / steel rod channels (real dowel sizes such as
    3/8" and 1/2"), electronics and 18650 battery bays with a removable lid
    (the lid is printed as its own piece and keeps the surface shape, with
@@ -75,9 +73,9 @@ the page is opened from disk. UI is Preact + Three.js.
 
 ### Adding a template
 
-Templates live in `src/templates/` (`popculture.js`, `classic.js`). The bundled Buster Sword and Revolver gunblade meshes are the creator's own
-models, regenerated with `node scripts/bundle-models.mjs <buster_sword_complete.stl> <gunblade files dir>`
-into `src/templates/bundled-models.js`.
+Templates live in `src/templates/` (`popculture.js`, `classic.js`). The bundled meshes are the creator's own models, regenerated with
+`npm run bundle-models -- <folder>` into `src/templates/bundled-models.js`
+(published models) and `src/templates/bundled-unreleased.js` (git-ignored).
 
 **Filament zones** (Shape tab → Filament zone) colour part of a model with
 another filament without adding material, which is how a single-mesh model

@@ -1,6 +1,7 @@
 import { useMemo, useState } from 'preact/hooks';
-import { TEMPLATES, CATEGORIES } from '../templates/index.js';
-import { store, replaceDesign, libraryList, librarySave, libraryDelete, toast, setUI } from '../state.js';
+import { TEMPLATES, CATEGORIES, WISHLIST, REFERENCE_HOWTO } from '../templates/index.js';
+import { importSTL } from './importer.js';
+import { store, replaceDesign, libraryList, librarySave, libraryDelete, toast, setUI, blankDesign } from '../state.js';
 import { designSilhouettes } from './silhouette.js';
 import { download } from './zip.js';
 import { packMeshes, unpackMeshes, loadMeshes } from './stlimport.js';
@@ -28,7 +29,7 @@ function Thumb({ design, thumb }) {
 export function ForgePanel() {
   const [cat, setCat] = useState('All');
   const [q, setQ] = useState('');
-  const built = useMemo(() => TEMPLATES.map((t) => ({ t, d: t.build() })), []);
+  const built = useMemo(() => TEMPLATES.map((t) => ({ t, d: t.build(), thumb: t.thumb ? t.thumb() : null })), []);
   const shown = built.filter(({ t }) => (cat === 'All' || t.category === cat)
     && (!q || `${t.name} ${t.source} ${t.category}`.toLowerCase().includes(q.toLowerCase())));
   const lib = libraryList();
@@ -62,16 +63,16 @@ export function ForgePanel() {
 
   return (
     <div>
-      <Section title="Pick a template">
-        <Help>Start from a template, then change anything you like. Everything is in real-world millimetres.</Help>
+      <Section title="Your models">
+        <Help>Your own models, ready to split, joint and colour for printing. Everything is in real-world millimetres.</Help>
         <input class="search" type="search" placeholder="Search weapons…" value={q} onInput={(e) => setQ(e.target.value)} />
         <div class="chips">
           {CATEGORIES.map((c) => <button key={c} class={`chip${c === cat ? ' on' : ''}`} onClick={() => setCat(c)}>{c}</button>)}
         </div>
         <div class="cards">
-          {shown.map(({ t, d }) => (
+          {shown.map(({ t, d, thumb }) => (
             <button key={t.id} class={`card${store.design.meta?.templateId === t.id ? ' current' : ''}`} onClick={() => pick(t)}>
-              <Thumb design={d} thumb={t.thumb} />
+              <Thumb design={d} thumb={thumb} />
               <span class="card-name">{t.name}</span>
               <span class="card-src">{t.source}</span>
               <span class="card-blurb">{t.blurb}</span>
@@ -79,6 +80,22 @@ export function ForgePanel() {
             </button>
           ))}
         </div>
+      </Section>
+      <Section title="Start something new">
+        <div class="row-btns">
+          <label class="btn primary-btn" title="Open an STL as its own project (it is laid flat and simplified if very dense)">
+            Open an STL…<input type="file" accept=".stl,model/stl" hidden onChange={(e) => { const f = e.target.files[0]; e.target.value = ''; if (f) importSTL(f, { newProject: true }).catch((err) => toast(`Import failed: ${err.message}`)); }} />
+          </label>
+          <button onClick={() => { replaceDesign(blankDesign()); setUI({ tab: 'shape', refit: true }); }}>Blank project</button>
+        </div>
+      </Section>
+      <Section title={`Waiting for a reference (${WISHLIST.length})`}>
+        <Help>{REFERENCE_HOWTO}</Help>
+        <ul class="wish">
+          {WISHLIST.map((w) => (
+            <li key={w.name}><b>{w.name}</b> <span class="muted">{w.source}{w.note ? ` · ${w.note}` : ''}</span></li>
+          ))}
+        </ul>
       </Section>
       <Section title="My designs">
         <Help>Your work is autosaved in this browser. Save named copies here, or export a project file to back it up.</Help>

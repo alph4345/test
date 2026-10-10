@@ -112,12 +112,28 @@ export function runBuild(M, design, { mode = 'model', withStl = false } = {}) {
   return withArena(() => {
     const tags = new TagMap();
     const t0 = Date.now();
-    const { model, lids, warnings, materials } = buildModel(M, design, tags);
-    if (!model || model.isEmpty()) return { pieces: [], warnings: warnings.length ? warnings : ['Model is empty.'], reports: [] };
+    const { model, lids, warnings, materials, raws, separates } = buildModel(M, design, tags);
+    const plateR = design.split?.plate || DEFAULT_PLATE;
+    const rawPieces = (raws || []).map((r) => {
+      const fit = fitPlate(r.verts, plateR);
+      const piece = { name: `${r.name} (as imported)`, kind: 'raw', bbox: bboxOfVerts(r.verts), volume: 0, fit, filament: r.filament,
+        verts: r.verts, tris: r.tris, triTags: new Int16Array(r.tris.length / 3).fill(r.index), triFil: new Int8Array(r.tris.length / 3).fill(r.filament) };
+      if (withStl) {
+        const tf = printTransform(r.verts, fit, plateR);
+        const v = tf(r.verts);
+        piece.stl = toBinarySTL(v, r.tris, r.name);
+        piece.parts = [{ filament: r.filament, verts: v, tris: r.tris, stl: piece.stl }];
+      }
+      return piece;
+    });
+    const hasModel = model && !model.isEmpty();
+    if (!hasModel && !(separates || []).length) return { pieces: rawPieces, warnings: warnings.length || rawPieces.length ? warnings : ['Model is empty.'], reports: [] };
     const plate = design.split?.plate || DEFAULT_PLATE;
     let bodies = [];
     let reports = [];
-    if (mode === 'split' && design.split?.cuts?.length) {
+    if (!hasModel) {
+      // only separate parts
+    } else if (mode === 'split' && design.split?.cuts?.length) {
       const res = splitModel(M, model, design.split.cuts, tags);
       reports = res.reports;
       res.pieces.forEach((p) => bodies.push({ m: p.m, kind: 'piece' }));
@@ -126,6 +142,7 @@ export function runBuild(M, design, { mode = 'model', withStl = false } = {}) {
       bodies.push({ m: model, kind: 'piece' });
     }
     lids.forEach((l) => bodies.push({ m: l.m, kind: 'lid', name: l.name, side: l.side }));
+    (separates || []).forEach((p) => bodies.push({ m: p.m, kind: 'piece', name: p.name, own: true }));
 
     const used = new Set(materials.map((x) => x.filament));
     const byFilament = mode === 'split' && design.split?.byFilament && used.size > 1;
@@ -152,7 +169,15 @@ export function runBuild(M, design, { mode = 'model', withStl = false } = {}) {
       const data = meshData(b.m, tags);
       data.triFil = triFilaments(data, design, zoneAt);
       const fit = fitPlate(vertsOf(b.m.hull()), plate);
-      const name = b.kind === 'piece' ? (mode === 'split' ? `Piece ${++n}` : 'Full model') : b.name;
+      // pieces are named after the part most of their surface comes from
+      let name = b.name;
+      if (b.kind === 'piece' && !b.own) {
+        const counts = new Map();
+        for (const t of data.triTags) if (t >= 0) counts.set(t, (counts.get(t) || 0) + 1);
+        const top = [...counts.entries()].sort((x, y) => y[1] - x[1])[0];
+        const partName = top ? design.parts[top[0]]?.name : null;
+        name = mode === 'split' ? `Piece ${++n}${partName ? ` (${partName})` : ''}` : (out.filter((o) => o.kind === 'piece').length > 1 && partName ? partName : 'Full model');
+      }
       const piece = { name, kind: b.kind, side: b.side, bbox: b.bb, volume: b.m.volume(), fit, filament: b.filament, ...data };
       if (withStl) {
         const tf = printTransform(data.verts, fit, plate);
@@ -167,8 +192,14 @@ export function runBuild(M, design, { mode = 'model', withStl = false } = {}) {
       }
       return piece;
     });
-    return { pieces, warnings, reports, ms: Date.now() - t0 };
+    return { pieces: pieces.concat(rawPieces), warnings, reports, ms: Date.now() - t0 };
   });
+}
+
+function bboxOfVerts(v) {
+  const min = [Infinity, Infinity, Infinity], max = [-Infinity, -Infinity, -Infinity];
+  for (let i = 0; i < v.length; i++) { const k = i % 3; if (v[i] < min[k]) min[k] = v[i]; if (v[i] > max[k]) max[k] = v[i]; }
+  return { min, max };
 }
 
 function vertsOf(m) {
@@ -274,7 +305,11 @@ export function autoSplit(M, design, opts = {}) {
         if (cur >= y1 - 1) return;
       }
     };
-    solve(model, true, 0);
+    // models that are already split into print pieces are handled piece by
+    // piece, so pieces that already fit are left alone
+    const bodies = separateBodies(M, model);
+    if (bodies.length > 1) for (const b of bodies) solve(b, false, 0);
+    else solve(model, true, 0);
     // check with real joints (they add length) and re-cut what overflows
     for (let round = 0; round < 2 && cuts.length; round++) {
       const trial = cuts.map((c, i) => ({ ...c, id: `t${i}`, joints: [{ type: 'auto' }] }));

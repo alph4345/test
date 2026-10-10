@@ -55,7 +55,7 @@ function send(job) {
 }
 
 export function request(kind, design, opts) {
-  if (design.parts.some((p) => p.type === 'mesh')) design = { ...design, __meshes: meshesFor(design) };
+  if (design && design.parts.some((p) => p.type === 'mesh')) design = { ...design, __meshes: meshesFor(design) };
   return new Promise((resolve, reject) => {
     const job = { msg: { id: nextId++, kind, design, opts }, resolve, reject };
     if (mode === 'worker') send(job);

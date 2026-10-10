@@ -128,7 +128,7 @@ export function App() {
     setUI({ busy: true });
     previewBuild(design, { mode }, (r) => {
       setBuild({ ...r, mode, error: null });
-      const box = unionBox(r.pieces.filter((p) => p.kind === 'piece'));
+      const box = unionBox(r.pieces.filter((p) => p.kind === 'piece' || p.kind === 'raw'));
       if (mode === 'model' && box) setModelBox(box);
       if (box && (firstFit.current || store.ui.refit)) {
         vp.current.setGrid(box);

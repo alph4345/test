@@ -7,7 +7,11 @@
     "dev": "vite",
     "build": "vite build",
     "preview": "vite preview",
-    "test": "node --test tests/*.test.js"
+    "test": "node --test tests/*.test.js",
+    "prebuild": "node scripts/ensure-unreleased.mjs",
+    "pretest": "node scripts/ensure-unreleased.mjs",
+    "predev": "node scripts/ensure-unreleased.mjs",
+    "bundle-models": "node --max-old-space-size=4000 scripts/bundle-models.mjs"
   },
   "dependencies": {
     "@kninnug/constrainautor": "^4.0.1",

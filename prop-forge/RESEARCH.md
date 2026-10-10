@@ -79,16 +79,14 @@ chamfer. Insert holes use the values above.
 → Star Shield: 610 mm, 60 mm dish, rings at Ø225/330/470 mm, forearm-strap loops for 38 mm webbing and a hand grip.
 Round Shield: 80 cm with a hand hole behind a hollow boss and a grip bar.
 
-## Sizes used for the pop-culture templates
+## Replica sizes (for when references arrive)
 
-| Prop | Used | Source |
+| Prop | Typical size | Source |
 |---|---|---|
-| Buster Sword | 1.81 m; blade 205 × 41 mm, 60 mm bevel, 336 mm clipped tip | the user's own model ([Budward on Thingiverse](https://www.thingiverse.com/thing:1794243)), bundled as a template |
-| Revolver gunblade | 0.87 m | the user's own model ([Chemvaldes on Thingiverse](https://www.thingiverse.com/thing:3825730)), bundled as a template |
 | Master Sword | 1.24 m, guard 250 mm | [life-size model listing](https://www.cgtrader.com/3d-print-models/games-toys/toys/master-sword-from-zelda-breath-of-the-wild), [Proplica 105 cm](https://zeldauniverse.net/2024/05/31/new-proplica-master-sword-to-be-released-september-2024/) |
-| Zangetsu (Shikai) | ~1.7 m ("body length") | [Instructables build](https://instructables.com/Zangetsu-Shikai-Version), Proplica Tensa Zangetsu 121 cm for comparison |
+| Zangetsu (Shikai) | ~1.7 m ("body length") | [Instructables build](https://instructables.com/Zangetsu-Shikai-Version) |
 | Leviathan Axe | ~0.92 m, head ~35 cm | [licensed foam replica 94 × 35 cm](https://www.halloweencostumes.com/leviathan-axe.html) |
-| Mjolnir | 44 cm; head 215 × 135 mm; handle 30 cm | [Sideshow 1:1](https://www.sideshow.com/collectibles/marvel-thor-hammer-museum-replicas-901440), retailer 1:1 listings |
+| Mjolnir | 44 cm; head ~215 × 135 mm; handle 30 cm | [Sideshow 1:1](https://www.sideshow.com/collectibles/marvel-thor-hammer-museum-replicas-901440) |
 | Kingdom Key | ~0.9 m | [full-size replica listings](https://www.bigbadtoystore.com/product/kingdom-hearts-kingdom-key-keyblade-exclusive-replica-172393) |
 
-Replica sizes vary by maker; treat these as good starting points and adjust "Overall length".
+Replica sizes vary by maker; the creator's reference decides.

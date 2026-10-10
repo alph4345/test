@@ -61,6 +61,25 @@ function extrudeFlat(M, poly, thickness) {
 let meshSource = {};
 export function setMeshSource(m) { meshSource = m || {}; }
 
+// Raw (non-watertight) imported mesh placed like a part would be: stretch,
+// unit, rotation (X then Y then Z), translation, then the design scale.
+export function rawMeshPlaced(part, scale = 1) {
+  const data = meshSource[part.meshRef];
+  if (!data) return null;
+  const st = part.stretch || [1, 1, 1], u = +part.unit || 1;
+  const [rx, ry, rz] = (part.rot || [0, 0, 0]).map((d) => (d * Math.PI) / 180);
+  const p = part.pos || [0, 0, 0];
+  const out = new Float32Array(data.verts.length);
+  for (let i = 0; i < out.length; i += 3) {
+    let x = data.verts[i] * st[0] * u, y = data.verts[i + 1] * st[1] * u, z = data.verts[i + 2] * st[2] * u;
+    [y, z] = [y * Math.cos(rx) - z * Math.sin(rx), y * Math.sin(rx) + z * Math.cos(rx)];
+    [x, z] = [x * Math.cos(ry) + z * Math.sin(ry), -x * Math.sin(ry) + z * Math.cos(ry)];
+    [x, y] = [x * Math.cos(rz) - y * Math.sin(rz), x * Math.sin(rz) + y * Math.cos(rz)];
+    out[i] = (x + p[0]) * scale; out[i + 1] = (y + p[1]) * scale; out[i + 2] = (z + p[2]) * scale;
+  }
+  return { verts: out, tris: Uint32Array.from(data.tris) };
+}
+
 // Build the untransformed solid for one part (local coordinates).
 export function partSolid(M, part, warn = () => {}) {
   switch (part.type) {

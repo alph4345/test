@@ -33,31 +33,51 @@ function readSoup(buffer) {
 }
 
 function weld(soup, centre) {
-  const map = new Map();
-  const verts = [];
-  const tris = new Uint32Array(soup.length / 3);
   let min = [Infinity, Infinity, Infinity], max = [-Infinity, -Infinity, -Infinity];
   for (let i = 0; i < soup.length; i += 3) {
-    for (let k = 0; k < 3; k++) { min[k] = Math.min(min[k], soup[i + k]); max[k] = Math.max(max[k], soup[i + k]); }
+    for (let k = 0; k < 3; k++) { const v = soup[i + k]; if (v < min[k]) min[k] = v; if (v > max[k]) max[k] = v; }
   }
-  const q = Math.max(...max.map((v, k) => v - min[k])) * 1e-6 || 1e-6;
+  // positions are snapped to a 2^21 grid over the model's size (about a
+  // millionth of its length) and looked up through a numeric hash, far
+  // faster than string keys on meshes with hundreds of thousands of faces
+  const G = 2097151;
+  const size = Math.max(...max.map((v, k) => v - min[k])) || 1;
+  const inv = G / size;
+  const map = new Map();
+  const q = new Int32Array(soup.length); // quantised coords per unique vertex
+  const verts = new Float32Array(soup.length);
+  let nv = 0;
+  const tris = new Uint32Array(soup.length / 3);
   for (let i = 0; i < soup.length; i += 3) {
-    const key = `${Math.round(soup[i] / q)},${Math.round(soup[i + 1] / q)},${Math.round(soup[i + 2] / q)}`;
-    let id = map.get(key);
-    if (id === undefined) { id = verts.length / 3; map.set(key, id); verts.push(soup[i], soup[i + 1], soup[i + 2]); }
+    const xi = Math.round((soup[i] - min[0]) * inv), yi = Math.round((soup[i + 1] - min[1]) * inv), zi = Math.round((soup[i + 2] - min[2]) * inv);
+    const h = (Math.imul(xi, 73856093) ^ Math.imul(yi, 19349663) ^ Math.imul(zi, 83492791)) >>> 0;
+    let bucket = map.get(h);
+    let id = -1;
+    if (bucket !== undefined) {
+      if (typeof bucket === 'number') bucket = [bucket];
+      for (const c of bucket) if (q[c * 3] === xi && q[c * 3 + 1] === yi && q[c * 3 + 2] === zi) { id = c; break; }
+    }
+    if (id < 0) {
+      id = nv++;
+      q[id * 3] = xi; q[id * 3 + 1] = yi; q[id * 3 + 2] = zi;
+      verts[id * 3] = soup[i]; verts[id * 3 + 1] = soup[i + 1]; verts[id * 3 + 2] = soup[i + 2];
+      if (bucket === undefined) map.set(h, id);
+      else { bucket.push(id); map.set(h, bucket); }
+    }
     tris[i / 3] = id;
   }
   // centre on the origin
   const c = centre ? min.map((v, k) => (v + max[k]) / 2) : [0, 0, 0];
-  const v = new Float32Array(verts);
+  const v = verts.slice(0, nv * 3);
   for (let i = 0; i < v.length; i++) v[i] -= c[i % 3];
   // drop degenerate triangles
-  const keep = [];
+  const keep = new Uint32Array(tris.length);
+  let nk = 0;
   for (let t = 0; t < tris.length; t += 3) {
     const a = tris[t], b = tris[t + 1], d = tris[t + 2];
-    if (a !== b && b !== d && a !== d) keep.push(a, b, d);
+    if (a !== b && b !== d && a !== d) { keep[nk++] = a; keep[nk++] = b; keep[nk++] = d; }
   }
-  return { verts: v, tris: new Uint32Array(keep), size: max.map((x, k) => x - min[k]) };
+  return { verts: v, tris: keep.slice(0, nk), size: max.map((x, k) => x - min[k]) };
 }
 
 // Close small holes: every chain of edges that only one triangle uses is
@@ -65,16 +85,17 @@ function weld(soup, centre) {
 // usual export faults (T-junctions, missing caps) in downloaded STLs.
 export function repairMesh(mesh) {
   const { tris } = mesh;
+  const N = mesh.verts.length / 3 + 1;
   const he = new Set();
   for (let t = 0; t < tris.length; t += 3) {
-    he.add(`${tris[t]},${tris[t + 1]}`); he.add(`${tris[t + 1]},${tris[t + 2]}`); he.add(`${tris[t + 2]},${tris[t]}`);
+    he.add(tris[t] * N + tris[t + 1]); he.add(tris[t + 1] * N + tris[t + 2]); he.add(tris[t + 2] * N + tris[t]);
   }
   // missing half-edges b->a (the face that would close the hole)
   const next = new Map();
   let bad = false;
   for (const k of he) {
-    const [a, b] = k.split(',').map(Number);
-    if (!he.has(`${b},${a}`)) {
+    const a = Math.floor(k / N), b = k - a * N;
+    if (!he.has(b * N + a)) {
       if (next.has(b)) bad = true;
       next.set(b, a);
     }
@@ -123,8 +144,8 @@ export async function putMesh(id, mesh) {
 
 // models bundled with the app (templates made from the creator's STLs)
 export async function decodeBuiltin(key) {
-  const { MODELS } = await import('../templates/bundled-models.js');
-  const b64 = MODELS[key];
+  const { MODEL_DATA } = await import('../templates/models.js');
+  const b64 = MODEL_DATA[key];
   if (!b64) return null;
   const bin = Uint8Array.from(atob(b64), (c) => c.charCodeAt(0));
   const stream = new Blob([bin]).stream().pipeThrough(new DecompressionStream('gzip'));

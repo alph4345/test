@@ -1,6 +1,6 @@
 // Design -> solid model: parts are unioned (or subtracted), then the
 // inserts (dowel channels, electronics bays with lids) are cut in.
-import { partInstances, rod, boxFromBounds, setMeshSource } from './parts.js';
+import { partInstances, rod, boxFromBounds, setMeshSource, rawMeshPlaced } from './parts.js';
 
 export const TAG_FEATURE = -1;
 export const TAG_CUT = -2;
@@ -29,6 +29,9 @@ export function buildModel(M, design, tags) {
   const targeted = new Map(); // part id -> subtract solids aimed at it
   const solids = [];
   const zones = []; // filament zones: colour a region without adding material
+  const raws = []; // imported meshes that are not watertight: shown and exported as-is
+  const separates = [];
+  const materials = []; // [{filament, solid}] in part order, later parts win overlaps
   design.parts.forEach((part, idx) => {
     if (part.hidden) return;
     let inst;
@@ -36,11 +39,25 @@ export function buildModel(M, design, tags) {
       warnings.push(`Part "${part.name}" could not be built (${err.message || err}).`);
       return;
     }
-    if (!inst.length) { warnings.push(`Part "${part.name}" has an invalid shape.`); return; }
+    if (!inst.length) {
+      if (part.type === 'mesh' && part.op !== 'subtract') {
+        const raw = rawMeshPlaced(part, s);
+        if (raw) { raws.push({ ...raw, name: part.name, index: idx, filament: +part.filament || 1 }); return; }
+      }
+      warnings.push(`Part "${part.name}" has an invalid shape.`);
+      return;
+    }
     let solid = inst.length === 1 ? inst[0] : M.Manifold.union(inst);
     if (s !== 1) solid = solid.scale(s);
     if (part.op === 'paint') { zones.push({ filament: +part.filament || 1, solid }); return; }
     solid = tags.tag(solid, idx);
+    // parts that print and assemble as their own piece (e.g. a tsuba that
+    // slides on) are kept out of the fused model
+    if (part.separate && part.op !== 'subtract') {
+      separates.push({ m: solid, name: part.name });
+      materials.push({ filament: +part.filament || 1, solid });
+      return;
+    }
     if (part.op === 'subtract') {
       if (part.target) {
         if (!targeted.has(part.target)) targeted.set(part.target, []);
@@ -48,7 +65,6 @@ export function buildModel(M, design, tags) {
       } else subs.push(solid);
     } else solids.push({ part, solid });
   });
-  const materials = []; // [{filament, solid}] in part order, later parts win overlaps
   for (const { part, solid } of solids) {
     const t = targeted.get(part.id);
     const final = t ? solid.subtract(t.length === 1 ? t[0] : M.Manifold.union(t)) : solid;
@@ -56,7 +72,7 @@ export function buildModel(M, design, tags) {
     materials.push({ filament: +part.filament || 1, solid: final });
   }
   materials.push(...zones);
-  if (!adds.length) return { model: null, lids: [], materials, warnings: warnings.concat('Nothing to build: add a part.') };
+  if (!adds.length) return { model: null, lids: [], materials, raws, separates, warnings: raws.length || separates.length ? warnings : warnings.concat('Nothing to build: add a part.') };
   let model = adds.length === 1 ? adds[0] : M.Manifold.union(adds);
   if (subs.length) model = model.subtract(subs.length === 1 ? subs[0] : M.Manifold.union(subs));
 
@@ -68,7 +84,7 @@ export function buildModel(M, design, tags) {
     if (res.added) materials.push({ filament: +f.filament || 1, solid: res.added });
     if (res.lid) lids.push(res.lid);
   }
-  return { model, lids, warnings, materials };
+  return { model, lids, warnings, materials, raws, separates };
 }
 
 // One solid region per filament. Where parts of different filaments

@@ -76,13 +76,19 @@ test('joints conserve material (plug fills socket)', () => {
   }
 });
 
-test('auto split keeps blade pieces flat or on edge', async () => {
+test('auto split keeps your models flat or on edge', async () => {
   const { findTemplate } = await import('../src/templates/index.js');
-  for (const id of ['buster-sword', 'zangetsu', 'katana', 'longsword']) {
-    const d = findTemplate(id).build();
+  const { decodeBuiltin } = await import('../src/ui/stlimport.js');
+  for (const id of ['buster-sword-model', 'zangetsu-v1']) {
+    const t = findTemplate(id);
+    if (!t) continue; // unreleased models are not in every checkout
+    const d = t.build();
+    d.__meshes = {};
+    for (const p of d.parts) if (p.type === 'mesh') d.__meshes[p.meshRef] = await decodeBuiltin(p.meshRef.slice(8));
     d.split.cuts = autoSplit(M, d).cuts.map((c, i) => ({ ...c, id: `c${i}`, joints: [{ type: 'auto' }] }));
     const r = runBuild(M, d, { mode: 'split' });
     const upright = r.pieces.filter((p) => p.fit.up === 'y');
     assert.equal(upright.length, 0, `${id}: ${upright.map((p) => p.name).join(', ')} stand on end`);
+    assert.ok(r.pieces.every((p) => p.fit.fits), `${id}: all pieces fit`);
   }
 });

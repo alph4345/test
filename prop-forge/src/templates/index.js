@@ -1,6 +1,6 @@
-import pop from './popculture.js';
-import classic from './classic.js';
+import { MY_MODELS } from './mymodels.js';
 
-export const TEMPLATES = [...pop, ...classic];
+export { WISHLIST, REFERENCE_HOWTO } from './wishlist.js';
+export const TEMPLATES = MY_MODELS;
 export const CATEGORIES = ['All', ...Array.from(new Set(TEMPLATES.map((t) => t.category)))];
 export const findTemplate = (id) => TEMPLATES.find((t) => t.id === id);
