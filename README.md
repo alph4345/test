@@ -7,6 +7,10 @@ idea comes from the
 
 This repository has:
 
+* **[Prop Forge](prop-forge)**: a browser app for designing 3D-printable
+  prop weapons (Buster Sword, Zangetsu and more), adding dowel channels and
+  electronics bays, and splitting them into interlocking printable pieces.
+
 * **[TrinketCore](hardware/trinketcore)**: an all-in-one 40 × 60 mm trinket
   board with PCBWay order files. It has:
   * pads for two capacitors lying flat on the back;
