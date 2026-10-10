@@ -56,7 +56,35 @@ export function makeZip(files) {
   return new Blob([...chunks, ...central, new Uint8Array(end.buffer)], { type: 'application/zip' });
 }
 
-export function download(blob, filename) {
+// Inside the claude.ai artifact viewer, files go through the viewer's
+// "downloads" capability (which only allows some types, so an STL is
+// zipped). Everywhere else a normal browser download is used.
+let viewerDownloads;
+function getViewerDownloads() {
+  if (viewerDownloads === undefined) {
+    viewerDownloads = window.claude && typeof window.claude.use === 'function'
+      ? window.claude.use('downloads').catch(() => null)
+      : Promise.resolve(null);
+  }
+  return viewerDownloads;
+}
+if (typeof window !== 'undefined') getViewerDownloads();
+
+const ALLOWED = /\.(zip|json|txt|csv|md|png|svg|pdf|html)$/i;
+
+export async function download(blob, filename) {
+  const dl = await getViewerDownloads();
+  if (dl) {
+    let data = blob, name = filename;
+    if (!ALLOWED.test(name)) {
+      data = makeZip([{ name, data: new Uint8Array(await blob.arrayBuffer()) }]);
+      name = name.replace(/\.[^.]+$/, '') + '.zip';
+    }
+    try { await dl.save({ filename: name, data }); } catch (e) {
+      if (e && e.code !== 'declined') throw new Error(e.message || e.code || 'download failed');
+    }
+    return;
+  }
   const url = URL.createObjectURL(blob);
   const a = document.createElement('a');
   a.href = url;

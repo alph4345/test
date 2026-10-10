@@ -54,9 +54,9 @@ export function ExportPanel() {
       const files = r.pieces.map((p, i) => ({ name: `${String(i + 1).padStart(2, '0')}_${safe(p.name)}.stl`, data: p.stl }));
       if (single != null) {
         const f = files[single];
-        download(new Blob([f.data], { type: 'model/stl' }), `${safe(d.name)}_${f.name}`);
+        await download(new Blob([f.data], { type: 'model/stl' }), `${safe(d.name)}_${f.name}`);
       } else if (files.length === 1) {
-        download(new Blob([files[0].data], { type: 'model/stl' }), `${safe(d.name)}.stl`);
+        await download(new Blob([files[0].data], { type: 'model/stl' }), `${safe(d.name)}.stl`);
       } else {
         const readme = [
           `${d.name} — exported from Prop Forge`, '',
@@ -70,7 +70,7 @@ export function ExportPanel() {
         ].join('\n');
         files.push({ name: 'README.txt', data: new TextEncoder().encode(readme) });
         files.push({ name: `${safe(d.name)}.propforge.json`, data: new TextEncoder().encode(JSON.stringify(d, null, 1)) });
-        download(makeZip(files), `${safe(d.name)}_print_files.zip`);
+        await download(makeZip(files), `${safe(d.name)}_print_files.zip`);
       }
       toast('Download ready');
     } catch (e) { toast(`Export failed: ${e.message}`); }
