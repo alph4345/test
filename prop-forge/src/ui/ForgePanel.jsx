@@ -1,7 +1,7 @@
 import { useMemo, useState } from 'preact/hooks';
 import { TEMPLATES, CATEGORIES, WISHLIST, REFERENCE_HOWTO } from '../templates/index.js';
 import { importSTL } from './importer.js';
-import { store, replaceDesign, libraryList, librarySave, libraryDelete, toast, setUI, blankDesign } from '../state.js';
+import { store, openProject, toast, setUI, blankDesign, projectState, draftList, jobList, jobDesign, openDraft, openJob, saveCurrent, saveDraft, discardDraft, deleteJob } from '../state.js';
 import { designSilhouettes } from './silhouette.js';
 import { download } from './zip.js';
 import { packMeshes, unpackMeshes, loadMeshes } from './stlimport.js';
@@ -26,6 +26,113 @@ function Thumb({ design, thumb }) {
   );
 }
 
+const when = (t) => {
+  const m = Math.round((Date.now() - t) / 60000);
+  if (m < 1) return 'just now';
+  if (m < 60) return `${m} min ago`;
+  if (m < 60 * 24) return `${Math.round(m / 60)} h ago`;
+  return new Date(t).toLocaleDateString();
+};
+
+async function withMeshes(d) {
+  const ids = (d?.parts || []).filter((p) => p.type === 'mesh').map((p) => p.meshRef);
+  if (ids.length) await loadMeshes(ids);
+}
+
+export async function openAndGo(fn) {
+  const r = fn();
+  await withMeshes(store.design);
+  setUI({ tab: 'custom', refit: true, sel: null });
+  return r;
+}
+
+// Save the open project, asking for a name the first time.
+export function saveWithName({ asNew = false } = {}) {
+  const cur = projectState();
+  let name = store.design.name;
+  if (!cur.jobId || asNew) {
+    name = window.prompt(asNew ? 'Save a copy as:' : 'Save this job as:', asNew ? `${name} (copy)` : name);
+    if (name == null) return null;
+    name = name.trim() || store.design.name;
+  }
+  const job = saveCurrent({ asNew, name });
+  if (job) toast(`Saved "${job.design.name}" in Saved jobs`);
+  return job;
+}
+
+// Drafts (unfinished work, autosaved) and saved jobs.
+function YourWork({ drafts, jobs, cur, importFile }) {
+  const jobName = (id) => jobs.find((j) => j.id === id)?.name;
+  const exportFile = () => download(new Blob([JSON.stringify({ ...store.design, meshes: packMeshes(store.design) }, null, 1)], { type: 'application/json' }), `${store.design.name || 'prop'}.propforge.json`);
+  return (
+    <>
+      <Section title={`Drafts${drafts.length ? ` (${drafts.length})` : ''}`}>
+        <Help>Work you haven't saved yet. Every change autosaves here, so you can leave a job half done and come back to it. Save it to keep it in Saved jobs, or discard it.</Help>
+        {drafts.length ? (
+          <ul class="lib">
+            {drafts.map((x) => {
+              const open = x.id === cur.draftId;
+              return (
+                <li key={x.id} class={open ? 'on' : ''}>
+                  <div class="lib-main">
+                    {open ? <b>{x.name}</b> : <button class="link" onClick={() => openAndGo(() => openDraft(x.id))}>{x.name}</button>}
+                    <span class="muted small">{open ? 'open now · ' : ''}{x.jobId && jobName(x.jobId) ? `changes to "${jobName(x.jobId)}" · ` : ''}{when(x.updatedAt)}</span>
+                  </div>
+                  <button title="Save as a job" onClick={() => {
+                    if (open) { saveWithName(); return; }
+                    const j = saveDraft(x.id);
+                    if (j) toast(`Saved "${j.design.name}" in Saved jobs`);
+                  }}>Save</button>
+                  <button class="danger-btn" title="Throw this draft away" onClick={() => {
+                    if (!window.confirm(`Discard the draft "${x.name}"?${x.jobId ? ' The saved job stays as it was.' : ' This can\'t be undone.'}`)) return;
+                    discardDraft(x.id, blankDesign);
+                    if (open) setUI({ refit: true, sel: null });
+                  }}>Discard</button>
+                </li>
+              );
+            })}
+          </ul>
+        ) : <Help>No drafts: everything is saved.</Help>}
+      </Section>
+      <Section title={`Saved jobs${jobs.length ? ` (${jobs.length})` : ''}`}>
+        <div class="row-btns">
+          <button class="primary" onClick={() => saveWithName()}>{cur.jobId ? 'Save changes' : 'Save current as a job'}</button>
+          {cur.jobId && <button onClick={() => saveWithName({ asNew: true })}>Save a copy</button>}
+        </div>
+        {jobs.length > 0 && (
+          <ul class="lib">
+            {jobs.map((x) => {
+              const open = x.id === cur.jobId;
+              const hasDraft = drafts.some((dr) => dr.jobId === x.id);
+              return (
+                <li key={x.id} class={open ? 'on' : ''}>
+                  <div class="lib-main">
+                    <button class="link" onClick={() => openAndGo(() => {
+                      const r = openJob(x.id);
+                      if (r === 'draft') toast('Opened with your unsaved changes (its draft). Discard the draft to go back to the saved version.', 6000);
+                    })}>{x.name}</button>
+                    <span class="muted small">{open ? 'open now · ' : ''}saved {when(x.savedAt)}{hasDraft ? ' · has unsaved changes in Drafts' : ''}</span>
+                  </div>
+                  <button title="Download this job as a project file" onClick={() => {
+                    const d = jobDesign(x.id);
+                    if (d) download(new Blob([JSON.stringify({ ...d, meshes: packMeshes(d) }, null, 1)], { type: 'application/json' }), `${x.name || 'prop'}.propforge.json`);
+                  }}>File</button>
+                  <button class="icon" title="Delete this job" onClick={() => { if (window.confirm(`Delete the saved job "${x.name}"?`)) deleteJob(x.id); }}>✕</button>
+                </li>
+              );
+            })}
+          </ul>
+        )}
+        <Help>Jobs and drafts live in this browser. To move a job to another computer or keep a backup, save it as a file.</Help>
+        <div class="row-btns">
+          <button onClick={exportFile}>Save open project to a file</button>
+          <label class="btn">Open a project file<input type="file" accept=".json,application/json" hidden onChange={(e) => { const f = e.target.files[0]; e.target.value = ''; if (f) importFile(f); }} /></label>
+        </div>
+      </Section>
+    </>
+  );
+}
+
 export function ForgePanel() {
   const [cat, setCat] = useState('All');
   const [q, setQ] = useState('');
@@ -34,13 +141,15 @@ export function ForgePanel() {
   const generators = useMemo(() => TEMPLATES.filter((t) => t.generator).map((t) => ({ t, d: t.build({ random: false }) })), []);
   const shown = legendary.filter(({ t }) => (cat === 'All' || t.category === cat)
     && (!q || `${t.name} ${t.source} ${t.category}`.toLowerCase().includes(q.toLowerCase())));
-  const lib = libraryList();
+  const drafts = draftList();
+  const jobs = jobList();
+  const cur = projectState();
 
   const pick = async (t) => {
     const d = t.build();
     const ids = d.parts.filter((p) => p.type === 'mesh').map((p) => p.meshRef);
     if (ids.length) await loadMeshes(ids);
-    replaceDesign(d);
+    openProject(d);
     setUI({ tab: 'custom', refit: true, sel: null, advanced: false });
     toast(t.generator
       ? `New ${t.kit.type} generated. Change its options, or press "Generate another".`
@@ -56,7 +165,7 @@ export function ForgePanel() {
         delete d.meshes;
         if (!Array.isArray(d.parts)) throw new Error('not a Prop Forge project');
         d.features ||= []; d.split ||= { plate: { x: 256, y: 256, z: 256 }, cuts: [] };
-        replaceDesign(d);
+        openProject(d);
         setUI({ tab: 'custom', refit: true, sel: null });
         toast(`Opened ${d.name}`);
       } catch (e) { toast(`Could not open file: ${e.message}`); }
@@ -75,6 +184,7 @@ export function ForgePanel() {
           <li><b>Export</b> the files for your slicer.</li>
         </ol>
       </Section>
+      <YourWork drafts={drafts} jobs={jobs} cur={cur} importFile={importFile} />
       <Section title="Legendary weapons">
         <Help>Named weapons from your own models, in real-world millimetres. Each has options made for it, and every part can still be edited by hand.</Help>
         <input class="search" type="search" placeholder="Search weapons…" value={q} onInput={(e) => setQ(e.target.value)} />
@@ -110,7 +220,7 @@ export function ForgePanel() {
           <label class="btn primary-btn" title="Open an STL as its own project (it is laid flat and simplified if very dense)">
             Open an STL…<input type="file" accept=".stl,model/stl" hidden onChange={(e) => { const f = e.target.files[0]; e.target.value = ''; if (f) importSTL(f, { newProject: true }).catch((err) => toast(`Import failed: ${err.message}`)); }} />
           </label>
-          <button onClick={() => { replaceDesign(blankDesign()); setUI({ tab: 'custom', refit: true, sel: null }); }}>Blank project</button>
+          <button onClick={() => { openProject(blankDesign()); setUI({ tab: 'custom', refit: true, sel: null }); }}>Blank project</button>
         </div>
       </Section>
       <Section title={`Waiting for a reference (${WISHLIST.length})`}>
@@ -120,25 +230,6 @@ export function ForgePanel() {
             <li key={w.name}><b>{w.name}</b> <span class="muted">{w.source}{w.note ? ` · ${w.note}` : ''}</span></li>
           ))}
         </ul>
-      </Section>
-      <Section title="My designs">
-        <Help>Your work is autosaved in this browser. Save named copies here, or export a project file to back it up.</Help>
-        <div class="row-btns">
-          <button class="primary" onClick={() => { librarySave(store.design); toast(`Saved "${store.design.name}"`); }}>Save current design</button>
-          <button onClick={() => download(new Blob([JSON.stringify({ ...store.design, meshes: packMeshes(store.design) }, null, 1)], { type: 'application/json' }), `${store.design.name || 'prop'}.propforge.json`)}>Export file</button>
-          <label class="btn">Open file<input type="file" accept=".json,application/json" hidden onChange={(e) => e.target.files[0] && importFile(e.target.files[0])} /></label>
-        </div>
-        {lib.length > 0 && (
-          <ul class="lib">
-            {lib.map((x) => (
-              <li key={x.name}>
-                <button class="link" onClick={() => { replaceDesign(structuredClone(x.design)); setUI({ tab: 'custom', refit: true, sel: null }); }}>{x.name}</button>
-                <span class="muted">{new Date(x.savedAt).toLocaleDateString()}</span>
-                <button class="icon" title="Delete" onClick={() => libraryDelete(x.name)}>✕</button>
-              </li>
-            ))}
-          </ul>
-        )}
       </Section>
     </div>
   );

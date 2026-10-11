@@ -1,9 +1,10 @@
 // Zangetsu (Bleach, Shikai): the creator's unreleased V1 (file units,
-// scaled up), with a pointed or cut-off heel. Also the generic "cleaver
-// sword" generator: no guard, tang handle to wrap in cloth.
+// scaled up) with its blade as an editable outline. Also the generic
+// "cleaver sword" generator: no guard, tang handle to wrap in cloth.
 import { COLORS as C, P, blade, box, ring, dowel, design } from '../templates/helpers.js';
 import { choice, range, toggle, fil, group, sizeGroup, sectionWarp, icon } from './core.js';
-import { meshPart, palette, thumbOf, pillow, xy } from './parts.js';
+import { meshPart, palette, pillow, xy } from './parts.js';
+import { MODEL_SHAPES } from '../templates/models.js';
 
 const PALETTE = () => palette(['Silver', '#9aa2ad'], ['White', '#f7f7f4'], ['Black', '#2b2d31'], ['Red', '#a3262a']);
 const UNIT = 1700 / 270.8; // the V1 file is 270.8 units long; shown at 1.70 m
@@ -34,10 +35,17 @@ const chainIcon = (n) => icon([[-3, 4], [3, 4], [3, 14], [-3, 14]], ...Array.fro
 
 // ---------------------------------------------------------------------
 // Your model (coordinates in file units; the design scale makes them mm).
-// The heel (the corner of the blade nearest the handle, on the edge side)
-// is at (-18.9, -20.3); the V1 file ends it in a slanted cut, so by default
-// it is drawn out into a point.
-const heelIcon = (pointed) => icon([[-8, 14], [-8, pointed ? -7 : -2], [2, -1], [2, -12], [4, -12], [4, 14]]);
+// The blade is an outline traced from the V1 file, so its shape can be
+// edited node by node; the handle is your mesh. The V1 file ends the heel
+// (the corner by the handle, on the edge side) in a slanted cut; here it
+// comes to a point, and the outline editor can change it.
+const Z = -1.475; // the blade's centre plane in the V1 file
+// the blade outline traced from the V1 file (kept with the unreleased model)
+const BLADE = () => MODEL_SHAPES.zangetsu_v1?.blade || [];
+// thickness 3.05 at the root, tapering to 0.97 between y -8 and 78
+const T0 = 3.05, T1 = 0.97, TAPER = [-8, 78];
+const thickAt = (y) => T0 + (T1 - T0) * Math.min(1, Math.max(0, (y - TAPER[0]) / (TAPER[1] - TAPER[0])));
+const yForThick = (t) => (t >= T0 ? TAPER[0] : t <= T1 ? Infinity : TAPER[0] + ((T0 - t) / (T0 - T1)) * (TAPER[1] - TAPER[0]));
 
 const modelVariant = {
   label: 'Your model',
@@ -45,30 +53,56 @@ const modelVariant = {
     sizeGroup(),
     group('Proportions', [
       range('bladeLen', 'Blade length', 75, 125, 100, { unit: '%' }),
-      range('bladeWidth', 'Blade width', 80, 125, 100, { unit: '%', hint: 'Widens toward the edge; the spine stays straight.' }),
+      range('bladeWidth', 'Blade width', 80, 125, 100, { unit: '%', hint: 'Widens toward the edge; the spine stays straight. To change the shape itself (the heel, the point, the curve of the edge), use "Edit parts by hand" below and drag the blade\'s nodes.' }),
       range('handleLen', 'Handle length', 70, 140, 100, { unit: '%', hint: 'The handle prints bare: wrap it with real cloth or bandage afterwards.' }),
     ]),
-    group('Blade heel', [
-      choice('heel', 'Corner of the blade by the handle', [
-        { v: 'pointed', label: 'Pointed', icon: heelIcon(true) },
-        { v: 'cut', label: 'Cut off (as in V1)', icon: heelIcon(false) },
-      ], 'pointed'),
-      range('heelLen', 'Point length', 15, 140, 60, { show: (o) => o.heel === 'pointed', hint: 'How far the point reaches down past the cut-off corner.' }),
+    group('Strength', [
+      choice('dowel', 'Wooden dowel through the handle', [
+        { v: 'none', label: 'None' }, { v: 9.53, label: '3/8 in' }, { v: 12.7, label: '1/2 in' },
+      ], 9.53, { random: false, hint: 'Runs from the end of the handle well up into the blade, as far as the blade is thick enough to hold it.' }),
+      choice('rod', 'Carbon or steel rod further up the blade', [{ v: 'none', label: 'None' }, { v: 3, label: '3 mm' }, { v: 4, label: '4 mm' }], 3,
+        { random: false, hint: 'Carries on where the dowel stops, through the middle of the blade toward the point, so the glued blade pieces can\'t snap apart. A 3 mm rod reaches furthest; 4 mm stops where the blade gets thin.' }),
     ]),
-    group('Strength', [dowelChoice()]),
     group('Colours', [fil('fil_blade', 'Print colour', 1)]),
   ],
+  // Everything is worked out in the V1 file's units and turned into
+  // millimetres (U per unit), so the outline editor shows real sizes.
   build(o) {
+    const U = UNIT;
     const w = sectionWarp([
-      { y0: -80, y1: -12, len: o.handleLen / 100 },
-      { y0: -12, y1: 205, len: o.bladeLen / 100, width: o.bladeWidth / 100 },
-    ], { anchor: -12, cx: 9.5, ramp: 3 });
-    const sc = UNIT * ((o.size || 100) / 100);
-    const warp = o.heel === 'pointed' ? { ...w.warp, heel: { x0: -19, x1: -4, y0: -20.3, y1: -5, d: o.heelLen / sc } } : w.warp;
-    const parts = [meshPart('Zangetsu', 'zangetsu_v1', { warp, filament: o.fil_blade })];
-    const features = o.dowel === 'none' ? [] : [dowel('Handle dowel', [8.9, w.mapY(-71), 1.5], [8.6, w.mapY(-8), 1.5], +o.dowel, { id: 'k-dowel' })];
-    const d = design('Zangetsu', parts, { features, meta: { bayPos: [-4, 60, 1.5], baySize: [40, 80, 10] } });
-    d.scale = UNIT;
+      { y0: -80 * U, y1: -12 * U, len: o.handleLen / 100 },
+      { y0: -12 * U, y1: 205 * U, len: o.bladeLen / 100, width: o.bladeWidth / 100 },
+    ], { anchor: -12 * U, cx: 9.5 * U, ramp: 3 * U });
+    const mm = ([x, y, z = Z]) => [x * U, y * U, z * U];
+    const sc = UNIT * ((o.size || 100) / 100); // mm per file unit in the finished prop
+    const kb = o.bladeWidth / 100;
+    // blade points left of the handle (the heel) follow the blade's width
+    const map = ([x, y, f = '']) => P(x < 4 ? (9.5 + (x - 9.5) * kb) * U : w.point(mm([x, y, 0]))[0], w.mapY(y * U), f);
+    const parts = [{
+      ...blade('Blade', BLADE().map(map), { thickness: T0 * U, edge: 0.4 * U, bevel: 14.5 * U, tipThickness: T1 * U, color: C.steel, filament: o.fil_blade }),
+      pos: [0, 0, Z * U], taperY: TAPER.map((y) => +w.mapY(y * U).toFixed(1)), id: 'blade',
+    }];
+    // your handle, with the V1 blade taken off it
+    const handle = { ...meshPart('Handle', 'zangetsu_v1', { warp: w.warp, filament: o.fil_blade }), unit: U, id: 'handle' };
+    parts.push(handle);
+    const cut = w.mapY(-16.2 * U);
+    parts.push(box('Handle: blade removed', [700, 2600, 260], [9.5 * U, cut + 1300, 0], { op: 'subtract', target: 'handle' }));
+    parts.push(box('Handle: heel removed', [380, 250, 260], [2.3 * U - 190, cut - 125, 0], { op: 'subtract', target: 'handle' }));
+    // dowel up the middle of the handle and on into the blade, as far as
+    // the blade keeps about 2 mm of wall around it
+    const features = [];
+    if (o.dowel !== 'none') {
+      const D = +o.dowel;
+      const yTop = Math.min(60, yForThick((D + 4) / sc)) - (D / 2 + 2) / sc;
+      features.push(dowel('Handle dowel', [8.9 * U, w.mapY(-71 * U), Z * U], [5.5 * U, w.mapY(yTop * U), Z * U], D, { id: 'k-dowel' }));
+    }
+    if (o.rod !== 'none') {
+      const D = +o.rod;
+      const yTop = Math.min(150, yForThick((D + 2.8) / sc) - 4);
+      const x = (y) => 1.5 + 3.5 * (y / 150);
+      features.push(dowel('Blade rod', w.point(mm([x(0), 0])), w.point(mm([x(yTop), yTop])), D, { id: 'k-rod', clearance: 0.2 }));
+    }
+    const d = design('Zangetsu', parts, { features, meta: { bayPos: mm([-4, 60]), baySize: [40, 80, 10] } });
     d.filaments = PALETTE();
     return d;
   },
@@ -146,7 +180,10 @@ export const zangetsu = {
   blurb: 'Shikai Zangetsu with its long tang handle, shown at 1.70 m.',
   credit: 'Your model · unreleased',
   models: ['zangetsu_v1'],
-  thumb: () => thumbOf(['zangetsu_v1'], [C.steel]),
+  thumb: () => [
+    { poly: BLADE().map(([x, y]) => [x, y]), color: C.steel },
+    { poly: MODEL_SHAPES.zangetsu_v1?.handleThumb || [], color: C.steel },
+  ],
   variants: { model: modelVariant },
 };
 

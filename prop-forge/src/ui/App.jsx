@@ -1,10 +1,11 @@
 import { useEffect, useRef, useState } from 'preact/hooks';
-import { useStore, store, edit, setUI, setBuild, setModelBox, undo, redo, canUndo, canRedo, subscribe, filamentsOf, bumpMeshes } from '../state.js';
+import { useStore, store, edit, setUI, setBuild, setModelBox, undo, redo, canUndo, canRedo, subscribe, filamentsOf, bumpMeshes, markEdited, projectState } from '../state.js';
 import { loadMeshes } from './stlimport.js';
 import { previewBuild } from '../engine/client.js';
+import { finishOf } from '../engine/paint.js';
 import { Viewport, pieceColor, tagColor } from './Viewport.js';
 import { ProfileEditor } from './ProfileEditor.jsx';
-import { ForgePanel } from './ForgePanel.jsx';
+import { ForgePanel, saveWithName } from './ForgePanel.jsx';
 import { CustomizePanel } from './CustomizePanel.jsx';
 import { InsertsPanel } from './InsertsPanel.jsx';
 import { SplitPanel } from './SplitPanel.jsx';
@@ -118,7 +119,7 @@ export function App() {
         const r = (v) => Math.round(v * 2) / 2;
         edit((d) => {
           if (t.kind === 'part') {
-            const p = d.parts.find((x) => x.id === t.id); if (p) p.pos = pos.map((v) => r(v / sc));
+            const p = d.parts.find((x) => x.id === t.id); if (p) { p.pos = pos.map((v) => r(v / sc)); markEdited(p); }
           } else if (t.kind === 'feature') {
             const f = d.features.find((x) => x.id === t.id);
             if (!f) return;
@@ -171,6 +172,7 @@ export function App() {
   // push build results into the scene
   const colorOf = (piece, index, tag, triFil) => {
     if (piece.kind === 'ref') return '#8d949c'; // bought parts (e.g. a metal rod), shown but not printed
+    if (tag === -6 && store.ui.colorBy !== 'piece') return '#121418'; // paint guide lines
     const sel = store.ui.sel;
     const d = store.design;
     if (store.ui.colorBy === 'piece' && store.build.mode === 'split') return tag === -3 ? mix(pieceColor(index), '#000000', 0.25) : pieceColor(index);
@@ -255,6 +257,7 @@ export function App() {
   useEffect(() => {
     const onKey = (e) => {
       const tag = e.target.tagName;
+      if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 's') { e.preventDefault(); saveWithName(); return; }
       if (tag === 'INPUT' || tag === 'TEXTAREA' || tag === 'SELECT') return;
       if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'z') { e.preventDefault(); e.shiftKey ? redo() : undo(); }
       else if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'y') { e.preventDefault(); redo(); }
@@ -282,8 +285,9 @@ export function App() {
     <div class="app">
       <header class="top">
         <div class="brand"><Logo /> Prop Forge</div>
-        <div class="title">{design.name}</div>
+        <div class="title">{design.name} <span class={`save-state${projectState().unsaved ? ' unsaved' : ''}`} title={projectState().unsaved ? 'Changes are autosaved as a draft (Pick → Drafts) until you save the job' : 'Saved in Pick → Saved jobs'}>{projectState().unsaved ? 'Draft · not saved' : projectState().jobId ? 'Saved' : 'New'}</span></div>
         <div class="top-tools">
+          <button title="Save this job (Ctrl+S)" onClick={() => saveWithName()}>Save</button>
           <button class="icon" title="Undo (Ctrl+Z)" disabled={!canUndo()} onClick={undo}>↶</button>
           <button class="icon" title="Redo (Ctrl+Shift+Z)" disabled={!canRedo()} onClick={redo}>↷</button>
           <button class="icon" title="Light / dark" onClick={() => setDark(!dark)}>{dark ? '☀' : '☾'}</button>
@@ -325,17 +329,20 @@ export function App() {
             </div>
             <div class={`status${ui.busy ? ' busy' : ''}`}>{ui.busy ? 'Building…' : `${printable(build)} ${printable(build) === 1 ? 'piece' : 'pieces'} · ${build.ms || 0} ms`}</div>
             {warnings.length > 0 && <div class="warn-box">{warnings.map((w, i) => <div key={i}>⚠ {w}</div>)}</div>}
-            {build.pieces.some((p) => p.kind === 'ref') && ui.tab !== 'inserts' && <div class="legend"><span class="dot ref" /> See-through grey = bought part (e.g. a metal rod), shown for size but not printed</div>}
-            {ui.tab === 'inserts' && design.features.length > 0 && <div class="legend"><span class="dot ins" /> Orange = inserts: hollows cut into the model (dowel and rod channels, electronics bays)</div>}
-            {editingParts() && selPart?.op === 'paint' && <div class="legend"><span class="dot zone" /> Purple box = colour zone: what's inside prints in its filament (adds no material)</div>}
+            <div class="legends">
+              {build.paint && ui.colorBy === 'filament' && ui.tab !== 'inserts' && <div class="legend">Painted prop: the colours are your paint guide; each piece prints in one filament.{finishOf(design).lines ? ' Dark lines = guide grooves.' : ''}</div>}
+              {build.pieces.some((p) => p.kind === 'ref') && ui.tab !== 'inserts' && <div class="legend"><span class="dot ref" /> See-through grey = bought part (e.g. a metal rod), shown for size but not printed</div>}
+              {ui.tab === 'inserts' && design.features.length > 0 && <div class="legend"><span class="dot ins" /> Orange = inserts: hollows cut into the model (dowel and rod channels, electronics bays)</div>}
+              {editingParts() && selPart?.op === 'paint' && <div class="legend"><span class="dot zone" /> Purple box = colour zone: what's inside prints in its filament (adds no material)</div>}
+            </div>
           </div>
           {showEditor && (
             <div class="editor" style={{ height: `${editorH}px` }}>
               <div class="resizer" onPointerDown={startResize} />
               <ProfileEditor part={selPart} parts={design.parts} dark={dark}
                 pointSel={ui.pointSel} setPointSel={(i) => setUI({ pointSel: i })}
-                onPoints={(pts, key) => edit((d) => { d.parts[selIdx].points = pts; }, key)}
-                onPatch={(patch) => edit((d) => { Object.assign(d.parts[selIdx], patch); })} />
+                onPoints={(pts, key) => edit((d) => { d.parts[selIdx].points = pts; markEdited(d.parts[selIdx]); }, key)}
+                onPatch={(patch) => edit((d) => { Object.assign(d.parts[selIdx], patch); markEdited(d.parts[selIdx]); })} />
             </div>
           )}
         </section>

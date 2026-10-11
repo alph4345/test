@@ -96,3 +96,65 @@ test('Buster Sword: resin materia domes with LEDs, wiring and a battery bay', as
   assert.equal(resin.length, 4);
   assert.ok(resin.every((p) => p.stl && p.stl.byteLength > 84), 'resin pieces export as STL');
 });
+
+test('Maka: the toothed pattern follows a hand-edited blade, and survives option changes', async () => {
+  const { patternZones } = await import('../src/engine/pattern.js');
+  const { profileOutline } = await import('../src/engine/parts.js');
+  const kit = KITS.find((k) => k.id === 'maka-scythe-parts');
+  const d0 = designFromRecipe(recipeFor(kit));
+  const blade = d0.parts.find((p) => p.name === 'Blade');
+  assert.ok(blade.pattern, 'the blade carries its pattern');
+  const spanY = (pts) => Math.max(...pts.map((p) => p.y ?? p[1])) - Math.min(...pts.map((p) => p.y ?? p[1]));
+  const zone0 = patternZones([blade])[0];
+  // drag every node past the middle of the blade 200 mm further out (local +y is along the blade)
+  const mid = (Math.min(...blade.points.map((p) => p.y)) + Math.max(...blade.points.map((p) => p.y))) / 2;
+  blade.points = blade.points.map((p) => (p.y > mid ? { ...p, y: p.y + 200 } : p));
+  blade.edited = 1;
+  const zone1 = patternZones([blade])[0];
+  assert.ok(spanY(zone1.points) > spanY(zone0.points) + 180, `pattern ${spanY(zone0.points).toFixed(0)} -> ${spanY(zone1.points).toFixed(0)}`);
+  // the pattern stays inside the blade's length
+  const bladeSpan = spanY(profileOutline(blade).map((q) => q.p));
+  assert.ok(spanY(zone1.points) < bladeSpan + 20);
+  // changing an option keeps the hand-made shape but takes the new tooth count
+  const d1 = designFromRecipe({ ...d0.recipe, opts: { ...d0.recipe.opts, teeth: 12 } }, d0);
+  const b1 = d1.parts.find((p) => p.name === 'Blade');
+  assert.deepEqual(b1.points, blade.points);
+  assert.equal(b1.pattern.teeth, 12);
+});
+
+test('paint guide lines are cut into the surface; painted props print one filament per piece', async () => {
+  const kit = KITS.find((k) => k.id === 'maka-scythe-parts');
+  const base = await withMeshes(designFromRecipe(recipeFor(kit)));
+  const vol = (finish) => {
+    const d = { ...base, finish };
+    const r = runBuild(M, d, { withStl: true });
+    assert.deepEqual(r.warnings, [], r.warnings.join('; '));
+    return r;
+  };
+  const plain = vol({ colours: 'print', lines: false });
+  const lined = vol({ colours: 'paint', lines: true, lineWidth: 1.2, lineDepth: 0.6 });
+  const bladeVol = (r) => r.pieces.find((p) => p.name === 'Blade').volume;
+  const removed = bladeVol(plain) - bladeVol(lined);
+  // a ~1.2 x 0.6 mm groove along a couple of metres of border, both faces
+  assert.ok(removed > 300 && removed < 8000, `groove volume ${removed.toFixed(0)} mm³`);
+  assert.equal(lined.pieces.length, plain.pieces.length, 'no loose specks');
+  assert.ok(plain.pieces.some((p) => p.parts.length > 1), 'printed colours: multi-filament pieces');
+  assert.ok(lined.pieces.every((p) => p.parts.length === 1), 'painted: one filament per piece');
+});
+
+test('a staff comes apart into the chosen number of sections around its core', async () => {
+  const { autoSplit } = await import('../src/engine/index.js');
+  for (const [id, opts] of [['maka-scythe-parts', { apart: 3, core: 'tube16' }], ['gen-scythe', { apart: 2, core: 'dowel12' }]]) {
+    const kit = KITS.find((k) => k.id === id);
+    const r0 = recipeFor(kit, variantsOf(kit)[0]);
+    const d = await withMeshes(designFromRecipe({ ...r0, opts: { ...r0.opts, ...opts } }));
+    if (opts.core === 'tube16') assert.ok(d.recipe.opts.staffD >= 32, 'staff thickened to fit a 16 mm core');
+    const cuts = autoSplit(M, d).cuts.filter((c) => c.targetName === 'Staff');
+    assert.equal(cuts.filter((c) => c.joint === 'thread').length, opts.apart - 1, `${id}: ${cuts.map((c) => c.joint).join(',')}`);
+    d.split.cuts = cuts.map(({ joint, ...c }, i) => ({ ...c, id: `c${i}`, joints: [{ type: joint }] }));
+    const r = runBuild(M, d, { mode: 'split' });
+    assert.deepEqual(r.warnings, [], r.warnings.join('; '));
+    const threads = r.reports.filter((x) => x.notes.some((n) => n.startsWith('screw thread')));
+    assert.equal(threads.length, opts.apart - 1, `${id}: printed threads fit around the core`);
+  }
+});

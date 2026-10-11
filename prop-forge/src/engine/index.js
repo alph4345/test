@@ -7,12 +7,14 @@ export { DOWELS } from './split.js';
 import { toBinarySTL } from './stl.js';
 import { profileOutline } from './parts.js';
 import { pointInPolys } from './geom2d.js';
+import { patternZones } from './pattern.js';
+import { finishOf } from './paint.js';
 
 // Filament of every triangle, for the "colour by filament" view: filament
 // zones (op 'paint') first, then the part the triangle came from.
 function zoneTester(design) {
   const s = design.scale || 1;
-  const zones = design.parts.filter((p) => p.op === 'paint' && !p.hidden).map((p) => {
+  const zones = design.parts.concat(patternZones(design.parts)).filter((p) => p.op === 'paint' && !p.hidden).map((p) => {
     const r = (p.rot || [0, 0, 0]).map((d) => (d * Math.PI) / 180);
     const st = p.stretch || [1, 1, 1];
     // flat (outline) zones, e.g. the edge line along a blade
@@ -178,8 +180,10 @@ export function runBuild(M, design, { mode = 'model', withStl = false } = {}) {
     }
 
     const used = new Set(materials.map((x) => x.filament));
-    const byFilament = mode === 'split' && design.split?.byFilament && used.size > 1;
-    const regions = (withStl || byFilament) && used.size > 1 ? materialRegions(M, materials) : null;
+    // a painted prop prints every piece in one filament; its colours are a guide
+    const paint = finishOf(design).colours === 'paint';
+    const byFilament = !paint && mode === 'split' && design.split?.byFilament && used.size > 1;
+    const regions = !paint && (withStl || byFilament) && used.size > 1 ? materialRegions(M, materials) : null;
     // separate loose bodies so each printable part is its own piece
     const out = [];
     for (const b of bodies) {
@@ -236,7 +240,7 @@ export function runBuild(M, design, { mode = 'model', withStl = false } = {}) {
         const tf = printTransform(data.verts, fit, plate);
         piece.stl = toBinarySTL(tf(data.verts), data.tris, name);
         // per-filament volumes in the same print position (multi-material)
-        const split = b.filament ? [{ filament: b.filament, m: b.m }] : regions ? partitionByFilament(M, b.m, regions) : [{ filament: [...used][0] || 1, m: b.m }];
+        const split = b.filament ? [{ filament: b.filament, m: b.m }] : regions ? partitionByFilament(M, b.m, regions) : [{ filament: mainFilament(data, design, [...used][0] || 1), m: b.m }];
         piece.parts = split.map(({ filament, m }) => {
           const md = m === b.m ? data : meshData(m, tags);
           const verts = tf(md.verts);
@@ -245,8 +249,16 @@ export function runBuild(M, design, { mode = 'model', withStl = false } = {}) {
       }
       return piece;
     });
-    return { pieces: pieces.concat(rawPieces, refPieces), warnings, reports, ms: Date.now() - t0 };
+    return { pieces: pieces.concat(rawPieces, refPieces), warnings, reports, ms: Date.now() - t0, paint };
   });
+}
+
+// The filament most of a piece's surface comes from (by its parts).
+function mainFilament(data, design, fallback) {
+  const counts = new Map();
+  for (const t of data.triTags) if (t >= 0) { const f = +design.parts[t]?.filament || 1; counts.set(f, (counts.get(f) || 0) + 1); }
+  const top = [...counts.entries()].sort((a, b) => b[1] - a[1])[0];
+  return top ? top[0] : fallback;
 }
 
 function bboxOfVerts(v) {
@@ -392,11 +404,38 @@ export function autoSplit(M, design, opts = {}) {
     // pieces that print on their own (a blade that slides into a socket, a
     // staff) get cuts of their own; resin pieces are left to the resin printer
     for (const sep of separates || []) {
-      if (sep.resin || fits(sep.m)) continue;
+      const apart = Math.max(1, sep.apart | 0);
+      if (sep.resin || (apart < 2 && fits(sep.m))) continue;
       const bb = sep.m.boundingBox();
-      for (const c of plan(sep.m)) {
+      const own = fits(sep.m) ? [] : plan(sep.m);
+      // even out plain length-wise slices (no stubs left at the end)
+      if (own.length && own.every((c) => c.axis === 'y')) {
+        const n = own.length, even = Array.from({ length: n }, (_, i) => r1(bb.min[1] + ((bb.max[1] - bb.min[1]) * (i + 1)) / (n + 1)));
+        let ok = true, prev = bb.min[1];
+        for (const y of even.concat([bb.max[1] + 1])) {
+          if (!fits(slab(sep.m, 1, prev, y), 1, y, y < bb.max[1] ? allowance : 0)) { ok = false; break; }
+          prev = y;
+        }
+        if (ok) own.forEach((c, i) => { c.pos = even[i]; });
+      }
+      // a staff that comes apart into sections: the cut nearest each even
+      // division screws apart, the other cuts (needed to fit the printer)
+      // are glued for good
+      const taps = new Set();
+      if (apart > 1) {
+        const len = bb.max[1] - bb.min[1], step = len / apart;
+        for (let i = 1; i < apart; i++) {
+          const y = bb.min[1] + step * i;
+          let best = null;
+          for (const c of own) if (c.axis === 'y' && !taps.has(c) && Math.abs(c.pos - y) < step * 0.35 && (!best || Math.abs(c.pos - y) < Math.abs(best.pos - y))) best = c;
+          if (!best) { best = { axis: 'y', pos: r1(y) }; own.push(best); cuts.push(best); }
+          taps.add(best);
+        }
+      }
+      for (const c of own) {
         c.target = sep.key; c.targetName = sep.name; c.limit ||= limitOf(bb);
-        if (sep.joint) c.joint = sep.joint; // e.g. a staff that screws together
+        if (apart > 1) c.joint = taps.has(c) ? sep.joint || 'thread' : sep.glueJoint || 'auto';
+        else if (sep.joint) c.joint = sep.joint; // e.g. a blade that wants hidden plugs
       }
     }
     if (!cuts.length) return { cuts: [], message: 'The whole model already fits your printer.' };

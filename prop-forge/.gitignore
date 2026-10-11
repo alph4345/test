@@ -1,4 +1,5 @@
 node_modules/
 dist/
 src/templates/bundled-unreleased.js
+src/templates/unreleased-shapes.js
 private/

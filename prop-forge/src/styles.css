@@ -62,7 +62,8 @@ button, input, select { font: inherit; color: inherit; }
 .status { position: absolute; right: 10px; top: 10px; font-size: 11.5px; color: var(--muted); background: var(--panel); border: 1px solid var(--line); border-radius: 7px; padding: 3px 9px; }
 .status.busy { color: var(--accent); }
 .warn-box { position: absolute; left: 10px; bottom: 10px; max-width: 60%; background: var(--warn-bg); color: var(--warn-ink); border-radius: 8px; padding: 8px 10px; font-size: 12px; box-shadow: var(--shadow); }
-.legend { position: absolute; right: 10px; bottom: 10px; background: var(--panel); border: 1px solid var(--line); border-radius: 7px; padding: 4px 9px; font-size: 11.5px; display: flex; align-items: center; gap: 6px; }
+.legends { position: absolute; right: 10px; bottom: 10px; display: flex; flex-direction: column; align-items: flex-end; gap: 6px; max-width: calc(100% - 20px); pointer-events: none; }
+.legend { background: var(--panel); border: 1px solid var(--line); border-radius: 7px; padding: 4px 9px; font-size: 11.5px; display: flex; align-items: center; gap: 6px; }
 .sw.ins { width: 12px; height: 12px; border-radius: 3px; background: #ff6a3a; opacity: .7; display: inline-block; }
 
 .editor { position: relative; flex: none; border-top: 1px solid var(--line); background: var(--panel); display: flex; flex-direction: column; }
@@ -144,6 +145,15 @@ input[type=checkbox] { accent-color: var(--accent); }
 .list li.empty { color: var(--muted); cursor: default; }
 .list .nm, .pieces .nm, .lib .link { flex: 1; min-width: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; text-align: left; }
 .list .icon { width: 24px; height: 22px; background: none; border: 0; color: var(--muted); }
+.lib li { border: 1px solid transparent; }
+.lib li.on { background: var(--sel); border-color: var(--line); }
+.lib-main { flex: 1; min-width: 0; display: flex; flex-direction: column; align-items: flex-start; gap: 1px; }
+.lib-main b, .lib-main .link { max-width: 100%; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.lib button:not(.link):not(.icon) { padding: 3px 8px; font-size: 12px; }
+.lib .icon { width: 24px; height: 22px; background: none; border: 0; color: var(--muted); }
+.danger-btn { color: var(--bad); }
+.save-state { font-size: 11.5px; padding: 2px 8px; border-radius: 10px; border: 1px solid var(--line); color: var(--muted); white-space: nowrap; }
+.save-state.unsaved { color: var(--warn-ink); background: var(--warn-bg); border-color: transparent; }
 .dot { width: 12px; height: 12px; border-radius: 50%; border: 2px solid transparent; flex: none; }
 .dot.ins { background: #ff6a3a; border-radius: 3px; }
 .dot.cut { background: #3aa0ff; border-radius: 2px; height: 4px; }
@@ -227,5 +237,4 @@ button.dice { padding: 8px 10px; font-size: 13.5px; }
 .steps li { margin: 2px 0; }
 .card-gen { color: var(--accent); font-size: 10.5px; margin-top: 2px; }
 .dot.zone { background: #9b6bff; border-radius: 3px; }
-.legend { max-width: calc(100% - 20px); }
 .dot.ref { background: #8d949c; opacity: .6; border-radius: 3px; }

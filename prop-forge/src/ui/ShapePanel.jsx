@@ -1,5 +1,6 @@
-import { store, edit, setUI, filamentsOf, toast } from '../state.js';
+import { store, edit, setUI, filamentsOf, toast, markEdited } from '../state.js';
 import { importSTL } from './importer.js';
+import { designFromRecipe } from '../kits/index.js';
 import { symmetryPatch } from './ProfileEditor.jsx';
 import { grindHeights } from '../engine/blade.js';
 import { Num, Vec3, Select, Check, Text, Color, Section, Help, FilamentPick } from './controls.jsx';
@@ -55,12 +56,28 @@ function GrindPreview({ part }) {
   );
 }
 
+function resetPart(id) {
+  edit((dd) => {
+    const q = dd.parts.find((x) => x.id === id);
+    if (q) delete q.edited;
+    const nd = designFromRecipe(dd.recipe, dd);
+    if (!nd) return;
+    for (const k of Object.keys(dd)) delete dd[k];
+    Object.assign(dd, nd);
+  });
+}
+
 function PartEditor({ part, idx }) {
   const d = store.design;
-  const set = (patch, key) => edit((dd) => { Object.assign(dd.parts[idx], patch); }, key ? `${part.id}-${key}` : null);
+  const set = (patch, key) => edit((dd) => { Object.assign(dd.parts[idx], patch); markEdited(dd.parts[idx]); }, key ? `${part.id}-${key}` : null);
   const addParts = d.parts.filter((p) => p.op !== 'subtract' && p.id !== part.id);
   return (
     <Section title={`Edit: ${part.name}`} right={<span class="badge">{TYPE_LABEL[part.type]}</span>}>
+      {part.gen && part.edited && d.recipe && (
+        <Help>You've reshaped this part by hand, so the weapon's options no longer change its shape (its colour and pattern still follow them).{' '}
+          <button class="link" onClick={() => resetPart(part.id)}>Back to the options' shape</button></Help>
+      )}
+      {part.pattern && <Help>This part carries a colour pattern ({part.pattern.type === 'teeth' ? 'the toothed band along the edge' : 'along the edge'}). It follows the outline: drag the nodes and the pattern runs on along the new shape. The pattern's own settings are in the options above.</Help>}
       <Text label="Name" value={part.name} onChange={(v) => set({ name: v }, 'name')} />
       <div class="two">
         <Select label="Mode" value={part.op || 'add'} options={[['add', 'Add material'], ['subtract', 'Cut away (hole)'], ...(['box', 'cylinder', 'sphere'].includes(part.type) || part.op === 'paint' ? [['paint', 'Colour zone']] : [])]} onChange={(v) => set({ op: v })} />

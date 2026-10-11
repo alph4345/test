@@ -4,6 +4,7 @@
 import { COLORS as C, P, blade, cyl, sphere, lathe, design } from '../templates/helpers.js';
 import { choice, range, toggle, fil, group, sizeGroup, icon } from './core.js';
 import { palette } from './parts.js';
+import { staffStrength, fixStaff, coreChannel, apartPlan, staffNotes, staffSteps } from './staff.js';
 
 const PALETTE = () => palette(['Silver', '#9aa2ad'], ['Dark wood', '#5b3a22'], ['Black', '#2b2d31'], ['Gold', '#c9a23f']);
 
@@ -77,16 +78,18 @@ const variant = {
     group('Head and staff', [
       choice('finial', 'Top of the head', [{ v: 'spike', label: 'Spike', weight: 2 }, { v: 'ball', label: 'Ball' }, { v: 'cap', label: 'Rounded cap', weight: 2 }, { v: 'none', label: 'Flat' }], 'cap'),
       range('staffLen', 'Staff length', 1000, 1800, 1450, { step: 10, rand: [1300, 1600], hint: 'Many conventions allow staffs and polearms up to about 180 cm overall.' }),
-      range('staffD', 'Staff thickness', 26, 40, 32, { unit: 'mm Ø', rand: [28, 36] }),
+      range('staffD', 'Staff thickness', 26, 44, 32, { unit: 'mm Ø', rand: [28, 36] }),
       choice('grips', 'Grips on the staff', [{ v: 'none', label: 'None', weight: 3 }, { v: 'two', label: 'Two (like a field scythe)' }], 'none'),
       choice('butt', 'Bottom of the staff', [{ v: 'cap', label: 'Rounded cap', weight: 2 }, { v: 'spike', label: 'Spike' }, { v: 'ring', label: 'Ferrule' }], 'cap'),
     ]),
+    group('Strength', staffStrength({ apart: 2, core: 'dowel12' })),
     group('Colours', [fil('fil_blade', 'Blade', 1), fil('fil_staff', 'Staff', 2), fil('fil_fittings', 'Head and fittings', 3)]),
   ],
   tidy(o) {
     if (o.double && o.angle > 40) o.angle = 20;
     return o;
   },
+  fix: (o) => fixStaff(o),
   build(o) {
     const rS = o.staffD / 2, L = o.staffLen;
     const fit = { color: C.dark, filament: o.fil_fittings };
@@ -111,8 +114,10 @@ const variant = {
     parts.push(bladePart);
     // the staff: its own piece (cut into screw-together lengths in the Split step)
     const st = { color: C.wood, filament: o.fil_staff, separate: 'staff' };
-    parts.push({ ...cyl('Staff', rS, rS, L, [0, -Hc - L / 2, 0], st), joint: 'thread' });
+    parts.push({ ...cyl('Staff', rS, rS, L, [0, -Hc - L / 2, 0], st), ...apartPlan(o) });
     parts.push(cyl('Staff peg', pegR, pegR, Hc - 12, [0, -Hc + (Hc - 12) / 2 - 2, 0], st));
+    // the core runs from the butt up through the peg into the head
+    parts.push(...coreChannel(o, 'staff', -Hc - L - 6, -17));
     if (o.grips === 'two') {
       for (const f of [0.28, 0.62]) {
         const y = -Hc - L * f;
@@ -125,7 +130,7 @@ const variant = {
     if (o.butt === 'spike') parts.push(lathe('Butt spike', [P(rS + 3, yb + 30), P(rS + 3, yb), P(rS * 0.5, yb - 30, 'c'), P(0, yb - 90)], bf));
     else if (o.butt === 'ring') parts.push(lathe('Ferrule', [P(rS + 3, yb + 45), P(rS + 3, yb + 2), P(rS, yb - 4), P(0, yb - 4)], bf));
     else parts.push(lathe('Butt cap', [P(rS + 3, yb + 25), P(rS + 3, yb), P(rS * 0.7, yb - 14, 'c'), P(0, yb - 18)], bf));
-    const d = design('Scythe', parts, { meta: { bayPos: [0, -Hc - 200, 0], baySize: [16, 70, 16] } });
+    const d = design('Scythe', parts, { meta: { bayPos: [0, -Hc - 200, 0], baySize: [16, 70, 16], notes: staffNotes(o, L + Hc - 11), steps: staffSteps(o) } });
     d.filaments = PALETTE();
     return d;
   },

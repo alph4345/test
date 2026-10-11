@@ -46,7 +46,9 @@ export function bladeOptions(part, samples) {
     bevel: Math.max(0, +part.bevel || 0),
     grind: part.grind || 'flat',
     sides: part.sides || 'both',
-    taper: part.tipThickness != null && part.tipThickness !== '' ? { to: Math.max(0.4, +part.tipThickness), y0: Math.min(...ys), y1: Math.max(...ys) } : null,
+    // distal taper from the base to the tip (or over `taperY` [from, to])
+    taper: part.tipThickness != null && part.tipThickness !== ''
+      ? { to: Math.max(0.4, +part.tipThickness), y0: part.taperY ? +part.taperY[0] : Math.min(...ys), y1: part.taperY ? +part.taperY[1] : Math.max(...ys) } : null,
   };
 }
 
@@ -252,8 +254,12 @@ export function placeSolid(m, part) {
 
 // All placed copies of a part (mirror / radial array), before global scale.
 export function partInstances(M, part, warn) {
-  let base = partSolid(M, part, warn);
-  if (!base) return [];
+  const base = partSolid(M, part, warn);
+  return base ? placeInstances(base, part) : [];
+}
+
+// Stretch, place and copy a part's local solid.
+export function placeInstances(base, part) {
   const st = part.stretch;
   if (st && (st[0] !== 1 || st[1] !== 1 || st[2] !== 1)) base = base.scale(st.map((v) => +v || 1));
   const placed = placeSolid(base, part);

@@ -18,12 +18,18 @@ Snapmaker U1 and template sizes) is in [RESEARCH.md](RESEARCH.md).
      (Buster Sword, Revolver Gunblade, Zangetsu V1, Tanjiro's katana, Maka's
      scythe; see [REFERENCES.md](REFERENCES.md)).
    * **Generate a weapon** rolls a new weapon of a general type (greatsword,
-     katana, cleaver sword, scythe). Greatswords come with a choice of
-     blade shape, point, fuller, guard (cross, swept, winged, block, disc),
-     grip, pommel and parrying hooks; scythes have their own blade shapes
-     (reaper, hooked, broad, crescent) on a staff that comes apart.
+     falchion, katana, cleaver sword, scythe). Greatswords are straight,
+     tapered or cleaver-shaped with a choice of point, fuller, ricasso, guard
+     (cross, swept, winged, block, disc), grip and pommel; falchions are
+     broad, cusped, clipped or curved with their own guards and pommels;
+     scythes have their own blade shapes (reaper, hooked, broad, crescent)
+     on a staff that comes apart.
    * You can also open any STL as a new project or start blank. The panel
      lists the weapons still waiting for a reference.
+   * **Drafts and saved jobs**: every change autosaves. Work you haven't
+     saved waits in *Drafts* (open it again later, save it, or discard it);
+     *Save* (top bar or Ctrl+S) moves it to *Saved jobs*. Both live in the
+     browser; save a job to a file to back it up or move it.
 2. **Customize**: options made for that weapon, with picture choices,
    sliders and colour slots. Examples: the Buster's materia (open, filament
    or resin-printed; with LEDs the domes print hollow and come off on
@@ -31,14 +37,23 @@ Snapmaker U1 and template sizes) is in [RESEARCH.md](RESEARCH.md).
    with a magnetic lid and a switch hole), the gunblade's revolver cylinder
    (chambers, flute style and length, chamber holes, turns on a pin),
    Tanjiro's tsuba shapes and diameter and a silver edge line, Zangetsu's
-   heel (pointed, or cut off as in the V1 file), and Maka's printable blade
-   with red teeth on a printed or bought staff. Cloth handle wraps are left
-   off the print (wrap them for real). Generated weapons have a
+   dowel and blade rod, and Maka's printable blade with red teeth on a
+   printed or bought staff. Staffs come apart into the number of sections
+   you pick, around a wooden dowel or aluminium tube core that carries the
+   load. Cloth handle wraps are left off the print (wrap them for real).
+   **Paint or print the colours**: print each colour in its own filament,
+   or print every piece in one filament and paint it; *paint guide lines*
+   cut shallow grooves wherever two colours meet. Patterns that belong to a
+   blade (Maka's teeth) are worked out from its outline, so they carry on
+   when the blade is reshaped. Generated weapons have a
    *Generate another* button (and a 🎲 per option group). Proportions of
    your meshes (blade length, width, grip length) stretch the model without
    breaking it.
    *Edit parts by hand (advanced)* opens the parts editor. Click any part to
-   edit it. Blades and flat shapes have a vector-style outline editor: drag
+   edit it; a weapon's own part that you reshape keeps your shape when you
+   change its options (with a button to go back to the options' shape).
+   Zangetsu's blade is an outline traced from the V1 file, so it can be
+   reshaped node by node like the generated blades. Blades and flat shapes have a vector-style outline editor: drag
    nodes, click the green **+** on any segment to insert a node, right-click
    (or Delete) to remove one, make a node a *Curve* and drag its handles,
    and mark nodes *Sharp* to grind that edge. Long outlines can be shown
@@ -102,8 +117,9 @@ the page is opened from disk. UI is Preact + Three.js.
 Each weapon lives in `src/kits/`. Legendary kits (the creator's mesh plus
 options of its own) are in `buster.js`, `gunblade.js`, `zangetsu.js`,
 `katana.js` and `scythe.js` (Maka). Generator kits (parametric weapons of a
-general type) are `greatsword.js`, `reaper.js` (scythe), and the second
-exports of `zangetsu.js` (cleaver) and `katana.js`. A kit variant lists option groups (`choice`
+general type) are `greatsword.js`, `falchion.js`, `reaper.js` (scythe), and
+the second exports of `zangetsu.js` (cleaver) and `katana.js`. Staff options
+(sections, core) are shared in `staff.js`. A kit variant lists option groups (`choice`
 with optional outline icons, `range`, `toggle`, `fil` for filament slots;
 see `src/kits/core.js`) and a `build(opts)` that returns a design. Parts it
 builds are rebuilt whenever an option changes. Parts and inserts that are
@@ -117,8 +133,10 @@ bundled model, optionally with a proportion `warp`), `zone()` (colour zone),
 plus `dowel()`/`bay()` inserts. Flags: `separate` prints a part as its own
 piece (a shared name groups several parts into one piece), `resin` exports
 it for a resin printer, `reference` shows a part see-through without
-printing it (a bought rod, for instance), and `target` aims a hole at one
-part. Units are mm.
+printing it (a bought rod, for instance), `target` aims a hole at one
+part (or, with a `separate` name, at every part of that piece), and
+`pattern` gives a blade a colour pattern worked out from its outline
+(`src/engine/pattern.js`). Paint guide lines are in `src/engine/paint.js`. Units are mm.
 Y runs up the weapon. `npm test` builds every kit, and many random rolls of
 each generator, and checks that nothing comes apart.
 

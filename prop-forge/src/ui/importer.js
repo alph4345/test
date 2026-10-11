@@ -1,6 +1,6 @@
 // STL import: read, repair, lay flat, simplify (in the geometry worker) and
 // add to the design, or open as a new project.
-import { store, edit, setUI, toast, bumpMeshes, replaceDesign, blankDesign } from '../state.js';
+import { store, edit, setUI, toast, bumpMeshes, openProject, blankDesign } from '../state.js';
 import { parseSTL, repairMesh, putMesh } from './stlimport.js';
 import { request } from '../engine/client.js';
 import { COLORS, uid } from '../templates/helpers.js';
@@ -43,7 +43,7 @@ export async function importSTL(file, { newProject = false } = {}) {
     const d = blankDesign();
     d.name = part.name;
     d.parts.push(part);
-    replaceDesign(d);
+    openProject(d);
     setUI({ tab: 'custom', sel: null });
   } else edit((dd) => { dd.parts.push(part); });
   bumpMeshes();

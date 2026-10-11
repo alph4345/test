@@ -9,8 +9,9 @@ export const meshPart = (name, key, o = {}) => ({
   ...(o.warp ? { warp: o.warp } : {}), ...(o.separate ? { separate: true } : {}),
 });
 
-// A region painted with another filament (adds no material).
-export const zone = (name, part, filament) => ({ ...part, name, op: 'paint', color: '#8f6bd8', filament });
+// A region painted with another filament (adds no material). `on: 'main'`
+// keeps its paint guide lines off pieces printed on their own.
+export const zone = (name, part, filament, o = {}) => ({ ...part, name, op: 'paint', color: '#8f6bd8', filament, ...(o.on ? { on: o.on } : {}) });
 
 export const palette = (...names) => names.map(([name, color]) => ({ name, color }));
 

@@ -1,13 +1,13 @@
 // Generic greatsword: a broad, cleaver-sized two-handed blade with the
-// parts a sword has (guard, ricasso with parrying hooks, fuller, grip,
-// pommel). Every option can be changed and "Generate another" rolls more.
+// parts a sword has (guard, ricasso, fuller, grip, pommel). Every option
+// can be changed and "Generate another" rolls more.
 import { COLORS as C, P, blade, flat, box, cyl, sphere, lathe, ring, dowel, design, hole as holePart } from '../templates/helpers.js';
 import { choice, range, toggle, fil, group, sizeGroup, circlePoly, icon, hole } from './core.js';
 import { palette, wrappedGrip, clipAbove, xy } from './parts.js';
 
 const PALETTE = () => palette(['Silver', '#9aa2ad'], ['Dark grey', '#4a4f57'], ['Brown (grip)', '#5a3b26'], ['Gold', '#c9a23f']);
 
-const SINGLE = new Set(['cleaver', 'falchion']);
+const SINGLE = new Set(['cleaver']);
 
 // Left (edge, -x) and right (+x) sides of the blade as functions of y, the
 // height where the point begins, and the point itself (right to left).
@@ -18,21 +18,10 @@ function shapeOf(o) {
       left: (y) => h - W * (1 - (Math.max(0, y) / L) ** 2.4), right: () => h, top: L * 0.96, curved: true,
       tip: [[h - 1, L, 's']],
     };
-    case 'falchion': {
-      const tx = h - W * 0.38;
-      const left = (y) => -h - W * 0.16 * Math.sin((Math.PI * y) / (0.95 * L));
-      const right = (y) => (y < 0.74 * L ? h : h - (h - tx - 4) * ((y - 0.74 * L) / (0.24 * L)) ** 1.6);
-      return {
-        left, right, top: 0.82 * L, curved: true,
-        tip: [[right(0.9 * L), 0.9 * L, 'c'], [tx, L, 's'], [(left(0.82 * L) + tx) / 2 - W * 0.06, 0.93 * L, 'sc']],
-      };
-    }
-    case 'leaf': {
-      const right = (y) => h * (1 + 0.24 * Math.sin((Math.PI * Math.min(y, 0.8 * L)) / (1.25 * L)));
-      return {
-        left: (y) => -right(y), right, top: 0.8 * L, curved: true,
-        tip: [[right(0.8 * L) * 0.55, 0.91 * L, 'sc'], [0, L, 's'], [-right(0.8 * L) * 0.55, 0.91 * L, 'sc']],
-      };
+    case 'tapered': { // narrows steadily to a long point, like a zweihander
+      const top = L - W * 0.7;
+      const right = (y) => h * (1 - 0.38 * Math.max(0, y) / top);
+      return { left: (y) => -right(y), right, top, curved: false, tip: [[0, L, 's']] };
     }
     default: { // straight, with a choice of point
       const tips = {
@@ -118,9 +107,8 @@ const variant = {
     group('Blade', [
       choice('shape', 'Shape', [
         { v: 'straight', label: 'Straight', icon: shapeIcon('straight'), weight: 3 },
+        { v: 'tapered', label: 'Tapered', icon: shapeIcon('tapered'), weight: 2 },
         { v: 'cleaver', label: 'Cleaver', icon: shapeIcon('cleaver'), weight: 2 },
-        { v: 'falchion', label: 'Falchion', icon: shapeIcon('falchion'), weight: 1.5 },
-        { v: 'leaf', label: 'Leaf', icon: shapeIcon('leaf'), weight: 1.5 },
       ], 'straight'),
       choice('tip', 'Point', [
         { v: 'spear', label: 'Spear', icon: tipIcon('spear'), weight: 3 },
@@ -137,7 +125,6 @@ const variant = {
       choice('fuller', 'Fuller (groove)', [{ v: 'single', label: 'Single', weight: 2 }, { v: 'double', label: 'Double' }, { v: 'none', label: 'None', weight: 1.5 }], 'single'),
       toggle('ricasso', 'Ricasso (blunt section above the guard)', true, { p: 0.55 }),
       range('ricLen', 'Ricasso length', 50, 260, 130, { show: (o) => o.ricasso, rand: [90, 180] }),
-      toggle('flukes', 'Parrying hooks at the top of the ricasso', true, { show: (o) => o.ricasso, p: 0.5 }),
     ]),
     group('Guard', [
       choice('guard', 'Handguard', ['cross', 'swept', 'winged', 'block', 'disc', 'none'].map((v) => ({
@@ -178,15 +165,6 @@ const variant = {
     const bladeId = 'blade';
     const parts = [{ ...blade('Blade', bladeOutline(o), { thickness: T, edge: 2.5, bevel: o.bevel, tipThickness: T * 0.75, color: C.steel, filament: o.fil_blade }), id: bladeId }];
     const ric = o.ricasso ? o.ricLen : 0;
-    // parrying hooks: small curved spikes either side at the top of the ricasso
-    if (ric && o.flukes) {
-      // one hook on each side, rooted 6 mm inside that side's edge
-      for (const [side, ex] of [[1, s.right(ric)], [-1, s.left(ric)]]) {
-        const hk = [[-6, -8], [18, -16, 'c'], [34, -34], [30, -10, 'c'], [10, 8], [-6, 8]];
-        const pts = hk.map(([dx, dy, f]) => P(ex + side * dx, ric + dy, f || ''));
-        parts.push(flat('Parrying hook', side > 0 ? pts : pts.reverse(), T * 0.85, { color: C.steel, filament: o.fil_blade }));
-      }
-    }
     // holes down the middle, starting above the ricasso
     const hs = o.holeSize, n = o.holes | 0;
     const hole0 = Math.max(ric + hs * 0.6 + 10, hs * 0.6 + 20);
@@ -274,7 +252,7 @@ const variant = {
 export const greatsword = {
   id: 'gen-greatsword', generator: true,
   name: 'Greatsword', type: 'greatsword',
-  blurb: 'Broad two-handed blades with a handguard, ricasso and parrying hooks, fuller, grip and pommel.',
+  blurb: 'Broad two-handed blades (straight, tapered or cleaver) with a handguard, ricasso, fuller, grip and pommel.',
   models: [],
   variants: { generated: variant },
 };

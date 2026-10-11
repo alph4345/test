@@ -6,6 +6,7 @@ import { kitById, recipeFor, designFromRecipe } from '../kits/index.js';
 import { rng, newSeed, randomOpts } from '../kits/core.js';
 import { loadMeshes } from './stlimport.js';
 import { Num, Check, Section, Help, FilamentPick } from './controls.jsx';
+import { finishOf } from '../engine/paint.js';
 import { ShapePanel } from './ShapePanel.jsx';
 import { NextStep } from './NextStep.jsx';
 
@@ -74,6 +75,34 @@ async function apply(recipe, key, { refit = false } = {}) {
   if (refit) setUI({ refit: true });
 }
 
+// Colours printed in filament, or painted (with guide lines cut where
+// colours meet). Every design with colour zones or patterns gets this.
+export function FinishOptions() {
+  const d = store.design;
+  const hasColours = d.parts.some((p) => (p.op === 'paint' || p.pattern) && !p.hidden);
+  if (!hasColours) return null;
+  const f = finishOf(d);
+  const set = (patch, key) => edit((dd) => { dd.finish = { ...finishOf(dd), ...patch }; }, key);
+  return (
+    <Section title="Paint or print the colours">
+      <Check label="Print the colours in filament (multi-colour print)" checked={f.colours !== 'paint'} onChange={(v) => set({ colours: v ? 'print' : 'paint' })} />
+      <Help>{f.colours === 'paint'
+        ? 'Every piece prints in one filament, to be glued, filled, sanded and painted. The 3D view still shows the colours as your paint guide.'
+        : 'Each colour prints in its own filament (one toolhead each on the U1). Best for small or scaled-down props whose seams you won\'t paint over.'}</Help>
+      <Check label="Paint guide lines (shallow grooves where colours meet)" checked={!!f.lines} onChange={(v) => set({ lines: v })} />
+      {f.lines && (
+        <>
+          <div class="two">
+            <Num label="Line width" unit="mm" value={f.lineWidth} min={0.6} max={3} step={0.1} onChange={(v) => set({ lineWidth: Math.min(3, Math.max(0.6, v)) }, 'lw')} />
+            <Num label="Depth" unit="mm" value={f.lineDepth} min={0.3} max={1.5} step={0.1} onChange={(v) => set({ lineDepth: Math.min(1.5, Math.max(0.3, v)) }, 'ld')} />
+          </div>
+          <Help>A groove shows where each colour starts after the print is primed, and gives masking tape or a brush an edge to follow. 1–1.5 mm wide and 0.5–0.8 mm deep survives filler primer and light sanding; sand along the line, not across it. Cutting the lines adds a second or two to each rebuild.</Help>
+        </>
+      )}
+    </Section>
+  );
+}
+
 function Palette() {
   const d = store.design;
   return (
@@ -116,6 +145,7 @@ export function CustomizePanel() {
             <Help>This project isn't one of your weapon templates (it's an STL you opened or a blank project), so it has no weapon options. You can still move, reshape and add parts by hand below, or pick a template in step 1.</Help>
           )}
         </Section>
+        <FinishOptions />
         <ShapePanel />
         <NextStep tab="inserts" label="Dowels & electronics" />
       </div>
@@ -173,12 +203,13 @@ export function CustomizePanel() {
           )}
         </Section>
       ))}
+      <FinishOptions />
       <section class="sec">
         <button class={`disclose${advanced ? ' open' : ''}`} aria-expanded={!!advanced} onClick={() => setUI({ advanced: !advanced, sel: null })}>
           <span aria-hidden="true">{advanced ? '▾' : '▸'}</span> Edit parts by hand <span class="muted">(advanced)</span>
         </button>
         {advanced && (
-          <Help>The weapon is made of parts (blade, guard, grip…). Here you can move, reshape, add or delete them one by one. Note: changing an option above rebuilds the weapon's own parts, so edits to them are replaced; parts you add yourself are kept.</Help>
+          <Help>The weapon is made of parts (blade, guard, grip…). Pick one in the list or in 3D to move or reshape it; blades and flat parts open an outline editor with nodes to drag. A part you reshape keeps your shape when you change the options above; parts you add yourself are kept too.</Help>
         )}
       </section>
       {advanced && <ShapePanel embedded />}

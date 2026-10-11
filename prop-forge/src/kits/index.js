@@ -8,6 +8,7 @@ import { zangetsu, cleaver } from './zangetsu.js';
 import { katana, katanaGen } from './katana.js';
 import { scythe } from './scythe.js';
 import { greatsword } from './greatsword.js';
+import { falchion } from './falchion.js';
 import { reaper } from './reaper.js';
 
 const modelReady = (kit) => kit.models.every(hasModel);
@@ -19,7 +20,7 @@ export const LEGENDARY = [buster, gunblade, zangetsu, katana, scythe].filter(mod
 
 // Generators: general weapon types that can be rolled at random, drawn in
 // the style of the creator's models.
-export const GENERATORS = [greatsword, katanaGen, cleaver, reaper];
+export const GENERATORS = [greatsword, falchion, katanaGen, cleaver, reaper];
 
 export const KITS = [...LEGENDARY, ...GENERATORS];
 
@@ -54,7 +55,9 @@ export function designFromRecipe(recipe, prev = null) {
   const kit = kitById(recipe.kit);
   if (!kit || !kit.variants[recipe.variant]) return null;
   const v = kit.variants[recipe.variant];
-  const opts = { ...defaultsOf(v.groups()), ...recipe.opts };
+  let opts = { ...defaultsOf(v.groups()), ...recipe.opts };
+  // options that depend on each other (e.g. a staff thick enough for its core)
+  if (v.fix) opts = v.fix(opts);
   const d = v.build(opts);
   // stable ids, so selections and targets survive a rebuild
   const remap = new Map();
@@ -69,6 +72,16 @@ export function designFromRecipe(recipe, prev = null) {
     p.gen = 1;
   }
   for (const p of d.parts) if (p.target && remap.has(p.target)) p.target = remap.get(p.target);
+  // kit parts reshaped by hand keep their shape; their colour and any
+  // pattern still follow the options
+  const edited = new Map((prev?.parts || []).filter((p) => p.gen && p.edited).map((p) => [p.id, p]));
+  d.parts = d.parts.map((p) => {
+    const q = edited.get(p.id);
+    if (!q) return p;
+    const keep = { ...q, filament: p.filament, gen: 1, edited: 1 };
+    if (p.pattern) keep.pattern = p.pattern; else delete keep.pattern;
+    return keep;
+  });
   for (const f of d.features) { if (!String(f.id).startsWith('k-')) f.id = `k-${slug(f.name)}`; f.gen = 1; }
   const dropped = new Set(recipe.dropped || prev?.recipe?.dropped || []);
   d.parts = d.parts.filter((p) => !dropped.has(p.id));
@@ -89,6 +102,7 @@ export function designFromRecipe(recipe, prev = null) {
     if (prev.recipe?.kit === kit.id) {
       if (prev.recipe.variant === recipe.variant) d.name = prev.name;
       if (prev.filaments?.length) d.filaments = prev.filaments;
+      if (prev.finish) d.finish = prev.finish;
     }
   }
   d.meta = { ...(d.meta || {}), templateId: kit.id };

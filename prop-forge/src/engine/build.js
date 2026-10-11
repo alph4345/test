@@ -1,12 +1,15 @@
 // Design -> solid model: parts are unioned (or subtracted), then the
 // inserts (dowel channels, electronics bays with lids) are cut in.
 import { partInstances, rod, boxFromBounds, setMeshSource, rawMeshPlaced } from './parts.js';
+import { patternZones } from './pattern.js';
+import { finishOf, zoneBorders, engrave } from './paint.js';
 
 export const TAG_FEATURE = -1;
 export const TAG_CUT = -2;
 export const TAG_JOINT = -3;
 export const TAG_LID = -4;
 export const TAG_MOUNT = -5;
+export const TAG_GROOVE = -6; // paint guide lines
 export const TAG_MOUNT_BASE = -100; // mount i is tagged -100 - i
 
 export class TagMap {
@@ -33,7 +36,12 @@ export function buildModel(M, design, tags) {
   const separates = [];
   const refs = [];
   const materials = []; // [{filament, solid}] in part order, later parts win overlaps
-  design.parts.forEach((part, idx) => {
+  const finish = finishOf(design);
+  // colour patterns that follow a part's outline become zones of their own
+  const allParts = design.parts.concat(patternZones(design.parts));
+  const zoneParts = [];
+  const subParts = [];
+  allParts.forEach((part, idx) => {
     if (part.hidden) return;
     let inst;
     try { inst = partInstances(M, part, (w) => warnings.push(w)); } catch (err) {
@@ -50,7 +58,7 @@ export function buildModel(M, design, tags) {
     }
     let solid = inst.length === 1 ? inst[0] : M.Manifold.union(inst);
     if (s !== 1) solid = solid.scale(s);
-    if (part.op === 'paint') { zones.push({ filament: +part.filament || 1, solid }); return; }
+    if (part.op === 'paint') { zones.push({ filament: +part.filament || 1, solid }); zoneParts.push(part); return; }
     // shown for reference only (e.g. a metal rod you buy), never printed
     if (part.reference && part.op !== 'subtract') { refs.push({ m: tags.tag(solid, idx), name: part.name }); return; }
     solid = tags.tag(solid, idx);
@@ -61,15 +69,18 @@ export function buildModel(M, design, tags) {
       return;
     }
     if (part.op === 'subtract') {
+      subParts.push({ part });
       if (part.target) {
         if (!targeted.has(part.target)) targeted.set(part.target, []);
         targeted.get(part.target).push(solid);
       } else subs.push(solid);
     } else solids.push({ part, solid });
   });
+  // holes aimed at one part, or at every part of a separate piece (by its
+  // `separate` name, e.g. a core channel through all of a staff)
   const cutBy = (part, solid) => {
-    const t = targeted.get(part.id);
-    return t ? solid.subtract(t.length === 1 ? t[0] : M.Manifold.union(t)) : solid;
+    const t = [...(targeted.get(part.id) || []), ...(typeof part.separate === 'string' ? targeted.get(part.separate) || [] : [])];
+    return t.length ? solid.subtract(t.length === 1 ? t[0] : M.Manifold.union(t)) : solid;
   };
   for (const { part, solid } of solids) {
     const final = cutBy(part, solid);
@@ -79,19 +90,48 @@ export function buildModel(M, design, tags) {
   // `separate: true` makes a part its own piece; parts that share a
   // `separate` name fuse into one piece (e.g. a staff and its end cap)
   const groups = new Map();
+  const bodies = adds.map((m, i) => ({ filament: +solids[i].part.filament || 1, bb: m.boundingBox() }));
+  const sepParts = [];
   for (const { part, solid } of separates) {
     const final = cutBy(part, solid);
+    sepParts.push({ part, key: part.separate === true ? part.id : String(part.separate) });
     materials.push({ filament: +part.filament || 1, solid: final });
+    bodies.push({ filament: +part.filament || 1, bb: final.boundingBox() });
     const key = part.separate === true ? part.id : String(part.separate);
-    if (!groups.has(key)) groups.set(key, { solids: [], name: part.name, resin: !!part.resin, key, joint: part.joint });
-    groups.get(key).solids.push(final);
+    if (!groups.has(key)) groups.set(key, { solids: [], name: part.name, resin: !!part.resin, key, joint: part.joint, apart: part.apart, glueJoint: part.glueJoint });
+    const g = groups.get(key);
+    g.solids.push(final);
+    // the piece's take-apart plan may sit on any of its parts
+    if (part.joint && !g.joint) g.joint = part.joint;
+    if (part.apart && !g.apart) { g.apart = part.apart; g.glueJoint = part.glueJoint; }
   }
   separates.length = 0;
-  for (const g of groups.values()) separates.push({ m: g.solids.length === 1 ? g.solids[0] : M.Manifold.union(g.solids), name: g.name, resin: g.resin, key: g.key, joint: g.joint });
-  materials.push(...zones);
+  for (const g of groups.values()) separates.push({ m: g.solids.length === 1 ? g.solids[0] : M.Manifold.union(g.solids), name: g.name, resin: g.resin, key: g.key, joint: g.joint, apart: g.apart, glueJoint: g.glueJoint });
+  // painted props: colours are guides for the paint, every piece prints in one filament
+  if (finish.colours !== 'paint') materials.push(...zones);
+  // paint guide lines along the colour borders
+  let borders = [], mainKey = null;
+  const tagGroove = (m) => tags.tag(m, TAG_GROOVE);
+  if (finish.lines && zoneParts.length) {
+    try {
+      const depth = Math.max(0.2, +finish.lineDepth || 0.6);
+      borders = zoneBorders(M, zoneParts, s, Math.max(0.4, +finish.lineWidth || 1.2), depth, bodies);
+      // what each body's grooves depend on, so unchanged ones are reused
+      const zk = JSON.stringify([s, finish.lineWidth, finish.lineDepth, zoneParts]);
+      const partsKey = (list) => `${zk}|${JSON.stringify(list.map(({ part }) => part))}`;
+      for (const sep of separates) if (!sep.resin) sep.m = engrave(M, sep.m, borders, depth, sep.key, partsKey(sepParts.filter((x) => x.key === sep.key)), tagGroove);
+      mainKey = partsKey([...solids, ...subParts]);
+    } catch (err) {
+      warnings.push(`Paint guide lines could not be cut (${err.message || err}).`);
+      borders = [];
+    }
+  }
   if (!adds.length) return { model: null, lids: [], materials, zones, raws, separates, refs, warnings: raws.length || separates.length ? warnings : warnings.concat('Nothing to build: add a part.') };
   let model = adds.length === 1 ? adds[0] : M.Manifold.union(adds);
   if (subs.length) model = model.subtract(subs.length === 1 ? subs[0] : M.Manifold.union(subs));
+  if (borders.length) {
+    try { model = engrave(M, model, borders, Math.max(0.2, +finish.lineDepth || 0.6), 'main', mainKey, tagGroove); } catch (err) { warnings.push(`Paint guide lines could not be cut (${err.message || err}).`); }
+  }
 
   const lids = [];
   for (const [fi, f] of (design.features || []).entries()) {

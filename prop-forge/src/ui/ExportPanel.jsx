@@ -5,6 +5,7 @@ import { request } from '../engine/client.js';
 import { makeZip, download } from './zip.js';
 import { packMeshes } from './stlimport.js';
 import { Section, Help } from './controls.jsx';
+import { finishOf } from '../engine/paint.js';
 
 // pieces printed in filament (resin pieces are exported on their own)
 const fdm = (r) => r.pieces.map((p, i) => (p.resin ? -1 : i)).filter((i) => i >= 0);
@@ -16,6 +17,18 @@ const inch = (mm) => {
   const hit = Object.keys(known).find((k) => Math.abs(+k - v) < 0.01);
   return hit ? known[hit] : null;
 };
+
+// Finishing a painted prop (one filament per piece, guide grooves).
+export function paintSteps(design) {
+  const f = finishOf(design);
+  const has = design.parts.some((p) => (p.op === 'paint' || p.pattern) && !p.hidden);
+  if (!has || (f.colours !== 'paint' && !f.lines)) return [];
+  const out = [];
+  if (f.colours === 'paint') out.push('Every piece prints in one filament. Glue the pieces, fill the seams (wood filler, spot putty or Bondo glazing putty), sand 120 → 220 → 400 and prime with filler primer.');
+  if (f.lines) out.push(`The colour borders are shallow grooves (${f.lineWidth} mm wide, ${f.lineDepth} mm deep). Sand along them, not across, and don't fill them; after priming they still show where each colour starts.`);
+  out.push('Paint the lighter colour first and let it cure, then lay thin masking tape along the groove and paint the darker colour. Pull the tape while the paint is still soft; the groove hides a slightly wavy edge.');
+  return out;
+}
 
 export function shoppingList(design, reports) {
   const s = design.scale || 1;
@@ -111,7 +124,8 @@ export function ExportPanel() {
           'Shopping list:', ...shoppingList(d, r.reports).map((x) => `  - ${x}`), '',
           'Assembly: dry-fit everything first. Glue joints with CA or 5-minute epoxy (screw joints stay unglued),',
           'push the dowel/rod through the handle with epoxy, then fill seams with wood filler, sand and paint.',
-          ...((d.meta?.steps || []).length ? ['', 'Lights and fittings:', ...d.meta.steps.map((x) => `  - ${x}`)] : []),
+          ...((d.meta?.steps || []).length ? ['', 'For this prop:', ...d.meta.steps.map((x) => `  - ${x}`)] : []),
+          ...(paintSteps(d).length ? ['', 'Painting:', ...paintSteps(d).map((x) => `  - ${x}`)] : []),
         ].join('\n');
         files.push({ name: 'README.txt', data: new TextEncoder().encode(readme) });
         files.push({ name: `${safe(d.name)}.propforge.json`, data: new TextEncoder().encode(JSON.stringify({ ...d, meshes: packMeshes(d) }, null, 1)) });
@@ -161,8 +175,13 @@ export function ExportPanel() {
         {list.length ? <ul class="bullets">{list.map((x, i) => <li key={i}>{x}</li>)}</ul> : <Help>Nothing extra needed: no dowels, pins or magnets in this design yet.</Help>}
       </Section>
       {(d.meta?.steps || []).length > 0 && (
-        <Section title="Lights and fittings">
+        <Section title="Assembly">
           <ol class="bullets">{d.meta.steps.map((x, i) => <li key={i}>{x}</li>)}</ol>
+        </Section>
+      )}
+      {paintSteps(d).length > 0 && (
+        <Section title="Painting">
+          <ol class="bullets">{paintSteps(d).map((x, i) => <li key={i}>{x}</li>)}</ol>
         </Section>
       )}
       <Section title="Print & finish tips">
