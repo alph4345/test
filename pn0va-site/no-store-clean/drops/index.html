@@ -28,7 +28,7 @@
 <link rel="stylesheet" href="/vendor/leaflet/leaflet.css?v=ec929f11">
 <link rel="stylesheet" href="/tokens.css?v=cf68e78a">
 <link rel="stylesheet" href="/page-style.css?v=5d41a34f">
-<link rel="stylesheet" href="/drops.css?v=d6df812b">
+<link rel="stylesheet" href="/drops.css?v=cb7271ff">
 <style>
 /* Self-hosted faces — no Google Fonts request, no CDN failure mode. */
 @font-face{
@@ -202,6 +202,10 @@
      2. Set the data-* attributes on the <section>:
           data-n        cache number, two digits, e.g. "04"
           data-place    the cache's name
+          data-about    a line or two on the cache and its place:
+                        what it is and what it is like there. It
+                        leads wherever the cache is listed, and
+                        sits under its name on its page.
           data-lat / data-lng    decimal degrees, signed
           data-zoom     how close its street map opens: 17 is
                         street level, 16-18 is usually right
@@ -246,6 +250,8 @@
                  sticker. A cache's page lists every drop left there: choose
                  one for photos of the spot and of what was left, and its
                  transmission.</p>
+              <p>On the world map, a ! over a cache means something was
+                 left there in the last week.</p>
             </div>
           </details></div>
     <div class="dp-panel__body dw-globe" id="dw-globe">
@@ -294,6 +300,8 @@
                  sticker. A cache's page lists every drop left there: choose
                  one for photos of the spot and of what was left, and its
                  transmission.</p>
+              <p>On the world map, a ! over a cache means something was
+                 left there in the last week.</p>
             </div>
           </details>
         </span>
@@ -310,6 +318,9 @@
           <dl class="dp-readout"><dt>Latest</dt><dd id="r-placed">—</dd></dl>
           <dl class="dp-readout"><dt>Drops</dt><dd id="r-count">—</dd></dl>
         </span>
+
+        <!-- what the cache is, and where: its data-about -->
+        <p class="dp-about" id="r-about" hidden></p>
       </div>
     </section>
 
@@ -388,7 +399,8 @@
 <div hidden id="dp-data">
 
   <section class="dp-cache" data-n="03" data-place="Telegraph Hill"
-           data-lat="37.802139" data-lng="-122.4058" data-zoom="17">
+           data-lat="37.802139" data-lng="-122.4058" data-zoom="17"
+           data-about="Under Coit Tower at the top of Telegraph Hill. Garden stairs, wild parrots, and the city spread out below.">
 
     <article class="dp-entry" data-n="003" data-placed="2026.07.20"
              data-title="Stairs and Parrots"
@@ -402,7 +414,8 @@
   </section>
 
   <section class="dp-cache" data-n="02" data-place="Island Signal"
-           data-lat="37.826977" data-lng="-122.422955" data-zoom="17">
+           data-lat="37.826977" data-lng="-122.422955" data-zoom="17"
+           data-about="Alcatraz, a ferry ride out into the bay: the old prison, its lighthouse, and the skyline across the water.">
 
     <article class="dp-entry" data-n="002" data-placed="2026.07.04"
              data-title="Island Signal"
@@ -416,7 +429,8 @@
   </section>
 
   <section class="dp-cache" data-n="01" data-place="West Woods"
-           data-lat="37.769420" data-lng="-122.486214" data-zoom="17">
+           data-lat="37.769420" data-lng="-122.486214" data-zoom="17"
+           data-about="The wooded west of Golden Gate Park: meadows and small lakes under eucalyptus and cypress, the city out of earshot.">
 
     <article class="dp-entry" data-n="001" data-placed="2026.06.15"
              data-title="The First Drop"
@@ -435,11 +449,11 @@
 <script src="/vendor/leaflet/leaflet.js?v=5a640ff8"></script>
 <script src="/vendor/protomaps-leaflet/protomaps-leaflet.js?v=9d8eec24"></script>
 <script src="/drops-map.js?v=c472e168" data-map="maps/drops.pmtiles?v=0a2d46bf"></script>
-<script src="/drops.js?v=1ca5d78e"></script>
+<script src="/drops.js?v=b2308a6d"></script>
 <script src="/vendor/world/d3-array.min.js?v=08cb6252"></script>
 <script src="/vendor/world/d3-geo.min.js?v=b7604723"></script>
 <script src="/vendor/world/topojson-client.min.js?v=bc057598"></script>
-<script src="/drops-world.js?v=30141e51" data-world="maps/world/" data-world-v="42189bc6" data-landmarks="maps/landmarks.json?v=a9e7a54f"></script>
+<script src="/drops-world.js?v=66c95b3d" data-world="maps/world/" data-world-v="42189bc6" data-landmarks="maps/landmarks.json?v=a9e7a54f"></script>
 <script src="/page-script.js?v=bd1a70b0"></script>
 </body>
 </html>

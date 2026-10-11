@@ -121,18 +121,18 @@ there are no hints. The nav and the home page's menu call the page
 working. It is one page with two screens.
 
 - **The world** (`pn0va.com/drops`): the list of caches, each with its
-  number and name, when its latest drop was left, how many drops have been
-  left there and the latest one's title and first line, and a globe with a
-  mark for each. It opens with no cache chosen, the globe turned to where
-  the caches are.
+  number and name, a line or two on what the cache is and where, and, short
+  under that, when its latest drop was left, how many drops have been left
+  there and the latest one's title; and a globe with a mark for each. It
+  opens with no cache chosen, the globe turned to where the caches are.
   - **Choose a cache in the list** (a click, Enter, or the arrow keys down
     it) and the globe flies in to it, the cache in the middle, close enough
     to see its city and the streets around it (64x where the street map
     doesn't reach). Already closer, it keeps your zoom.
   - **Click a cache on the globe** and the globe stays where it is.
-  - Either way a prompt opens beside it: how many drops, when the latest
-    was left and how long ago, where the cache is, the latest drop's
-    number, title and item and the first line of its story, and **OPEN
+  - Either way a prompt opens beside it: what the cache is and where, its
+    coordinates, then, short, how many drops, when the latest was left and
+    how long ago and the latest one's number and title, and **OPEN
     CACHE**. Its ×, Esc or a click on bare globe closes it.
   - **The zoom buttons**, at the globe's top left, are its only ones:
     **+** and **−** a doubling at a time, every quick press counted, and
@@ -148,7 +148,8 @@ working. It is one page with two screens.
     second tap on the row closes it.
 - **A cache** (`pn0va.com/drops#03`): its name, large, under its number
   (CACHE 03 over TELEGRAPH HILL), its coordinates, when its latest drop was
-  left and how many there are, along the top; under them its street map,
+  left and how many there are, and what the cache is and where, along the
+  top; under them its street map,
   at street level, filling the screen. On the map, at the middle of its
   foot, is the page's one menu: **the drops left there**, newest first,
   each with its number, title and date, and NEW or CLAIMED.
@@ -197,9 +198,9 @@ windows at the cache it was left at. Opening a drop adds a step to Back,
 so Back closes it again; choosing another while one is open changes the
 address without adding a step, so a link copied from there opens on that
 drop. Reload and sharing work too. A cache is marked **NEW** while its
-latest drop is in its first week (in the list, in its prompt, and red on
-the globe), and that drop is marked NEW in the cache's list and its
-transmission.
+latest drop is in its first week (in the list and its prompt, and on the
+globe red, with a **!** over it), and that drop is marked NEW in the
+cache's list and its transmission.
 
 The globe is drawn in the brand palette from `tokens.css`: ember sea, slate
 land with built-up areas a shade lighter, ember lakes and rivers, roads in
@@ -227,10 +228,9 @@ Every cache has its own mark, which grows as you zoom in. Caches too close
 together to tell apart, like the three in San Francisco, sit on a small
 ring around the spot they share, each on a thread back to it, in the order
 they really lie (Alcatraz on top); zoom in and they move apart onto their
-own spots. Point at anything for what it is: a cache's number, name, how
-many drops and when the latest was left, and that drop's title, item and
-the start of its story; a city's state or country, a peak's height, a
-landmark's note. On a touch screen, tap it. Close in, a landmark's name
+own spots. Point at anything for what it is: a cache's number and name,
+what it is and where, and how many drops and when the latest was left; a
+city's state or country, a peak's height, a landmark's note. On a touch screen, tap it. Close in, a landmark's name
 goes ahead of the city it stands in (at 64x the Colosseum shows over
 Rome), but every name gives way to the caches and the prompt, so the
 landmarks right beside a cache, like most of San Francisco's, wait until
@@ -273,7 +273,8 @@ before caches, still work.)
 
 ```html
 <section class="dp-cache" data-n="03" data-place="Telegraph Hill"
-         data-lat="37.802139" data-lng="-122.4058" data-zoom="17">
+         data-lat="37.802139" data-lng="-122.4058" data-zoom="17"
+         data-about="Under Coit Tower at the top of Telegraph Hill. Garden stairs, wild parrots, and the city spread out below.">
 
   <article class="dp-entry" data-n="007" data-placed="2026.10.12"
            data-title="Third Time Up" data-itemcap="Cassette, side B">
@@ -295,7 +296,11 @@ before caches, still work.)
   what was left, in a few words. Then write its transmission.
 - **A new cache:** copy a whole `<section>` to the top, with one drop in
   it. `data-n` is the cache's number, two digits; `data-place` its name,
-  which heads its page; `data-lat` and `data-lng` where it is, in decimal
+  which heads its page; `data-about` a line or two on the cache and its
+  place, what it is and what it is like there, which leads wherever the
+  cache is listed and sits under its name on its page (the three caches
+  here have one each to start you off: rewrite them as you like);
+  `data-lat` and `data-lng` where it is, in decimal
   degrees; `data-zoom` how close its street map opens: 17 is street level,
   15 or 16 shows more of the neighbourhood. Either way the map zooms from 8
   out to 19 in.
@@ -363,6 +368,14 @@ add `data-claimed="2026.06.28"` to it if it should show.
 - **The street map** has no globe button now (WORLD MAP does that), and a
   double-click on its recentre button no longer zooms the map in off the
   cache.
+- **A cache says what it is.** Each has a line or two of its own
+  (`data-about`, see *Adding a drop, or a cache*) on the place and what it
+  is like there. It leads in the world's list, the prompt and the popup,
+  and sits under the cache's name on its page; what was left there is now
+  a short line under it (how many drops, the latest's date and title), and
+  the item and the story's first line are left to the drop itself.
+- **A ! over a new cache** on the globe, as a guard's alert in a codec
+  game, while its latest drop is in its first week (the same rule as NEW).
 - **WORLD MAP on a phone** heads the cache's top bar, as on a desktop and
   as ◀ DROPS heads a drop's screen. It floated at the foot of the screen
   and covered the drops under it; nothing sits over the page now but the

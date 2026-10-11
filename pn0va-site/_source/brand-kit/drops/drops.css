@@ -245,9 +245,16 @@ html.js body:has(.dp-shell){ overflow:hidden; }
    channel identity on one side and its state on the other. The coordinates
    ARE the frequency here — they're what you tune to. */
 .dp-bar .dp-panel__body{
-  display:grid; align-items:center; gap:14px;
+  display:grid; align-items:center; gap:4px 14px;
   grid-template-columns:auto minmax(0,1fr) auto;
   padding:6px 16px;
+}
+/* what the cache is and where (its data-about): a line under the rest, in
+   the reading face, the whole width of the bar */
+.dp-about{
+  grid-column:1 / -1; margin:0 0 2px; max-width:72em;
+  font-family:var(--pn-face-body); font-size:12.5px; line-height:1.45;
+  letter-spacing:0; text-transform:none; color:var(--pn-ink);
 }
 /* the bar is a strip, not a panel — every row inside it runs horizontal so
    it stays about 70px and gives the height back to the map */

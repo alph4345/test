@@ -59,6 +59,7 @@
     placed:  $("r-placed"),
     drops:   $("r-count"),
     place:   $("r-place"),
+    about:   $("r-about"),
     detail:  document.querySelector(".dp-detail"),
     log:     $("dp-log"),
     logn:    $("r-logn"),
@@ -155,6 +156,8 @@
       el.placed.textContent = drops[0] ? drops[0].dataset.placed : "—";
       el.drops.textContent  = drops.length;
       el.place.textContent  = d.place || "—";
+      /* what the cache is and where, under its name (its data-about) */
+      if (el.about){ el.about.textContent = d.about || ""; el.about.hidden = !d.about; }
 
       buildLog(drops);
 

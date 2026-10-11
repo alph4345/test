@@ -118,8 +118,8 @@
   // gone, however recent the drop); claimed once every drop there is.
   var list = drops.entries.map(function (e, i) {
     var d = e.dataset, left = drops.drops(i), latest = left[0] || null;
-    return { i: i, n: d.n || "", place: d.place || "", lat: parseFloat(d.lat), lng: parseFloat(d.lng),
-             drops: left, latest: latest, placed: latest ? latest.dataset.placed || "" : "",
+    return { i: i, n: d.n || "", place: d.place || "", about: (d.about || "").trim(),
+             lat: parseFloat(d.lat), lng: parseFloat(d.lng), drops: left, latest: latest, placed: latest ? latest.dataset.placed || "" : "",
              isNew: !!latest && claimedOf(latest) === null && daysSince(latest.dataset.placed) < NEW_DAYS,
              claimed: left.length > 0 && left.every(function (x) { return claimedOf(x) !== null; }) };
   });
@@ -150,15 +150,11 @@
   }
 
   /* --- what each cache has to say ----------------------------------------- */
-  // Its latest drop: its number and title, the caption of its item, and the
-  // first sentence of its story, as a teaser.
-  function about(d) {
-    var e = d.latest;
-    if (!e) return { n: "", title: "", item: "", teaser: "" };
-    var ds = e.dataset, p = e.querySelector("p");
-    var text = p ? p.textContent.replace(/\s+/g, " ").trim() : "";
-    var first = text.match(/^.+?[.!?](?=\s|$)/);
-    return { n: ds.n || "", title: ds.title || "", item: ds.itemcap || "", teaser: first ? first[0] : text };
+  // First what the cache is and where (its data-about); then, short, what
+  // has been left there. Its latest drop: number and title.
+  function latestOf(d) {
+    var ds = d.latest ? d.latest.dataset : {};
+    return { n: ds.n || "", title: ds.title || "" };
   }
   // how long ago the latest drop was left: "79 days ago"
   function age(d) {
@@ -174,22 +170,25 @@
     return s;
   }
   // What there is to say about cache d, into box (after its number and
-  // name). how: "popup" over it on the globe; "prompt", the chosen cache's,
-  // by it, with where it is and OPEN CACHE; "row", the same opened under its
-  // row on a phone, kept short (where it is is on the cache's own page) so
-  // the rows round it stay in view.
+  // name): what it is and where, then a short word on what has been left
+  // there (how many drops, the latest when and how long ago, NEW or
+  // CLAIMED, and the latest one's title). how: "popup" over it on the
+  // globe, without the title; "prompt", the chosen cache's, by it, with
+  // where it is and OPEN CACHE; "row", the same opened under its row on a
+  // phone, where the row has said what the cache is already.
   function describe(box, d, how) {
-    var x = about(d), a = age(d), when = el("span", "dw-when"), many = d.drops.length !== 1;
+    var x = latestOf(d), a = age(d), many = d.drops.length !== 1;
+    if (d.about && how !== "row") box.appendChild(el("span", "dw-about", d.about));
+    if (how === "prompt" && hasPos(d)) box.appendChild(el("span", "dw-at", coords(d)));
+    var recent = el("span", "dw-recent"), when = el("span", "dw-when");
     when.appendChild(el("span", null, plural(d.drops.length, "drop")));     // each part kept
     if (d.placed) when.appendChild(el("span", null, (many ? "Latest " : "Left ") + d.placed));
     if (a) when.appendChild(el("span", null, a));                         // whole (see the CSS)
-    box.appendChild(when);
-    if (d.claimed) box.appendChild(el("em", null, many ? "All claimed" : "Claimed"));
-    else if (d.isNew) box.appendChild(el("em", null, "New"));
-    if (how === "prompt" && hasPos(d)) box.appendChild(el("span", "dw-at", coords(d)));
-    if (x.title) box.appendChild(kv("Drop #" + x.n, el("i", null, x.title)));
-    if (x.item) box.appendChild(kv("Item", x.item));
-    if (x.teaser) box.appendChild(el("q", "dw-teaser", x.teaser));
+    recent.appendChild(when);
+    if (d.claimed) recent.appendChild(el("em", null, many ? "All claimed" : "Claimed"));
+    else if (d.isNew) recent.appendChild(el("em", null, "New"));
+    if (x.title && how !== "popup") recent.appendChild(kv("Drop #" + x.n, el("i", null, x.title)));
+    box.appendChild(recent);
     if (how === "popup") return;
     // OPEN CACHE, the one way in (the globe's own buttons do the zooming)
     var acts = el("div", "dw-acts");
@@ -215,10 +214,10 @@
   // stays as close as it already is), and the prompt opens there. It never
   // opens the cache itself. Pointing at a row only marks the cache on the
   // globe, so running the mouse down the list doesn't send the globe about.
-  // Each row says what is there (how many drops, the latest one's title and
-  // the start of its story); on a phone the chosen one opens up underneath
-  // with the rest, and its OPEN CACHE, instead of a prompt over the small
-  // globe.
+  // Each row says what the cache is and where, then, short, how many drops
+  // and the latest one's title; on a phone the chosen one opens up
+  // underneath with the rest, and its OPEN CACHE, instead of a prompt over
+  // the small globe.
   var rows = document.getElementById("dw-rows"), rowBtns = [], mores = [];
   var tapped = null;                    // where and when a row was last pressed
   var quiet = false;                    // a row focused by this script, not chosen by it
@@ -229,15 +228,15 @@
   }
   document.getElementById("dw-count").textContent = String(list.length).padStart(2, "0") + (list.length === 1 ? " CACHE" : " CACHES");
   list.forEach(function (d) {
-    var item = el("div", "dw-item"), a = el("button", "dw-row"), x = about(d);
+    var item = el("div", "dw-item"), a = el("button", "dw-row"), x = latestOf(d);
     a.type = "button";
     a.appendChild(el("span", "dw-n", d.n));
     a.appendChild(el("span", "dw-place", d.place));
     a.appendChild(tagFor(d) || el("span"));
     a.appendChild(el("span", "dw-date", d.placed));
+    if (d.about) a.appendChild(el("span", "dw-about", d.about));
     var line = plural(d.drops.length, "drop") +
-               (x.title ? (d.drops.length > 1 ? " \u00b7 latest \u201c" : " \u00b7 \u201c") + x.title + "\u201d" : "") +
-               (x.teaser ? " \u2014 " + x.teaser : "");
+               (x.title ? (d.drops.length > 1 ? " \u00b7 latest \u201c" : " \u00b7 \u201c") + x.title + "\u201d" : "");
     a.appendChild(el("span", "dw-line", line));
     a.addEventListener("mouseenter", function () { if (d.i !== sel) setHover({ drop: d.i }); });
     a.addEventListener("mouseleave", function () { if (hover && hover.drop === d.i) setHover(null); });
@@ -1023,13 +1022,23 @@
     var x = right ? q.x + q.r + 4 : q.x - q.r - 4 - w;
     return { x: x, y: q.y + (d < 2 ? 0 : (dy / d) * 4), box: [x - 1, q.y - 6, x + w + 1, q.y + 6] };
   }
-  // the room the caches, their numbers and the pointer take on screen
+  // A new cache's !: over its mark, clear of the chosen one's ring; under
+  // it where the mark sits at the foot of a ring of caches, away from the
+  // others.
+  function bangAt(q, chosen) {
+    var dx = q.x - q.at[0], dy = q.y - q.at[1], d = Math.hypot(dx, dy);
+    var off = q.r + (chosen ? 14.5 : 11), y = d >= 2 && dy > 0.5 * d ? q.y + off : q.y - off;
+    return { x: q.x, y: y, box: [q.x - 6, y - 9, q.x + 6, y + 9] };
+  }
+  // the room the caches, their numbers, their !s and the pointer take on
+  // screen
   function dropBoxes(lay) {
     var out = [];
     lay.pts.forEach(function (q) {
       var pad = q.r + 4;
       out.push([q.x - pad, q.y - pad, q.x + pad, q.y + pad]);
       if (lay.labels && q !== lay.shown) out.push(numberAt(q).box);
+      if (list[q.i].isNew) out.push(bangAt(q, q === lay.shown).box);
     });
     if (lay.shown) {
       var s = lay.shown;
@@ -1113,6 +1122,20 @@
     dots(open.filter(function (q) { return list[q.i].isNew; }), RED, 9);
     rings(claimed, ASH);                        // every drop claimed: hollow, the items are gone
     if (shown) dots([shown], BONE, 14);
+    // a ! over a cache with something new, a guard's alert in a codec game:
+    // where to look
+    var news = pts.filter(function (q) { return list[q.i].isNew; });
+    if (news.length) {
+      ctx.save();
+      ctx.font = "12px 'Press Start 2P', monospace"; ctx.textAlign = "center"; ctx.textBaseline = "middle";
+      ctx.lineJoin = "round"; ctx.lineWidth = 3; ctx.strokeStyle = "rgba(10,0,0,.9)";
+      news.forEach(function (q) {
+        var at = bangAt(q, q === shown);
+        ctx.shadowBlur = 0; ctx.strokeText("!", at.x, at.y);
+        ctx.shadowColor = RED; ctx.shadowBlur = 6; ctx.fillStyle = RED; ctx.fillText("!", at.x, at.y);
+      });
+      ctx.restore();
+    }
     // the pointed-at point gets a ring of its own
     var hv = hover && hover.drop != null && hover.drop !== sel && pts.filter(function (q) { return q.i === hover.drop; })[0];
     if (hv) {

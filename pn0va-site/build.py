@@ -735,9 +735,11 @@ DROPS_PHONE_CSS = """
     grid-template-areas:"desig meta" "freq freq";
     row-gap:6px;
   }
+  .dp-bar .dp-panel__body:has(> .dp-about:not([hidden])){ grid-template-areas:"desig meta" "freq freq" "about about"; }
   .dp-desig{ grid-area:desig; }
   .dp-meta { grid-area:meta; }
   .dp-freq { grid-area:freq; }
+  .dp-about{ grid-area:about; font-size:13px; }
   .dp-freq .v{ font-size:clamp(13px,4.3vw,18px); }
 
   .dp-bar .dp-panel__head{ display:flex; padding:4px 8px 4px 6px; }
@@ -772,9 +774,11 @@ DROPS_PHONE_CSS = """
     grid-template-areas:"desig meta" "freq freq";
     row-gap:6px;
   }
+  .dp-bar .dp-panel__body:has(> .dp-about:not([hidden])){ grid-template-areas:"desig meta" "freq freq" "about about"; }
   .dp-desig{ grid-area:desig; }
   .dp-meta { grid-area:meta; }
   .dp-freq { grid-area:freq; }
+  .dp-about{ grid-area:about; }
 }
 """
 
@@ -997,14 +1001,17 @@ html:not(.js) .dw-shell, html.js:not([data-view="world"]) .dw-shell{ display:non
 .dw-item:has(> .dw-row[aria-current="true"])::before{
   content:""; position:absolute; left:0; top:0; bottom:0; width:3px; background:var(--pn-red); z-index:1;
 }
-/* the second line: how many drops, and the latest one's title */
-.dw-line{
+/* under the name, the most of the row: what the cache is and where (its
+   data-about); then, short, how many drops and the latest one's title */
+.dw-about, .dw-line{
   grid-column:2 / -1; min-width:0; white-space:normal;
-  font-family:var(--pn-face-body); font-size:12px; line-height:1.45; letter-spacing:0; text-transform:none;
-  color:var(--pn-ink-muted);
-  display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical; overflow:hidden;
+  font-family:var(--pn-face-body); letter-spacing:0; text-transform:none;
+  display:-webkit-box; -webkit-box-orient:vertical; overflow:hidden;
 }
+.dw-about{ font-size:12.5px; line-height:1.45; color:var(--pn-ink); -webkit-line-clamp:3; }
+.dw-line{ font-size:11px; line-height:1.4; color:var(--pn-ink-muted); -webkit-line-clamp:1; }
 .dw-row:hover .dw-line, .dw-row[aria-current="true"] .dw-line{ color:var(--pn-ink); }
+.dw-row[aria-current="true"] .dw-about{ color:var(--pn-ink-strong); }
 .dw-row:focus-visible{ outline:2px solid var(--pn-focus); outline-offset:-2px; }
 .dw-n{ font-size:12px; letter-spacing:.06em; color:var(--pn-red); font-variant-numeric:tabular-nums; }
 .dw-row[aria-current="true"] .dw-n{ color:var(--pn-signal); }
@@ -1078,6 +1085,12 @@ html.dw-ready .dp-shell{ grid-template-columns:minmax(0,1fr); }
 .dw-callout.is-drop{ width:max-content; max-width:min(260px, calc(100% - 16px)); white-space:normal; }
 .dw-card{ width:max-content; max-width:min(284px, calc(100% - 16px)); white-space:normal; }
 .dw-callout .dw-place, .dw-card .dw-place{ display:block; color:var(--pn-ink); white-space:normal; }
+/* what the cache is and where, first; in the popup, three lines of it */
+.dw-callout .dw-about, .dw-card .dw-about{ display:block; margin:5px 0 3px; }
+.dw-callout .dw-about{ display:-webkit-box; -webkit-line-clamp:3; }
+/* then what has been left there, short, under a rule */
+.dw-recent{ display:block; margin-top:7px; padding-top:6px; border-top:1px solid var(--pn-divider); }
+.dw-recent > em{ display:block; font-style:normal; color:var(--pn-red); }
 .dw-at{ display:block; }
 /* how many drops, when the latest was left and how long ago: one line with
    dots between, or more where they don't fit, and then no dot (it sits in
@@ -1097,11 +1110,6 @@ html.dw-ready .dp-shell{ grid-template-columns:minmax(0,1fr); }
   text-transform:uppercase; color:var(--pn-red); margin-right:7px;
 }
 .kv i{ color:var(--pn-ink-strong); }          /* a drop's title */
-.dw-teaser{
-  display:block; margin-top:6px; quotes:"\\201C" "\\201D";
-  font-family:var(--pn-face-body); font-size:12px; font-style:italic; line-height:1.45;
-  letter-spacing:0; text-transform:none; color:var(--pn-ink-muted);
-}
 
 /* The prompt: by the chosen cache whenever the globe is still, all there is
    to say about it and OPEN CACHE, the one way into it. It pops in as a menu
@@ -1161,8 +1169,9 @@ html.dw-ready .dp-shell{ grid-template-columns:minmax(0,1fr); }
 .dw-more > em{ display:block; font-style:normal; color:var(--pn-red); }
 .dw-more .dw-acts{ margin:10px 0 0 -32px; }      /* out under the number: room for both */
 .dw-more .dw-acts > *{ min-height:44px; font-size:9px; }
-.dw-more .dw-teaser{ display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical; overflow:hidden; }
+.dw-more .dw-recent{ margin-top:0; padding-top:0; border-top:0; }
 .dw-item.is-open .dw-line{ display:none; }       /* the details say it in full */
+.dw-item.is-open .dw-about{ display:block; }     /* and what the cache is, all of it */
 
 /* zoom: + and - a doubling at a time, the globe back to the whole globe.
    The globe's only zoom buttons, so they are made to be found: big, framed
