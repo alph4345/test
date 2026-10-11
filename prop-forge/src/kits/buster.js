@@ -99,7 +99,7 @@ const modelVariant = {
     if (o.rods !== 'none') for (const s of [-1, 1]) features.push(dowel(s < 0 ? 'Blade rod (left)' : 'Blade rod (right)', w.point([s * 72, -48, 0]), w.point([s * 72, 700, 0]), +o.rods, { id: s < 0 ? 'k-rod-l' : 'k-rod-r', clearance: 0.2 }));
     features.push(...ledFeatures(o, w.point));
     const d = design('Buster Sword', parts, { features, meta: { bayPos: [0, w.mapY(300), 0], baySize: [70, 40, 20] } });
-    if (o.led && o.materia !== 'open') d.meta.notes = ['LEDs: 2 × 5 mm LEDs (or 5 mm WS2812 pixels), thin hook-up wire, a switch and a small battery (e.g. 2 × AAA holder or a 1S LiPo with charger) for the hilt bay'];
+    if (o.led && o.materia !== 'open') d.meta.notes = ['LEDs: 2 × 5 mm LEDs (or 5 mm WS2812 pixels), thin hook-up wire, a small slide switch and a battery that fits the 40 × 34 × 24 mm hilt bay: a flat 1S LiPo (e.g. 503035) with a USB-C charge board, or a 2 × CR2032 holder'];
     d.filaments = PALETTE();
     return d;
   },
