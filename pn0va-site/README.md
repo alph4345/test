@@ -911,6 +911,23 @@ builds in a row byte-identical · every page at 1440 and 390px, JavaScript
 on and off: no console errors, failed requests, sideways scrolling or
 outside requests.
 
+**2026.10.11, update 2**, clean and flat builds, desktop and phone: each
+cache's description leading its row in the world's list (whole, in up to
+three lines), its prompt and its popup, ahead of a short word on its drops
+(how many, the latest's date and age, its title in the prompt and the
+opened phone row only), and under its name in its page's top bar, at every
+layout · no item or story in any of them · a ! over the new cache on the
+globe and over nothing else, kept when it is chosen, none once nothing is
+new · WORLD MAP heading the cache's bar at 12 widths from 320 to 1920px
+and on phones on their side and tablets, 44px tall; scrolled to the end,
+every drop in view and nothing over the page but the site's nav; under a
+drop's screen and the help, covered · the help's ? a 44px target where the
+bar is narrow · a phone's double tap on a row scrolled into view opening
+nothing · every suite run again on both builds and the test copy · two
+builds byte-identical · both preview kits, each served by its own preview
+· every page at 1440 and 390px, JavaScript on and off: no console errors,
+failed requests, sideways scrolling or outside requests.
+
 **2026.10.11**, clean and flat builds, desktop and phone: the world
 listing and plotting the caches; choosing one flying the globe in to its
 city, its prompt with OPEN CACHE alone, + going on down to street level,
