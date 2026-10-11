@@ -60,10 +60,10 @@ keyless requests with "API key required" tiles, which blanked the map; the
 site no longer asks Carto (or anyone else) for anything.
 
 - `maps/drops.pmtiles` holds OpenStreetMap streets, water, parks, buildings
-  and names around the drop zones: close-up detail within 4 km of each zone
+  and names around the caches: close-up detail within 4 km of each cache
   and a wider view 30 km out. One file, read in small pieces, so a visitor
-  downloads only what they look at. A zone's page shows it as a street map,
-  and the globe draws the same streets once it comes in close to a zone.
+  downloads only what they look at. A cache's page shows it as a street map,
+  and the globe draws the same streets once it comes in close to a cache.
 - `drops-map.js` paints it in the site palette with protomaps-leaflet
   (`vendor/protomaps-leaflet/`, BSD licence), inside the same Leaflet map, so
   the rings, marker, graticule and recenter button are unchanged. The
@@ -71,24 +71,24 @@ site no longer asks Carto (or anyone else) for anything.
   glance: highways in the brand red, main roads a shade darker, side
   streets darker again and lanes and paths darkest. Railways are taupe,
   buildings taupe on slate ground, parks a dark olive, water near black,
-  and the names bone and linen. The zone is a bone diamond with a red glow,
+  and the names bone and linen. The cache is a bone diamond with a red glow,
   inside bone rings at 50, 100 and 250 m; zoomed out, a ring's label gives
   way where it has no room.
 - No key, no usage limits, no account. The data is © OpenStreetMap
   contributors (ODbL); the attribution on the map is required and in place.
 
 **The map in this folder** was made 2026-09-28 from OpenStreetMap data of
-2026-09-27: 10.8 MB, covering the three San Francisco drop zones. A visitor
+2026-09-27: 10.8 MB, covering the three San Francisco caches. A visitor
 who looks at all three downloads about 200 KB of it.
 
-**One map file serves every drop zone, and a new zone gets its map by
-itself.** Add the zone to `drops.html` and run `python build.py`. If it is
-more than about 3 km from every zone the map was made for, the build first
-fetches the area around each zone from the newest daily world map
-published by Protomaps (build.protomaps.com), then builds. Each zone gets
-its own area, so zones in two cities cost two small areas, not everything
-between them. A test zone in Mesa, Arizona added 6 MB to the map and under
-30 seconds to the build. A new drop at a zone you already have needs no
+**One map file serves every cache, and a new cache gets its map by
+itself.** Add the cache to `drops.html` and run `python build.py`. If it is
+more than about 3 km from every cache the map was made for, the build first
+fetches the area around each cache from the newest daily world map
+published by Protomaps (build.protomaps.com), then builds. Each cache gets
+its own area, so caches in two cities cost two small areas, not everything
+between them. A test cache in Mesa, Arizona added 6 MB to the map and under
+30 seconds to the build. A new drop at a cache you already have needs no
 map at all. Upload the new `maps/drops.pmtiles` along with the rest of the
 folder.
 
@@ -99,7 +99,7 @@ pip install pmtiles requests
 ```
 
 Without them, or offline, the build carries on with the map it has and names
-the zones it doesn't cover; the page shows those on plain ground, and the
+the caches it doesn't cover; the page shows those on plain ground, and the
 globe stops at 64x over them. With no map file at all, it shows the rings
 and marker on plain ground plus a link to the location on OpenStreetMap, not
 error tiles. `python tools/make-map.py` remakes the map on demand, for
@@ -111,113 +111,132 @@ preview (see *Local preview*). Python's `http.server` does not, and a page
 opened by double-clicking cannot read a file in parts at all: both show the
 rings on plain ground instead of streets.
 
-### The Drops page: the world, then a drop zone
+### The Cache page: the world, then a cache
 
-Drops are left at **drop zones**: places the operator comes back to, with
-any number of drops left at each over time. Every drop is in plain sight,
-marked with a P_N0VA sticker, and its page shows photos of the spot, so
-there are no hints. The Drops page is one page with two screens.
+Drops are left at **caches**: places the operator comes back to, with any
+number of drops left at each over time. Every drop is in plain sight,
+marked with a P_N0VA sticker, and its windows show photos of the spot, so
+there are no hints. The nav and the home page's menu call the page
+**Cache**; its address is still `pn0va.com/drops`, so links to it keep
+working. It is one page with two screens.
 
-- **The world** (`pn0va.com/drops`): the list of drop zones, each with its
+- **The world** (`pn0va.com/drops`): the list of caches, each with its
   number and name, when its latest drop was left, how many drops have been
   left there and the latest one's title and first line, and a globe with a
-  mark for each. It opens with no zone chosen, the globe turned to where
-  the zones are.
-  - **Choose a zone in the list** (a click, Enter, or the arrow keys down
-    it) and the globe turns to it, the zone in the middle, at the zoom you
-    are at: from far off it flies out and back down to that zoom.
-  - **Click a zone on the globe** and the globe stays where it is.
+  mark for each. It opens with no cache chosen, the globe turned to where
+  the caches are.
+  - **Choose a cache in the list** (a click, Enter, or the arrow keys down
+    it) and the globe flies in to it, the cache in the middle, close enough
+    to see its city and the streets around it (64x where the street map
+    doesn't reach). Already closer, it keeps your zoom.
+  - **Click a cache on the globe** and the globe stays where it is.
   - Either way a prompt opens beside it: how many drops, when the latest
-    was left and how long ago, where the zone is, the latest drop's
-    number, title and item and the first line of its story, **ZOOM IN** (or
-    **ZOOM OUT**, once the globe is as close as it goes), the one thing that
-    zooms to a zone, and **OPEN ZONE**. ZOOM IN flies all the way down to
-    street level, the scale the zone's own street map opens at. Its ×, Esc
-    or a click on bare globe closes the prompt.
-  - **OPEN ZONE** is the only way in: the globe dives, flashes, and the
-    zone's windows fly in. Pointing at a row only marks its zone on the
-    globe, and a double-click on a zone opens nothing.
+    was left and how long ago, where the cache is, the latest drop's
+    number, title and item and the first line of its story, and **OPEN
+    CACHE**. Its ×, Esc or a click on bare globe closes it.
+  - **The zoom buttons**, at the globe's top left, are its only ones:
+    **+** and **−** a doubling at a time, every quick press counted, and
+    the globe button under them back out to the whole globe. They are big,
+    framed in red, lit solid red when pointed at, and dimmed once there is
+    nothing left to do. Near a cache, + goes on down to street level.
+  - **OPEN CACHE** is the only way in: the globe dives, flashes, and the
+    cache's windows fly in. Pointing at a row only marks its cache on the
+    globe, and a double-click on a cache opens nothing.
   - On a phone the globe is too small to carry the prompt, so the chosen
-    zone's row opens up underneath instead, with the same (but for where
-    it is, which its page shows) and its two buttons the width of the list.
-    A second tap on the row closes it.
-- **A drop zone** (`pn0va.com/drops#03`): its name, large, under its number
-  (ZONE 03 over TELEGRAPH HILL), its coordinates, when its latest drop was
-  left and how many there are; its street map, at street level; and along
-  the bottom, **the drops left there**, newest first, each with its number,
-  title and date, and NEW or CLAIMED. Beside the list, everything about the
-  drop chosen in it: **Spot**, the photos of where it was left;
-  **Transmission**, its story; and **Item**, the photo of what was left. It
-  opens on the newest drop. Choose another in the list (a click, or the
-  arrow keys up and down it) and its photos and story show in place.
-  **WORLD MAP**, solid red at the head of the top bar, the globe button on
-  the street map, Esc, or the browser's Back pulls back out to the globe,
-  where that zone is still chosen. On a phone the page scrolls: the street
-  map takes half the screen, then the drops, the spot, the chosen one's
-  story in full and its item, and WORLD MAP floats at the foot of the
-  screen, always in reach.
+    cache's row opens up underneath instead, with the same (but for where
+    it is, which its page shows) and OPEN CACHE the width of the list. A
+    second tap on the row closes it.
+- **A cache** (`pn0va.com/drops#03`): its name, large, under its number
+  (CACHE 03 over TELEGRAPH HILL), its coordinates, when its latest drop was
+  left and how many there are, along the top; under them its street map,
+  at street level, filling the screen. On the map, at the middle of its
+  foot, is the page's one menu: **the drops left there**, newest first,
+  each with its number, title and date, and NEW or CLAIMED.
+  - **Choose a drop** (a click, or Enter on it) and its windows fly in
+    round the list while the map dims behind them: **Spot**, photos of
+    where it was left, on the left; **Transmission**, what was left and
+    why, above the list; **Items**, photos of what was left, on the right.
+    The list stays where it is, the chosen drop marked: choose another in
+    it (or move down it with the arrow keys) and the windows show that one
+    instead.
+  - **CLOSE** at the head of the transmission, Esc, or the browser's Back
+    closes them: they fly off and the list is on its own again.
+  - **WORLD MAP**, solid red at the head of the top bar, Esc with no drop
+    open, or Back pulls back out to the globe, where that cache is still
+    chosen.
+  - The street map has + and −, and a reticle that takes it back to the
+    cache as it opened.
+  - On a phone the page scrolls: the street map takes half the screen,
+    then the drops, and WORLD MAP floats at the foot of the screen, always
+    in reach. A drop opens as a screen of its own over everything, with
+    **◀ DROPS**, the way back to the list, along its top beside the drop's
+    number and title, and under it the spot's photos, the transmission in
+    full and the photos of what was left. On a phone held sideways or a
+    small tablet the two sets of photos sit side by side, the transmission
+    under them.
 
-**The spot's photos.** Each shows its file's name and the date in it, and
-the window's head counts them (1/3). The arrows on the photo and a swipe
-across it go through them, earliest first and round again from the last,
-and so do the left and right arrow keys once the photo or an arrow has the
-focus (Tab to it, or click an arrow). A click on the photo opens it full
-size. A drop with one photo shows its date in the head instead of a count;
-one with none says it has no photo of the spot yet.
+**The photos.** Spot and Items work alike. Each photo shows its file's
+name and the date in it, and the window's head counts them (1/3). The
+arrows on the photo and a swipe across it go through them, earliest first
+and round again from the last, and so do the left and right arrow keys
+once the photo or an arrow has the focus (Tab to it, or click an arrow). A
+click on the photo opens it full size. A drop with one photo shows its
+date in the head instead of a count; one with none says there is no photo
+yet.
 
 **"What is a drop?"**, the small ? in the corner of the top bar, says what
-a drop is and what a zone's page shows, for whoever wonders.
+a drop and a cache are and what a cache's page shows, for whoever wonders.
 
-On a phone held sideways the list sits beside the globe, as on a desktop,
-and a zone's windows sit two by two: the drops beside the spot, the story
-beside the item. On any screen too short for a zone's page to fit (under
-560px tall), the page scrolls rather than squeezing the street map, and
-WORLD MAP floats at its foot there too.
+On a phone held sideways the list sits beside the globe, as on a desktop.
+On any screen too short for a cache's page to fit (under 560px tall), the
+page scrolls rather than squeezing the street map, and WORLD MAP floats at
+its foot there too.
 
-Every zone and every drop has its own address. `pn0va.com/drops#03` opens
-on zone 03 and its newest drop; `pn0va.com/drops#003` opens on drop 003, at
-the zone it was left at. Choosing a drop on a zone's page puts its address
-in the address bar, without adding a step to Back, so a link copied from
-there opens on that drop. Back, reload and sharing all work. A zone is
-marked **NEW** while its latest drop is in its first week (in the list, in
-its prompt, and red on the globe), and that drop is marked NEW in the
-zone's own list.
+Every cache and every drop has its own address. `pn0va.com/drops#03`
+opens on cache 03 and its list; `pn0va.com/drops#007` opens drop 007's
+windows at the cache it was left at. Opening a drop adds a step to Back,
+so Back closes it again; choosing another while one is open changes the
+address without adding a step, so a link copied from there opens on that
+drop. Reload and sharing work too. A cache is marked **NEW** while its
+latest drop is in its first week (in the list, in its prompt, and red on
+the globe), and that drop is marked NEW in the cache's list and its
+transmission.
 
 The globe is drawn in the brand palette from `tokens.css`: ember sea, slate
 land with built-up areas a shade lighter, ember lakes and rivers, roads in
 red (highways brightest), country borders in bone over a dark edge
 (thickening as you come in), dashed taupe state lines, ash coasts, a linen
 sheen and names, red for the instruments (graticule, rim, pointer, NEW) and
-bone for the zone you are on.
+bone for the cache you are on.
 
 It is a map: coast, lakes, rivers, the built-up areas of cities, highways
 and main roads, country borders, state and province lines, and the names of
 countries, states, cities, peaks and landmarks, each named once there is
 room for it. It zooms with its **+** and **−** buttons, the mouse wheel, a
 pinch, or the + − 0 keys, from the whole globe down to a city (64 times
-closer) anywhere, and near a drop zone on down to street level: within
-4 km of a zone as close as its street map opens, and within 30 km close
-enough to see its main streets. There the globe draws the street map's own
-streets, parks, water and neighbourhood names, so the way down from the
-whole Earth to the zone's corner never cuts to another map. The coastline
-is redrawn finer as you come in, so its shape holds and only sharpens, and
-the grid of latitude and longitude grows finer with it, down to a
-thousandth of a degree. The globe button below the zoom buttons goes back
-to the whole globe.
+closer) anywhere, and near a cache on down to street level: within 4 km of
+a cache as close as its street map opens, and within 30 km close enough to
+see its main streets. There the globe draws the street map's own streets,
+parks, water and neighbourhood names, so the way down from the whole Earth
+to the cache's corner never cuts to another map. The coastline is redrawn
+finer as you come in, so its shape holds and only sharpens, and the grid
+of latitude and longitude grows finer with it, down to a thousandth of a
+degree. The globe button below the zoom buttons goes back to the whole
+globe.
 
-Every drop zone has its own mark, which grows as you zoom in. Zones too
-close together to tell apart, like the three in San Francisco, sit on a
-small ring around the spot they share, each on a thread back to it, in the
-order they really lie (Alcatraz on top); zoom in and they move apart onto
-their own spots. Point at anything for what it is: a zone's number, name,
-how many drops and when the latest was left, and that drop's title, item
-and the start of its story; a city's state or country, a peak's height, a
-landmark's note. On a touch screen, tap it. Close in, a landmark's name goes
-ahead of the city it stands in (at 64x the Colosseum shows over Rome), but
-every name gives way to the zones and the prompt, so the landmarks right
-beside a zone, like most of San Francisco's, wait until you come in close
-enough to give them room. A zone whose drops are all claimed is drawn
-hollow.
+Every cache has its own mark, which grows as you zoom in. Caches too close
+together to tell apart, like the three in San Francisco, sit on a small
+ring around the spot they share, each on a thread back to it, in the order
+they really lie (Alcatraz on top); zoom in and they move apart onto their
+own spots. Point at anything for what it is: a cache's number, name, how
+many drops and when the latest was left, and that drop's title, item and
+the start of its story; a city's state or country, a peak's height, a
+landmark's note. On a touch screen, tap it. Close in, a landmark's name
+goes ahead of the city it stands in (at 64x the Colosseum shows over
+Rome), but every name gives way to the caches and the prompt, so the
+landmarks right beside a cache, like most of San Francisco's, wait until
+you come in close enough to give them room. A cache whose drops are all
+claimed is drawn hollow.
 
 Its files:
 
@@ -229,74 +248,74 @@ Its files:
   whole globe is one file of 305 KB (109 KB as the `.htaccess` compresses
   it), and the next level, read while the page is idle, one of 1.1 MB
   (390 KB); closer in, the page fetches only the part in view. 22.6 MB in
-  308 files. A visitor who zooms all the way in on a zone downloads about
+  308 files. A visitor who zooms all the way in on a cache downloads about
   750 KB of it, compressed (650 KB on a phone), and 250 to 420 KB of the
   street map. `tools/make-world/` made it, and only needs running again for
   newer borders or roads (see the top of `make-world.mjs`);
 - `maps/landmarks.json`, from `_source/world/landmarks.json`: 148 landmarks
   around the world, each a name, a position, the zoom it appears from (1 is
-  the whole globe, 64 the closest away from the zones) and the note shown
+  the whole globe, 64 the closest away from the caches) and the note shown
   when pointed at. Add your own the same way and rebuild. At 64x the globe
   shows about 300 m to a pixel, so two landmarks a few streets apart can't
   both show: one a city is plenty.
 
-With reduced motion on, the screens change without the dive or the flights.
-With JavaScript off, the world view stays hidden and the page is the zone
-frame it always was.
+With reduced motion on, the screens change and a drop's windows open and
+close without the dive or the flights. With JavaScript off, the world view
+stays hidden and the page is the cache's frame it always was.
 
-### Adding a drop, or a drop zone
+### Adding a drop, or a cache
 
 Everything is in `drops.html`, in the brand kit's `drops` folder (or the
 snapshot in `_source/brand-kit/drops/`); the comment at its top says the
-same. Each zone is a `<section class="dp-zone">`, and the drops left there
-are the `<article class="dp-entry">` blocks inside it, newest first. Zones
-go newest first too. (A `dp-point` section, from before zones, still
-works.)
+same. Each cache is a `<section class="dp-cache">`, and the drops left
+there are the `<article class="dp-entry">` blocks inside it, newest first.
+Caches go newest first too. (`dp-zone` and `dp-point` sections, from
+before caches, still work.)
 
 ```html
-<section class="dp-zone" data-n="03" data-place="Telegraph Hill"
+<section class="dp-cache" data-n="03" data-place="Telegraph Hill"
          data-lat="37.802139" data-lng="-122.4058" data-zoom="17">
 
-  <article class="dp-entry" data-n="004" data-placed="2026.10.12"
-           data-title="Back on the Stairs"
-           data-item="images/item-004.jpg" data-itemcap="Patch, red on black">
-    <p>Its story, a paragraph or two.</p>
+  <article class="dp-entry" data-n="007" data-placed="2026.10.12"
+           data-title="Third Time Up" data-itemcap="Cassette, side B">
+    <p>Its transmission: what was left, and why. A paragraph or two.</p>
   </article>
 
-  <article class="dp-entry" data-n="003" data-placed="2026.07.20" ...>
+  <article class="dp-entry" data-n="005" data-placed="2026.09.12" ...>
     ...
   </article>
 
 </section>
 ```
 
-- **A new drop at a zone you have:** copy an `<article>` into the zone's
-  `<section>`, above the drops already there. `data-n` is the drop's number,
-  three digits, one count across all the zones; `data-placed` the date;
-  `data-title` its name; `data-item` the photo of the item and
-  `data-itemcap` its caption. Then write its story.
-- **A new zone:** copy a whole `<section>` to the top, with one drop in it.
-  `data-n` is the zone's number, two digits; `data-place` its name, which
-  heads its page; `data-lat` and `data-lng` where it is, in decimal
+- **A new drop at a cache you have:** copy an `<article>` into the cache's
+  `<section>`, above the drops already there. `data-n` is the drop's
+  number, three digits, one count across all the caches, so each number
+  (and the drop's address, `drops#007`, and its photos) belongs to one
+  drop only; `data-placed` the date; `data-title` its name; `data-itemcap`
+  what was left, in a few words. Then write its transmission.
+- **A new cache:** copy a whole `<section>` to the top, with one drop in
+  it. `data-n` is the cache's number, two digits; `data-place` its name,
+  which heads its page; `data-lat` and `data-lng` where it is, in decimal
   degrees; `data-zoom` how close its street map opens: 17 is street level,
   15 or 16 shows more of the neighbourhood. Either way the map zooms from 8
   out to 19 in.
-- **Photos of the spot:** put them in the same `drops/images/` folder,
-  named `item`, the drop's number, `_` and the date as MMDDYY:
-  `item4_092326.jpg` is drop 004's spot on 2026.09.23. A second photo the
-  same day takes a letter after the date (`item4_092326b.jpg`). The build
-  finds them and puts them in date order; the page shows each one's name
-  and date. JPEG, PNG, WebP, GIF or SVG; about 1600 pixels on the long side
-  is plenty. To choose the photos and their order yourself, list them in
-  the drop's `data-photos`, separated by spaces
-  (`data-photos="images/a.jpg images/b.jpg"`, so no spaces in the names);
-  the build leaves that alone.
-- **The item photo:** put it in the same folder (JPEG, PNG, WebP, GIF or
-  SVG; about 1200 pixels wide is plenty) and name it in `data-item`.
+- **Photos:** put them in the same `drops/images/` folder, named for what
+  they show, the drop's number, `_` and the date as MMDDYY:
+  `spot4_092326.jpg` is the spot drop 004 was left at, on 2026.09.23, and
+  `item4_092326.jpg` is what was left there. A second photo the same day
+  takes a letter after the date (`spot4_092326b.jpg`). The build finds
+  them and puts each set in date order; the page shows each one's name and
+  date. JPEG, PNG, WebP, GIF or SVG; about 1600 pixels on the long side is
+  plenty. To choose the photos and their order yourself, list them in the
+  drop's `data-spots` or `data-items`, separated by spaces
+  (`data-spots="images/a.jpg images/b.jpg"`, so no spaces in the names);
+  the build leaves those alone. From before: `data-photos` still counts as
+  the spot's photos, and `data-item` as a single photo of what was left.
 
-Then run `python build.py`. For a zone in a new place it fetches the street
-map first (see *The Drops map*). Nothing else needs touching: the globe, the
-lists, the prompts and the zone's page all read these blocks.
+Then run `python build.py`. For a cache in a new place it fetches the
+street map first (see *The Drops map*). Nothing else needs touching: the
+globe, the lists, the prompts and the cache's page all read these blocks.
 
 ### Marking a drop claimed
 
@@ -307,17 +326,57 @@ found, add `data-claimed` with the date to its `<article>` in `drops.html`:
 <article class="dp-entry" data-n="001" data-placed="2026.06.15" data-claimed="2026.06.28" ...>
 ```
 
-and run `python build.py`. On its zone's page the drop is then tagged
-**CLAIMED** in the list of drops, in place of NEW, and the head of its item
-window says **CLAIMED** with the date (just **CLAIMED** where the window is
-too narrow for both). The photos are left alone, so later visitors still
-see what was left there. Once every drop at a zone is claimed, the zone
-says **CLAIMED** in the world list and in its prompt, and turns hollow on
-the globe. `data-claimed` without a date shows **CLAIMED** alone; deleting
-it undoes it. Nothing ever says "unclaimed".
+and run `python build.py`. On its cache's page the drop is then tagged
+**CLAIMED** in the list of drops, in place of NEW, and the head of its
+Items window says **CLAIMED** with the date (just **CLAIMED** where the
+window is too narrow for both). The photos are left alone, so later
+visitors still see what was left there. Once every drop at a cache is
+claimed, the cache says **CLAIMED** in the world list and in its prompt,
+and turns hollow on the globe. `data-claimed` without a date shows
+**CLAIMED** alone; deleting it undoes it. Nothing ever says "unclaimed".
 
 Drop 001's story says it was recovered on 2026.06.28, but it is not marked:
 add `data-claimed="2026.06.28"` to it if it should show.
+
+## 2026.10.11 update
+
+- **Caches.** Drop zones are now caches, everywhere: the nav and the home
+  page's menu say **Cache**, and so do the world's list, the prompt's
+  **OPEN CACHE**, the page's title and each cache's page (CACHE 03). The
+  address is still `pn0va.com/drops`, so links keep working.
+- **A cache's page has one menu: its drops,** at the middle of the foot of
+  the street map, which now fills the screen under the top bar. Choosing a
+  drop opens its windows round the list: photos of the spot to the left,
+  photos of what was left to the right, and its transmission, what was
+  left and why, above the list. CLOSE, Esc or Back closes them and the
+  list is on its own again. On a phone a drop is a screen of its own, with
+  ◀ DROPS, the way back to the list, along its top.
+- **Photos of what was left** go through like the spot's, with arrows, so
+  a drop can have several. **Their names changed:** `spot<n>_<MMDDYY>` for
+  the spot and `item<n>_<MMDDYY>` for what was left (see *Adding a drop,
+  or a cache*). Photos of the spot named `item<n>_` under the 2026.10.10
+  scheme would now show as items: rename them `spot<n>_`.
+- **The globe's zoom.** The prompt's ZOOM IN and ZOOM OUT are gone. The
+  globe's own + and −, and the whole-globe button under them, are bigger,
+  framed in red and glowing, and quick presses each count. Choosing a cache
+  flies in to its city rather than 64x, and + goes on from there to street
+  level.
+- **The street map** has no globe button now (WORLD MAP does that), and a
+  double-click on its recentre button no longer zooms the map in off the
+  cache.
+- **Fixes.** On a tablet held upright (701 to 900px wide) the site's nav
+  wrapped onto a second line and covered the top of every page; it stays
+  on one line now. Drawing the streets on the globe took up to half a
+  second a frame in Chrome, which stalled opening a cache from close in
+  and pulling back out; a frame now takes milliseconds. A window's
+  after-images match its size when its contents change as it flies. The
+  guard against a phone's double tap opening a cache goes by when the taps
+  happened, not by when a busy page got to them.
+- **The build warns** when the `PN0VA` folder beside this one has a
+  `drops.js` or `drops.css` different from this build's own: the page is
+  then built from that folder's code, most likely an older version. Copy
+  `_source/brand-kit/drops` over it, keeping the caches you added to its
+  `drops.html`.
 
 ## 2026.10.10 update
 
@@ -690,9 +749,9 @@ returning customers' saved carts will mismatch.
 ## Before deploying
 
 1. Replace the placeholder art in `images/store/`, `images/blog/` and
-   `images/about/`, and give the drops their photos of the spot and the
-   item (see *Adding a drop, or a drop zone*); the two drop placeholders in
-   `images/` stand in for any a drop doesn't have. Put it in the source
+   `images/about/`, and give the drops their photos of the spot and of
+   what was left (see *Adding a drop, or a cache*); the two drop
+   placeholders in `images/` stand in for any a drop doesn't have. Put it in the source
    (`_source/website-fixed/images/`, the brand kit's `drops/images/`; the
    store placeholders are written by `build.py`), not in the build folders,
    which the next build wipes.

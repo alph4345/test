@@ -217,10 +217,9 @@
     });
 
     // A window that starts wholly below or beside the screen just appears.
-    // Where each rests is kept: its after-images are measured from there.
     const inView = windows.filter(function (w)
     {
-      const r = w.r = w.el.getBoundingClientRect();
+      const r = w.el.getBoundingClientRect();
       const seen = r.bottom > 0 && r.top < window.innerHeight &&
                    r.right > 0 && r.left < window.innerWidth;
       if (!seen) w.el.classList.add('landed');
@@ -246,10 +245,16 @@
 
       setTimeout(() =>
       {
+        // where it rests, measured again as it sets off: what a page puts in
+        // a window meanwhile (a cache's drops, filled in as its windows fly)
+        // can change its size, and the after-images should match it
+        const off = shift(w.dir, reach), now = el.getBoundingClientRect();
+        const r = away ? now : { left: now.left - off[0], top: now.top - off[1],
+                                 width: now.width, height: now.height };
         el.style.transition =
           `transform ${duration}ms ${easing}`;
         el.style.transform = away ? offscreen(w.dir, reach) : 'translate(0, 0)';
-        trailsFor(w, w.r, shift(w.dir, reach), away, curveOf(easing), duration,
+        trailsFor(w, r, off, away, curveOf(easing), duration,
                   TRAIL_INTERVAL_MS * speed);
 
         setTimeout(() =>

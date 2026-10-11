@@ -516,6 +516,24 @@ html:not(.js) .nav-arrows
   }
 }
 
+/* Tablets (an iPad upright is 768-834px): at full size the six
+   links need about 840px, and wrapped onto a second line the nav
+   covers the top of the page. Scale them down to keep one line. */
+@media screen and (min-width: 701px) and (max-width: 900px)
+{
+  nav ul li
+  {
+    margin: 0 4px;
+  }
+
+  nav ul li a
+  {
+    font-size: clamp(12px, 1.75vw, 15px);
+    padding: 10px 12px;
+    white-space: nowrap;
+  }
+}
+
 /* Short landscape phones: give the nav less room */
 @media screen and (max-height: 500px) and (orientation: landscape)
 {

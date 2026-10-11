@@ -631,13 +631,13 @@
     var fade = clamp(e - 9, 0, 1), names = [];
     function fill(get, colour) {
       ctx.beginPath();
-      tiles.forEach(function (t) { get(t).forEach(function (v) { ring(v, false, true); }); });
+      tiles.forEach(function (t) { get(t).forEach(function (v) { ring(v, false); }); });
       ctx.fillStyle = colour; ctx.globalAlpha = fade; ctx.fill();
     }
     function line(get, width, colour, alpha, dash) {
       if (alpha <= 0) return;
       ctx.beginPath();
-      tiles.forEach(function (t) { get(t).forEach(function (v) { ring(v, false, false); }); });
+      tiles.forEach(function (t) { get(t).forEach(function (v) { ring(v, false); }); });
       ctx.lineWidth = clamp(width, 0.5, 14); ctx.strokeStyle = colour; ctx.globalAlpha = fade * alpha;
       if (dash) ctx.setLineDash(dash);
       ctx.stroke();
@@ -844,15 +844,16 @@
   }
   // A ring or a line into the path. fold: points behind the horizon go onto
   // it at their own bearing, so a shape across it is cut off by the globe's
-  // edge, as the eye would see it.
-  function ring(v, fold, closing) {
+  // edge, as the eye would see it. A ring is left open: fill() closes it,
+  // and closePath() costs Chrome time in proportion to the whole path so far,
+  // which over the streets' thousands of shapes came to half a second a frame.
+  function ring(v, fold) {
     for (var k = 0; k < v.length; k += 3) {
       var X = v[k], Y = v[k + 1], Z = v[k + 2];
       var x = X * FE[0] + Y * FE[1], y = X * FN[0] + Y * FN[1] + Z * FN[2];
       if (fold && X * FC[0] + Y * FC[1] + Z * FC[2] < 0) { var m = Math.hypot(x, y) || 1; x /= m; y /= m; }
       if (k) ctx.lineTo(CX + FS * x, CY - FS * y); else ctx.moveTo(CX + FS * x, CY - FS * y);
     }
-    if (closing) ctx.closePath();
   }
   // A line across the horizon: drawn up to it, and on again from it.
   function cutLine(v) {
@@ -887,7 +888,7 @@
           if (d - s.reach > Math.PI / 2) return;
           fold = d + s.reach > Math.PI / 2 - 0.01;
         }
-        s.v.forEach(function (v) { ring(v, fold, true); });
+        s.v.forEach(function (v) { ring(v, fold); });
       });
     });
   }
@@ -896,7 +897,7 @@
     pieces.forEach(function (p) {
       (p[layer] || []).forEach(function (item) {
         (item.v || [item]).forEach(function (v) {           // a lake's rings, or a line
-          if (p.near) ring(v, false, false); else cutLine(v);
+          if (p.near) ring(v, false); else cutLine(v);
         });
       });
     });
@@ -1523,11 +1524,13 @@
 
   // Zoom to z, keeping the ground at screen point p where it is. Unless
   // that is the chosen cache, the globe is no longer pointed at it.
+  var zooming = null;                   // the zoom under way: { me, z }
   function zoomTo(z, p, ms, onDrop) {
     var me = ++anim, z0 = view.zoom, g = groundAt(p);
     if (!onDrop) aimed = -1;
     if (reduceMotion || !ms) { inMotion = false; zoomAbout(g, p, z); draw(); return; }
     var t0 = performance.now();
+    zooming = { me: me, z: z };
     inMotion = true;
     (function step(t) {
       if (me !== anim) return;
@@ -1569,12 +1572,14 @@
   // + and -: a doubling at a time, about the chosen cache while the globe
   // is still pointed at it (so it stays where it is), otherwise about the
   // centre: dragged off to Europe, + goes into Europe, not back to the cache
-  // sitting at the edge.
+  // sitting at the edge. Pressed again before a zoom is done, from where
+  // that one is going: three quick presses are three doublings.
   function zoomBy(dir) {
-    var l = Math.log2(view.zoom);
+    var from = zooming && zooming.me === anim && inMotion ? zooming.z : view.zoom;
+    var l = Math.log2(from);
     var z = capped(Math.pow(2, dir > 0 ? Math.floor(l + 1e-6) + 1 : Math.ceil(l - 1e-6) - 1));
     var on = sel >= 0 && aimed === sel ? selOnScreen() : null;
-    if (z !== view.zoom) zoomTo(z, on || [CX, CY], 380, !!on);
+    if (z !== from) zoomTo(z, on || [CX, CY], 380, !!on);
   }
   function selOnScreen() {
     var d = list[sel];
