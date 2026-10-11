@@ -16,7 +16,7 @@
    (highways apart), rivers and built-up areas too, each from the zoom
    Natural Earth shows it at. The page loads level 0 at once and the other
    files only for the part of the world in view. (Closer in than level 3,
-   near a drop zone, the page draws the street map's own data instead.)
+   near a cache, the page draws the street map's own data instead.)
 
    The output is committed (_source/world/data), so this only needs running
    to rebuild it:

@@ -1,34 +1,35 @@
 /* ==========================================================================
    DROPS — the world view
    --------------------------------------------------------------------------
-   One page, two screens. The WORLD: a globe with every drop zone on it
-   and the list of zones, each with how many drops were left there and
-   when the latest was. A ZONE: the page drops.js draws (frequency bar,
-   street map, the drops left there, the chosen one's story and item).
+   One page, two screens. The WORLD: a globe with every cache on it
+   and the list of caches, each with how many drops were left there and
+   when the latest was. A CACHE: the page drops.js draws (frequency bar,
+   street map, and on it the list of the drops left there, each opening
+   its photos and transmission).
 
      drops         the world
-     drops#03      zone 03 (a link to one zone opens straight on it)
-     drops#003     drop 003, on the page of the zone it was left at
+     drops#03      cache 03, its list of drops (a link opens straight on it)
+     drops#003     drop 003 open, on the page of the cache it was left at
 
-   The world opens with no zone chosen, the globe turned to where the
-   zones are. Choose one in the list (a click, Enter or the arrow keys)
-   and the globe turns to it, the zone in the middle, at the zoom it is at
-   (from far off it flies out and back down to that zoom). Click a zone on
-   the globe instead and the globe stays where it is. Either way a prompt
-   opens by the zone: what is there (how many drops, when the latest was
-   left, its title, item and the first line of its story, and where the
-   zone is), ZOOM IN (ZOOM OUT once there), the one thing that zooms to a
-   zone, and OPEN ZONE. On a phone, where the globe is small, the same
-   opens under the zone's row instead. The prompt's x, Esc, or a click on
-   bare globe closes it.
+   The world opens with no cache chosen, the globe turned to where the
+   caches are. Choose one in the list (a click, Enter or the arrow keys) or
+   by its mark on the globe, and the globe flies to it, the cache in the
+   middle, in to its city (or as close as it already is). A prompt opens by
+   it: what is there (how many drops, when the latest was left, its title,
+   item and the first line of its story, and where the cache is) and OPEN
+   CACHE. On a phone, where the globe is small, the same opens under the
+   cache's row instead. The prompt's x, Esc, or a click on bare globe closes
+   it. The globe's + and - zoom (to street level near a cache), and the
+   globe button goes back to the whole globe.
 
-   OPEN ZONE is the only way in: the globe dives, the list flies off, and
-   the zone's windows fly in with the About page's flight and red
-   after-images, at twice its speed. The zone's screen shows that one
-   zone; choosing one of its drops keeps the address in step (drops#003),
-   so a link from there opens on that drop. WORLD MAP (heading its top bar,
-   or floating at the foot of the screen where the page scrolls, and on the
-   street map), Esc or the browser's Back pulls back out to the globe.
+   OPEN CACHE is the only way in: the globe dives, the list flies off, and
+   the cache's windows fly in with the About page's flight and red
+   after-images, at twice its speed. The cache's screen shows that one
+   cache: its list of drops, at the middle of the map. Opening one of them
+   is a step in the address (drops#003) that Back undoes, so a link from
+   there opens on that drop and Back closes it. WORLD MAP (heading its top
+   bar, or floating at the foot of the screen where the page scrolls), Esc
+   with no drop open, or the browser's Back pulls back out to the globe.
 
    The globe is a map: coast, lakes, country borders, state and province
    lines, and the names of countries, states, cities, peaks and landmarks.
@@ -38,31 +39,32 @@
    simplified to the pixel, so zooming in only sharpens it. Landmarks come
    from maps/landmarks.json, which is meant to be added to.
 
-   Every zone has its own mark, which grows as you zoom in. Zones too
+   Every cache has its own mark, which grows as you zoom in. Caches too
    close to tell apart sit on a ring round the spot they share, each on a
    thread back to it. Hover one for what is there (as the prompt says it,
    short of where), or a city, peak or landmark for what it is (pointing at
-   a zone in the list marks it on the globe too). Zoom with + and -, the
+   a cache in the list marks it on the globe too). Zoom with + and -, the
    mouse wheel, a pinch, or the + - 0 keys; the globe button goes back to
    the whole globe.
 
-   It reads the same <section class="dp-zone"> records as drops.js, so a
-   new zone, or a new drop at one, is on the globe with nothing more to
-   do. A zone is NEW while its latest drop is in its first week. Once every
-   drop left at a zone is marked data-claimed, the zone is drawn hollow,
+   It reads the same <section class="dp-cache"> records as drops.js, so a
+   new cache, or a new drop at one, is on the globe with nothing more to
+   do. A cache is NEW while its latest drop is in its first week. Once every
+   drop left at a cache is marked data-claimed, the cache is drawn hollow,
    CLAIMED in the list; a drop without the mark shows nothing either way.
 
    Colours come from tokens.css: an ember sea, slate land, ash coasts and
    state lines, taupe borders, red instruments (graticule, rim, pointer),
-   linen marks and names, bone for the zone you are on.
+   linen marks and names, bone for the cache you are on.
    ========================================================================== */
 
 (function () {
   "use strict";
 
-  var NEW_DAYS = 7;                     // a zone is NEW for its latest drop's first week
+  var NEW_DAYS = 7;                     // a cache is NEW for its latest drop's first week
   var ZOOM_BASE = 64;                   // as close as Natural Earth has detail for; over the street map, closer
-  var STREET_ZOOM = 17;                 // the web zoom a zone's street map opens at: the globe comes in that far
+  var STREET_ZOOM = 17;                 // the web zoom a cache's street map opens at: the globe comes in that far
+  var NEAR_WEB = 11;                    // choosing a cache brings the globe this close: the city round it
   var ZOOM_LIMIT = 1e6;                 // no flight goes past this, whatever its ends
   var LABEL_BIAS = 0.4;                 // names a little sparser than a web map's
 
@@ -84,7 +86,7 @@
   var fly = function () { return window.pn0vaFly; };   // page-script.js loads after this
   var reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
   var TITLE = document.title;
-  // the zone's screen loses drops.js's list of zones from here on (see the CSS)
+  // the cache's screen loses drops.js's list of caches from here on (see the CSS)
   root.classList.add("dw-ready");
 
   /* --- palette: the brand tokens ----------------------------------------- */
@@ -99,7 +101,7 @@
   // the reds of the smaller roads
   var URBAN = "#48423E", PARKS = "#333729", MAJOR = "#E3170C", MINOR = "#A3150C", LANE = "#73130D";
 
-  /* --- the drop zones ---------------------------------------------------- */
+  /* --- the caches ---------------------------------------------------- */
   function daysSince(stamp) {
     var p = String(stamp).split(".");
     var then = new Date(+p[0], +p[1] - 1, +p[2]);
@@ -111,7 +113,7 @@
     var v = (e.getAttribute("data-claimed") || "").trim();
     return /^(no|false|0)$/i.test(v) ? null : v;
   }
-  // A zone: where it is and the drops left there, newest first. NEW while
+  // A cache: where it is and the drops left there, newest first. NEW while
   // its latest drop is in its first week (and not claimed: the item is
   // gone, however recent the drop); claimed once every drop there is.
   var list = drops.entries.map(function (e, i) {
@@ -121,12 +123,12 @@
              isNew: !!latest && claimedOf(latest) === null && daysSince(latest.dataset.placed) < NEW_DAYS,
              claimed: left.length > 0 && left.every(function (x) { return claimedOf(x) !== null; }) };
   });
-  // drops#03 is zone 03, drops#003 drop 003 at its zone: [zone, drop]
+  // drops#03 is cache 03, drops#003 drop 003 at its cache: [cache, drop]
   function find(id) { return id ? drops.find(id) : null; }
-  // "P_N0VA — ZONE 03 · TELEGRAPH HILL"
+  // "P_N0VA — CACHE 03 · TELEGRAPH HILL"
   function title(i) {
     var d = list[i];
-    return TITLE.replace(/DROPS$/, "ZONE " + d.n + (d.place ? " \u00b7 " + d.place.toUpperCase() : ""));
+    return TITLE.replace(/CACHE$/, "CACHE " + d.n + (d.place ? " \u00b7 " + d.place.toUpperCase() : ""));
   }
   function plural(n, one) { return n + " " + one + (n === 1 ? "" : "s"); }
   function hasPos(d) { return isFinite(d.lat) && isFinite(d.lng); }
@@ -147,7 +149,7 @@
     return null;
   }
 
-  /* --- what each zone has to say ----------------------------------------- */
+  /* --- what each cache has to say ----------------------------------------- */
   // Its latest drop: its number and title, the caption of its item, and the
   // first sentence of its story, as a teaser.
   function about(d) {
@@ -171,10 +173,10 @@
     s.appendChild(typeof value === "string" ? document.createTextNode(value) : value);
     return s;
   }
-  // What there is to say about zone d, into box (after its number and
-  // name). how: "popup" over it on the globe; "prompt", the chosen zone's,
-  // by it, with where it is and OPEN ZONE; "row", the same opened under its
-  // row on a phone, kept short (where it is is on the zone's own page) so
+  // What there is to say about cache d, into box (after its number and
+  // name). how: "popup" over it on the globe; "prompt", the chosen cache's,
+  // by it, with where it is and OPEN CACHE; "row", the same opened under its
+  // row on a phone, kept short (where it is is on the cache's own page) so
   // the rows round it stay in view.
   function describe(box, d, how) {
     var x = about(d), a = age(d), when = el("span", "dw-when"), many = d.drops.length !== 1;
@@ -189,61 +191,33 @@
     if (x.item) box.appendChild(kv("Item", x.item));
     if (x.teaser) box.appendChild(el("q", "dw-teaser", x.teaser));
     if (how === "popup") return;
-    // ZOOM IN / ZOOM OUT, for a zone the globe can show, and OPEN ZONE
+    // OPEN CACHE, the one way in (the globe's own buttons do the zooming)
     var acts = el("div", "dw-acts");
-    if (hasGlobe && hasPos(d)) {
-      var zb = el("button", "dw-zoomto");
-      zb.type = "button";
-      zb.addEventListener("click", function (ev) {
-        if (how === "row" && ghost(ev)) return;
-        if (ev.detail) zb.blur();             // clicked: the prompt goes while the globe moves
-        zoomToggle();
-      });
-      acts.appendChild(zb);
-    }
     var go = el("a", "dw-open");
     go.href = "#" + d.n;
-    go.innerHTML = '<span class="tri" aria-hidden="true"></span>Open zone';
+    go.innerHTML = '<span class="tri" aria-hidden="true"></span>Open cache';
     if (how === "row") go.addEventListener("click", function (ev) { if (ghost(ev)) ev.preventDefault(); });
     acts.appendChild(go);
     box.appendChild(acts);
-    zoomLabels();
   }
-  // Opened under its row, the rows round it move, and its buttons can come
+  // Opened under its row, the rows round it move, and its button can come
   // to rest under the finger that chose it: a second tap on that spot
-  // straight after (a double tap) is not a request for either.
+  // straight after (a double tap) is not a request for it. Timed by when
+  // the taps were made, not when they are handled: the globe setting off
+  // on its flight can hold the second one up.
   function ghost(ev) {
-    return !!ev.detail && !!tapped && Date.now() - tapped.t < 450 &&
+    return !!ev.detail && !!tapped && ev.timeStamp - tapped.t < 450 &&
            Math.hypot(ev.clientX - tapped.x, ev.clientY - tapped.y) < 30;
-  }
-  // The magnifier on ZOOM IN and ZOOM OUT.
-  function lens(plus) {
-    return '<svg viewBox="0 0 16 16" aria-hidden="true" focusable="false"><circle cx="6.5" cy="6.5" r="4.6"/>' +
-           '<path d="M10 10l4.4 4.4M4.4 6.5h4.2' + (plus ? "M6.5 4.4v4.2" : "") + '"/></svg>';
-  }
-  // ZOOM IN until the globe is as close as it goes, ZOOM OUT from there: by
-  // the zoom a turn is heading for, not the one it passes through (a short
-  // way at 64x dips a hair below it, and the label flickered).
-  var heading = null;
-  function zoomLabels() {
-    var out = (heading != null ? heading : view.zoom) >= closeFor(sel) * (1 - 1e-6);
-    [card, rows].forEach(function (box) {
-      Array.prototype.forEach.call(box.querySelectorAll(".dw-zoomto"), function (b) {
-        if (b.dataset.out === String(out)) return;
-        b.dataset.out = out;
-        b.innerHTML = lens(!out) + (out ? "Zoom out" : "Zoom in");
-      });
-    });
   }
 
   /* --- the list ----------------------------------------------------------- */
-  // A row chooses its zone: the globe turns to it, at the zoom it is at,
-  // and the prompt opens there. It never opens the zone itself, and never
-  // zooms (ZOOM IN does). Pointing at a row only marks the zone on the
+  // A row chooses its cache: the globe flies to it, in to its city (or
+  // stays as close as it already is), and the prompt opens there. It never
+  // opens the cache itself. Pointing at a row only marks the cache on the
   // globe, so running the mouse down the list doesn't send the globe about.
   // Each row says what is there (how many drops, the latest one's title and
   // the start of its story); on a phone the chosen one opens up underneath
-  // with the rest, and its OPEN ZONE, instead of a prompt over the small
+  // with the rest, and its OPEN CACHE, instead of a prompt over the small
   // globe.
   var rows = document.getElementById("dw-rows"), rowBtns = [], mores = [];
   var tapped = null;                    // where and when a row was last pressed
@@ -253,7 +227,7 @@
   function byKeys(x) {
     try { return x.matches(":focus-visible"); } catch (e) { return true; }
   }
-  document.getElementById("dw-count").textContent = String(list.length).padStart(2, "0") + (list.length === 1 ? " ZONE" : " ZONES");
+  document.getElementById("dw-count").textContent = String(list.length).padStart(2, "0") + (list.length === 1 ? " CACHE" : " CACHES");
   list.forEach(function (d) {
     var item = el("div", "dw-item"), a = el("button", "dw-row"), x = about(d);
     a.type = "button";
@@ -267,15 +241,15 @@
     a.appendChild(el("span", "dw-line", line));
     a.addEventListener("mouseenter", function () { if (d.i !== sel) setHover({ drop: d.i }); });
     a.addEventListener("mouseleave", function () { if (hover && hover.drop === d.i) setHover(null); });
-    // Focus from the keyboard (Tab, the arrows) chooses the zone at once; a
+    // Focus from the keyboard (Tab, the arrows) chooses the cache at once; a
     // press chooses it with its click. Chosen as the button took the focus
     // of a tap, a phone's row opened before the tap's click arrived, and
     // the click landed on whatever had moved under the finger: another row,
-    // or the zone's own OPEN ZONE.
+    // or the cache's own OPEN CACHE.
     a.addEventListener("focus", function () { if (!quiet && byKeys(a)) select(d.i, "fly"); });
-    a.addEventListener("pointerdown", function (ev) { tapped = { x: ev.clientX, y: ev.clientY, t: Date.now() }; });
+    a.addEventListener("pointerdown", function (ev) { tapped = { x: ev.clientX, y: ev.clientY, t: ev.timeStamp }; });
     // From the keyboard (no pointer, so no click count), Enter goes on to
-    // the prompt's OPEN ZONE, so a second Enter opens it. A row opened
+    // the prompt's OPEN CACHE, so a second Enter opens it. A row opened
     // underneath (a phone) closes again at a second tap.
     a.addEventListener("click", function (ev) {
       if (ev.detail && d.i === sel && docked()) { select(-1); return; }
@@ -291,8 +265,8 @@
     mores.push(more);
   });
 
-  // Where the prompt goes: by the zone on the globe, or under its row: on
-  // a phone, and wherever the globe can't show the zone.
+  // Where the prompt goes: by the cache on the globe, or under its row: on
+  // a phone, and wherever the globe can't show the cache.
   var narrow = window.matchMedia("(max-width: 900px)");
   function docked() { return narrow.matches || !hasGlobe || !hasPos(list[sel] || {}); }
   function dock() {
@@ -322,7 +296,7 @@
   }
   if (narrow.addEventListener) narrow.addEventListener("change", onNarrow); else narrow.addListener(onNarrow);
 
-  // A zone's screen shows one zone: drops.js's list of them is hidden
+  // A cache's screen shows one cache: drops.js's list of them is hidden
   // (see the CSS), and the way back, a real button so nobody has to hunt
   // for it, heads its top bar in place of the word "Frequency". Where the
   // page scrolls (a phone, a short screen) that would scroll away with it:
@@ -344,29 +318,6 @@
   floatBack.addEventListener("click", toWorldByHand);
   document.body.appendChild(floatBack);
   function backButton() { return floatBack.getClientRects().length ? floatBack : back; }
-
-  // The street map has one too, under its recentre control, for whoever is
-  // looking at the map rather than the list.
-  var street = drops.map && drops.map();
-  if (street && window.L) {
-    var ToWorld = L.Control.extend({
-      options: { position: "topleft" },
-      onAdd: function () {
-        var c = L.DomUtil.create("div", "leaflet-bar dp-recenter dp-to-world");
-        var a = L.DomUtil.create("a", "", c);
-        a.href = "#";
-        a.title = "Back to the world map";
-        a.setAttribute("role", "button");
-        a.setAttribute("aria-label", "Back to the world map");
-        a.innerHTML = GLOBE;
-        L.DomEvent.disableClickPropagation(c);
-        L.DomEvent.on(a, "click", L.DomEvent.stop);
-        L.DomEvent.on(a, "click", function () { toWorldByHand(); });
-        return c;
-      }
-    });
-    street.addControl(new ToWorld());
-  }
 
   /* --- the map's data ----------------------------------------------------- */
   // Files from tools/make-world: "0" is the whole globe and carries the
@@ -482,14 +433,14 @@
     return (g.type === "MultiLineString" ? g.coordinates : g.type === "LineString" ? [g.coordinates] : []).map(vectors);
   }
 
-  /* --- the streets near the zones ------------------------------------------- */
-  // Close in near a zone the globe draws from the street map's own file, the
-  // one a zone's page reads (maps/drops.pmtiles, OpenStreetMap): land and
+  /* --- the streets near the caches ------------------------------------------- */
+  // Close in near a cache the globe draws from the street map's own file, the
+  // one a cache's page reads (maps/drops.pmtiles, OpenStreetMap): land and
   // water, parks, the streets in red as on the street map, railways, and
-  // the names of neighbourhoods. The file holds a box round every zone, 30 km
+  // the names of neighbourhoods. The file holds a box round every cache, 30 km
   // out at web zooms 8 to 11 and 4 km out from 12 to 15 (tools/make-map.py),
   // and is read in small pieces as they come into view. Over it the globe
-  // zooms on in, to the street level a zone's page opens at; elsewhere it
+  // zooms on in, to the street level a cache's page opens at; elsewhere it
   // stops at 64x, where Natural Earth's detail runs out. Without the file,
   // or opened from the disk (which can't read a file in parts), it stops at
   // 64x everywhere.
@@ -511,7 +462,7 @@
                     boxes: made.map(function (p) {
                       return { detail: boxAround(+p[0], +p[1], detail), context: boxAround(+p[0], +p[1], context) };
                     }) };
-        zoomButtons(); zoomLabels(); draw();
+        zoomButtons(); draw();
       });
     }).catch(function () { /* no street map: the globe stops at 64x */ });
   })();
@@ -522,7 +473,7 @@
   }
   function inBox(b, lng, lat) { return lng >= b[0] && lng <= b[2] && lat >= b[1] && lat <= b[3]; }
   // The closest web zoom the street map has at a place (its own zooms run to
-  // 15; drawn on, to a zone's street level), or 0 where it has nothing.
+  // 15; drawn on, to a cache's street level), or 0 where it has nothing.
   function streetZoomAt(lng, lat) {
     var best = 0;
     if (streets) streets.boxes.forEach(function (b) {
@@ -536,13 +487,21 @@
   function webAt(z, lat) { return R ? Math.log2(R * z * 2 * Math.PI * Math.cos(lat * RAD) / 256) : 0; }
   function zoomFor(web, lat) { return R ? 256 * Math.pow(2, web) / (2 * Math.PI * R * Math.max(0.05, Math.cos(lat * RAD))) : ZOOM_BASE; }
   // How close the globe comes in at a place: 64x anywhere, and over the
-  // street map on in to the zone's street level.
+  // street map on in to the cache's street level.
   function capAt(lng, lat) {
     var w = streetZoomAt(lng, lat);
     return w ? Math.max(ZOOM_BASE, zoomFor(w, lat)) : ZOOM_BASE;
   }
   function zoomCap() { return capAt(view.lng, view.lat); }
-  function closeFor(i) { var d = list[i]; return d && hasPos(d) ? capAt(d.lng, Math.max(-80, Math.min(80, d.lat))) : ZOOM_BASE; }
+  // How close choosing cache i brings the globe: its city and round it (a
+  // web map's zoom NEAR_WEB), or 64x where the street map doesn't reach;
+  // never closer than the place allows.
+  function nearFor(i) {
+    var d = list[i];
+    if (!d || !hasPos(d)) return 1;
+    var lat = Math.max(-80, Math.min(80, d.lat));
+    return Math.min(capAt(d.lng, lat), Math.max(ZOOM_BASE, zoomFor(NEAR_WEB, lat)));
+  }
   // A zoom asked for, kept in bounds: in no closer than the place allows
   // (or than the globe already is, dragged off the street map close in),
   // out no further than the whole globe.
@@ -636,7 +595,7 @@
     return t;
   }
   // The tiles to draw for web zoom e: the wide ones (to web zoom 11) over
-  // the boxes round the zones, then the close ones over the 4 km boxes; each
+  // the boxes round the caches, then the close ones over the 4 km boxes; each
   // where it has come in, or else the nearest wider one that has. The tiles
   // are 512px, so the data a zoom below the view's is as sharp as the screen.
   function streetTiles(e, vb) {
@@ -704,9 +663,9 @@
 
   /* --- the view ------------------------------------------------------------ */
   var W = 0, H = 0, R = 0, DPR = 1, CX = 0, CY = 0, halo = null, inMotion = false;
-  var sel = -1;                         // the chosen zone: none, until one is chosen
+  var sel = -1;                         // the chosen cache: none, until one is chosen
 
-  // Where the zones are: the middle of them all, which the globe faces
+  // Where the caches are: the middle of them all, which the globe faces
   // while none is chosen.
   var HOME = (function () {
     var x = 0, y = 0, z = 0;
@@ -719,8 +678,8 @@
     return [Math.atan2(y, x) / RAD, clamp(Math.atan2(z, Math.hypot(x, y)) / RAD, -60, 60)];
   })();
   function home(z) { return { lng: HOME[0], lat: HOME[1], zoom: z, dive: 1 }; }
-  // A zone in the middle of the globe at zoom z (none, or one the globe
-  // can't show: where the zones are).
+  // A cache in the middle of the globe at zoom z (none, or one the globe
+  // can't show: where the caches are).
   function aim(i, z) {
     var d = list[i];
     if (!d || !hasPos(d)) return home(z);
@@ -729,7 +688,7 @@
   // What the globe faces: a centre, the zoom chosen with the buttons, wheel
   // or pinch, and a dive that multiplies it while a drop opens or closes.
   var view = home(1);
-  // Diving: the zone dead centre, the globe six times bigger.
+  // Diving: the cache dead centre, the globe six times bigger.
   function dive(i) {
     var d = list[i] || {};
     return hasPos(d) ? { lng: d.lng, lat: d.lat, zoom: view.zoom, dive: 6 } : aim(i, view.zoom);
@@ -998,7 +957,7 @@
     stroke(pieces, "lakes", 0.6, ASH, 0.7);
     stroke(pieces, "coast", 0.7, ASH, 0.85);
 
-    // close in near a zone, the street map's own streets over it all
+    // close in near a cache, the street map's own streets over it all
     var web = webAt(view.zoom * view.dive, view.lat);
     var streetNames = drawStreets(web);
 
@@ -1028,6 +987,9 @@
     // the drops are laid out first, then the prompt and the callout, so the
     // names on the map make way for all three; the drops are drawn last, on top
     var lay = layoutDrops(), avoid = dropBoxes(lay);
+    // names keep clear of the zoom buttons too
+    if (zoomBox.parentNode) avoid.push([zoomBox.offsetLeft - 4, zoomBox.offsetTop - 4,
+      zoomBox.offsetLeft + zoomBox.offsetWidth + 4, zoomBox.offsetTop + zoomBox.offsetHeight + 4]);
     var kbox = placeCard(lay, rest, avoid);
     if (kbox) avoid.push(kbox);
     var cbox = placeCallout(lay, rest, avoid);
@@ -1036,11 +998,10 @@
     if (rest > 0.98) drawPlaces(map.places.concat(marks, streetNames), avoid);
     drawDrops(lay, rest);
     zoomButtons();
-    if (sel >= 0) zoomLabels();
     if (!inMotion) readSoon();
   }
 
-  /* --- the zones on the globe -------------------------------------------- */
+  /* --- the caches on the globe -------------------------------------------- */
   // Points grow with the zoom (a fifth power: about twice the size at 32x,
   // and no bigger past 64x), and the room each needs grows with them.
   function radii() {
@@ -1069,7 +1030,7 @@
     var x = right ? q.x + q.r + 4 : q.x - q.r - 4 - w;
     return { x: x, y: q.y + (d < 2 ? 0 : (dy / d) * 4), box: [x - 1, q.y - 6, x + w + 1, q.y + 6] };
   }
-  // the room the zones, their numbers and the pointer take on screen
+  // the room the caches, their numbers and the pointer take on screen
   function dropBoxes(lay) {
     var out = [];
     lay.pts.forEach(function (q) {
@@ -1151,7 +1112,7 @@
       ctx.fill();
       ctx.restore();
     }
-    if (shown) pointer(shown, rest);            // under the zones, so it hides none
+    if (shown) pointer(shown, rest);            // under the caches, so it hides none
     var others = pts.filter(function (q) { return q !== shown; });
     var claimed = others.filter(function (q) { return list[q.i].claimed; });
     var open = others.filter(function (q) { return !list[q.i].claimed; });
@@ -1215,7 +1176,7 @@
     ctx.restore();
   }
 
-  // The pointer from the reference screen: a red wedge aimed at the zone,
+  // The pointer from the reference screen: a red wedge aimed at the cache,
   // with a ring around it.
   function pointer(q, rest) {
     ctx.save();
@@ -1230,22 +1191,22 @@
   }
 
   /* --- the prompt and the callout ------------------------------------------ */
-  // The prompt sits by the chosen zone whenever the globe is still: all
-  // there is to say about it (see describe) and OPEN ZONE, the way into it.
-  // The callout says what the mouse (or a tap) is on: another zone, much as
+  // The prompt sits by the chosen cache whenever the globe is still: all
+  // there is to say about it (see describe) and OPEN CACHE, the way into it.
+  // The callout says what the mouse (or a tap) is on: another cache, much as
   // the prompt does, or a city, a peak, a landmark. Each keeps clear of the
   // points, the pointer, the zoom buttons and the other.
   var hover = null;                     // { drop: i } or { place: [...] }, under the mouse
   var calloutKey = "", cardKey = "", wantFocus = false, focusLate = 0;
-  // the prompt's x: closes it, the keyboard going back to the zone's row
+  // the prompt's x: closes it, the keyboard going back to the cache's row
   var closer = el("button", "dw-x");
   closer.type = "button";
   closer.title = "Close (Esc)";
   closer.setAttribute("aria-label", "Close");
   closer.innerHTML = '<svg viewBox="0 0 10 10" aria-hidden="true" focusable="false"><path d="M1.5 1.5l7 7M8.5 1.5l-7 7"/></svg>';
   closer.addEventListener("click", function (ev) { var i = sel; select(-1); if (!ev.detail) focusRow(i); });
-  function zoneHead(box, d) {
-    box.appendChild(el("b", null, "Zone " + d.n));
+  function cacheHead(box, d) {
+    box.appendChild(el("b", null, "Cache " + d.n));
     box.appendChild(el("span", "dw-place", d.place));
   }
   var KIND = { c: "Country", s: "State / province", k: "Capital", t: "City", p: "Peak", l: "Landmark" };
@@ -1261,7 +1222,7 @@
   }
   function onScreen(x, y) { return x >= 0 && x <= W && y >= 0 && y <= H; }
 
-  // Up and right of the zone if it fits, else the first place round it
+  // Up and right of the cache if it fits, else the first place round it
   // that keeps clear of everything in avoid and of the zoom buttons (on a
   // phone the left is where they are), else the least bad.
   function placeBox(box, px, py, r, avoid) {
@@ -1297,7 +1258,7 @@
       cardKey = "d" + sel;
       card.textContent = "";
       card.appendChild(closer);
-      zoneHead(card, d);
+      cacheHead(card, d);
       describe(card, d, "prompt");
       card.hidden = false;
       card.classList.remove("is-in");
@@ -1309,7 +1270,7 @@
     if (wantFocus) { wantFocus = false; card.querySelector(".dw-open").focus({ preventScroll: true }); }
     return b;
   }
-  // Enter on a row goes on to the prompt's OPEN ZONE: at once when it opens
+  // Enter on a row goes on to the prompt's OPEN CACHE: at once when it opens
   // under the row, or as soon as the globe has flown and it opens there.
   function promptFocus() {
     clearTimeout(focusLate);
@@ -1321,15 +1282,15 @@
     focusLate = setTimeout(function () { wantFocus = false; }, 2400);
   }
 
-  // The callout: what the mouse or a tap is on. Not the chosen zone, whose
+  // The callout: what the mouse or a tap is on. Not the chosen cache, whose
   // prompt by it says all that already; but where that prompt is under the
-  // zone's row (a narrow window), the zone on the globe says it too.
+  // cache's row (a narrow window), the cache on the globe says it too.
   function placeCallout(lay, rest, avoid) {
     var target = null;
     if (hover && hover.drop != null && (hover.drop !== sel || docked())) {
       var q = lay.pts.filter(function (p) { return p.i === hover.drop; })[0], d = q && list[q.i];
       if (q) target = { key: "d" + q.i, x: q.x, y: q.y, r: q.r,
-                        make: function (box) { zoneHead(box, d); describe(box, d, "popup"); } };
+                        make: function (box) { cacheHead(box, d); describe(box, d, "popup"); } };
     } else if (hover && hover.place) {
       var pl = hover.place;
       if (d3.geoDistance([pl[2], pl[3]], [view.lng, view.lat]) < Math.PI / 2) {
@@ -1354,7 +1315,7 @@
   /* --- names on the map ------------------------------------------------------ */
   // Countries, states, capitals, cities, peaks and landmarks, each from the
   // zoom Natural Earth gives it (landmarks: their own). The most important
-  // first; a name that would overlap one already down, a zone or the
+  // first; a name that would overlap one already down, a cache or the
   // callout is left out.
   var STYLE = {
     c: { font: "8px 'Press Start 2P', monospace", size: 8, fill: TAUPE, alpha: 0.8, upper: true },
@@ -1469,7 +1430,7 @@
   // flight: a way worked out by flyTo, which the turn follows instead.
   function turnTo(to, ms, curve, flight) {
     var me = ++anim;
-    if (!hasGlobe || reduceMotion || !ms || !W) { inMotion = false; heading = null; view = to; draw(); return Promise.resolve(); }
+    if (!hasGlobe || reduceMotion || !ms || !W) { inMotion = false; view = to; draw(); return Promise.resolve(); }
     var from = view, a = [from.lng, from.lat], b = [to.lng, to.lat];
     var arc = d3.geoInterpolate(a, b), far = d3.geoDistance(a, b);
     var z0 = Math.log(from.zoom), z1 = Math.log(to.zoom), v0 = Math.log(from.dive), v1 = Math.log(to.dive);
@@ -1477,7 +1438,7 @@
     var dip = flight ? 0 : Math.max(0, (z0 + z1) / 2 - fits);
     if (dip > 0.3) ms *= 1.4;
     var t0 = performance.now();
-    inMotion = true; heading = to.zoom;
+    inMotion = true;
     return new Promise(function (done) {
       (function step(t) {
         if (me !== anim) return done();
@@ -1486,22 +1447,22 @@
         else z = Math.exp(z0 + (z1 - z0) * e - dip * 4 * e * (1 - e));
         var ll = arc(u);
         view = { lng: ll[0], lat: ll[1], zoom: z, dive: Math.exp(v0 + (v1 - v0) * e) };
-        if (k >= 1) { inMotion = false; heading = null; view = to; }   // the last frame settles the callout
+        if (k >= 1) { inMotion = false; view = to; }   // the last frame settles the callout
         draw();
         if (k < 1) requestAnimationFrame(step); else done();
       })(t0);
     });
   }
 
-  // Fly to zone i (none: where the zones are) at zoom z, as close as the
-  // globe goes unless told: the zone ends in the middle. The way is van Wijk
+  // Fly to cache i (none: where the caches are) at zoom z, as close as
+  // choosing it brings the globe unless told: the cache ends in the middle. The way is van Wijk
   // and Nuij's smooth zooming and panning, as d3's interpolateZoom draws it:
   // out as far as the distance needs, across, and back down, never losing
   // sight of where it is going. Its length sets the time it takes; pace
   // shortens that (pulling back out is quicker than going in).
   function flyTo(i, z, pace) {
     aimed = i;
-    var to = aim(i, z || closeFor(i));
+    var to = aim(i, z || nearFor(i));
     if (!hasGlobe || !W) { view = to; draw(); return Promise.resolve(); }
     var far = d3.geoDistance([view.lng, view.lat], [to.lng, to.lat]);
     var way = flight(view.zoom, to.zoom, far, clamp(W / R, 2, 3.5));
@@ -1527,14 +1488,7 @@
     }
     return { at: at, length: Math.abs(S) };
   }
-  // The prompt's ZOOM IN flies to its zone, as close as the globe goes
-  // there (over the street map, its street level); ZOOM OUT, from there,
-  // back out to the whole globe, still on the zone.
-  function zoomToggle() {
-    if (sel < 0) return;
-    if (view.zoom >= closeFor(sel) * (1 - 1e-6)) flyTo(sel, 1, 0.65); else flyTo(sel);
-  }
-  // zone i in the middle of the globe, as it is
+  // cache i in the middle of the globe, as it is
   function centred(i) {
     var d = list[i];
     return !!d && hasPos(d) && hasGlobe &&
@@ -1568,18 +1522,18 @@
   }
 
   // Zoom to z, keeping the ground at screen point p where it is. Unless
-  // that is the chosen zone, the globe is no longer pointed at it.
+  // that is the chosen cache, the globe is no longer pointed at it.
   function zoomTo(z, p, ms, onDrop) {
     var me = ++anim, z0 = view.zoom, g = groundAt(p);
     if (!onDrop) aimed = -1;
-    if (reduceMotion || !ms) { inMotion = false; heading = null; zoomAbout(g, p, z); draw(); return; }
+    if (reduceMotion || !ms) { inMotion = false; zoomAbout(g, p, z); draw(); return; }
     var t0 = performance.now();
-    inMotion = true; heading = z;
+    inMotion = true;
     (function step(t) {
       if (me !== anim) return;
       var k = Math.min(1, (t - t0) / ms);
       zoomAbout(g, p, z0 * Math.pow(z / z0, ease(k)));
-      if (k >= 1) { inMotion = false; heading = null; }
+      if (k >= 1) inMotion = false;
       draw();
       if (k < 1) requestAnimationFrame(step);
     })(t0);
@@ -1612,9 +1566,9 @@
   zoomAll.innerHTML = GLOBE;
   if (hasGlobe) box.appendChild(zoomBox);
 
-  // + and -: a doubling at a time, about the chosen zone while the globe
+  // + and -: a doubling at a time, about the chosen cache while the globe
   // is still pointed at it (so it stays where it is), otherwise about the
-  // centre: dragged off to Europe, + goes into Europe, not back to the zone
+  // centre: dragged off to Europe, + goes into Europe, not back to the cache
   // sitting at the edge.
   function zoomBy(dir) {
     var l = Math.log2(view.zoom);
@@ -1630,7 +1584,7 @@
     return p[0] > 8 && p[0] < W - 8 && p[1] > 8 && p[1] < H - 8 ? p : null;
   }
   // 0 and the globe button: back out to the whole globe, on the chosen
-  // zone (none: where the zones are).
+  // cache (none: where the caches are).
   function whole() {
     if (zoomAll.getAttribute("aria-disabled") !== "true") flyTo(sel, 1, 0.65);
   }
@@ -1651,15 +1605,15 @@
   }
 
   /* --- choosing ------------------------------------------------------------ */
-  // Choosing a zone: the list marks it, and its prompt opens (by it on the
+  // Choosing a cache: the list marks it, and its prompt opens (by it on the
   // globe once the globe is still, or under its row on a phone). It is never
-  // opened from here. how: "fly" turns the globe to it, at the zoom it is
-  // at (the list), "stay" leaves the globe where it is (a click on its
-  // zone), "jump" turns the globe to it at once, "hold" leaves it for a
-  // dive about to take it there. Chosen again while the globe is on its way
-  // to it, the globe carries on; one already in the middle just opens its
-  // prompt. -1 chooses none: the prompt closes.
-  var aimed = -1;                       // the zone + and - zoom about, while the globe stays on it
+  // opened from here. how: "fly" flies the globe to it, in to its city or
+  // as close as it already is (the list, or a click on its mark), "jump"
+  // turns the globe to it at once at the zoom it is at, "hold" leaves it
+  // for a dive about to take it there. Chosen again while the globe is on
+  // its way to it, the globe carries on; one already in the middle, close
+  // enough, just opens its prompt. -1 chooses none: the prompt closes.
+  var aimed = -1;                       // the cache + and - zoom about, while the globe stays on it
   function select(i, how) {
     if (i >= 0 && !list[i]) return;
     var again = i === sel && aimed === i;
@@ -1672,26 +1626,26 @@
     if (how === "hold") return;
     aimed = i;
     if (root.dataset.view !== "world") { view = aim(i, view.zoom); return; }
-    if (how === "stay") { draw(); return; }
     if (how === "jump") { turnTo(aim(i, view.zoom), 0); return; }
-    if ((again && inMotion) || (!inMotion && centred(i))) { draw(); return; }
-    flyTo(i, view.zoom);
+    var z = Math.max(view.zoom, nearFor(i));
+    if ((again && inMotion) || (!inMotion && centred(i) && view.zoom >= z * (1 - 1e-6))) { draw(); return; }
+    flyTo(i, z);
   }
 
   // Keys. World: arrows walk the list (choosing as they go), Enter on a
-  // zone goes on to its OPEN ZONE, + - 0 zoom. A zone: Esc goes back,
-  // the arrows walk its list of drops and turn its photos of the spot
-  // (drops.js does both), and pan the street map while it has focus.
-  // drops.js sees no other arrows: it would
-  // step to the next zone, and a zone's screen shows that one zone. With
-  // Alt, Ctrl or Cmd they are the browser's (Alt+Left is Back).
+  // cache goes on to its OPEN CACHE, + - 0 zoom. A cache: Esc closes the drop
+  // open there, or with none open goes back to the world; the arrows walk
+  // its list of drops and turn a drop's photos (drops.js does both), and
+  // pan the street map while it has focus. drops.js sees no other arrows:
+  // it would step to the next cache, and a cache's screen shows that one
+  // cache. With Alt, Ctrl or Cmd they are the browser's (Alt+Left is Back).
   document.addEventListener("keydown", function (ev) {
     var t = ev.target;
     if (t && t.closest && t.closest("input, textarea, select, [contenteditable]")) return;
     var step = { ArrowDown: 1, ArrowRight: 1, ArrowUp: -1, ArrowLeft: -1 }[ev.key];
     var plain = !(ev.altKey || ev.ctrlKey || ev.metaKey);
-    // a zone's list of drops and its photos of the spot: drops.js walks them
-    if (step && root.dataset.view !== "world" && t && t.closest && t.closest("#dp-log, .dp-spot")) return;
+    // a cache's list of drops and a drop's photos: drops.js walks them
+    if (step && root.dataset.view !== "world" && t && t.closest && t.closest("#dp-log, .dp-gallery")) return;
     if (step) {
       ev.stopImmediatePropagation();
       if (!plain) return;
@@ -1720,7 +1674,8 @@
       var help = document.getElementById("dp-help");
       if (help && help.open) return;            // drops.js closes the help first
       ev.preventDefault();
-      toWorldByHand();
+      if (drops.opened() >= 0) drops.navigate(drops.current(), -1);   // back to the list
+      else toWorldByHand();
     }
   }, true);
 
@@ -1735,9 +1690,9 @@
   }
 
   // One finger or the mouse drags the globe round; two fingers pinch to
-  // zoom. A click or tap on a zone chooses it where it is (never opens it:
-  // that is the prompt's OPEN DROP); a tap on a city, peak or landmark says
-  // what it is; on bare globe, it closes the prompt.
+  // zoom. A click or tap on a cache chooses it, as the list does (never
+  // opens it: that is the prompt's OPEN CACHE); a tap on a city, peak or
+  // landmark says what it is; on bare globe, it closes the prompt.
   var drag = null, touches = {}, pinch = null;
   function twoFingers() {
     var ids = Object.keys(touches);
@@ -1756,7 +1711,7 @@
     canvas.setPointerCapture(ev.pointerId);
     var two = twoFingers();
     if (two) {
-      drag = null; anim++; inMotion = true; heading = null; aimed = -1;
+      drag = null; anim++; inMotion = true; aimed = -1;
       pinch = { gap: Math.max(1, two.gap), zoom: view.zoom, g: groundAt(two.mid) };
       return;
     }
@@ -1772,7 +1727,7 @@
       return;
     }
     if (!drag) {
-      // the mouse over a zone or a name: say what it is
+      // the mouse over a cache or a name: say what it is
       var q = hit(ev), pl = q ? null : hitPlace(ev);
       canvas.style.cursor = q ? "pointer" : pl ? "help" : "grab";
       if (ev.pointerType === "mouse" || ev.pointerType === "pen") setHover(q ? { drop: q.i } : pl ? { place: pl } : null);
@@ -1780,7 +1735,7 @@
     }
     var dx = ev.clientX - drag.x, dy = ev.clientY - drag.y;
     if (!drag.moved && Math.hypot(dx, dy) < 4) return;
-    drag.moved = true; anim++; inMotion = true; heading = null; hover = null; aimed = -1;
+    drag.moved = true; anim++; inMotion = true; hover = null; aimed = -1;
     var k = 180 / Math.PI / scale(view);
     view = { lng: drag.v.lng - dx * k, lat: clamp(drag.v.lat + dy * k, -80, 80), zoom: view.zoom, dive: view.dive };
     canvas.style.cursor = "grabbing";
@@ -1805,7 +1760,7 @@
     var q = hit(ev);
     if (q) {
       hover = null;
-      select(q.i, "stay");
+      select(q.i, "fly");
       return;
     }
     // a tap on a name shows what it is until the next tap
@@ -1841,7 +1796,7 @@
     var z = capped(view.zoom * Math.exp(-dy * (ev.ctrlKey ? 0.01 : 0.004)));
     if (Math.abs(z - view.zoom) < 1e-6) return;
     var r = canvas.getBoundingClientRect(), p = [ev.clientX - r.left, ev.clientY - r.top];
-    anim++; inMotion = true; heading = null; aimed = -1;
+    anim++; inMotion = true; aimed = -1;
     zoomAbout(groundAt(p), p, z);
     draw();
     settleSoon();
@@ -1851,7 +1806,7 @@
   // nothing of its own to scroll
   card.addEventListener("wheel", wheelZoom, { passive: false });
 
-  // The world view has its own "What is a drop?" (the zone screen's lives
+  // The world view has its own "What is a drop?" (the cache screen's lives
   // in a panel that is hidden here); like that one, a click outside closes it.
   var worldHelp = document.getElementById("dw-help");
   if (worldHelp) document.addEventListener("click", function (ev) {
@@ -1890,9 +1845,9 @@
   function nextFrame() {
     return new Promise(function (done) { requestAnimationFrame(done); setTimeout(done, 50); });
   }
-  // The zone's windows set off first, and only once they are on their way
+  // The cache's windows set off first, and only once they are on their way
   // (the browser flies them, after-images and all, from then on) does
-  // drops.js put the zone in them: its street map takes a moment to draw,
+  // drops.js put the cache in them: its street map takes a moment to draw,
   // which would otherwise hold them at the edge of the screen. They are
   // still off it when it does. j: the drop chosen there.
   async function arrive(i, j, scope) {
@@ -1906,7 +1861,7 @@
   async function toDrop(i, j) {
     if (root.dataset.view === "drop") {
       // the address changed (typed, a link, Back): another drop at this
-      // zone is just chosen; for another zone the windows fly out, and
+      // cache is just chosen; for another cache the windows fly out, and
       // back in with it
       if (drops.current() === i) { drops.show(i, j); return; }
       if (moving()) {
@@ -1914,7 +1869,7 @@
         if (next && next.i >= 0) { i = next.i; j = next.j; next = null; }   // asked for again meanwhile
       }
       if (fly()) fly().reset(detail);
-      window.scrollTo(0, 0);                    // a phone scrolls a zone's page
+      window.scrollTo(0, 0);                    // a phone scrolls a cache's page
       await arrive(i, j, detail);
       return;
     }
@@ -1939,7 +1894,7 @@
     var i = Math.max(0, drops.current()), fromDrop = shell.contains(document.activeElement);
     if (moving()) await fly().exit(shell, OUT);
     root.dataset.view = "world";
-    window.scrollTo(0, 0);                      // wherever the zone's page was scrolled to
+    window.scrollTo(0, 0);                      // wherever the cache's page was scrolled to
     if (moving()) flash();
     if (fly()) fly().reset(shell);
     document.title = TITLE;
@@ -1948,7 +1903,7 @@
     if (fromDrop) focusRow(i);
     if (moving()) {
       fly().enter(listPanel, IN);
-      view = dive(i); draw();                   // start inside the zone we left
+      view = dive(i); draw();                   // start inside the cache we left
       await turnTo(aim(i, view.zoom), 600, easeOut);   // and pull back out, to the zoom we left
     }
   }
@@ -1967,9 +1922,9 @@
     })();
   }
 
-  // The address decides the screen: drops#03 is zone 03, drops#003 drop 003
-  // at its zone, anything else the world. OPEN ZONE is a link to the zone,
-  // so Back, reload and sharing just work.
+  // The address decides the screen: drops#03 is cache 03 (its list of
+  // drops), drops#003 drop 003 open at its cache, anything else the world.
+  // OPEN CACHE is a link to the cache, so Back, reload and sharing just work.
   function hashId() {
     try { return decodeURIComponent(location.hash.slice(1)); }
     catch (e) { return ""; }                    // a mangled address: the world
@@ -1977,37 +1932,55 @@
   function route(initial) {
     var at = find(hashId()), i = at ? at[0] : -1;
     if (i < 0 && location.hash) history.replaceState(null, "", location.pathname + location.search);
+    // A cache's address the first time it is shown (a link, OPEN CACHE,
+    // the address typed): marked once with whether the world came just
+    // before it, for WORLD MAP to step back to. Back and Forward to it
+    // later keep the mark (the world may be after it by then).
+    if (i >= 0 && !(history.state && history.state.seen))
+      history.replaceState({ fromWorld: !initial && root.dataset.view === "world", seen: true }, "");
     if (initial) {                               // no animation on arrival
       root.dataset.view = i < 0 ? "world" : "drop";
       if (i >= 0) { document.title = title(i); sel = i; }
       return;
     }
-    if (i >= 0 && root.dataset.view === "world") history.replaceState({ fromWorld: true }, "");
-    go({ i: i, j: at ? at[1] : 0 });
+    go({ i: i, j: at ? at[1] : -1 });
   }
   window.addEventListener("hashchange", function () { route(false); });
 
-  // WORLD MAP: step back if we came from the world, so Back and Forward stay
-  // one step apart; otherwise (a shared link to one zone) go forward to it.
+  // WORLD MAP: step back if we came from the world (over the drop opened
+  // since, if one is), so Back and Forward stay one step apart; otherwise
+  // (a shared link to one cache) go forward to it.
   function toWorldByHand() {
-    if (history.state && history.state.fromWorld) { history.back(); return; }
+    var st = history.state || {};
+    if (st.fromWorld) { history.go(st.drop ? -2 : -1); return; }
     history.pushState(null, "", location.pathname + location.search);
     go({ i: -1 });
   }
 
-  // Keep the address and the title in step with the zone showing and the
-  // drop chosen there, the address without adding history: left as it is
-  // while it already says them (the zone's own, opened on its newest drop),
-  // else the drop's, so a link shared from here opens on that drop.
-  document.addEventListener("pn0va:drop", function (ev) {
-    var d = list[ev.detail.index];
-    if (root.dataset.view !== "drop" || !d) return;
-    var j = ev.detail.drop, at = find(hashId());
-    if (!at || at[0] !== d.i || at[1] !== Math.max(j, 0)) {
-      var e = d.drops[j];
-      history.replaceState(history.state, "", "#" + (e ? e.dataset.n : d.n));
+  // A drop opened or closed by hand on a cache's screen (its row, CLOSE,
+  // Esc), and the address with it, so a link shared from there opens on
+  // that drop. Opening one from the list is a step Back undoes, back to the
+  // list; going on to another drop isn't; closing one takes that step back,
+  // or, opened from a link, puts the cache's own address in its place.
+  drops.navigate = function (i, j) {
+    var d = list[i];
+    if (!d || root.dataset.view !== "drop") { drops.show(i, j); return; }
+    var st = history.state || {};
+    if (j >= 0) {
+      var n = d.drops[j].dataset.n;
+      if (drops.opened() >= 0) history.replaceState(st, "", "#" + n);
+      else history.pushState({ fromWorld: !!st.fromWorld, drop: true, seen: true }, "", "#" + n);
+      drops.show(i, j);
+    } else if (st.drop) {
+      history.back();                           // the address changing closes it
+    } else {
+      history.replaceState(st, "", "#" + d.n);
+      drops.show(i, -1);
     }
-    document.title = title(d.i);
+  };
+  // the title says which cache is showing
+  document.addEventListener("pn0va:drop", function () {
+    if (root.dataset.view === "drop" && list[drops.current()]) document.title = title(drops.current());
   });
 
   /* --- start --------------------------------------------------------------- */

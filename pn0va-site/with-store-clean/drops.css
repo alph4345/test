@@ -1,13 +1,14 @@
 /* ==========================================================================
    DROPS — page styles
-   rev 2026.10.09 · requires tokens.css + components.css first
+   rev 2026.10.11 · requires tokens.css + components.css first
    --------------------------------------------------------------------------
-   Layout is an MGS inventory screen: a manifest rail of drop zones you
-   select from, and a detail pane that swaps. Everything is framed as
-   equipment — panels have bezels and corner brackets, every value carries a
-   label and a unit, and a zone is designated (ZONE 02) under its name.
+   Layout is an MGS inventory screen: a cache's name and coordinates over
+   its street map, and on the map one menu, the drops left there; a drop
+   opens its windows round it. Everything is framed as equipment — panels
+   have bezels and corner brackets, every value carries a label and a unit,
+   and a cache is designated (CACHE 02) over its name.
 
-   Single-screen: the page never scrolls. Panels scroll internally.
+   On a desktop the page never scrolls; panels scroll internally.
    ========================================================================== */
 
 /* --------------------------------------------------------------------------
@@ -56,7 +57,7 @@
 /* A labelled control, not a bare glyph — "?" alone asks the visitor to guess
    what it explains, and gives nothing to aim at on a phone. But a quiet one:
    no box, the muted ink, red only when pointed at. It is there for whoever
-   wonders; the zone's name is what the bar is for. */
+   wonders; the cache's name is what the bar is for. */
 .dp-help > summary{
   position:relative; list-style:none; cursor:help;
   display:inline-flex; align-items:center; gap:6px;
@@ -132,7 +133,7 @@ html:not(.js) .dp-help__panel::after{
 /* the live value the operator is reading = bone */
 .dp-readout--live dd{ color:var(--pn-signal); }
 
-/* Designation — the zone's name, big and in bone, the first thing read,
+/* Designation — the cache's name, big and in bone, the first thing read,
    with its number over it in red, the channel's label. The coordinates
    beside it are the tuned value; the name says where that is. */
 .dp-desig{
@@ -159,7 +160,7 @@ html:not(.js) .dp-help__panel::after{
 }
 
 /* --------------------------------------------------------------------------
-   PAGE FRAME — single screen, never scrolls
+   PAGE FRAME — single screen on a desktop; panels scroll internally
    -------------------------------------------------------------------------- */
 html.js body:has(.dp-shell){ overflow:hidden; }
 
@@ -198,32 +199,46 @@ html.js body:has(.dp-shell){ overflow:hidden; }
 .dp-row{ position:relative; }
 
 /* --- detail ---------------------------------------------------------------
-   Codec layout. In MGS the screen is: a frequency readout up top, the live
-   view in the middle, and the portraits sitting with the dialogue box along
-   the bottom. Putting the drops and the item down there with the brief
-   frees the entire upper area for the map, which is the point — the map is
-   the star and everything else annotates it.
+   The cache's screen. Its name and coordinates across the top; under them
+   the street map, the whole stage, and on it, at the middle of its foot,
+   the one menu: the drops left here. Choose one and its windows open round
+   that list over the map, which dims: photos of the spot to its left, of
+   what was left to its right, the transmission above it. Close them and
+   the list is on its own again.
+
+   One grid: the map spans the stage, the windows sit in its columns on top
+   of it, a step in from its frame.
    -------------------------------------------------------------------------- */
 .dp-detail{
   display:grid; gap:10px; min-height:0;
-  /* the strip gained height so the photos can actually be looked at; the
-     map still takes every pixel left over and stays the largest panel */
-  grid-template-rows:auto minmax(0,1fr) clamp(172px,25vh,236px);
-  grid-template-areas:
-    "freq"
-    "map"
-    "strip";
+  grid-template-columns:[l] minmax(0,1fr) [c] minmax(300px,380px) [d] minmax(0,1fr) [r];
+  grid-template-rows:[t] auto [s] minmax(0,1fr) [m] auto [b];
 }
-.dp-bar   { grid-area:freq; }
-.dp-map   { grid-area:map; }
-/* The drops at the zone, then the chosen one's spot, transmission and
-   item, the way the codec sets its speakers either side of what's being
-   said. DOM order matches visual order — drops, spot, transmission, item —
-   so nothing needs grid-area placement here. */
-.dp-strip {
-  grid-area:strip; display:grid; gap:10px; min-height:0;
-  grid-template-columns:minmax(190px,1fr) minmax(0,1.3fr) minmax(0,1.3fr) minmax(140px,.78fr);
+.dp-bar  { grid-column:l / r; grid-row:t / s; }
+.dp-map  { grid-column:l / r; grid-row:s / b; }
+.dp-log  { grid-column:c / d; grid-row:m / b; }
+.dp-drop { display:contents; }
+.dp-drop[hidden]{ display:none; }
+.dp-spot { grid-column:l / c; grid-row:s / b; }
+.dp-brief{ grid-column:c / d; grid-row:s / m; }
+.dp-items{ grid-column:d / r; grid-row:s / b; }
+
+/* the windows over the map: clear of its head, a step in from its frame,
+   lifted off it */
+.dp-log, .dp-spot, .dp-brief, .dp-items{
+  position:relative; z-index:2;
+  box-shadow:0 0 0 1px #000, 0 10px 34px rgba(0,0,0,.85), 0 0 22px rgba(255,22,9,.16);
 }
+.dp-log  { margin:0 0 16px; max-height:min(42vh, 420px); align-self:end; }
+.dp-spot { margin:40px 0 16px 16px; }
+.dp-brief{ margin:40px 0 0; }
+.dp-items{ margin:40px 16px 16px 0; }
+.dp-drop__bar{ display:none; }        /* a phone's way back (below) */
+
+/* the map keeps to itself (Leaflet's panes stack to 1000 inside it), and
+   dims while a drop's windows are open over it */
+.dp-map{ z-index:0; isolation:isolate; transition:filter .35s ease; }
+.dp-detail.is-open .dp-map{ filter:brightness(.3) saturate(.6); }
 
 /* --- the frequency bar ---------------------------------------------------
    The codec's defining element: a big tuned number, centred, with the
@@ -279,61 +294,31 @@ html:not(.js) .dp-mapcanvas{ display:none; }
   flex:0 0 auto; line-height:1.4;
 }
 
-/* brief — the codec dialogue box. Its head names the drop, on one line,
-   cut short where the panel is narrow. */
-.dp-brief .dp-panel__head > .dp-idx{ min-width:0; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
-.dp-brief .dp-panel__body p{
-  font-family:var(--pn-face-body); font-size:12.5px; line-height:1.6;
-  margin:0 0 8px; color:var(--pn-ink); max-width:74ch;
-}
-.dp-brief .dp-panel__body p:last-child{ margin-bottom:0; }
-
-/* --- the spot: where the drop is, in photos -------------------------------
-   The whole photo, letterboxed, so nothing of the place is cropped away; a
-   click opens it full size. Arrows at its sides when it has more than one;
-   its file's name and date under it. */
-.dp-spot .dp-panel__body{ position:relative; background:#000; }
-/* a sideways swipe is the page's to turn the photo with; up and down still
-   scroll, and a pinch still zooms */
-.dp-spot .dp-panel__body > a{ display:block; width:100%; height:100%; cursor:zoom-in; touch-action:pan-y pinch-zoom; }
-.dp-spot img{ object-fit:contain; opacity:1; }
-.dp-spot figcaption{ white-space:nowrap; overflow:hidden; text-overflow:ellipsis; text-transform:none; letter-spacing:.08em; }
-.dp-spot__go{
-  position:absolute; top:50%; z-index:2; width:34px; height:44px; margin-top:-22px; padding:0;
-  display:grid; place-items:center; cursor:pointer;
-  background:rgba(0,0,0,.72); border:1px solid var(--pn-red-50); border-radius:var(--pn-radius-sm);
-  transition:background var(--pn-dur-state) ease, border-color var(--pn-dur-state) ease;
-}
-.dp-spot__go[hidden]{ display:none; }
-.dp-spot__prev{ left:6px; }
-.dp-spot__next{ right:6px; }
-.dp-spot__go .tri{
-  width:0; height:0; border-top:8px solid transparent; border-bottom:8px solid transparent;
-}
-.dp-spot__prev .tri{ border-right:11px solid var(--pn-red); margin-right:2px; }
-.dp-spot__next .tri{ border-left:11px solid var(--pn-red); margin-left:2px; }
-.dp-spot__go:hover{ background:var(--pn-red-20); border-color:var(--pn-red); }
-.dp-spot__go:hover .tri{ border-left-color:var(--pn-signal); border-right-color:var(--pn-signal); }
-.dp-spot__prev:hover .tri{ border-left-color:transparent; }
-.dp-spot__next:hover .tri{ border-right-color:transparent; }
-.dp-spot__go:focus-visible{ outline:2px solid var(--pn-focus); outline-offset:2px; }
-
-/* --- the drops at a point ------------------------------------------------
-   A list, newest first: each drop's number and title, NEW for its first
-   week or CLAIMED once it is marked so, and under the title the date it was
-   left. The chosen one is lit, as in the manifest. */
+/* --- the drops here: the one menu -----------------------------------------
+   Newest first: each drop's number and title, NEW for its first week or
+   CLAIMED once it is marked so, and under the title the date it was left.
+   A menu's cursor, a red wedge, steps in front of the one pointed at; the
+   open one is lit, with the bar down its side. */
 .dp-log > .dp-panel__body{ padding:0; }
 .dp-logrow{
   position:relative; display:grid; grid-template-columns:auto minmax(0,1fr) auto;
   column-gap:10px; row-gap:3px; align-items:baseline;
-  width:100%; margin:0; padding:7px 11px 7px; text-align:left; cursor:pointer;
+  width:100%; margin:0; padding:10px 14px 9px 24px; text-align:left; cursor:pointer;
   font:inherit; color:var(--pn-ink-muted);
   background:none; border:0; border-bottom:1px solid var(--pn-divider); border-radius:0;
   transition:color var(--pn-dur-state) ease, background var(--pn-dur-state) ease;
 }
-.dp-logrow:hover{ color:var(--pn-ink); background:var(--pn-red-07); }
+.dp-logrow:last-child{ border-bottom:0; }
+.dp-logrow::after{
+  content:""; position:absolute; left:9px; top:50%; margin-top:-6px; width:0; height:0;
+  border-top:6px solid transparent; border-bottom:6px solid transparent; border-left:8px solid var(--pn-red);
+  filter:drop-shadow(0 0 3px var(--pn-red)); opacity:0;
+}
+.dp-logrow:hover, .dp-logrow:focus-visible{ color:var(--pn-ink); background:var(--pn-red-07); }
+.dp-logrow:hover::after, .dp-logrow:focus-visible::after, .dp-logrow[aria-current="true"]::after{ opacity:1; }
 .dp-logrow:focus-visible{ outline:2px solid var(--pn-focus); outline-offset:-2px; }
 .dp-logrow[aria-current="true"]{ color:var(--pn-signal); background:var(--pn-red-20); }
+.dp-logrow[aria-current="true"]::after{ border-left-color:var(--pn-signal); }
 .dp-logrow[aria-current="true"]::before{
   content:""; position:absolute; left:0; top:0; width:3px; height:100%;
   background:var(--pn-red);
@@ -344,7 +329,7 @@ html:not(.js) .dp-mapcanvas{ display:none; }
 .dp-logrow[aria-current="true"] .dp-logrow__n{ color:var(--pn-signal); }
 .dp-logrow__t{
   grid-row:1; grid-column:2; min-width:0; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;
-  font-family:var(--pn-face-body); font-size:13px; font-style:italic; line-height:1.3;
+  font-family:var(--pn-face-body); font-size:14px; font-style:italic; line-height:1.3;
   color:var(--pn-ink);
 }
 .dp-logrow[aria-current="true"] .dp-logrow__t{ color:var(--pn-ink-strong); }
@@ -359,6 +344,110 @@ html:not(.js) .dp-mapcanvas{ display:none; }
 /* NEW is red, like the pointer: it is where to look. CLAIMED is quiet. */
 .dp-logrow__s.is-new{ color:var(--pn-void); background:var(--pn-red); }
 .dp-logrow__s.is-claimed{ padding:2px 3px 1px; color:var(--pn-ink-muted); border:1px solid var(--pn-ash); }
+/* nothing left here yet */
+.dp-log__none{
+  margin:0; padding:14px; font-size:8px; letter-spacing:.14em; text-transform:uppercase;
+  color:var(--pn-ink-faint);
+}
+
+/* --- a drop's photos: the spot, and what was left --------------------------
+   The whole photo, letterboxed, so nothing of it is cropped away; a click
+   opens it full size. Arrows at its sides when there is more than one, and
+   the arrow keys and a swipe; its file's name and date under it. */
+.dp-gallery .dp-panel__body{ position:relative; background:#000; }
+/* a sideways swipe is the page's to turn the photo with; up and down still
+   scroll, and a pinch still zooms */
+.dp-gallery__link{
+  position:relative; display:block; width:100%; height:100%; overflow:hidden;
+  cursor:zoom-in; touch-action:pan-y pinch-zoom;
+}
+.dp-gallery img{ position:relative; object-fit:contain; opacity:1; }
+/* where the photo is the wrong shape for its window, the same photo,
+   blurred and dark, fills the rest rather than black bars */
+.dp-gallery img.dp-gallery__bg{
+  position:absolute; inset:0; object-fit:cover; opacity:1;
+  filter:blur(18px) brightness(.32) saturate(.7); transform:scale(1.15);
+}
+.dp-gallery figcaption{ white-space:nowrap; overflow:hidden; text-overflow:ellipsis; text-transform:none; letter-spacing:.08em; }
+.dp-gallery__go{
+  position:absolute; top:50%; z-index:2; width:38px; height:50px; margin-top:-25px; padding:0;
+  display:grid; place-items:center; cursor:pointer;
+  background:rgba(0,0,0,.72); border:1px solid var(--pn-red-50); border-radius:var(--pn-radius-sm);
+  transition:background var(--pn-dur-state) ease, border-color var(--pn-dur-state) ease;
+}
+.dp-gallery__go[hidden]{ display:none; }
+.dp-gallery__prev{ left:8px; }
+.dp-gallery__next{ right:8px; }
+.dp-gallery__go .tri{
+  width:0; height:0; border-top:9px solid transparent; border-bottom:9px solid transparent;
+}
+.dp-gallery__prev .tri{ border-right:12px solid var(--pn-red); margin-right:2px; }
+.dp-gallery__next .tri{ border-left:12px solid var(--pn-red); margin-left:2px; }
+.dp-gallery__go:hover{ background:var(--pn-red-20); border-color:var(--pn-red); }
+.dp-gallery__go:hover .tri{ border-left-color:var(--pn-signal); border-right-color:var(--pn-signal); }
+.dp-gallery__prev:hover .tri{ border-left-color:transparent; }
+.dp-gallery__next:hover .tri{ border-right-color:transparent; }
+.dp-gallery__go:focus-visible{ outline:2px solid var(--pn-focus); outline-offset:2px; }
+
+/* --- the transmission: what was left, and why -----------------------------
+   The codec's dialogue box: the drop's title, then when it was left and
+   what, then the words. Its head carries the way out of the drop: CLOSE,
+   or Esc. */
+.dp-brief .dp-panel__head > .dp-idx{ margin-right:auto; }
+.dp-brief .dp-panel__body{ padding:14px 16px 16px; }
+.dp-brief__title{
+  margin:0 0 7px; font-weight:400; font-size:12px; line-height:1.5; letter-spacing:.08em;
+  text-transform:uppercase; color:var(--pn-signal); text-shadow:0 0 10px rgba(255,22,9,.35);
+  overflow-wrap:anywhere;
+}
+.dp-brief__meta{
+  display:flex; flex-wrap:wrap; gap:4px 14px; margin:0 0 12px; padding-bottom:10px;
+  border-bottom:1px solid var(--pn-divider);
+}
+.dp-brief__meta:empty{ display:none; }
+.dp-brief__meta > span{ font-family:var(--pn-face-body); font-size:12.5px; line-height:1.4; color:var(--pn-ink); }
+.dp-brief__meta b{
+  font-family:var(--pn-face-display); font-weight:400; font-size:7.5px; letter-spacing:.14em;
+  text-transform:uppercase; color:var(--pn-red); margin-right:4px;
+}
+.dp-brief__meta .is-new{ color:var(--pn-void); background:var(--pn-red); padding:3px 4px 2px; border-radius:2px;
+  font-family:var(--pn-face-display); font-size:7px; letter-spacing:.14em; text-transform:uppercase; align-self:center; }
+.dp-brief__text p{
+  font-family:var(--pn-face-body); font-size:13.5px; line-height:1.65;
+  margin:0 0 9px; color:var(--pn-ink); max-width:68ch;
+}
+.dp-brief__text p:last-child{ margin-bottom:0; }
+.dp-close{
+  display:inline-flex; align-items:center; gap:7px; flex:0 0 auto;
+  min-height:26px; margin:-3px -4px -3px 0; padding:0 8px 0 7px; cursor:pointer;
+  font:inherit; font-size:8.5px; letter-spacing:.14em; text-transform:uppercase; color:var(--pn-ink);
+  background:none; border:1px solid var(--pn-red-50); border-radius:var(--pn-radius-sm);
+  transition:color var(--pn-dur-state) ease, background var(--pn-dur-state) ease, border-color var(--pn-dur-state) ease;
+}
+.dp-close .x{ position:relative; width:9px; height:9px; }
+.dp-close .x::before, .dp-close .x::after{
+  content:""; position:absolute; left:50%; top:50%; width:11px; height:1.6px; margin:-.8px 0 0 -5.5px;
+  background:var(--pn-red); transform:rotate(45deg);
+}
+.dp-close .x::after{ transform:rotate(-45deg); }
+.dp-close .key{
+  padding:2px 3px 1px; font-size:6.5px; letter-spacing:.1em; color:var(--pn-ink-faint);
+  border:1px solid var(--pn-hairline); border-radius:2px;
+}
+.dp-close:hover{ color:var(--pn-signal); background:var(--pn-red-20); border-color:var(--pn-red); }
+.dp-close:focus-visible{ outline:2px solid var(--pn-focus); outline-offset:2px; }
+@media (pointer:coarse){ .dp-close .key{ display:none; } }
+
+/* CLAIMED in the items' head, beside its label: the photos are left clear,
+   so whoever comes later can still see what was there */
+.dp-item-claimed{
+  min-width:0; color:var(--pn-red); letter-spacing:.14em;
+  white-space:nowrap; overflow:hidden; text-overflow:ellipsis;
+}
+.dp-item-claimed[hidden]{ display:none; }
+.dp-slot .dp-panel__head > .dp-idx{ flex:0 0 auto; white-space:nowrap; }
+.dp-items{ container-type:inline-size; }
+@container (max-width:300px){ .dp-item-claimed .d{ display:none; } }
 
 /* entries: only the current one renders */
 .dp-entry{ display:none; }
@@ -368,66 +457,74 @@ html:not(.js) .dp-entry{ display:contents; }   /* no JS: show them all, stacked 
 .dp-shell{ position:relative; z-index:1; }
 
 /* --------------------------------------------------------------------------
-   RESPONSIVE — below 900px the rail moves under the detail and the page
-   scrolls again, because a single screen stops being honest on a phone.
+   A SHORT DESKTOP — the list a little shorter, so the transmission keeps
+   room above it
    -------------------------------------------------------------------------- */
-@media (max-width:900px){
-  /* The page still does NOT scroll on a phone — overflow becomes pagination,
-     not a longer page. Only the brief scrolls, inside its own panel.
+@media (min-width:901px) and (max-height:760px){
+  .dp-log{ max-height:min(34vh, 300px); }
+  .dp-spot, .dp-brief, .dp-items{ margin-top:36px; }
+}
 
-     Everything is measured against the viewport rather than guessed: the
-     manifest becomes a horizontal strip, the frequency bar stays on one line,
-     the photo slots take a fixed slice, and the MAP absorbs whatever is left
-     so it stays the largest thing on screen. */
+/* --------------------------------------------------------------------------
+   A PHONE, AND ANY SCREEN UNDER 560px TALL — the page scrolls: the bar, the
+   street map, the list of drops under it, full width. A drop opens as a
+   screen of its own over the page, its way back to the list along the top:
+   the photos of the spot, the transmission, the photos of what was left,
+   one under the other (two side by side where there is room).
+   -------------------------------------------------------------------------- */
+@media (max-width:900px), (max-height:560px){
+  html.js:not([data-view="world"]) body:has(.dp-shell){ overflow:auto; }
   .dp-shell{
-    grid-template-columns:1fr;
-    grid-template-rows:auto minmax(0,1fr);
-    height:100vh; height:100dvh;
-    padding:58px 10px 10px; gap:8px;
+    grid-template-columns:minmax(0,1fr);
+    height:auto; min-height:100vh; min-height:100dvh;
   }
-
-  /* manifest: a horizontal channel strip, not a stacked list */
-  .dp-manifest{ order:0; }
-  .dp-manifest .dp-panel__head{ display:none; }
-  .dp-manifest .dp-panel__body{ display:flex; overflow-x:auto; overflow-y:hidden; }
-  .dp-row{
-    grid-template-columns:auto auto; gap:6px; align-items:baseline;
-    border-bottom:0; border-right:1px solid var(--pn-divider);
-    padding:8px 12px; white-space:nowrap; flex:0 0 auto;
-  }
-  .dp-row__d{ display:none; }               /* the date is in the readout */
-  .dp-row[aria-current="true"]::before{ width:100%; height:2px; top:auto; bottom:0; }
-
   .dp-detail{
-    grid-template-rows:auto minmax(0,1fr) auto;
-    grid-template-areas:"freq" "map" "strip";
-    gap:8px; min-height:0;
+    grid-template-columns:minmax(0,1fr);
+    grid-template-rows:auto auto auto;
   }
+  .dp-bar, .dp-map, .dp-log{ grid-column:1; grid-row:auto; }
+  .dp-map{ height:52vh; height:52svh; min-height:240px; }
+  .dp-log{ margin:0; max-height:none; align-self:auto; box-shadow:none; }
+  .dp-logrow{ padding:13px 14px 12px 26px; }
+  .dp-logrow__t{ font-size:15px; }
 
-  /* frequency bar stays one line — stacking it cost 85px */
-  .dp-bar .dp-panel__head{ display:none; }
-  .dp-bar .dp-panel__body{
-    grid-template-columns:auto minmax(0,1fr) auto;
-    padding:5px 10px; gap:8px;
+  /* the drop: a screen over the page, the nav included */
+  .dp-drop:not([hidden]){
+    display:block; position:fixed; inset:0; z-index:420;
+    overflow-y:auto; overscroll-behavior:contain; -webkit-overflow-scrolling:touch;
+    padding:0 10px max(20px, env(safe-area-inset-bottom));
+    background:var(--pn-void);
   }
-  .dp-freq .v{ font-size:clamp(12px,3.4vw,17px); }
-  .dp-meta .dp-readout{ display:none; }     /* placed/elapsed live in the help panel */
-  .dp-meta{ gap:8px; }
-
-  .dp-map{ min-height:0; }                  /* absorbs the remaining space */
-
-  .dp-strip{
-    grid-template-columns:1fr 1fr;
-    grid-template-areas:"log spot" "brief item";
-    height:auto; gap:8px;
+  html.js body:has(.dp-drop:not([hidden])){ overflow:hidden; }
+  /* the page sits under the nav; with a drop open, over it */
+  html:has(.dp-drop:not([hidden])) .dp-shell{ z-index:300; }
+  .dp-drop__bar{
+    display:flex; align-items:center; gap:12px;
+    position:sticky; top:0; z-index:3; margin:0 -10px 10px; padding:max(10px, env(safe-area-inset-top)) 10px 10px;
+    background:rgba(0,0,0,.94); border-bottom:2px solid var(--pn-red);
   }
-  .dp-log{ grid-area:log; height:clamp(88px,13vh,120px); }
-  .dp-slot--spot{ grid-area:spot; }
-  .dp-slot--item{ grid-area:item; }
-  .dp-slot{ height:clamp(88px,13vh,120px); }
-  .dp-brief{ grid-area:brief; height:clamp(74px,11vh,104px); }
-  .dp-brief .dp-panel__body{ overflow-y:auto; }   /* the one thing that scrolls */
-  .dp-brief .dp-panel__body p{ font-size:11.5px; line-height:1.5; }
+  .dp-drop__back{
+    display:flex; align-items:center; gap:9px; flex:0 0 auto;
+    min-height:44px; padding:0 16px 0 12px; cursor:pointer;
+    font:inherit; font-size:10px; letter-spacing:.16em; text-transform:uppercase;
+    color:var(--pn-void); background:var(--pn-red);
+    border:2px solid var(--pn-red); border-radius:var(--pn-radius-sm);
+    box-shadow:0 0 14px var(--pn-red-50);
+  }
+  .dp-drop__back .tri{
+    width:0; height:0; border-top:7px solid transparent; border-bottom:7px solid transparent;
+    border-right:10px solid var(--pn-void);
+  }
+  .dp-drop__back:focus-visible{ outline:2px solid var(--pn-focus); outline-offset:3px; }
+  .dp-drop__name{
+    min-width:0; font-size:9px; line-height:1.6; letter-spacing:.14em; text-transform:uppercase;
+    color:var(--pn-signal); overflow:hidden; text-overflow:ellipsis; white-space:nowrap;
+  }
+  .dp-spot, .dp-brief, .dp-items{ margin:0 0 10px; box-shadow:none; }
+  .dp-gallery .dp-panel__body{ flex:0 0 auto; aspect-ratio:4/3; }
+  .dp-gallery__go{ width:44px; height:56px; margin-top:-28px; }
+  .dp-close{ display:none; }                 /* the bar's way back does it */
+  .dp-brief__text p{ font-size:15px; line-height:1.65; }
 
   /* the help sheet is unchanged — it is the one overlay allowed */
   .dp-help > summary{ min-height:30px; padding:0 9px 0 7px; gap:6px; }
@@ -438,12 +535,47 @@ html:not(.js) .dp-entry{ display:contents; }   /* no JS: show them all, stacked 
     top:54px; max-height:calc(100dvh - 76px); overflow-y:auto;
   }
 }
+/* side by side where there is room: the two sets of photos, the
+   transmission under them */
+@media (min-width:600px) and (max-width:900px), (min-width:600px) and (max-height:560px){
+  .dp-drop:not([hidden]){
+    display:grid; grid-template-columns:minmax(0,1fr) minmax(0,1fr); column-gap:10px; align-content:start;
+    grid-template-areas:"bar bar" "spot items" "brief brief";
+    /* rows the height of what is in them: the screen scrolls, rather than
+       squeezing them into it */
+    grid-template-rows:max-content max-content max-content;
+  }
+  .dp-drop__bar{ grid-area:bar; }
+  .dp-spot{ grid-area:spot; }
+  .dp-items{ grid-area:items; }
+  .dp-brief{ grid-area:brief; }
+}
 
-/* very short viewports: drop the photo slot rather than squeeze everything */
-@media (max-width:900px) and (max-height:680px){
-  .dp-slot{ display:none; }
-  .dp-strip{ grid-template-columns:1fr 1fr; grid-template-areas:"log brief"; }
-  .dp-log, .dp-brief{ height:clamp(64px,12vh,92px); }
+/* --------------------------------------------------------------------------
+   A PHONE WITHOUT THE WORLD VIEW — drops.js's list of caches, the only
+   way between them then, as a strip across the top
+   -------------------------------------------------------------------------- */
+@media (max-width:900px){
+  .dp-shell{ padding:58px 10px 10px; gap:8px; }
+  .dp-manifest .dp-panel__head{ display:none; }
+  .dp-manifest .dp-panel__body{ display:flex; overflow-x:auto; overflow-y:hidden; }
+  .dp-row{
+    grid-template-columns:auto auto; gap:6px; align-items:baseline;
+    border-bottom:0; border-right:1px solid var(--pn-divider);
+    padding:8px 12px; white-space:nowrap; flex:0 0 auto;
+  }
+  .dp-row__d{ display:none; }               /* the date is in the readout */
+  .dp-row[aria-current="true"]::before{ width:100%; height:2px; top:auto; bottom:0; }
+
+  /* frequency bar stays one line — stacking it cost 85px */
+  .dp-bar .dp-panel__head{ display:none; }
+  .dp-bar .dp-panel__body{
+    grid-template-columns:auto minmax(0,1fr) auto;
+    padding:5px 10px; gap:8px;
+  }
+  .dp-freq .v{ font-size:clamp(12px,3.4vw,17px); }
+  .dp-meta .dp-readout{ display:none; }     /* placed/elapsed live in the help panel */
+  .dp-meta{ gap:8px; }
 }
 
 /* --------------------------------------------------------------------------
@@ -457,7 +589,7 @@ html:not(.js) .dp-entry{ display:contents; }   /* no JS: show them all, stacked 
 
 /* --------------------------------------------------------------------------
    PHONE FREQUENCY BAR — added by build.py
-   One row could not hold the zone's name, both coordinates and the
+   One row could not hold the cache's name, both coordinates and the
    readouts: below ~700px they were drawn on top of each other. It is two
    rows now — the name and the readouts on top, the coordinates across the
    full width below.
@@ -536,9 +668,9 @@ html:not(.js) .dp-entry{ display:contents; }   /* no JS: show them all, stacked 
 
 /* --------------------------------------------------------------------------
    WORLD VIEW — added by build.py (drops-world.js)
-   The page's first screen: the list of drop zones beside a globe.
+   The page's first screen: the list of caches beside a globe.
    html[data-view] says which screen shows; it is set from the address before
-   the page draws (drops#03 is a zone), so the other screen never flashes past.
+   the page draws (drops#03 is a cache), so the other screen never flashes past.
    -------------------------------------------------------------------------- */
 html.js[data-view="world"] .dp-shell{ display:none; }
 html:not(.js) .dw-shell, html.js:not([data-view="world"]) .dw-shell{ display:none; }
@@ -599,7 +731,7 @@ html:not(.js) .dw-shell, html.js:not([data-view="world"]) .dw-shell{ display:non
   25%, 75%{ background:var(--pn-red-20); }
 }
 
-/* NEW: a zone's latest drop, its first week. Red, like the pointer: it is
+/* NEW: a cache's latest drop, its first week. Red, like the pointer: it is
    where to look. */
 .dp-new{
   display:inline-block; align-self:center; justify-self:end; padding:3px 4px 2px;
@@ -608,29 +740,18 @@ html:not(.js) .dw-shell, html.js:not([data-view="world"]) .dw-shell{ display:non
 }
 
 /* CLAIMED: the owner's mark (data-claimed in drops.html). In the list of
-   zones a quiet tag, once every drop at the zone is claimed; on a zone's
-   page (drops.js), a tag in its list of drops and a word in the item's head,
-   in red beside its label: the photo is left clear, so whoever comes later
-   can still see what was there. A drop without the mark shows nothing. */
+   caches a quiet tag, once every drop at the cache is claimed; on a cache's
+   page (drops.js), a tag in its list of drops and a word in the head of
+   its items (see drops.css). A drop without the mark shows nothing. */
 .dp-claimed-tag{
   display:inline-block; align-self:center; justify-self:end; padding:2px 4px 1px;
   font-size:7px; line-height:1; letter-spacing:.14em; text-transform:uppercase;
   color:var(--pn-ink-muted); border:1px solid var(--pn-ash); border-radius:2px;
 }
-.dp-item-claimed{
-  min-width:0; color:var(--pn-red); letter-spacing:.14em;
-  white-space:nowrap; overflow:hidden; text-overflow:ellipsis;
-}
-.dp-item-claimed[hidden]{ display:none; }
-/* ...and the drop's number beside it stays on one line; the date it was
-   claimed shows where the item is wide enough for it */
-.dp-slot .dp-panel__head > .dp-idx{ flex:0 0 auto; white-space:nowrap; }
-.dp-slot--item{ container-type:inline-size; }
-@container (max-width:330px){ .dp-item-claimed .d{ display:none; } }
 
-/* One zone at a time: its screen has no list of the others (the world has
-   that), so the zone takes the whole width. drops-world.js sets dw-ready;
-   should it not run, drops.js's list stays, the only way between zones then. */
+/* One cache at a time: its screen has no list of the others (the world has
+   that), so the cache takes the whole width. drops-world.js sets dw-ready;
+   should it not run, drops.js's list stays, the only way between caches then. */
 html.dw-ready .dp-manifest{ display:none; }
 html.dw-ready .dp-shell{ grid-template-columns:minmax(0,1fr); }
 
@@ -654,7 +775,7 @@ html.dw-ready .dp-shell{ grid-template-columns:minmax(0,1fr); }
 .dw-callout:not(.is-drop) > span{ display:block; }     /* a place's lines; a drop's are its details' */
 .dw-callout > em{ display:block; font-style:normal; color:var(--pn-red); }
 
-/* A zone's details, wherever they show (the prompt, the popup over it on
+/* A cache's details, wherever they show (the prompt, the popup over it on
    the globe, the row opened on a phone): labels in the pixel face, what they
    say in the body face, which reads at any size. */
 .dw-callout.is-drop{ width:max-content; max-width:min(260px, calc(100% - 16px)); white-space:normal; }
@@ -685,8 +806,8 @@ html.dw-ready .dp-shell{ grid-template-columns:minmax(0,1fr); }
   letter-spacing:0; text-transform:none; color:var(--pn-ink-muted);
 }
 
-/* The prompt: by the chosen zone whenever the globe is still, all there is
-   to say about it and OPEN ZONE, the one way into it. It pops in as a menu
+/* The prompt: by the chosen cache whenever the globe is still, all there is
+   to say about it and OPEN CACHE, the one way into it. It pops in as a menu
    window would, the cursor stepping on the spot. */
 .dw-card{
   position:absolute; z-index:3; padding:7px 9px 9px;
@@ -720,21 +841,10 @@ html.dw-ready .dp-shell{ grid-template-columns:minmax(0,1fr); }
 .dw-open:hover .tri{ border-left-color:var(--pn-signal); }
 .dw-open:focus-visible{ outline:2px solid var(--pn-focus); outline-offset:2px; }
 @media (prefers-reduced-motion:reduce){ .dw-card.is-in, .dw-open .tri{ animation:none; } }
-/* OPEN ZONE sits beside ZOOM IN (ZOOM OUT once the globe is as close as it
-   goes); the x at the prompt's corner closes it. */
+/* OPEN CACHE, the width of the prompt; the x at its corner closes it. */
 .dw-acts{ display:flex; gap:6px; margin-top:9px; }
 .dw-acts > *{ flex:1 1 auto; min-width:0; margin:0; justify-content:center; white-space:nowrap; }
-.dw-acts .dw-open{ font-size:8.5px; letter-spacing:.12em; }
-.dw-zoomto{
-  display:flex; align-items:center; gap:6px; min-height:30px; padding:0 9px;
-  font:inherit; font-size:8.5px; letter-spacing:.12em; text-transform:uppercase; cursor:pointer;
-  color:var(--pn-ink); background:none; border:1px solid var(--pn-red-50); border-radius:var(--pn-radius-sm);
-  transition:color var(--pn-dur-state) ease, background var(--pn-dur-state) ease,
-             border-color var(--pn-dur-state) ease;
-}
-.dw-zoomto svg{ width:13px; height:13px; flex:0 0 auto; fill:none; stroke:var(--pn-red); stroke-width:1.5; }
-.dw-zoomto:hover{ color:var(--pn-signal); border-color:var(--pn-red); background:var(--pn-red-07); }
-.dw-zoomto:focus-visible{ outline:2px solid var(--pn-focus); outline-offset:2px; }
+.dw-acts .dw-open{ font-size:9px; letter-spacing:.14em; }
 .dw-x{
   position:absolute; top:4px; right:4px; width:26px; height:26px; padding:0;
   display:grid; place-items:center; cursor:pointer;
@@ -744,7 +854,7 @@ html.dw-ready .dp-shell{ grid-template-columns:minmax(0,1fr); }
 .dw-x:hover{ color:var(--pn-signal); background:var(--pn-red-20); }
 .dw-x:focus-visible{ outline:2px solid var(--pn-focus); outline-offset:-2px; }
 /* On a phone the chosen row opens up underneath (drops-world.js): the rest
-   of the details and its OPEN ZONE, the width of the list, a thumb's height. */
+   of the details and its OPEN CACHE, the width of the list, a thumb's height. */
 .dw-more{
   padding:2px 14px 14px 46px; background:var(--pn-red-07);
   font-size:8px; line-height:1.8; letter-spacing:.14em; text-transform:uppercase;
@@ -758,31 +868,38 @@ html.dw-ready .dp-shell{ grid-template-columns:minmax(0,1fr); }
 .dw-item.is-open .dw-line{ display:none; }       /* the details say it in full */
 
 /* zoom: + and - a doubling at a time, the globe back to the whole globe.
-   Drawn like the street map's own controls, bars rather than glyphs. */
+   The globe's only zoom buttons, so they are made to be found: big, framed
+   in red and glowing, lit solid red when pointed at, dimmed once there is
+   nothing left to do. The glyphs are drawn, bars rather than type. */
 .dw-zoom{
-  position:absolute; left:10px; top:10px; z-index:3;
+  position:absolute; left:12px; top:12px; z-index:3;
   display:flex; flex-direction:column;
 }
 .dw-zoom button{
   position:relative; display:grid; place-items:center;
-  width:28px; height:28px; padding:0; cursor:pointer; font:inherit;
-  background:rgba(0,0,0,.85); color:var(--pn-red);
-  border:1px solid var(--pn-hairline); border-radius:0;
-  transition:color var(--pn-dur-state) ease;
+  width:44px; height:44px; padding:0; cursor:pointer; font:inherit;
+  background:rgba(0,0,0,.88); color:var(--pn-red);
+  border:2px solid var(--pn-red); border-radius:var(--pn-radius-sm);
+  box-shadow:0 0 14px var(--pn-red-30);
+  transition:color var(--pn-dur-state) ease, background var(--pn-dur-state) ease,
+             box-shadow var(--pn-dur-state) ease, border-color var(--pn-dur-state) ease;
 }
-.dw-zoom .dw-zoom-out{ border-top:0; }
-.dw-zoom .dw-zoom-all{ margin-top:6px; }
+.dw-zoom .dw-zoom-in{ border-bottom-left-radius:0; border-bottom-right-radius:0; }
+.dw-zoom .dw-zoom-out{ margin-top:-2px; border-top-left-radius:0; border-top-right-radius:0; }
+.dw-zoom .dw-zoom-all{ margin-top:8px; }
 .dw-zoom .dw-zoom-in::before, .dw-zoom .dw-zoom-in::after, .dw-zoom .dw-zoom-out::before{
   content:""; position:absolute; left:50%; top:50%; background:currentColor;
 }
-.dw-zoom .dw-zoom-in::before, .dw-zoom .dw-zoom-out::before{ width:11px; height:2px; margin:-1px 0 0 -5.5px; }
-.dw-zoom .dw-zoom-in::after{ width:2px; height:11px; margin:-5.5px 0 0 -1px; }
-.dw-zoom svg{ width:16px; height:16px; fill:none; stroke:currentColor; stroke-width:1.3; }
-.dw-zoom button:hover{ color:var(--pn-signal); }
-.dw-zoom button[aria-disabled="true"]{ color:var(--pn-ink-faint); cursor:default; }
-.dw-zoom button:focus-visible{ outline:2px solid var(--pn-focus); outline-offset:2px; }
+.dw-zoom .dw-zoom-in::before, .dw-zoom .dw-zoom-out::before{ width:18px; height:3px; margin:-1.5px 0 0 -9px; }
+.dw-zoom .dw-zoom-in::after{ width:3px; height:18px; margin:-9px 0 0 -1.5px; }
+.dw-zoom svg{ width:24px; height:24px; fill:none; stroke:currentColor; stroke-width:1.4; }
+.dw-zoom button:hover{ color:var(--pn-void); background:var(--pn-red); box-shadow:var(--pn-glow-hover); z-index:1; }
+.dw-zoom button[aria-disabled="true"]{
+  color:var(--pn-ink-faint); background:rgba(0,0,0,.72); border-color:var(--pn-hairline); box-shadow:none; cursor:default;
+}
+.dw-zoom button:focus-visible{ outline:2px solid var(--pn-focus); outline-offset:2px; z-index:2; }
 
-/* WORLD MAP: the way back, heading the zone's top bar where the word
+/* WORLD MAP: the way back, heading the cache's top bar where the word
    "Frequency" was. The loudest thing on the screen: solid red with black
    letters (as NEW is), a back arrow and the globe, and Esc beside them for
    keyboards. */
@@ -819,10 +936,11 @@ html.dw-ready .dp-shell{ grid-template-columns:minmax(0,1fr); }
 .dp-world-back:focus-visible, .dw-home:focus-visible{ outline:2px solid var(--pn-focus); outline-offset:3px; }
 @media (pointer:coarse){ .dp-world-back .key, .dw-home .key{ display:none; } }
 
-/* Where a zone's page scrolls (a phone; any screen under 560px tall) the
+/* Where a cache's page scrolls (a phone; any screen under 560px tall) the
    bar's head scrolls away with it, so there the way back floats at the
    foot of the screen instead, a thumb's size, over everything but the
-   help, and the page keeps room under its last line for it. */
+   help and an open drop (which has its own way back), and the page keeps
+   room under its last line for it. */
 .dw-home{ display:none; }
 @media (max-width:900px), (max-height:560px){
   html.dw-ready .dp-bar .dp-world-back{ display:none; }
@@ -831,16 +949,11 @@ html.dw-ready .dp-shell{ grid-template-columns:minmax(0,1fr); }
     transform:translateX(-50%); min-height:48px; padding:0 20px 0 16px; font-size:11px;
     animation:dw-home-in .3s ease-out .35s both;
   }
-  html:has(.dp-help[open]) .dw-home{ display:none; }
+  html:has(.dp-help[open]) .dw-home, html:has(.dp-drop:not([hidden])) .dw-home{ display:none; }
   html.dw-ready .dp-shell{ padding-bottom:84px; }
 }
 @keyframes dw-home-in{ from{ opacity:0; transform:translate(-50%, 18px); } }
 @media (prefers-reduced-motion:reduce){ html.js[data-view="drop"] .dw-home{ animation:none; } }
-
-/* ...and on the street map, the globe under recentre */
-.dp-recenter.dp-to-world a{ display:grid; place-items:center; text-indent:0; }
-.dp-recenter.dp-to-world a::before, .dp-recenter.dp-to-world a::after{ content:none; }
-.dp-recenter.dp-to-world svg{ width:16px; height:16px; fill:none; stroke:currentColor; stroke-width:1.3; }
 
 @media (max-width:900px){
   .dw-shell{
@@ -851,9 +964,9 @@ html.dw-ready .dp-shell{ grid-template-columns:minmax(0,1fr); }
   .dw-row{ padding:11px 12px 10px; }
   .dw-line{ -webkit-line-clamp:1; }
   .dw-list .dw-help{ display:none; }          /* the opened row says what to do */
-  .dw-zoom button{ width:40px; height:40px; }
+  .dw-zoom{ left:10px; top:10px; }
   .dw-open{ min-height:40px; }
-  /* The zone's screen: no strip of zones above the bar now, so the zone
+  /* The cache's screen: no strip of caches above the bar now, so the cache
      starts at the top. The way back floats at the foot of the screen (see
      WORLD MAP); the help sits quietly at the right of the bar's head, a
      thumb's height to tap. */
@@ -862,55 +975,22 @@ html.dw-ready .dp-shell{ grid-template-columns:minmax(0,1fr); }
 }
 
 /* --------------------------------------------------------------------------
-   A ZONE ON A PHONE — a page that scrolls, so nothing is left out. Held to
-   one screen it dropped the photos on every phone under 680px tall (an
-   iPhone in Safari among them) and left the brief two lines in a box. The
-   street map keeps half the screen; under it the drops left there, then the
-   chosen one's spot, its brief in full and its item. (The world stays one
-   screen.)
+   A CACHE ON A PHONE — a page that scrolls (drops.css lays it out: the
+   street map half the screen, the drops under it, a drop a screen of its
+   own). The world stays one screen.
    -------------------------------------------------------------------------- */
 @media (max-width:900px){
-  html.js[data-view="drop"] body:has(.dp-shell){ overflow:auto; }
-  html.dw-ready .dp-shell{ height:auto; min-height:100vh; min-height:100dvh; grid-template-rows:auto; }
-  html.dw-ready .dp-detail{ grid-template-rows:auto auto auto; }
-  html.dw-ready .dp-map{ height:52vh; height:52svh; min-height:240px; }
-  html.dw-ready .dp-strip{
-    grid-template-columns:minmax(0,1fr) minmax(0,1fr); grid-template-areas:"log spot" "brief item";
-  }
-  html.dw-ready .dp-log{ height:auto; }
-  html.dw-ready .dp-log .dp-panel__body{ flex:0 1 auto; max-height:min(330px, 60vh); }
-  html.dw-ready .dp-logrow{ padding:12px 12px 11px; }
-  html.dw-ready .dp-slot{ display:flex; height:auto; }
-  html.dw-ready .dp-spot__go{ width:44px; height:52px; margin-top:-26px; }
-  html.dw-ready .dp-slot .dp-panel__body{ flex:0 0 auto; aspect-ratio:4/3; }
-  html.dw-ready .dp-brief{ height:auto; }
-  html.dw-ready .dp-brief .dp-panel__body{ overflow:visible; }
-  html.dw-ready .dp-brief .dp-panel__body p{ font-size:14px; line-height:1.6; }
-}
-@media (max-width:599px){
-  html.dw-ready .dp-strip{ grid-template-columns:minmax(0,1fr); grid-template-areas:"log" "spot" "brief" "item"; }
+  html.dw-ready .dp-shell{ grid-template-rows:auto; }
 }
 
 /* --------------------------------------------------------------------------
    ON ITS SIDE — a phone held sideways is wide and short. Stacked, the globe
    was a strip 120px tall over a list no taller, too short for the chosen
-   zone's row to open in: they sit side by side instead, as on a desktop,
-   each the full height. A zone's drops and spot sit side by side, its brief
-   and item under them, rather than each filling the screen.
+   cache's row to open in: they sit side by side instead, as on a desktop,
+   each the full height. (A cache's page scrolls, as on any short screen,
+   and a drop is a screen of its own, its two sets of photos side by side.)
    -------------------------------------------------------------------------- */
 @media (max-width:900px) and (min-width:560px) and (orientation:landscape){
   .dw-shell{ grid-template-columns:minmax(270px,40%) minmax(0,1fr); grid-template-rows:minmax(0,1fr); }
   .dw-stage{ order:0; }
-  html.dw-ready .dp-strip{
-    grid-template-columns:minmax(0,1fr) minmax(0,1fr); grid-template-areas:"log spot" "brief item";
-  }
-}
-
-/* A wide screen that is short (a big phone on its side, a window halved):
-   the zone's page scrolls, rather than squeezing the street map to a
-   sliver between the bar and the drops. */
-@media (min-width:901px) and (max-height:560px){
-  html.js[data-view="drop"] body:has(.dp-shell){ overflow:auto; }
-  html.dw-ready .dp-shell{ height:auto; min-height:100vh; min-height:100dvh; }
-  html.dw-ready .dp-detail{ grid-template-rows:auto max(280px, 64vh) clamp(172px,25vh,236px); }
 }

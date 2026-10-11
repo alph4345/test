@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>P_N0VA — DROPS</title>
+<title>P_N0VA — CACHE</title>
 
 <!-- Progressive enhancement: mark the document when JavaScript is available -->
 <script>document.documentElement.classList.add('js');</script>
@@ -95,7 +95,7 @@
 .dp-recenter a:focus-visible{ outline:2px solid var(--pn-focus); outline-offset:2px; }
 .dp-recenter.is-home a{ color:var(--pn-ink-faint)!important; }
 /* marker: the diamond you liked, now with a targeting crosshair through it.
-   Bone, as the chosen zone is on the globe, outlined in black and glowing
+   Bone, as the chosen cache is on the globe, outlined in black and glowing
    red, so it stands clear of the red streets under it. */
 .dp-marker{ position:relative; width:14px; height:14px; }
 .dp-marker i{
@@ -144,40 +144,46 @@
 <!-- ============================================================
      HOW TO ADD A DROP
      ------------------------------------------------------------
-     Drops are left at DROP ZONES: places used again and again.
-     A zone is "ZONE 03", a single drop "DROP #003". Each zone is
-     a <section class="dp-zone"> below, and the drops left there
+     Drops are left at CACHES: places used again and again. A
+     cache is "CACHE 03", a single drop "DROP #003". Each cache is
+     a <section class="dp-cache"> below, and the drops left there
      are the <article class="dp-entry"> blocks inside it. NEWEST
-     first, zones and drops alike: the lists are built by reading
+     first, caches and drops alike: the lists are built by reading
      these blocks top to bottom.
 
-     A NEW DROP AT A ZONE YOU ALREADY HAVE
-     1. Copy one <article class="dp-entry"> block into that zone's
-        <section>, above the drops already there.
+     A NEW DROP AT A CACHE YOU ALREADY HAVE
+     1. Copy one <article class="dp-entry"> block into that
+        cache's <section>, above the drops already there.
      2. Set the data-* attributes on the <article>:
           data-n        drop number, three digits, e.g. "004" (one
-                        count across all the zones)
+                        count across all the caches)
           data-placed   YYYY.MM.DD
           data-title    the drop's name
-          data-item     the photo of the item; data-itemcap its caption
+          data-itemcap  what was left, in a few words
           data-claimed  YYYY.MM.DD, only once you know the drop was
                         found (or data-claimed alone, with no date):
-                        CLAIMED shows on the zone's page. Leave it off
-                        and nothing shows.
-     3. Write its story: a paragraph or two.
-     4. Photos of the spot: put them in the images folder named
-        item<drop number>_<MMDDYY>.jpg, e.g. item4_092326.jpg for
-        drop 004 on 2026.09.23 (item4_092326b.jpg for a second
-        that day). build.py finds them; the page shows them in date
-        order, with arrows, and says each one's name and date. Or
-        list them yourself: data-photos="images/a.jpg images/b.jpg".
+                        CLAIMED shows on the cache's page. Leave it
+                        off and nothing shows.
+     3. Write its transmission: what was left, and why. A
+        paragraph or two.
+     4. Photos: put them in the images folder, named for what they
+        show, the drop's number and the date as MMDDYY:
+          spot4_092326.jpg   the spot drop 004 was left at,
+                             photographed 2026.09.23
+          item4_092326.jpg   what was left
+        A second photo the same day takes a letter after the date
+        (spot4_092326b.jpg). build.py finds them; the page shows
+        them in date order, with arrows, and says each one's name
+        and date. Or list them yourself, in the order you want:
+        data-spots="images/a.jpg images/b.jpg" (data-items the
+        same).
 
-     A NEW DROP ZONE
-     1. Copy a whole <section class="dp-zone"> block, put it first,
-        and keep one drop in it (step 2 above).
+     A NEW CACHE
+     1. Copy a whole <section class="dp-cache"> block, put it
+        first, and keep one drop in it (step 2 above).
      2. Set the data-* attributes on the <section>:
-          data-n        zone number, two digits, e.g. "04"
-          data-place    the zone's name
+          data-n        cache number, two digits, e.g. "04"
+          data-place    the cache's name
           data-lat / data-lng    decimal degrees, signed
           data-zoom     how close its street map opens: 17 is
                         street level, 16-18 is usually right
@@ -193,9 +199,9 @@
 <main class="dp-shell">
 
   <!-- ============ MANIFEST RAIL ============ -->
-  <section class="dp-panel dp-manifest" aria-label="Drop zones">
+  <section class="dp-panel dp-manifest" aria-label="Caches">
     <div class="dp-panel__head">
-      <span>Zones</span>
+      <span>Caches</span>
       <span class="dp-idx" id="dp-count">—</span>
     </div>
     <div class="dp-panel__body" id="dp-rows"></div>
@@ -204,10 +210,10 @@
   <!-- ============ DETAIL ============ -->
   <div class="dp-detail">
 
-    <!-- FREQUENCY BAR — the codec's tuned readout: the zone's name, the one
+    <!-- FREQUENCY BAR — the codec's tuned readout: the cache's name, the one
          thing to read first, and its coordinates, the frequency you tune to
          in order to reach it. -->
-    <section class="dp-panel dp-codec dp-bar" aria-label="Drop zone">
+    <section class="dp-panel dp-codec dp-bar" aria-label="Cache">
       <div class="dp-panel__head">
         <span>Frequency</span>
         <span class="dp-headgroup">
@@ -223,16 +229,17 @@
             <div class="dp-help__panel" role="note">
               <h3>What is a drop?</h3>
               <p>Something the operator leaves at a real place for whoever
-                 finds it. Drops are left at drop zones, places the operator
+                 finds it. Drops are left at caches, places the operator
                  comes back to, each in plain sight and marked with a P_N0VA
-                 sticker. A zone's page lists every drop left there: photos
-                 of the spot and of the item, and a short piece of lore.</p>
+                 sticker. A cache's page lists every drop left there: choose
+                 one for photos of the spot and of what was left, and its
+                 transmission.</p>
             </div>
           </details>
         </span>
       </div>
       <div class="dp-panel__body">
-        <h1 class="dp-desig"><span class="dp-desig__n">Zone&nbsp;<span id="r-n">—</span></span><span class="dp-desig__name" id="r-place">—</span></h1>
+        <h1 class="dp-desig"><span class="dp-desig__n">Cache&nbsp;<span id="r-n">—</span></span><span class="dp-desig__name" id="r-place">—</span></h1>
 
         <span class="dp-freq">
           <span class="v"><span id="r-lat">—</span><span class="u">°N</span></span>
@@ -247,7 +254,7 @@
     </section>
 
     <!-- map -->
-    <section class="dp-panel dp-map dp-scan" aria-label="Drop zone location">
+    <section class="dp-panel dp-map dp-scan" aria-label="Cache location">
       <div class="dp-panel__head">
         <span>Location</span>
         <span class="dp-idx">Carto dark · OSM</span>
@@ -260,33 +267,53 @@
       </div>
     </section>
 
-    <!-- BOTTOM STRIP — the drops left at this zone; for the one chosen, the
-         spot it was left at (its photos, to cycle through), its
-         transmission (its story) and a portrait frame with its item. -->
-    <div class="dp-strip">
-      <section class="dp-panel dp-log" aria-label="Drops at this zone">
-        <div class="dp-panel__head"><span>Drops</span><span class="dp-idx" id="r-logn">—</span></div>
-        <div class="dp-panel__body" id="dp-log"></div>
-      </section>
+    <!-- THE DROPS — the one menu, at the centre: every drop left at this
+         cache, newest first. Choose one and its windows open round the
+         list; close them and the list is on its own again. -->
+    <section class="dp-panel dp-log" aria-label="Drops at this cache">
+      <div class="dp-panel__head"><span>Drops</span><span class="dp-idx" id="r-logn">—</span></div>
+      <div class="dp-panel__body" id="dp-log"></div>
+    </section>
 
-      <figure class="dp-panel dp-slot dp-slot--spot dp-spot" style="margin:0" aria-label="The spot">
+    <!-- A DROP — opened from the list: photos of the spot it was left at
+         and of what was left, each to go through left and right, and its
+         transmission between them: what was left, and why. On a phone it
+         is a screen of its own, with the way back to the list at its top. -->
+    <div class="dp-drop" id="dp-drop" role="region" aria-label="The chosen drop" hidden>
+      <div class="dp-drop__bar">
+        <button class="dp-drop__back" id="dp-drop-back" type="button"><span class="tri" aria-hidden="true"></span>Drops</button>
+        <span class="dp-drop__name" id="r-dropname">—</span>
+      </div>
+
+      <figure class="dp-panel dp-slot dp-gallery dp-spot" style="margin:0" aria-label="Photos of the spot">
         <div class="dp-panel__head"><span>Spot</span><span class="dp-idx" id="r-spotn">—</span></div>
         <div class="dp-panel__body dp-panel__body--flush">
-          <a id="s-spotlink" href="images/spot-placeholder.svg" target="_blank" rel="noopener"><img id="s-spot" src="images/spot-placeholder.svg" alt=""></a>
-          <button class="dp-spot__go dp-spot__prev" id="s-spotprev" type="button" aria-label="Earlier photo" hidden><span class="tri" aria-hidden="true"></span></button>
-          <button class="dp-spot__go dp-spot__next" id="s-spotnext" type="button" aria-label="Later photo" hidden><span class="tri" aria-hidden="true"></span></button>
+          <a class="dp-gallery__link" id="s-spotlink" href="images/spot-placeholder.svg" target="_blank" rel="noopener"><img class="dp-gallery__bg" src="images/spot-placeholder.svg" alt="" aria-hidden="true"><img id="s-spot" src="images/spot-placeholder.svg" alt=""></a>
+          <button class="dp-gallery__go dp-gallery__prev" id="s-spotprev" type="button" aria-label="Earlier photo of the spot" hidden><span class="tri" aria-hidden="true"></span></button>
+          <button class="dp-gallery__go dp-gallery__next" id="s-spotnext" type="button" aria-label="Later photo of the spot" hidden><span class="tri" aria-hidden="true"></span></button>
         </div>
         <figcaption id="s-spotcap">—</figcaption>
       </figure>
 
-      <section class="dp-panel dp-codec dp-brief" aria-label="Drop transmission">
-        <div class="dp-panel__head"><span>Transmission</span><span class="dp-idx" id="r-title">—</span></div>
-        <div class="dp-panel__body" id="dp-brief"></div>
+      <section class="dp-panel dp-codec dp-brief" aria-label="Transmission">
+        <div class="dp-panel__head">
+          <span>Transmission</span><span class="dp-idx" id="r-dropn">—</span>
+          <button class="dp-close" id="dp-close" type="button" title="Close (Esc)"><span class="x" aria-hidden="true"></span>Close<span class="key" aria-hidden="true">Esc</span></button>
+        </div>
+        <div class="dp-panel__body">
+          <h2 class="dp-brief__title" id="r-title">—</h2>
+          <p class="dp-brief__meta" id="r-meta"></p>
+          <div class="dp-brief__text" id="dp-brief"></div>
+        </div>
       </section>
 
-      <figure class="dp-panel dp-slot dp-slot--item" style="margin:0">
-        <div class="dp-panel__head"><span>Item</span><span class="dp-item-claimed" id="r-claimed" hidden></span><span class="dp-idx" id="r-dropn">—</span></div>
-        <div class="dp-panel__body dp-panel__body--flush"><img id="s-item" src="images/item-placeholder.svg" alt=""></div>
+      <figure class="dp-panel dp-slot dp-gallery dp-items" style="margin:0" aria-label="Photos of what was left">
+        <div class="dp-panel__head"><span>Items</span><span class="dp-item-claimed" id="r-claimed" hidden></span><span class="dp-idx" id="r-itemn">—</span></div>
+        <div class="dp-panel__body dp-panel__body--flush">
+          <a class="dp-gallery__link" id="s-itemlink" href="images/item-placeholder.svg" target="_blank" rel="noopener"><img class="dp-gallery__bg" src="images/item-placeholder.svg" alt="" aria-hidden="true"><img id="s-item" src="images/item-placeholder.svg" alt=""></a>
+          <button class="dp-gallery__go dp-gallery__prev" id="s-itemprev" type="button" aria-label="Earlier photo of what was left" hidden><span class="tri" aria-hidden="true"></span></button>
+          <button class="dp-gallery__go dp-gallery__next" id="s-itemnext" type="button" aria-label="Later photo of what was left" hidden><span class="tri" aria-hidden="true"></span></button>
+        </div>
         <figcaption id="s-itemcap">—</figcaption>
       </figure>
     </div>
@@ -295,17 +322,17 @@
 </main>
 
 <!-- ============================================================
-     DROP ZONES and their DROPS — newest first. Content only; no
+     CACHES and their DROPS — newest first. Content only; no
      styling here.
      ============================================================ -->
 <div hidden id="dp-data">
 
-  <section class="dp-zone" data-n="03" data-place="Telegraph Hill"
+  <section class="dp-cache" data-n="03" data-place="Telegraph Hill"
            data-lat="37.802139" data-lng="-122.4058" data-zoom="17">
 
     <article class="dp-entry" data-n="003" data-placed="2026.07.20"
              data-title="Stairs and Parrots"
-             data-item="images/item-placeholder.svg" data-itemcap="Enamel pin — Game Boy">
+             data-itemcap="Enamel pin — Game Boy">
       <p>Placed at dusk, halfway up a staircase most people take at a jog. If you
          hear the flock before you see it, you have gone too far.</p>
       <p>Take the item, leave something of equal or greater mystery, and sign the
@@ -314,12 +341,12 @@
 
   </section>
 
-  <section class="dp-zone" data-n="02" data-place="Island Signal"
+  <section class="dp-cache" data-n="02" data-place="Island Signal"
            data-lat="37.826977" data-lng="-122.422955" data-zoom="17">
 
     <article class="dp-entry" data-n="002" data-placed="2026.07.04"
              data-title="Island Signal"
-             data-item="images/item-placeholder.svg" data-itemcap="What you're looking for">
+             data-itemcap="What you're looking for">
       <p>This one required a boat ride to place. It sits within sight of one of the
          most photographed views around, tucked where thousands of people walk past
          every week without a second glance.</p>
@@ -328,12 +355,12 @@
 
   </section>
 
-  <section class="dp-zone" data-n="01" data-place="West Woods"
+  <section class="dp-cache" data-n="01" data-place="West Woods"
            data-lat="37.769420" data-lng="-122.486214" data-zoom="17">
 
     <article class="dp-entry" data-n="001" data-placed="2026.06.15"
              data-title="The First Drop"
-             data-item="images/item-placeholder.svg" data-itemcap="Found &amp; claimed">
+             data-itemcap="Found &amp; claimed">
       <p>Somewhere among the trees west of the city, beneath a landmark that has
          watched over the spot for more than a century. I hid it here because this
          is where the whole idea started — the first place I ever went looking for

@@ -1,16 +1,19 @@
 /* ==========================================================================
-   DROPS — drop zones and the drops left at them
-   rev 2026.10.10
+   DROPS — caches and the drops left at them
+   rev 2026.10.11
    --------------------------------------------------------------------------
-   Content lives in the HTML: each drop zone is a <section class="dp-zone">
+   Content lives in the HTML: each cache is a <section class="dp-cache">
    with data-* attributes, holding the drops left there as <article
    class="dp-entry"> blocks, newest first. This file reads them at runtime
-   and never needs editing to add a zone or a drop.
+   and never needs editing to add a cache or a drop.
 
-   A zone's screen: the frequency bar (its name and number, coordinates,
-   latest drop and how many), the street map round it, the list of its
-   drops, and the chosen drop's spot (its photos, to cycle through), its
-   transmission (its story) and its item.
+   A cache's screen: the frequency bar (its name and number, coordinates,
+   latest drop and how many), the street map round it, and on the map the
+   one menu: the drops left there. Choosing one opens its windows round the
+   list: photos of the spot it was left at and of what was left, each to go
+   through left and right, and between them its transmission, what was left
+   and why. Closing them (CLOSE in the transmission's head, Esc, Back; a
+   phone's way back along the top) leaves the list on its own again.
 
    Two registers, kept apart on purpose:
      This page is register A only — instrument. The living layer (fireflies)
@@ -30,49 +33,45 @@
   var ATTR = '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>' +
              ' contributors &copy; <a href="https://carto.com/attributions">CARTO</a>';
 
-  /* Range rings, in metres, round the zone: the scale of the ground you
+  /* Range rings, in metres, round the cache: the scale of the ground you
      will be walking, so these are information, not decoration. Sized for
-     street level, where a zone opens. */
+     street level, where a cache opens. */
   var RINGS = [50, 100, 250];
 
-  /* .dp-point: what a zone was called for a day; still read */
-  var entries = [].slice.call(document.querySelectorAll(".dp-zone, .dp-point"));
+  /* .dp-zone and .dp-point: what a cache was called before; still read */
+  var entries = [].slice.call(document.querySelectorAll(".dp-cache, .dp-zone, .dp-point"));
   if (!entries.length) return;
-  /* each zone's drops, newest first */
+  /* each cache's drops, newest first */
   var dropsOf = entries.map(function (pt) {
     return [].filter.call(pt.children, function (c) { return c.classList.contains("dp-entry"); });
   });
 
-  var map = null, marker = null, current = -1, chosen = -1;
+  var map = null, marker = null, current = -1, opened = -1;
 
+  function $(id){ return document.getElementById(id); }
   var el = {
-    rows:    document.getElementById("dp-rows"),
-    count:   document.getElementById("dp-count"),
-    brief:   document.getElementById("dp-brief"),
-    osm:     document.getElementById("dp-osm"),
-    n:       document.getElementById("r-n"),
-    lat:     document.getElementById("r-lat"),
-    lng:     document.getElementById("r-lng"),
-    placed:  document.getElementById("r-placed"),
-    drops:   document.getElementById("r-count"),
-    place:   document.getElementById("r-place"),
-    title:   document.getElementById("r-title"),
-    log:     document.getElementById("dp-log"),
-    logn:    document.getElementById("r-logn"),
-    item:    document.getElementById("s-item"),
-    itemc:   document.getElementById("s-itemcap"),
-    dropn:   document.getElementById("r-dropn"),
-    claimed: document.getElementById("r-claimed"),
-    spot:    document.getElementById("s-spot"),
-    spotA:   document.getElementById("s-spotlink"),
-    spotc:   document.getElementById("s-spotcap"),
-    spotn:   document.getElementById("r-spotn"),
-    prev:    document.getElementById("s-spotprev"),
-    next:    document.getElementById("s-spotnext")
+    rows:    $("dp-rows"),
+    count:   $("dp-count"),
+    osm:     $("dp-osm"),
+    n:       $("r-n"),
+    lat:     $("r-lat"),
+    lng:     $("r-lng"),
+    placed:  $("r-placed"),
+    drops:   $("r-count"),
+    place:   $("r-place"),
+    detail:  document.querySelector(".dp-detail"),
+    log:     $("dp-log"),
+    logn:    $("r-logn"),
+    drop:    $("dp-drop"),
+    dropname:$("r-dropname"),
+    back:    $("dp-drop-back"),
+    close:   $("dp-close"),
+    title:   $("r-title"),
+    meta:    $("r-meta"),
+    brief:   $("dp-brief"),
+    dropn:   $("r-dropn"),
+    claimed: $("r-claimed")
   };
-  /* The placeholders as the page names them: the build roots and stamps
-     those paths, so they load wherever the page is served from. */
-  var NO_ITEM = el.item.getAttribute("src"), NO_SPOT = el.spot.getAttribute("src");
 
   /* --- helpers ---------------------------------------------------------- */
 
@@ -96,8 +95,21 @@
     return /^(no|false|0)$/i.test(v) ? null : v;
   }
   function plural(n, one){ return n + " " + one + (n === 1 ? "" : "s"); }
+  function make(tag, cls, text){
+    var x = document.createElement(tag);
+    if (cls) x.className = cls;
+    if (text != null) x.textContent = text;
+    return x;
+  }
 
-  /* --- manifest: the zones ---------------------------------------------- */
+  /* On a phone, and on any screen under 560px tall, a drop is a screen of
+     its own over the page (see the CSS), not windows beside the list. */
+  var sheet = window.matchMedia("(max-width:900px), (max-height:560px)");
+  var reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+  /* page-script.js's window flight, which loads after this */
+  function flight(){ return !reduceMotion && window.pn0vaFly; }
+
+  /* --- manifest: the caches --------------------------------------------- */
 
   function buildManifest(){
     var frag = document.createDocumentFragment();
@@ -110,61 +122,64 @@
       b.innerHTML =
         '<span class="dp-row__n">' + pt.dataset.n + '</span>' +
         '<span class="dp-row__d">' + (latest ? latest.dataset.placed : "") + '</span>';
-      b.addEventListener("click", function(){ show(i); });
+      b.addEventListener("click", function(){ show(i, -1); });
       frag.appendChild(b);
     });
     el.rows.appendChild(frag);
-    el.count.textContent = String(entries.length).padStart(2, "0") + (entries.length === 1 ? " ZONE" : " ZONES");
+    el.count.textContent = String(entries.length).padStart(2, "0") + (entries.length === 1 ? " CACHE" : " CACHES");
   }
 
-  /* --- a zone ------------------------------------------------------------- */
+  /* --- a cache ------------------------------------------------------------ */
 
-  /* Zone i, with its drop j chosen (its newest, unless told). */
+  /* Cache i, with its drop j open (-1, or none given: just the list). */
   function show(i, j){
     if (!entries[i]) return;
-    j = dropsOf[i][j] ? j : 0;
-    if (i === current){ pick(j); return; }
-    var pt = entries[i], d = pt.dataset, drops = dropsOf[i];
-    current = i;
-    chosen = -1;
+    j = j == null || !dropsOf[i][j] ? -1 : j;
+    if (i !== current){
+      var pt = entries[i], d = pt.dataset, drops = dropsOf[i];
+      closeDrop(true);
+      current = i;
 
-    entries.forEach(function(x){ x.classList.remove("is-current"); });
-    pt.classList.add("is-current");
-    [].forEach.call(el.rows.children, function(r, n){
-      r.setAttribute("aria-current", n === i ? "true" : "false");
-    });
+      entries.forEach(function(x){ x.classList.remove("is-current"); });
+      pt.classList.add("is-current");
+      [].forEach.call(el.rows.children, function(r, n){
+        r.setAttribute("aria-current", n === i ? "true" : "false");
+      });
 
-    el.n.textContent      = d.n;
-    el.lat.textContent    = mag(d.lat);
-    el.lng.textContent    = mag(d.lng);
-    /* the unit says which side of the equator and of Greenwich */
-    el.lat.nextElementSibling.textContent = "\u00b0" + (+d.lat < 0 ? "S" : "N");
-    el.lng.nextElementSibling.textContent = "\u00b0" + (+d.lng < 0 ? "W" : "E");
-    el.placed.textContent = drops[0] ? drops[0].dataset.placed : "—";
-    el.drops.textContent  = drops.length;
-    el.place.textContent  = d.place || "—";
+      el.n.textContent      = d.n;
+      el.lat.textContent    = mag(d.lat);
+      el.lng.textContent    = mag(d.lng);
+      /* the unit says which side of the equator and of Greenwich */
+      el.lat.nextElementSibling.textContent = "°" + (+d.lat < 0 ? "S" : "N");
+      el.lng.nextElementSibling.textContent = "°" + (+d.lng < 0 ? "W" : "E");
+      el.placed.textContent = drops[0] ? drops[0].dataset.placed : "—";
+      el.drops.textContent  = drops.length;
+      el.place.textContent  = d.place || "—";
 
-    buildLog(drops);
+      buildLog(drops);
 
-    el.osm.href = "https://www.openstreetmap.org/?mlat=" + d.lat + "&mlon=" + d.lng +
-                  "#map=" + (d.zoom || 17) + "/" + d.lat + "/" + d.lng;
+      el.osm.href = "https://www.openstreetmap.org/?mlat=" + d.lat + "&mlon=" + d.lng +
+                    "#map=" + (d.zoom || 17) + "/" + d.lat + "/" + d.lng;
 
-    moveMap(+d.lat, +d.lng, +(d.zoom || 17));
-    pick(j);
+      moveMap(+d.lat, +d.lng, +(d.zoom || 17));
+    }
+    if (j >= 0) openDrop(j); else closeDrop();
   }
 
-  /* The drops left at the zone, newest first: number, title, date, and
-     NEW or CLAIMED. Choosing one shows its spot, its transmission and its
-     item. */
+  /* The drops left at the cache, newest first: number, title, date, and
+     NEW or CLAIMED. Choosing one opens it. */
   function buildLog(drops){
     el.log.textContent = "";
     el.logn.textContent = plural(drops.length, "drop");
+    if (!drops.length){ el.log.appendChild(make("p", "dp-log__none", "Nothing left here yet")); return; }
     drops.forEach(function (e, j) {
       var x = e.dataset, claimed = claimedOf(e);
       var b = document.createElement("button");
       b.type = "button";
       b.className = "dp-logrow";
       b.setAttribute("aria-current", "false");
+      b.setAttribute("aria-controls", "dp-drop");
+      b.setAttribute("aria-expanded", "false");
       b.innerHTML =
         '<span class="dp-logrow__n"></span><span class="dp-logrow__t"></span>' +
         '<span class="dp-logrow__d"></span><span class="dp-logrow__s"></span>';
@@ -173,131 +188,197 @@
       b.children[2].textContent = x.placed || "";
       if (claimed !== null){ b.children[3].textContent = "Claimed"; b.children[3].className += " is-claimed"; }
       else if (isNew(e)){ b.children[3].textContent = "New"; b.children[3].className += " is-new"; }
-      b.addEventListener("click", function(){ pick(j); });
+      b.addEventListener("click", function(){ ask(j); });
       el.log.appendChild(b);
     });
   }
 
-  /* --- a drop at the zone -------------------------------------------------- */
+  /* A drop opened or closed by hand (a row, CLOSE, Esc). drops-world.js,
+     where it runs, keeps the address and Back in step and opens it from
+     there; without it, straight here. */
+  function ask(j){
+    if (j === opened) return;
+    var api = window.pn0vaDrops;
+    if (api && typeof api.navigate === "function"){ api.navigate(current, j); return; }
+    show(current, j);
+    var e = j >= 0 ? dropsOf[current][j] : entries[current];
+    try { history.replaceState(history.state, "", "#" + e.dataset.n); } catch (err) {}
+  }
 
-  function pick(j){
+  /* --- a drop at the cache ------------------------------------------------ */
+
+  var turnOver = 0;                     // one open or close at a time
+  var IN = { speed: 0.45, distance: 0.6 }, OUT = { speed: 0.5, distance: 0.6 };
+
+  function openDrop(j){
     var drops = dropsOf[current], e = drops && drops[j];
-    if (!e){ if (drops && !drops.length) nothingYet(); return; }
-    if (j === chosen) return;
-    var x = e.dataset, claimed = claimedOf(e);
-    chosen = j;
+    if (!e || j === opened) return;
+    var x = e.dataset, claimed = claimedOf(e), was = opened;
+    opened = j;
+    turnOver++;
 
     drops.forEach(function(y){ y.classList.remove("is-current"); });
     e.classList.add("is-current");
     [].forEach.call(el.log.children, function(r, n){
       r.setAttribute("aria-current", n === j ? "true" : "false");
+      r.setAttribute("aria-expanded", n === j ? "true" : "false");
     });
 
-    el.title.textContent = x.title || "";
+    /* the transmission: its title, when it was left and what, its words */
+    el.title.textContent = x.title || "Drop " + x.n;
     el.dropn.textContent = "#" + x.n;
-    el.item.src = x.item || NO_ITEM;
-    el.item.alt = "The item left at drop " + x.n;
-    el.itemc.textContent = x.itemcap || "";
-    /* CLAIMED in the item's head, the photo left clear; the date where the
-       head has room for it (the CSS decides) */
-    el.claimed.hidden = claimed === null;
-    el.claimed.textContent = claimed === null ? "" : "Claimed";
-    if (claimed){
-      var when = document.createElement("span");
-      when.className = "d";
-      when.textContent = " " + claimed;
-      el.claimed.appendChild(when);
-    }
-
-    el.brief.innerHTML = "";
+    el.dropname.textContent = "#" + x.n + (x.title ? " · " + x.title : "");
+    el.meta.textContent = "";
+    if (x.placed) el.meta.appendChild(fact("Left", x.placed));
+    if (claimed === null && isNew(e)) el.meta.appendChild(make("span", "is-new", "New"));
+    if (x.itemcap) el.meta.appendChild(fact("Item", x.itemcap));
+    el.brief.textContent = "";
     [].forEach.call(e.querySelectorAll("p"), function(p){
       el.brief.appendChild(p.cloneNode(true));
     });
+    el.brief.parentNode.scrollTop = 0;
 
-    spots(photosOf(e), x.n);
+    /* CLAIMED in the items' head, the photos left clear; the date where the
+       head has room for it (the CSS decides) */
+    el.claimed.hidden = claimed === null;
+    el.claimed.textContent = claimed === null ? "" : "Claimed";
+    if (claimed){ el.claimed.appendChild(make("span", "d", " " + claimed)); }
 
+    spot.set(listOf(e, "spots") || listOf(e, "photos") || [], x.n);
+    items.set(listOf(e, "items") || (x.item ? [x.item] : []), x.n);
+
+    if (was < 0){
+      el.drop.hidden = false;
+      el.detail.classList.add("is-open");
+      var f = flight();
+      if (f) f.enter(el.drop, IN);
+      else if (reduceMotion) mark(el.drop);
+      /* a phone: the drop is a screen of its own, its way back first */
+      if (sheet.matches && el.log.contains(document.activeElement)) el.back.focus({ preventScroll: true });
+    }
     document.dispatchEvent(new CustomEvent("pn0va:drop", { detail: { index: current, drop: j } }));
   }
-
-  /* --- the spot: photos of where the drop is -------------------------------
-     A drop's photos are in its data-photos, in date order (build.py fills it
-     in from the images named item<n>_<MMDDYY>, item4_092326.jpg for drop
-     004 on 2026.09.23). The arrows, the arrow keys and a swipe go round
-     them; each says its file's name and the date in it. */
-  var photos = [], shown = 0, dropN = "";
-  function photosOf(e){
-    return (e.getAttribute("data-photos") || "").split(/\s+/).filter(Boolean);
+  function fact(label, value){
+    var s = make("span");
+    s.appendChild(make("b", null, label));
+    s.appendChild(document.createTextNode(" " + value));
+    return s;
   }
-  /* "item4_092326b.jpg" -> "2026.09.23"; "" where the name has no date */
+  /* windows page-script.js would mark as landed: shown in place */
+  function mark(scope){
+    [].forEach.call(scope.querySelectorAll("[data-fly]"), function(w){ w.classList.add("landed"); });
+  }
+
+  /* Back to the list: the drop's windows fly off and are gone. now: at
+     once (another cache taking the screen). */
+  function closeDrop(now){
+    if (opened < 0) return;
+    var row = el.log.children[opened], inside = el.drop.contains(document.activeElement);
+    var me = ++turnOver;
+    opened = -1;
+    dropsOf[current].forEach(function(y){ y.classList.remove("is-current"); });
+    [].forEach.call(el.log.children, function(r){
+      r.setAttribute("aria-current", "false");
+      r.setAttribute("aria-expanded", "false");
+    });
+    el.detail.classList.remove("is-open");
+    var f = !now && flight();
+    function gone(){
+      if (me !== turnOver) return;           // opened again meanwhile
+      el.drop.hidden = true;
+      if (window.pn0vaFly) window.pn0vaFly.reset(el.drop);
+    }
+    if (f) f.exit(el.drop, OUT).then(gone);   /* windows out of sight just go */
+    else gone();
+    /* the keyboard back on the row it opened */
+    if (row && (inside || document.activeElement === document.body)) row.focus({ preventScroll: !sheet.matches });
+    document.dispatchEvent(new CustomEvent("pn0va:drop", { detail: { index: current, drop: -1 } }));
+  }
+  el.close.addEventListener("click", function(){ ask(-1); });
+  el.back.addEventListener("click", function(){ ask(-1); });
+
+  /* "images/a.jpg images/b.jpg" in data-spots, data-items (or the old
+     data-photos, of the spot): a list, or null where there is none */
+  function listOf(e, name){
+    var v = (e.getAttribute("data-" + name) || "").split(/\s+/).filter(Boolean);
+    return v.length ? v : null;
+  }
+
+  /* --- a drop's photos: the spot, and what was left ------------------------
+     Each in date order (build.py fills data-spots and data-items in from
+     the images named spot<n>_<MMDDYY> and item<n>_<MMDDYY>: spot4_092326.jpg
+     is drop 004's spot on 2026.09.23). The arrows, the arrow keys and a
+     swipe go round them; each says its file's name and the date in it. */
+  /* "spot4_092326b.jpg" -> "2026.09.23"; "" where the name has no date */
   function dateIn(name){
     var m = /_(\d\d)(\d\d)(\d\d)[a-z0-9-]*\.[a-z0-9]+$/i.exec(name);
     if (!m || +m[1] < 1 || +m[1] > 12 || +m[2] < 1 || +m[2] > 31) return "";
     return "20" + m[3] + "." + m[1] + "." + m[2];
   }
-  function spots(list, n){
-    photos = list; shown = 0; dropN = n || "";
-    el.prev.hidden = el.next.hidden = photos.length < 2;
-    showSpot();
-  }
-  function showSpot(){
-    if (!photos.length){
-      el.spot.src = el.spotA.href = NO_SPOT;
-      el.spot.alt = "No photo of the spot yet";
-      el.spotc.textContent = "No photo of the spot yet";
-      el.spotn.textContent = "—";
-      return;
-    }
-    var src = photos[shown], name = decodeURIComponent(src.split("/").pop().split("?")[0]), date = dateIn(name);
-    el.spot.src = el.spotA.href = src;
-    el.spot.alt = "The spot" + (dropN ? " where drop " + dropN + " was left" : "") +
+  function Gallery(o){
+    /* the placeholder as the page names it: the build roots and stamps
+       that path, so it loads wherever the page is served from */
+    var none = o.img.getAttribute("src"), photos = [], shown = 0, dropN = "";
+    var bg = o.link.querySelector(".dp-gallery__bg");
+    function draw(){
+      if (!photos.length){
+        o.img.src = o.link.href = none;
+        if (bg) bg.src = none;
+        o.img.alt = o.cap.textContent = o.empty;
+        o.count.textContent = "—";
+        return;
+      }
+      var src = photos[shown], name = decodeURIComponent(src.split("/").pop().split("?")[0]), date = dateIn(name);
+      o.img.src = o.link.href = src;
+      if (bg) bg.src = src;
+      o.img.alt = o.what + (dropN ? " at drop " + dropN : "") +
                   (date ? ", photographed " + date : "") + (photos.length > 1 ? " (photo " + (shown + 1) + " of " + photos.length + ")" : "");
-    el.spotc.textContent = name + (date ? " · " + date : "");
-    el.spotn.textContent = photos.length > 1 ? (shown + 1) + "/" + photos.length : (date || "1/1");
-    /* the next one ready before it is asked for */
-    if (photos.length > 1) (new Image()).src = photos[(shown + 1) % photos.length];
-  }
-  function turn(step){
-    if (photos.length < 2) return;
-    shown = (shown + step + photos.length) % photos.length;
-    showSpot();
-  }
-  el.prev.addEventListener("click", function(){ turn(-1); });
-  el.next.addEventListener("click", function(){ turn(1); });
-  /* a swipe across the photo turns it; the tap that opens it full size
-     is not taken for one */
-  (function(){
+      o.cap.textContent = name + (date ? " · " + date : "");
+      o.count.textContent = photos.length > 1 ? (shown + 1) + "/" + photos.length : (date || "1/1");
+      /* the next one ready before it is asked for */
+      if (photos.length > 1) (new Image()).src = photos[(shown + 1) % photos.length];
+    }
+    function turn(step){
+      if (photos.length < 2) return;
+      shown = (shown + step + photos.length) % photos.length;
+      draw();
+    }
+    o.prev.addEventListener("click", function(){ turn(-1); });
+    o.next.addEventListener("click", function(){ turn(1); });
+    /* a swipe across the photo turns it; the tap that opens it full size
+       is not taken for one */
     var at = null, swiped = false;
-    el.spotA.addEventListener("pointerdown", function(ev){ at = { x: ev.clientX, y: ev.clientY }; swiped = false; });
-    el.spotA.addEventListener("pointerup", function(ev){
+    o.link.addEventListener("pointerdown", function(ev){ at = { x: ev.clientX, y: ev.clientY }; swiped = false; });
+    o.link.addEventListener("pointerup", function(ev){
       if (!at) return;
       var dx = ev.clientX - at.x, dy = ev.clientY - at.y;
       at = null;
       if (Math.abs(dx) > 40 && Math.abs(dx) > 2 * Math.abs(dy) && photos.length > 1){ swiped = true; turn(dx < 0 ? 1 : -1); }
     });
-    el.spotA.addEventListener("pointercancel", function(){ at = null; });
-    el.spotA.addEventListener("click", function(ev){ if (swiped){ ev.preventDefault(); swiped = false; } });
-    el.spotA.addEventListener("dragstart", function(ev){ ev.preventDefault(); });
-  })();
-
-  /* A zone with no drop at it yet: nothing to show but the place. */
-  function nothingYet(){
-    chosen = -1;
-    el.title.textContent = "—";
-    el.dropn.textContent = "—";
-    el.item.src = NO_ITEM;
-    el.item.alt = "";
-    el.itemc.textContent = "—";
-    el.claimed.hidden = true;
-    el.claimed.textContent = "";
-    el.brief.innerHTML = "";
-    spots([], "");
-    document.dispatchEvent(new CustomEvent("pn0va:drop", { detail: { index: current, drop: -1 } }));
+    o.link.addEventListener("pointercancel", function(){ at = null; });
+    o.link.addEventListener("click", function(ev){ if (swiped){ ev.preventDefault(); swiped = false; } });
+    o.link.addEventListener("dragstart", function(ev){ ev.preventDefault(); });
+    return {
+      box: o.box,
+      set: function(list, n){
+        photos = list; shown = 0; dropN = n || "";
+        o.prev.hidden = o.next.hidden = photos.length < 2;
+        draw();
+      },
+      turn: turn
+    };
   }
+  var spot = Gallery({ box: document.querySelector(".dp-spot"), img: $("s-spot"), link: $("s-spotlink"),
+                       cap: $("s-spotcap"), count: $("r-spotn"), prev: $("s-spotprev"), next: $("s-spotnext"),
+                       what: "The spot", empty: "No photo of the spot yet" });
+  var items = Gallery({ box: document.querySelector(".dp-items"), img: $("s-item"), link: $("s-itemlink"),
+                        cap: $("s-itemcap"), count: $("r-itemn"), prev: $("s-itemprev"), next: $("s-itemnext"),
+                        what: "What was left", empty: "No photo of what was left yet" });
 
   /* --- map -------------------------------------------------------------- */
 
   var rings = [], ringLabels = [];
-  var home = null;              // where the current zone actually is
+  var home = null;              // where the current cache actually is
   var recenterBtn = null;
 
   function buildMap(lat, lng, zoom){
@@ -358,7 +439,9 @@
        RECENTER. The map is draggable, so the marker can be pushed off screen
        with no way back — switching records and returning was the only reset.
        This is the standard "locate" affordance, drawn as a reticle to match
-       the +/- bars, and it dims itself when you are already on the zone.
+       the +/- bars, and it dims itself when you are already on the cache.
+       Its clicks stop here: a double-click that reached the map zoomed it in
+       about the button, and the second recentre then landed somewhere odd.
        ------------------------------------------------------------------ */
     var Recenter = L.Control.extend({
       options: { position: "topleft" },
@@ -366,10 +449,11 @@
         var box = L.DomUtil.create("div", "leaflet-bar dp-recenter");
         var a = L.DomUtil.create("a", "", box);
         a.href = "#";
-        a.title = "Recenter on the zone";
+        a.title = "Recenter on the cache";
         a.setAttribute("role", "button");
-        a.setAttribute("aria-label", "Recenter on the zone");
-        L.DomEvent.on(a, "click", L.DomEvent.stop);
+        a.setAttribute("aria-label", "Recenter on the cache");
+        L.DomEvent.disableClickPropagation(box);
+        L.DomEvent.on(a, "click dblclick", L.DomEvent.stop);
         L.DomEvent.on(a, "click", recenter);
         recenterBtn = box;
         return box;
@@ -407,8 +491,8 @@
     markHome();
   }
 
-  /* Dim the control while the view already matches the zone, so it reads as
-     state rather than as a button that may or may not do anything. */
+  /* Dim the control while the view already matches the cache, so it reads
+     as state rather than as a button that may or may not do anything. */
   function markHome(){
     if (!map || !home || !recenterBtn) return;
     /* Compare in PIXELS, not degrees. setView lands on a whole pixel, so the
@@ -449,7 +533,7 @@
      in screen space along the panel edges; the corner readout reports the
      visible extent so the panel always says what it is showing. */
   function drawGraticule(){
-    var host = document.getElementById("dp-grat");
+    var host = $("dp-grat");
     if (!host || !map) return;
 
     var s = map.getSize(), w = s.x, h = s.y;
@@ -473,34 +557,45 @@
       '</svg>';
 
     var b = map.getBounds();
-    document.getElementById("dp-bounds").innerHTML =
+    $("dp-bounds").innerHTML =
       'N <b>' + b.getNorth().toFixed(3) + '</b><br>' +
       'S <b>' + b.getSouth().toFixed(3) + '</b><br>' +
       'W <b>' + Math.abs(b.getWest()).toFixed(3) + '</b>';
   }
 
-  /* --- keyboard: the arrows walk the list they are in ---------------------
-     In the list of drops, from one drop to the next at this zone; on the
-     spot, round its photos; in the list of zones, from zone to zone.
-     Nowhere else: on the rest of the screen they are the page's (or the
-     street map's). */
+  /* --- keyboard ------------------------------------------------------------
+     The arrows walk the list they are in: up and down the drops (moving the
+     cursor; with a drop open, opening the next as they go), round a drop's
+     photos (left and right, on its spot or its items), from cache to cache
+     in the list of caches. Esc closes the open drop (drops-world.js, where
+     it runs, sees it first). Nowhere else: on the rest of the screen they
+     are the page's (or the street map's). */
 
   document.addEventListener("keydown", function(ev){
     /* target is document itself when nothing is focused in some browsers,
        and document has no .closest — guard before reaching for it */
     var t = ev.target;
     if (!t || !t.closest || t.closest("input, textarea, select, [contenteditable]")) return;
+    if (ev.key === "Escape" && opened >= 0 && !ev.defaultPrevented){
+      var help = $("dp-help");
+      if (help && help.open) return;
+      ask(-1); ev.preventDefault(); return;
+    }
     var step = { ArrowDown: 1, ArrowRight: 1, ArrowUp: -1, ArrowLeft: -1 }[ev.key];
     if (!step || ev.altKey || ev.ctrlKey || ev.metaKey) return;   /* Alt+Left is Back */
     if (t.closest("#dp-log")){
-      var j = chosen + step;
-      if (dropsOf[current][j]){ pick(j); el.log.children[j].focus(); }
+      if (ev.key === "ArrowLeft" || ev.key === "ArrowRight") return;
+      var rows = el.log.querySelectorAll(".dp-logrow"), at = [].indexOf.call(rows, t.closest(".dp-logrow"));
+      var j = (at < 0 ? (opened >= 0 ? opened : -1) : at) + step;
+      if (rows[j]){ rows[j].focus(); if (opened >= 0) ask(j); }
       ev.preventDefault();
-    } else if (t.closest(".dp-spot")){
-      if (ev.key === "ArrowLeft" || ev.key === "ArrowRight"){ turn(step); ev.preventDefault(); }
+    } else if (t.closest(".dp-gallery")){
+      if (ev.key === "ArrowLeft" || ev.key === "ArrowRight"){
+        (t.closest(".dp-items") ? items : spot).turn(step); ev.preventDefault();
+      }
     } else if (t.closest("#dp-rows")){
       var i = current + step;
-      if (entries[i]){ show(i); el.rows.children[i].focus(); }
+      if (entries[i]){ show(i, -1); el.rows.children[i].focus(); }
       ev.preventDefault();
     }
   });
@@ -513,14 +608,14 @@
   if (window.ResizeObserver) new ResizeObserver(function(es){
     var r = es[es.length - 1].contentRect;
     if (map && r.width && r.height) map.invalidateSize();
-  }).observe(document.getElementById("dp-map"));
+  }).observe($("dp-map"));
 
   /* --- help panel ------------------------------------------------------
      <details> already gives us open/close, keyboard operation and Esc for
      free, and it all works with JS off. The only thing it can't do on its
      own is close when you click elsewhere, so that's all we add. */
   (function(){
-    var help = document.getElementById("dp-help");
+    var help = $("dp-help");
     if (!help) return;
     document.addEventListener("click", function(ev){
       if (help.open && !help.contains(ev.target)) help.open = false;
@@ -532,36 +627,40 @@
 
   buildManifest();
 
-  /* drops#03 opens on zone 03, drops#003 on the zone drop 003 was left at,
-     with that drop chosen; anything else, on the newest zone */
+  /* drops#03 opens on cache 03, drops#003 on the cache drop 003 was left
+     at, with that drop open; anything else, on the newest cache, its list */
   function find(id){
     for (var i = 0; i < entries.length; i++){
-      if (entries[i].dataset.n === id) return [i, 0];
+      if (entries[i].dataset.n === id) return [i, -1];
       for (var j = 0; j < dropsOf[i].length; j++)
         if (dropsOf[i][j].dataset.n === id) return [i, j];
     }
     return null;
   }
-  var at = find(decodeURIComponent(location.hash.slice(1))) || [0, 0];
+  var at = find(decodeURIComponent(location.hash.slice(1))) || [0, -1];
   show(at[0], at[1]);
   setTimeout(function(){ if (map) map.invalidateSize(); }, 250);
 
-  /* For drops-world.js, which moves between the world view and a zone. */
+  /* For drops-world.js, which moves between the world view and a cache. */
   window.pn0vaDrops = {
     entries: entries,
     drops: function (i) { return dropsOf[i] || []; },
     find: find,
     current: function () { return current; },
-    chosen: function () { return chosen; },
+    opened: function () { return opened; },
     map: function () { return map; },
-    /* Zone i with drop j chosen, on the screen as it is. */
+    /* Cache i with drop j open (-1: its list alone), on the screen as it is. */
     show: function (i, j) { show(i, j); },
-    /* Show zone i (drop j chosen) in a panel that has just become visible.
+    /* Show cache i (drop j open) in a panel that has just become visible.
        Size the map first: while hidden, Leaflet measured it as nothing. */
     open: function (i, j) {
       if (map) map.invalidateSize({ pan: false });
+      closeDrop(true);
       current = -1;
       show(i, j);
-    }
+    },
+    /* Set by drops-world.js: a drop opened (j) or closed (-1) by hand at
+       cache i goes through it, for the address and Back. */
+    navigate: null
   };
 })();
