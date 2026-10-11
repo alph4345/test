@@ -1,11 +1,11 @@
-import { store, edit, setUI, filamentsOf, toast, bumpMeshes } from '../state.js';
+import { store, edit, setUI, filamentsOf, toast } from '../state.js';
 import { importSTL } from './importer.js';
 import { symmetryPatch } from './ProfileEditor.jsx';
 import { grindHeights } from '../engine/blade.js';
 import { Num, Vec3, Select, Check, Text, Color, Section, Help, FilamentPick } from './controls.jsx';
 import { blade, flat, lathe, box, cyl, sphere, hole, P, COLORS, uid, gripPoints } from '../templates/helpers.js';
 
-const TYPE_LABEL = { profile: 'flat / blade', lathe: 'round', box: 'box', cylinder: 'cylinder', sphere: 'sphere', mesh: 'imported' };
+const TYPE_LABEL = { profile: 'flat / blade', lathe: 'round', box: 'box', cylinder: 'cylinder', sphere: 'sphere', mesh: 'your model', revolver: 'cylinder' };
 
 
 function newPart(kind, at) {
@@ -63,13 +63,13 @@ function PartEditor({ part, idx }) {
     <Section title={`Edit: ${part.name}`} right={<span class="badge">{TYPE_LABEL[part.type]}</span>}>
       <Text label="Name" value={part.name} onChange={(v) => set({ name: v }, 'name')} />
       <div class="two">
-        <Select label="Mode" value={part.op || 'add'} options={[['add', 'Add material'], ['subtract', 'Cut away (hole)'], ...(['box', 'cylinder', 'sphere'].includes(part.type) ? [['paint', 'Filament zone']] : [])]} onChange={(v) => set({ op: v })} />
+        <Select label="Mode" value={part.op || 'add'} options={[['add', 'Add material'], ['subtract', 'Cut away (hole)'], ...(['box', 'cylinder', 'sphere'].includes(part.type) || part.op === 'paint' ? [['paint', 'Colour zone']] : [])]} onChange={(v) => set({ op: v })} />
         <Color label="Colour" value={part.color} onChange={(v) => set({ color: v }, 'color')} />
       </div>
       {part.op !== 'subtract' && (
         <FilamentPick value={part.filament} filaments={filamentsOf(d)} onChange={(v) => set({ filament: v })} />
       )}
-      {part.op === 'paint' && <Help>A filament zone adds no material: whatever part of the model is inside it prints with this filament. Use it to colour areas of an imported model. See it with "Colour by: Filament" in the Split tab.</Help>}
+      {part.op === 'paint' && <Help>A colour zone adds no material: whatever part of the model is inside it (the purple box) prints with this filament.</Help>}
       {part.op === 'subtract' && (
         <Select label="Cut from" value={part.target || ''} hint="Cut only one part, e.g. the opening of a loop guard without cutting the grip inside it"
           options={[['', 'Everything it touches'], ...addParts.map((p) => [p.id, p.name])]} onChange={(v) => set({ target: v || undefined })} />
@@ -142,7 +142,14 @@ function PartEditor({ part, idx }) {
       </div>
       <div class="row-btns">
         <button onClick={() => edit((dd) => { const c = structuredClone(part); c.id = uid(); c.name = `${part.name} copy`; c.pos = [c.pos[0] + 20, c.pos[1], c.pos[2]]; dd.parts.splice(idx + 1, 0, c); setUI({ sel: { kind: 'part', id: c.id } }); })}>Duplicate</button>
-        <button class="danger" onClick={() => { edit((dd) => { dd.parts.splice(idx, 1); }); setUI({ sel: null }); }}>Delete part</button>
+        <button class="danger" onClick={() => {
+          edit((dd) => {
+            const [gone] = dd.parts.splice(idx, 1);
+            // a template part stays deleted when options are changed later
+            if (gone?.gen && dd.recipe) dd.recipe.dropped = [...(dd.recipe.dropped || []), gone.id];
+          });
+          setUI({ sel: null });
+        }}>Delete part</button>
       </div>
     </Section>
   );
@@ -150,22 +157,31 @@ function PartEditor({ part, idx }) {
 
 export function ShapePanel() {
   const d = store.design;
+  const fromKit = !!d.recipe;
   const sel = store.ui.sel?.kind === 'part' ? store.ui.sel.id : null;
   const selIdx = d.parts.findIndex((p) => p.id === sel);
   const box = store.modelBox;
   const length = box ? box.max[1] - box.min[1] : null;
 
+  // new parts appear beside the model, where they can be seen, and are then
+  // dragged into place
   const add = (kind) => {
-    const at = box ? Math.round(((box.min[1] + box.max[1]) / 2) / (d.scale || 1)) : 0;
+    const sc = d.scale || 1;
+    const at = box ? Math.round(((box.min[1] + box.max[1]) / 2) / sc) : 0;
     const p = newPart(kind, at);
+    if (box && kind !== 'zone') p.pos = [Math.round(box.max[0] / sc + 90), p.pos[1], 0];
     edit((dd) => { dd.parts.push(p); });
-    setUI({ sel: { kind: 'part', id: p.id }, editorOpen: true });
+    setUI({ sel: { kind: 'part', id: p.id }, editorOpen: true, gizmo: true });
+    toast(kind === 'zone'
+      ? 'Colour zone added over the middle of the model: drag its arrows over the area to recolour, then pick its filament.'
+      : `New ${p.name.replace(/^New /, '')} added to the right of the model. Drag the arrows to move it into place; where it touches the model it joins it.`, 6000);
   };
 
   return (
     <div>
       <Section title="Design">
         <Text label="Name" value={d.name} onChange={(v) => edit((dd) => { dd.name = v; }, 'name')} />
+        {!fromKit && (<>
         <div class="two">
           <Num label="Overall length" unit="mm" value={length && Math.round(length)} step={10} min={50}
             hint="Scales the whole prop. Inserts keep their real sizes (a 3/8 in dowel stays 3/8 in)."
@@ -177,6 +193,7 @@ export function ShapePanel() {
         {length > 1500 && (
           <Help warn>Over 150 cm. Many conventions cap props at 150 cm (180 cm for narrow staffs and spears) and ask that bigger props come apart without tools. Use "Screw thread" or "Threaded rod + insert" joints in the Split tab, and check your event's prop rules.</Help>
         )}
+        </>)}
       </Section>
       <Section title="Parts" right={<span class="muted">click a part in 3D to select it</span>}>
         <ul class="list">
@@ -184,12 +201,13 @@ export function ShapePanel() {
             <li key={p.id} class={p.id === sel ? 'on' : ''} onClick={() => setUI({ sel: { kind: 'part', id: p.id }, pointSel: null })}>
               <span class="dot" style={{ background: p.op === 'subtract' ? 'transparent' : p.color, borderColor: p.color }} />
               <span class="nm">{p.name}</span>
-              <span class="muted small">{p.op === 'subtract' ? 'hole' : p.op === 'paint' ? 'filament zone' : TYPE_LABEL[p.type]}</span>
+              <span class="muted small">{p.op === 'subtract' ? 'hole' : p.op === 'paint' ? 'colour zone' : TYPE_LABEL[p.type]}</span>
               {p.op !== 'subtract' && <span class="fil-badge" title={`Filament ${p.filament || 1}`} style={{ background: filamentsOf(d)[(p.filament || 1) - 1]?.color }}>{p.filament || 1}</span>}
               <button class="icon" title={p.hidden ? 'Show' : 'Hide'} onClick={(e) => { e.stopPropagation(); edit((dd) => { const q = dd.parts.find((x) => x.id === p.id); q.hidden = !q.hidden; }); }}>{p.hidden ? '◌' : '●'}</button>
             </li>
           ))}
         </ul>
+        <Help>Add a shape: it appears beside the model. Shapes that add material join the model wherever they touch it; holes and cut-outs remove material; a colour zone paints whatever is inside it with another filament.</Help>
         <div class="add-grid">
           <span class="muted">Add:</span>
           <button onClick={() => add('blade')}>Blade</button>
@@ -200,7 +218,7 @@ export function ShapePanel() {
           <button onClick={() => add('sphere')}>Sphere</button>
           <button onClick={() => add('hole')}>Round hole</button>
           <button onClick={() => add('cutshape')}>Shaped cut-out</button>
-          <button onClick={() => add('zone')} title="Colour part of a model with another filament (no material added)">Filament zone</button>
+          <button onClick={() => add('zone')} title="Colour part of a model with another filament (no material added)">Colour zone</button>
           <label class="btn" title="Bring in an STL (e.g. from Thingiverse/Printables) to split, add inserts and joints to">
             Add an STL…<input type="file" accept=".stl,model/stl" hidden onChange={(e) => { const f = e.target.files[0]; e.target.value = ''; if (f) importSTL(f).catch((err) => toast(`Import failed: ${err.message}`)); }} />
           </label>

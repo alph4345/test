@@ -44,7 +44,7 @@ export async function importSTL(file, { newProject = false } = {}) {
     d.name = part.name;
     d.parts.push(part);
     replaceDesign(d);
-    setUI({ tab: 'shape' });
+    setUI({ tab: 'custom', sel: null });
   } else edit((dd) => { dd.parts.push(part); });
   bumpMeshes();
   setUI({ sel: { kind: 'part', id: part.id }, refit: true });

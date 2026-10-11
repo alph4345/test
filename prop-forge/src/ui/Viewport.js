@@ -167,7 +167,8 @@ export class Viewport {
     this.ghostGroup.clear();
     for (const g of ghosts) {
       const sel = g.id === selectedId;
-      const mat = new THREE.MeshBasicMaterial({ color: sel ? 0xffa53a : 0xff6a3a, transparent: true, opacity: sel ? 0.45 : 0.25, depthTest: false });
+      const zone = g.color === 'zone'; // colour zones are purple, inserts orange
+      const mat = new THREE.MeshBasicMaterial({ color: zone ? 0x9b6bff : sel ? 0xffa53a : 0xff6a3a, transparent: true, opacity: zone ? 0.12 : sel ? 0.45 : 0.25, depthTest: false });
       let mesh;
       if (g.type === 'rod') {
         const a = new THREE.Vector3().fromArray(g.a), b = new THREE.Vector3().fromArray(g.b);
@@ -180,7 +181,7 @@ export class Viewport {
         const size = g.max.map((v, i) => v - g.min[i]);
         mesh = new THREE.Mesh(new THREE.BoxGeometry(...size), mat);
         mesh.position.set(...g.min.map((v, i) => v + size[i] / 2));
-        const edges = new THREE.LineSegments(new THREE.EdgesGeometry(mesh.geometry), new THREE.LineBasicMaterial({ color: sel ? 0xffd27a : 0xff8a5a, depthTest: false, transparent: true }));
+        const edges = new THREE.LineSegments(new THREE.EdgesGeometry(mesh.geometry), new THREE.LineBasicMaterial({ color: zone ? 0xb995ff : sel ? 0xffd27a : 0xff8a5a, depthTest: false, transparent: true }));
         mesh.add(edges);
       }
       mesh.renderOrder = 10;

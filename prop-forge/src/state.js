@@ -25,7 +25,8 @@ export const store = {
     tab: 'forge',
     sel: null, // { kind: 'part' | 'feature' | 'cut', id }
     explode: 40,
-    colorBy: 'part',
+    colorBy: 'filament',
+    advanced: false, // "Edit parts by hand" open in the Customize step
     gizmo: true,
     editorOpen: true,
     pointSel: null,

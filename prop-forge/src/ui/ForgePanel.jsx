@@ -29,19 +29,22 @@ function Thumb({ design, thumb }) {
 export function ForgePanel() {
   const [cat, setCat] = useState('All');
   const [q, setQ] = useState('');
-  const built = useMemo(() => TEMPLATES.map((t) => ({ t, d: t.build(), thumb: t.thumb ? t.thumb() : null })), []);
-  const shown = built.filter(({ t }) => (cat === 'All' || t.category === cat)
+  const legendary = useMemo(() => TEMPLATES.filter((t) => !t.generator).map((t) => ({ t, thumb: t.thumb ? t.thumb() : null })), []);
+  // generator tiles show their default (unrandomised) weapon
+  const generators = useMemo(() => TEMPLATES.filter((t) => t.generator).map((t) => ({ t, d: t.build({ random: false }) })), []);
+  const shown = legendary.filter(({ t }) => (cat === 'All' || t.category === cat)
     && (!q || `${t.name} ${t.source} ${t.category}`.toLowerCase().includes(q.toLowerCase())));
   const lib = libraryList();
 
   const pick = async (t) => {
     const d = t.build();
-    d.meta = { ...(d.meta || {}), templateId: t.id };
     const ids = d.parts.filter((p) => p.type === 'mesh').map((p) => p.meshRef);
     if (ids.length) await loadMeshes(ids);
     replaceDesign(d);
-    setUI({ tab: 'shape', refit: true });
-    toast(`Loaded ${t.name}. Edit the shape, add inserts, then split it for your printer.`);
+    setUI({ tab: 'custom', refit: true, sel: null, advanced: false });
+    toast(t.generator
+      ? `New ${t.kit.type} generated. Change its options, or press "Generate another".`
+      : `Loaded ${t.name}. Pick options for it here, then follow the steps along the top.`);
   };
 
   const importFile = (file) => {
@@ -54,7 +57,7 @@ export function ForgePanel() {
         if (!Array.isArray(d.parts)) throw new Error('not a Prop Forge project');
         d.features ||= []; d.split ||= { plate: { x: 256, y: 256, z: 256 }, cuts: [] };
         replaceDesign(d);
-        setUI({ tab: 'shape', refit: true });
+        setUI({ tab: 'custom', refit: true, sel: null });
         toast(`Opened ${d.name}`);
       } catch (e) { toast(`Could not open file: ${e.message}`); }
     };
@@ -63,20 +66,41 @@ export function ForgePanel() {
 
   return (
     <div>
-      <Section title="Your models">
-        <Help>Your own models, ready to split, joint and colour for printing. Everything is in real-world millimetres.</Help>
+      <Section title="How it works">
+        <ol class="steps">
+          <li><b>Pick</b> one of your models below.</li>
+          <li><b>Customize</b> it with options made for that weapon, or press 🎲 to generate a new one in the same style.</li>
+          <li><b>Inserts</b>: channels for dowels and steel rods, bays for electronics.</li>
+          <li><b>Split</b> it into pieces that fit your printer, with joints that lock together.</li>
+          <li><b>Export</b> the files for your slicer.</li>
+        </ol>
+      </Section>
+      <Section title="Legendary weapons">
+        <Help>Named weapons from your own models, in real-world millimetres. Each has options made for it, and every part can still be edited by hand.</Help>
         <input class="search" type="search" placeholder="Search weapons…" value={q} onInput={(e) => setQ(e.target.value)} />
         <div class="chips">
           {CATEGORIES.map((c) => <button key={c} class={`chip${c === cat ? ' on' : ''}`} onClick={() => setCat(c)}>{c}</button>)}
         </div>
         <div class="cards">
-          {shown.map(({ t, d, thumb }) => (
+          {shown.map(({ t, thumb }) => (
             <button key={t.id} class={`card${store.design.meta?.templateId === t.id ? ' current' : ''}`} onClick={() => pick(t)}>
-              <Thumb design={d} thumb={thumb} />
+              <Thumb thumb={thumb} />
               <span class="card-name">{t.name}</span>
               <span class="card-src">{t.source}</span>
               <span class="card-blurb">{t.blurb}</span>
               {t.credit && <span class="card-credit">{t.credit}</span>}
+            </button>
+          ))}
+        </div>
+      </Section>
+      <Section title="Generate a weapon">
+        <Help>Rolls a new weapon of a general type, drawn in the style of your models. Press again for another one; every option can be changed afterwards.</Help>
+        <div class="cards gen">
+          {generators.map(({ t, d }) => (
+            <button key={t.id} class={`card${store.design.meta?.templateId === t.id ? ' current' : ''}`} onClick={() => pick(t)}>
+              <Thumb design={d} />
+              <span class="card-name"><span aria-hidden="true">🎲</span> New {t.kit.type}</span>
+              <span class="card-blurb">{t.blurb}</span>
             </button>
           ))}
         </div>
@@ -86,7 +110,7 @@ export function ForgePanel() {
           <label class="btn primary-btn" title="Open an STL as its own project (it is laid flat and simplified if very dense)">
             Open an STL…<input type="file" accept=".stl,model/stl" hidden onChange={(e) => { const f = e.target.files[0]; e.target.value = ''; if (f) importSTL(f, { newProject: true }).catch((err) => toast(`Import failed: ${err.message}`)); }} />
           </label>
-          <button onClick={() => { replaceDesign(blankDesign()); setUI({ tab: 'shape', refit: true }); }}>Blank project</button>
+          <button onClick={() => { replaceDesign(blankDesign()); setUI({ tab: 'custom', refit: true, sel: null }); }}>Blank project</button>
         </div>
       </Section>
       <Section title={`Waiting for a reference (${WISHLIST.length})`}>
@@ -108,7 +132,7 @@ export function ForgePanel() {
           <ul class="lib">
             {lib.map((x) => (
               <li key={x.name}>
-                <button class="link" onClick={() => { replaceDesign(structuredClone(x.design)); setUI({ tab: 'shape', refit: true }); }}>{x.name}</button>
+                <button class="link" onClick={() => { replaceDesign(structuredClone(x.design)); setUI({ tab: 'custom', refit: true, sel: null }); }}>{x.name}</button>
                 <span class="muted">{new Date(x.savedAt).toLocaleDateString()}</span>
                 <button class="icon" title="Delete" onClick={() => libraryDelete(x.name)}>✕</button>
               </li>

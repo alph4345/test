@@ -31,6 +31,7 @@ const base = (name, type, o) => ({
   filament: o.filament || 1,
   ...(o.target ? { target: o.target } : {}),
   ...(o.hidden ? { hidden: true } : {}),
+  ...(o.separate ? { separate: o.separate } : {}),
 });
 
 // Flat outline extruded through Z. With sharp points + bevel it becomes a
@@ -42,6 +43,10 @@ export function blade(name, points, o = {}) {
     thickness: o.thickness ?? 10,
     edge: o.edge ?? 2,
     bevel: o.bevel ?? 15,
+    ...(o.grind ? { grind: o.grind } : {}),
+    ...(o.sides ? { sides: o.sides } : {}),
+    ...(o.tipThickness != null ? { tipThickness: o.tipThickness } : {}),
+    ...(o.separate ? { separate: o.separate } : {}),
     points,
   };
 }

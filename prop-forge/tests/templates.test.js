@@ -9,7 +9,7 @@ const M = await initManifold();
 
 for (const t of TEMPLATES) {
   test(`template ${t.id} builds and splits`, async () => {
-    const d = t.build();
+    const d = t.build({ random: false });
     const meshes = {};
     for (const p of d.parts) if (p.type === 'mesh') meshes[p.meshRef] = await decodeBuiltin(p.meshRef.slice(8));
     d.__meshes = meshes;
@@ -18,7 +18,7 @@ for (const t of TEMPLATES) {
     const main = r.pieces.filter((p) => p.kind === 'piece');
     const bb = main.reduce((b, p) => ({ min: p.bbox.min.map((v, i) => Math.min(v, b.min[i])), max: p.bbox.max.map((v, i) => Math.max(v, b.max[i])) }), { min: [1e9, 1e9, 1e9], max: [-1e9, -1e9, -1e9] });
     const a = autoSplit(M, d);
-    d.split.cuts = a.cuts.map((c, i) => ({ ...c, id: 'c' + i, joints: [{ type: d.split.defaultJoint || 'auto' }] }));
+    d.split.cuts = a.cuts.map((c, i) => ({ ...c, id: 'c' + i, joints: [{ type: c.joint || d.split.defaultJoint || 'auto' }] }));
     const s = runBuild(M, d, { mode: 'split' });
     const pcs = s.pieces.filter((p) => p.kind === 'piece');
     const bad = pcs.filter((p) => !p.fit.fits).length;

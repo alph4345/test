@@ -3,6 +3,10 @@ import { request } from '../engine/client.js';
 import { Num, Select, Check, Section, Help } from './controls.jsx';
 import { uid } from '../templates/helpers.js';
 import { pieceColor } from './Viewport.js';
+import { NextStep } from './NextStep.jsx';
+
+// What the weapon looked like when it was auto-split (its options and size).
+const shapeKey = (d) => JSON.stringify([d.recipe?.opts || null, d.scale || 1, d.parts.length]);
 
 export const PRINTERS = [
   ['snapmaker-u1', 'Snapmaker U1 (4 toolheads)', 270, 270, 270],
@@ -103,13 +107,30 @@ function JointEditor({ j, onChange, onRemove }) {
   );
 }
 
+// Parts that print as their own piece (grouped as the engine groups them).
+function separatePieces(d) {
+  const seen = new Map();
+  for (const p of d.parts) {
+    if (!p.separate || p.op === 'subtract' || p.hidden || p.resin) continue;
+    const key = p.separate === true ? p.id : String(p.separate);
+    if (!seen.has(key)) seen.set(key, { key, name: p.name });
+  }
+  return [...seen.values()];
+}
+
 function CutEditor({ cut, idx, box, report }) {
   const set = (fn, key) => edit((dd) => fn(dd.split.cuts[idx]), key ? `${cut.id}-${key}` : null);
   const k = { x: 0, y: 1, z: 2 }[cut.axis];
   const lo = box ? Math.floor(box.min[k]) : -500, hi = box ? Math.ceil(box.max[k]) : 500;
   const lim = cut.limit || {};
+  const own = separatePieces(store.design);
   return (
     <Section title={`Cut ${idx + 1}`}>
+      {own.length > 0 && (
+        <Select label="Cuts through" value={cut.target || ''} options={[['', 'The main model'], ...own.map((o) => [o.key, o.name])]}
+          hint="Pieces that print on their own (a blade that slides into its socket, a staff) are cut by cuts aimed at them"
+          onChange={(v) => set((c) => { if (v) { c.target = v; c.targetName = own.find((o) => o.key === v)?.name; } else { delete c.target; delete c.targetName; } })} />
+      )}
       <Select label="Direction" value={cut.axis} onChange={(v) => set((c) => { c.axis = v; c.pos = box ? Math.round((box.min[{ x: 0, y: 1, z: 2 }[v]] + box.max[{ x: 0, y: 1, z: 2 }[v]]) / 2) : 0; })}
         options={[['y', 'Across the length (Y)'], ['x', 'Lengthwise, left/right (X)'], ['z', 'Front/back halves, clamshell (Z)']]} />
       <Num label="Position" unit="mm" value={cut.pos} min={lo} max={hi} step={0.5} slider onChange={(v) => set((c) => { c.pos = v; }, 'pos')} />
@@ -168,7 +189,10 @@ export function SplitPanel() {
     try {
       const dj = store.design.split.defaultJoint;
       const r = await request('autosplit', store.design, { jointAllowance: dj === 'thread' || dj === 'hardware' ? 44 : undefined });
-      edit((dd) => { dd.split.cuts = r.cuts.map((c) => ({ ...c, id: uid('c'), joints: [{ type: dd.split.defaultJoint || 'auto' }] })); });
+      edit((dd) => {
+        dd.split.cuts = r.cuts.map(({ joint, ...c }) => ({ ...c, id: uid('c'), joints: [{ type: joint || dd.split.defaultJoint || 'auto' }] }));
+        dd.split.shapeKey = shapeKey(dd);
+      });
       if (!r.limit) setUI({ sel: null });
       toast(r.message);
     } catch (e) { toast(`Auto-split failed: ${e.message}`); }
@@ -193,6 +217,9 @@ export function SplitPanel() {
 
   return (
     <div>
+      {split.cuts.length > 0 && split.shapeKey && split.shapeKey !== shapeKey(d) && (
+        <Help warn>You changed the weapon after it was split. Press "Auto-split to fit my printer" again so the cuts match the new shape.</Help>
+      )}
       <Section title="Your printer">
         <Select label="Printer" value={preset} options={PRINTERS.map((p) => [p[0], p[2] ? `${p[1]} — ${p[2]}×${p[3]}×${p[4]}` : p[1]])}
           onChange={(v) => { const p = PRINTERS.find((x) => x[0] === v); edit((dd) => { dd.split.plate = p[2] ? { x: p[2], y: p[3], z: p[4], name: p[1] } : { ...dd.split.plate, name: 'Custom size' }; }); }} />
@@ -208,7 +235,7 @@ export function SplitPanel() {
         <Help>Pieces are allowed to lie diagonally on the bed. Joints are added automatically; change them per cut below.</Help>
       </Section>
       <Section title="Filaments">
-        <Help>Give every part a filament slot (Shape tab). On a multi-toolhead printer like the U1, a piece that holds several filaments prints in one go: the export keeps each filament as its own part in the 3MF.</Help>
+        <Help>Which part prints in which slot is set in step 2 (Customize → Colours). On a multi-toolhead printer like the U1, a piece that holds several filaments prints in one go: the export keeps each filament as its own part in the 3MF.</Help>
         <ul class="fil-list">
           {filamentsOf(d).map((f, i) => (
             <li key={i}>
@@ -232,7 +259,7 @@ export function SplitPanel() {
           {split.cuts.map((c, i) => (
             <li key={c.id} class={c.id === sel ? 'on' : ''} onClick={() => setUI({ sel: { kind: 'cut', id: c.id } })}>
               <span class="dot cut" />
-              <span class="nm">Cut {i + 1}: {c.axis.toUpperCase()} at {Math.round(c.pos)}{c.limit ? ' (partial)' : ''}</span>
+              <span class="nm">Cut {i + 1}: {c.targetName ? `${c.targetName}, ` : ''}{c.axis.toUpperCase()} at {Math.round(c.pos)}{c.limit && !c.target ? ' (partial)' : ''}</span>
               <span class="muted small">{(c.joints || []).map((j) => JOINTS.find((x) => x[0] === j.type)?.[1].split(' ')[0]).join(' + ') || 'glue'}</span>
             </li>
           ))}
@@ -256,7 +283,7 @@ export function SplitPanel() {
             {pieces.map((p, i) => (
               <li key={i}>
                 <span class="dot" style={{ background: pieceColor(i) }} />
-                <span class="nm">{p.name}{p.filament ? ` (filament ${p.filament})` : ''}</span>
+                <span class="nm">{p.name}{p.resin ? ' (resin)' : p.filament ? ` (filament ${p.filament})` : ''}</span>
                 <span class="muted small">{Math.round(p.fit.w || 0)}×{Math.round(p.fit.h || 0)}×{Math.round(p.fit.height)} mm · ~{grams(p.volume)} g</span>
                 <span class={p.fit.fits ? 'good' : 'bad'}>{p.fit.fits ? '✓' : '✗'}</span>
               </li>
@@ -265,6 +292,7 @@ export function SplitPanel() {
           <Help>Weights are rough PLA estimates (3 walls, ~15% infill).</Help>
         </Section>
       )}
+      <NextStep tab="export" label="Download the files" />
     </div>
   );
 }

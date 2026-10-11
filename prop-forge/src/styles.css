@@ -203,3 +203,28 @@ input[type=checkbox] { accent-color: var(--accent); }
 .wish li { break-inside: avoid; margin: 0 0 5px; line-height: 1.3; }
 .wish .muted { display: block; font-size: 11px; }
 label.btn.primary-btn { background: var(--accent); color: var(--accent-ink); border-color: var(--accent); font-weight: 600; }
+
+/* Customize step */
+button.wide { width: 100%; }
+button.dice { padding: 8px 10px; font-size: 13.5px; }
+.icon-btn { background: none; border: 1px solid transparent; padding: 0 4px; font-size: 14px; line-height: 1.4; border-radius: 6px; }
+.icon-btn:hover { border-color: var(--line); }
+.opt { margin: 6px 0 10px; }
+.opt-lbl { display: block; color: var(--muted); font-size: 12px; margin-bottom: 4px; }
+.opt-chips { display: flex; flex-wrap: wrap; gap: 5px; }
+.opt-chip { display: inline-flex; align-items: center; gap: 6px; padding: 4px 9px; font-size: 12px; border-radius: 8px; }
+.opt-chips.icons { display: grid; grid-template-columns: repeat(auto-fill, minmax(72px, 1fr)); }
+.opt-chips.icons .opt-chip { flex-direction: column; gap: 3px; padding: 6px 4px 5px; text-align: center; line-height: 1.2; }
+.opt-chip.on { background: var(--sel); border-color: var(--accent); outline: 1px solid var(--accent); color: var(--text); }
+.opt-icon { width: 100%; height: 40px; display: block; }
+.opt-icon .oi-fill { fill: color-mix(in srgb, var(--text) 55%, transparent); }
+.opt-chip.on .opt-icon .oi-fill { fill: var(--accent); }
+.opt-icon .oi-hole { fill: var(--panel-2); }
+.opt-chip.on .opt-icon .oi-hole { fill: var(--sel); }
+.disclose { width: 100%; text-align: left; background: none; border: 0; padding: 4px 0; font-weight: 600; }
+.next-step { padding: 14px 0 8px; }
+.steps { margin: 0; padding-left: 20px; font-size: 12.5px; line-height: 1.5; }
+.steps li { margin: 2px 0; }
+.card-gen { color: var(--accent); font-size: 10.5px; margin-top: 2px; }
+.dot.zone { background: #9b6bff; border-radius: 3px; }
+.legend { max-width: calc(100% - 20px); }

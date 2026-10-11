@@ -1,4 +1,5 @@
 import { store, edit, setUI, filamentsOf } from '../state.js';
+import { NextStep } from './NextStep.jsx';
 import { Num, Vec3, Select, Check, Text, Section, Help, FilamentPick } from './controls.jsx';
 import { dowel, bay, uid } from '../templates/helpers.js';
 import { DOWELS } from '../engine/split.js';
@@ -140,7 +141,13 @@ function FeatureEditor({ f, idx }) {
       )}
       <div class="row-btns">
         <button onClick={() => edit((dd) => { const c = structuredClone(f); c.id = uid('f'); c.name += ' copy'; dd.features.push(c); })}>Duplicate</button>
-        <button class="danger" onClick={() => { edit((dd) => { dd.features.splice(idx, 1); }); setUI({ sel: null }); }}>Delete</button>
+        <button class="danger" onClick={() => {
+          edit((dd) => {
+            const [gone] = dd.features.splice(idx, 1);
+            if (gone?.gen && dd.recipe) dd.recipe.dropped = [...(dd.recipe.dropped || []), gone.id];
+          });
+          setUI({ sel: null });
+        }}>Delete</button>
       </div>
     </Section>
   );
@@ -177,9 +184,10 @@ export function InsertsPanel() {
           ))}
           {!d.features.length && <li class="empty">No inserts yet.</li>}
         </ul>
-        <Help>Drag the orange shapes in the 3D view with the arrows, or type exact positions. Positions are in the template's units (before scaling).</Help>
+        <Help>Inserts show as orange shapes in the 3D view. Click one to change it; drag its arrows to move it.</Help>
       </Section>
       {idx >= 0 && <FeatureEditor key={d.features[idx].id} f={d.features[idx]} idx={idx} />}
+      <NextStep tab="split" label="Cut to fit your printer" />
     </div>
   );
 }

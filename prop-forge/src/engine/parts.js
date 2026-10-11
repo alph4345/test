@@ -56,6 +56,93 @@ function extrudeFlat(M, poly, thickness) {
   return m;
 }
 
+// Changes the proportions of an imported model without breaking it.
+// Lengthwise, y -> Y(y) is piecewise linear through `stops` [[y, newY], ...]
+// (slope 1 beyond the ends); across, x -> cx + (x - cx) * k(y) and
+// z -> cz + (z - cz) * t(y), with k and t piecewise linear through
+// `widths` / `thick` [[y, factor], ...] (outside a `core` half-width that
+// keeps its size). Every map is continuous and
+// monotonic, so a watertight mesh stays watertight.
+function lerpTable(table, y, slopeOut) {
+  if (!table || !table.length) return slopeOut ? y : 1;
+  const n = table.length;
+  if (y <= table[0][0]) return slopeOut ? table[0][1] + (y - table[0][0]) : table[0][1];
+  if (y >= table[n - 1][0]) return slopeOut ? table[n - 1][1] + (y - table[n - 1][0]) : table[n - 1][1];
+  let i = 1;
+  while (table[i][0] < y) i++;
+  const [y0, v0] = table[i - 1], [y1, v1] = table[i];
+  return v0 + ((v1 - v0) * (y - y0)) / (y1 - y0 || 1);
+}
+
+export function warpPoint(w, x, y, z) {
+  if (!w) return [x, y, z];
+  const k = lerpTable(w.widths, y, false), t = lerpTable(w.thick, y, false);
+  const cx = w.cx || 0, cz = w.cz || 0;
+  // a core strip (e.g. a row of holes down the middle) keeps its width
+  const core = w.core || 0;
+  const dx = x - cx;
+  const ax = Math.abs(dx) <= core ? dx : Math.sign(dx) * (core + (Math.abs(dx) - core) * k);
+  return [cx + ax, lerpTable(w.stops, y, true), cz + (z - cz) * t];
+}
+
+function warpVerts(w, verts, unit = 1) {
+  const out = new Float32Array(verts.length);
+  for (let i = 0; i < verts.length; i += 3) {
+    const p = warpPoint(w, verts[i] * unit, verts[i + 1] * unit, verts[i + 2] * unit);
+    out[i] = p[0]; out[i + 1] = p[1]; out[i + 2] = p[2];
+  }
+  return out;
+}
+
+// Revolver cylinder along Y (front face at +Y): chamfered drum with flutes
+// cut by a ball-end cutter, chamber holes in the front face, a centre hole
+// for the pin it turns on, and cylinder-stop notches at the rear.
+function revolverSolid(M, p) {
+  const R = Math.max(3, +p.r || 25), L = Math.max(4, +p.length || 60);
+  const ch = Math.min(R * 0.2, L * 0.15, Math.max(0, p.chamfer == null ? 2 : +p.chamfer));
+  const prof = [[0, -L / 2], [R - ch, -L / 2], [R, -L / 2 + ch], [R, L / 2 - ch], [R - ch, L / 2], [0, L / 2]];
+  const body = M.newCrossSection([prof]).revolve(96).rotate([-90, 0, 0]);
+  const cut = [];
+  const nf = Math.max(0, p.flutes | 0), nc = Math.max(0, p.chambers | 0);
+  const chamberAt = (i) => (i / Math.max(1, nc)) * Math.PI * 2;
+  if (nf > 0) {
+    const fr = Math.max(1, +p.fluteR || R * 0.2);
+    const depth = Math.min(fr * 0.95, Math.max(0.5, +p.fluteDepth || fr * 0.55));
+    const d = R + fr - depth;
+    const len = Math.max(fr, (p.fluteLen == null ? 0.6 : +p.fluteLen) * L);
+    const style = p.fluteStyle || 'front';
+    let y0, y1;
+    if (style === 'full') { y0 = -L / 2 - fr * 2; y1 = L / 2 + fr * 2; }
+    else if (style === 'closed') { const m = Math.max(fr * 0.6, (L - len) / 2); y0 = -L / 2 + m; y1 = L / 2 - m; }
+    else { y1 = L / 2 + fr * 2; y0 = L / 2 - len; }
+    const ball = M.Manifold.sphere(fr, 32);
+    const offset = nc === nf ? Math.PI / nf : 0;
+    for (let i = 0; i < nf; i++) {
+      const a = (i / nf) * Math.PI * 2 + offset;
+      const x = d * Math.cos(a), z = d * Math.sin(a);
+      cut.push(M.Manifold.hull([ball.translate([x, y0, z]), ball.translate([x, y1, z])]));
+    }
+  }
+  if (nc > 0) {
+    const cr = Math.max(0.5, +p.chamberR || R * 0.17);
+    const rc = Math.min(R - cr - 1.2, Math.max(cr + (+p.pinR || 0) + 1, +p.chamberAt || R * 0.55));
+    const depth = p.chamberDepth == null ? L : Math.min(L, +p.chamberDepth);
+    for (let i = 0; i < nc; i++) {
+      const a = chamberAt(i);
+      cut.push(M.Manifold.cylinder(depth + 1, cr, cr, 32, false).rotate([-90, 0, 0]).translate([rc * Math.cos(a), L / 2 - depth, rc * Math.sin(a)]));
+    }
+  }
+  if (+p.pinR > 0) cut.push(M.Manifold.cylinder(L + 2, +p.pinR, +p.pinR, 40, true).rotate([-90, 0, 0]));
+  if (p.notches && nc > 0) {
+    const w = Math.max(1.5, R * 0.12), h = Math.max(2, L * 0.1), dep = Math.max(0.8, R * 0.06);
+    for (let i = 0; i < nc; i++) {
+      const a = chamberAt(i);
+      cut.push(M.Manifold.cube([dep * 2, h, w], true).translate([R, -L / 2 + ch + h / 2 + 1.5, 0]).rotate([0, (-a * 180) / Math.PI, 0]));
+    }
+  }
+  return cut.length ? body.subtract(M.Manifold.union(cut)) : body;
+}
+
 // Imported meshes are passed alongside the design (they are kept out of
 // the design itself so undo and autosave stay light).
 let meshSource = {};
@@ -66,12 +153,15 @@ export function setMeshSource(m) { meshSource = m || {}; }
 export function rawMeshPlaced(part, scale = 1) {
   const data = meshSource[part.meshRef];
   if (!data) return null;
-  const st = part.stretch || [1, 1, 1], u = +part.unit || 1;
+  const st = part.stretch || [1, 1, 1];
+  let u = +part.unit || 1;
+  let src = data.verts;
+  if (part.warp) { src = warpVerts(part.warp, src, u); u = 1; }
   const [rx, ry, rz] = (part.rot || [0, 0, 0]).map((d) => (d * Math.PI) / 180);
   const p = part.pos || [0, 0, 0];
   const out = new Float32Array(data.verts.length);
   for (let i = 0; i < out.length; i += 3) {
-    let x = data.verts[i] * st[0] * u, y = data.verts[i + 1] * st[1] * u, z = data.verts[i + 2] * st[2] * u;
+    let x = src[i] * st[0] * u, y = src[i + 1] * st[1] * u, z = src[i + 2] * st[2] * u;
     [y, z] = [y * Math.cos(rx) - z * Math.sin(rx), y * Math.sin(rx) + z * Math.cos(rx)];
     [x, z] = [x * Math.cos(ry) + z * Math.sin(ry), -x * Math.sin(ry) + z * Math.cos(ry)];
     [x, y] = [x * Math.cos(rz) - y * Math.sin(rz), x * Math.sin(rz) + y * Math.cos(rz)];
@@ -113,10 +203,14 @@ export function partSolid(M, part, warn = () => {}) {
     }
     case 'sphere':
       return M.Manifold.sphere(+part.r || 10, Math.max(8, part.sides | 0 || 48));
+    case 'revolver':
+      return revolverSolid(M, part);
     case 'mesh': {
       const data = meshSource[part.meshRef];
       if (!data) { warn(`"${part.name}": the imported model's data is missing. Import the STL again.`); return null; }
-      const mesh = new M.Mesh({ numProp: 3, vertProperties: Float32Array.from(data.verts), triVerts: Uint32Array.from(data.tris) });
+      const u0 = +part.unit || 1;
+      const verts = part.warp ? warpVerts(part.warp, data.verts, u0) : Float32Array.from(data.verts);
+      const mesh = new M.Mesh({ numProp: 3, vertProperties: verts, triVerts: Uint32Array.from(data.tris) });
       mesh.merge();
       let m = null;
       try { m = M.newManifold(mesh); } catch { m = null; }
@@ -125,8 +219,7 @@ export function partSolid(M, part, warn = () => {}) {
         return null;
       }
       if (m.volume() < 0) m = m.mirror([0, 0, 1]).mirror([0, 0, 1]);
-      const u = +part.unit || 1;
-      return u !== 1 ? m.scale(u) : m;
+      return u0 !== 1 && !part.warp ? m.scale(u0) : m;
     }
     default:
       return null;

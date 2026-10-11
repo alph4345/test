@@ -23,6 +23,8 @@ export function silhouette(part) {
     const [w, h] = part.size; pts = [[-w / 2, -h / 2], [w / 2, -h / 2], [w / 2, h / 2], [-w / 2, h / 2]];
   } else if (part.type === 'cylinder') {
     const h = part.height / 2, a = part.r1, b = part.r2 ?? part.r1; pts = [[-a, -h], [a, -h], [b, h], [-b, h]];
+  } else if (part.type === 'revolver') {
+    const h = part.length / 2, a = part.r; pts = [[-a, -h], [a, -h], [a, h], [-a, h]];
   } else if (part.type === 'sphere') {
     pts = Array.from({ length: 24 }, (_, i) => [part.r * Math.cos((i / 24) * 2 * Math.PI), part.r * Math.sin((i / 24) * 2 * Math.PI)]);
   }
@@ -38,7 +40,7 @@ export function silhouette(part) {
 export function designSilhouettes(design) {
   const out = [];
   for (const p of design.parts) {
-    if (p.hidden) continue;
+    if (p.hidden || p.op === 'paint') continue;
     const sil = silhouette(p);
     if (sil) sil.forEach((poly) => out.push({ poly, color: p.color, sub: p.op === 'subtract' }));
   }

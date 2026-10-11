@@ -5,17 +5,17 @@ import { previewBuild } from '../engine/client.js';
 import { Viewport, pieceColor, tagColor } from './Viewport.js';
 import { ProfileEditor } from './ProfileEditor.jsx';
 import { ForgePanel } from './ForgePanel.jsx';
-import { ShapePanel } from './ShapePanel.jsx';
+import { CustomizePanel } from './CustomizePanel.jsx';
 import { InsertsPanel } from './InsertsPanel.jsx';
 import { SplitPanel } from './SplitPanel.jsx';
 import { ExportPanel } from './ExportPanel.jsx';
 
 const TABS = [
-  ['forge', 'Forge', 'Templates'],
-  ['shape', 'Shape', 'Edit parts'],
+  ['forge', 'Pick', 'Your models'],
+  ['custom', 'Customize', 'Options'],
   ['inserts', 'Inserts', 'Dowels & bays'],
-  ['split', 'Split', 'Cuts & joints'],
-  ['export', 'Export', 'STL files'],
+  ['split', 'Split', 'Fit printer'],
+  ['export', 'Export', 'Files'],
 ];
 const AX = { x: 0, y: 1, z: 2 };
 
@@ -54,6 +54,29 @@ function explodeOffsets(pieces, cuts, gap) {
   });
 }
 
+// Parts are picked and moved only while "Edit parts by hand" is open (or
+// for a design that has no weapon options).
+function editingParts() {
+  return store.ui.tab === 'custom' && (store.ui.advanced || !store.design.recipe);
+}
+
+// Outline of a colour zone for the 3D view.
+function zoneGhost(p, sc) {
+  const c = p.pos.map((v) => v * sc);
+  const st = p.stretch || [1, 1, 1];
+  if (p.type === 'cylinder') return { id: p.id, type: 'rod', color: 'zone', a: [c[0], c[1] - (p.height * st[1] * sc) / 2, c[2]], b: [c[0], c[1] + (p.height * st[1] * sc) / 2, c[2]], r: Math.max(p.r1, p.r2 ?? p.r1) * st[0] * sc };
+  let half;
+  if (p.type === 'sphere') half = [p.r * st[0], p.r * st[1], p.r * st[2]];
+  else if (p.type === 'box') half = p.size.map((v, i) => (v * st[i]) / 2);
+  else if (p.type === 'profile' && p.points?.length) {
+    const xs = p.points.map((q) => q.x), ys = p.points.map((q) => q.y);
+    const min = [Math.min(...xs), Math.min(...ys), -p.thickness / 2], max = [Math.max(...xs), Math.max(...ys), p.thickness / 2];
+    if (p.rot && (p.rot[0] || p.rot[1] || p.rot[2])) return null;
+    return { id: p.id, type: 'box', color: 'zone', min: min.map((v, i) => (v + p.pos[i]) * sc), max: max.map((v, i) => (v + p.pos[i]) * sc) };
+  } else return null;
+  return { id: p.id, type: 'box', color: 'zone', min: c.map((v, i) => v - half[i] * sc), max: c.map((v, i) => v + half[i] * sc) };
+}
+
 function mix(a, b, t) {
   const pa = parseInt(a.slice(1), 16), pb = parseInt(b.slice(1), 16);
   const ch = (v, s) => (v >> s) & 255;
@@ -78,13 +101,14 @@ export function App() {
       onPick: (hit) => {
         const tab = store.ui.tab;
         if (!hit) { if (tab !== 'split') setUI({ sel: null }); return; }
-        if (hit.kind === 'mesh' && hit.tag <= -100) { const f = store.design.features[-100 - hit.tag]; if (f) setUI({ sel: { kind: 'feature', id: f.id }, tab: 'inserts' }); return; }
-        if (hit.kind === 'feature' && store.design.parts.some((p) => p.id === hit.id)) setUI({ sel: { kind: 'part', id: hit.id }, tab: 'shape' });
+        if (hit.kind === 'mesh' && hit.tag <= -100) { const f = store.design.features[-100 - hit.tag]; if (f && tab === 'inserts') setUI({ sel: { kind: 'feature', id: f.id } }); return; }
+        if (hit.kind === 'feature' && store.design.parts.some((p) => p.id === hit.id)) setUI({ sel: { kind: 'part', id: hit.id } });
         else if (hit.kind === 'feature') setUI({ sel: { kind: 'feature', id: hit.id }, tab: 'inserts' });
         else if (hit.kind === 'cut') setUI({ sel: { kind: 'cut', id: hit.id } });
-        else if (hit.kind === 'mesh' && hit.tag >= 0 && (tab === 'shape' || tab === 'forge')) {
+        else if (hit.kind === 'mesh' && hit.tag >= 0 && tab === 'custom' && editingParts()) {
+          // clicking the model picks a part only while editing parts by hand
           const part = store.design.parts[hit.tag];
-          if (part) setUI({ sel: { kind: 'part', id: part.id }, tab: 'shape', pointSel: null });
+          if (part) setUI({ sel: { kind: 'part', id: part.id }, pointSel: null });
         }
       },
       onGizmo: (t, pos) => {
@@ -110,6 +134,8 @@ export function App() {
         }, `gizmo-${t.id}`);
       },
     });
+    // handle for automated checks (frame a piece, read the build)
+    window.__propForge = { vp: vp.current, store };
     return () => vp.current.dispose();
   }, []);
 
@@ -155,7 +181,7 @@ export function App() {
       return f ? fils[f - 1]?.color || '#999999' : mix(fils[0]?.color || '#999999', '#000000', 0.2);
     }
     let c = tag >= 0 ? d.parts[tag]?.color || '#999999' : tag <= -100 ? (d.features[-100 - tag]?.color || '#7a5232') : tagColor(tag);
-    if (sel?.kind === 'part' && tag >= 0 && store.design.parts[tag]?.id === sel.id && store.ui.tab === 'shape') c = mix(c, '#ffb347', 0.45);
+    if (sel?.kind === 'part' && tag >= 0 && store.design.parts[tag]?.id === sel.id && editingParts()) c = mix(c, '#ffb347', 0.45);
     return c;
   };
   useEffect(() => {
@@ -171,12 +197,8 @@ export function App() {
   useEffect(() => {
     const sc = design.scale || 1;
     const showGhosts = ui.tab === 'inserts';
-    const zoneGhosts = ui.tab === 'shape' ? design.parts.filter((p) => p.op === 'paint' && !p.hidden).map((p) => {
-      const c = p.pos.map((v) => v * sc);
-      if (p.type === 'cylinder') return { id: p.id, type: 'rod', a: [c[0], c[1] - (p.height * sc) / 2, c[2]], b: [c[0], c[1] + (p.height * sc) / 2, c[2]], r: Math.max(p.r1, p.r2 ?? p.r1) * sc };
-      const half = p.type === 'sphere' ? [p.r, p.r, p.r] : p.size.map((v) => v / 2);
-      return { id: p.id, type: 'box', min: c.map((v, i) => v - half[i] * sc), max: c.map((v, i) => v + half[i] * sc) };
-    }) : [];
+    // a colour zone is outlined only while it is the selected part
+    const zoneGhosts = editingParts() ? design.parts.filter((p) => p.op === 'paint' && !p.hidden && p.id === ui.sel?.id).map((p) => zoneGhost(p, sc)).filter(Boolean) : [];
     const mbox = store.modelBox;
     const ghosts = showGhosts ? design.features.filter((f) => !f.hidden).map((f) => {
       if (f.type === 'channel') return { id: f.id, type: 'rod', a: f.from.map((v) => v * sc), b: f.to.map((v) => v * sc), r: f.diameter / 2 };
@@ -200,7 +222,7 @@ export function App() {
     // gizmo
     let target = null, pos = null;
     const sel = ui.sel;
-    if (sel?.kind === 'part' && ui.tab === 'shape') {
+    if (sel?.kind === 'part' && editingParts()) {
       const p = design.parts.find((x) => x.id === sel.id);
       if (p) { target = { kind: 'part', id: p.id }; pos = p.pos.map((v) => v * sc); }
     } else if (sel?.kind === 'feature' && ui.tab === 'inserts') {
@@ -241,7 +263,7 @@ export function App() {
 
   const selPart = ui.sel?.kind === 'part' ? design.parts.find((p) => p.id === ui.sel.id) : null;
   const selIdx = selPart ? design.parts.indexOf(selPart) : -1;
-  const showEditor = ui.tab === 'shape' && selPart && (selPart.type === 'profile' || selPart.type === 'lathe') && ui.editorOpen;
+  const showEditor = editingParts() && selPart && (selPart.type === 'profile' || selPart.type === 'lathe') && ui.editorOpen;
 
   const startResize = (e) => {
     const y0 = e.clientY, h0 = editorH;
@@ -269,13 +291,13 @@ export function App() {
           <nav class="tabs">
             {TABS.map(([id, label, sub], i) => (
               <button key={id} class={ui.tab === id ? 'on' : ''} onClick={() => setUI({ tab: id })}>
-                <b>{i + 1}. {label}</b><small>{sub}</small>
+                <b>{label}</b><small>{i + 1} · {sub}</small>
               </button>
             ))}
           </nav>
           <div class="panel">
             {ui.tab === 'forge' && <ForgePanel />}
-            {ui.tab === 'shape' && <ShapePanel />}
+            {ui.tab === 'custom' && <CustomizePanel />}
             {ui.tab === 'inserts' && <InsertsPanel />}
             {ui.tab === 'split' && <SplitPanel />}
             {ui.tab === 'export' && <ExportPanel />}
@@ -288,19 +310,20 @@ export function App() {
               <button onClick={() => vp.current.fit(unionBox(build.pieces) || store.modelBox, 'side')}>Side</button>
               <button onClick={() => vp.current.fit(unionBox(build.pieces) || store.modelBox, 'top')}>Top</button>
               <button onClick={() => vp.current.fit(unionBox(build.pieces) || store.modelBox, 'back')}>Back</button>
-              <label class="chk"><input type="checkbox" checked={ui.gizmo} onChange={(e) => setUI({ gizmo: e.target.checked })} /> Move arrows</label>
+              {(editingParts() || ui.tab === 'inserts') && <label class="chk" title="Show arrows on the selected part or insert to drag it"><input type="checkbox" checked={ui.gizmo} onChange={(e) => setUI({ gizmo: e.target.checked })} /> Move arrows</label>}
               <label class="chk">Colour
                 <select value={ui.colorBy} onChange={(e) => setUI({ colorBy: e.target.value })}>
-                  <option value="part">parts</option><option value="filament">filament</option><option value="piece">pieces</option>
+                  <option value="filament">print colours</option><option value="part">parts</option><option value="piece">pieces</option>
                 </select>
               </label>
-              {selPart && (selPart.type === 'profile' || selPart.type === 'lathe') && ui.tab === 'shape' && (
+              {selPart && (selPart.type === 'profile' || selPart.type === 'lathe') && editingParts() && (
                 <label class="chk"><input type="checkbox" checked={ui.editorOpen} onChange={(e) => setUI({ editorOpen: e.target.checked })} /> Outline editor</label>
               )}
             </div>
             <div class={`status${ui.busy ? ' busy' : ''}`}>{ui.busy ? 'Building…' : `${build.pieces.length} ${build.pieces.length === 1 ? 'piece' : 'pieces'} · ${build.ms || 0} ms`}</div>
             {warnings.length > 0 && <div class="warn-box">{warnings.map((w, i) => <div key={i}>⚠ {w}</div>)}</div>}
-            {ui.tab === 'inserts' && <div class="legend"><span class="sw ins" /> inserts (cut out of the model)</div>}
+            {ui.tab === 'inserts' && design.features.length > 0 && <div class="legend"><span class="dot ins" /> Orange = inserts: hollows cut into the model (dowel and rod channels, electronics bays)</div>}
+            {editingParts() && selPart?.op === 'paint' && <div class="legend"><span class="dot zone" /> Purple box = colour zone: what's inside prints in its filament (adds no material)</div>}
           </div>
           {showEditor && (
             <div class="editor" style={{ height: `${editorH}px` }}>

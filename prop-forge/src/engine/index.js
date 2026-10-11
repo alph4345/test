@@ -5,6 +5,8 @@ import { buildModel, TagMap, materialRegions, partitionByFilament } from './buil
 import { splitModel, fitPlate, printTransform } from './split.js';
 export { DOWELS } from './split.js';
 import { toBinarySTL } from './stl.js';
+import { profileOutline } from './parts.js';
+import { pointInPolys } from './geom2d.js';
 
 // Filament of every triangle, for the "colour by filament" view: filament
 // zones (op 'paint') first, then the part the triangle came from.
@@ -13,7 +15,9 @@ function zoneTester(design) {
   const zones = design.parts.filter((p) => p.op === 'paint' && !p.hidden).map((p) => {
     const r = (p.rot || [0, 0, 0]).map((d) => (d * Math.PI) / 180);
     const st = p.stretch || [1, 1, 1];
-    return { p, r, st, pos: (p.pos || [0, 0, 0]).map((v) => v * s) };
+    // flat (outline) zones, e.g. the edge line along a blade
+    const poly = p.type === 'profile' ? [profileOutline(p).map((q) => q.p)] : null;
+    return { p, r, st, poly, pos: (p.pos || [0, 0, 0]).map((v) => v * s) };
   });
   if (!zones.length) return null;
   const inv = (z, x, y, w) => {
@@ -39,6 +43,7 @@ function zoneTester(design) {
         const r = p.r1 + ((p.r2 ?? p.r1) - p.r1) * t;
         inside = Math.abs(b) <= p.height / 2 && a * a + c * c <= r * r;
       } else if (p.type === 'sphere') inside = a * a + b * b + c * c <= p.r * p.r;
+      else if (z.poly) inside = Math.abs(c) <= (+p.thickness || 10) / 2 && pointInPolys(z.poly, a, b);
       if (inside) hit = +p.filament || 1; // later zones win
     }
     return hit;
@@ -81,6 +86,23 @@ function meshData(m, tags) {
   return { verts, tris, triTags };
 }
 
+// One display mesh from several (one per filament).
+// (each has one `filament`, or per-triangle `triFilList`)
+function joinMeshData(list) {
+  const nv = list.reduce((a, d) => a + d.verts.length, 0), nt = list.reduce((a, d) => a + d.tris.length, 0);
+  const verts = new Float32Array(nv), tris = new Uint32Array(nt), triTags = new Int16Array(nt / 3), triFil = new Int8Array(nt / 3);
+  let v = 0, t = 0;
+  for (const d of list) {
+    verts.set(d.verts, v);
+    for (let i = 0; i < d.tris.length; i++) tris[t + i] = d.tris[i] + v / 3;
+    triTags.set(d.triTags, t / 3);
+    if (d.triFilList) triFil.set(d.triFilList, t / 3);
+    else triFil.fill(d.filament, t / 3, (t + d.tris.length) / 3);
+    v += d.verts.length; t += d.tris.length;
+  }
+  return { verts, tris, triTags, triFil };
+}
+
 // Split a solid into its loose bodies. Sealed internal voids (a dowel
 // channel that ends inside the model) come back from decompose() as
 // inside-out shells; they are put back into the body that encloses them.
@@ -112,7 +134,7 @@ export function runBuild(M, design, { mode = 'model', withStl = false } = {}) {
   return withArena(() => {
     const tags = new TagMap();
     const t0 = Date.now();
-    const { model, lids, warnings, materials, raws, separates } = buildModel(M, design, tags);
+    const { model, lids, warnings, materials, zones, raws, separates } = buildModel(M, design, tags);
     const plateR = design.split?.plate || DEFAULT_PLATE;
     const rawPieces = (raws || []).map((r) => {
       const fit = fitPlate(r.verts, plateR);
@@ -133,8 +155,8 @@ export function runBuild(M, design, { mode = 'model', withStl = false } = {}) {
     let reports = [];
     if (!hasModel) {
       // only separate parts
-    } else if (mode === 'split' && design.split?.cuts?.length) {
-      const res = splitModel(M, model, design.split.cuts, tags);
+    } else if (mode === 'split' && design.split?.cuts?.some((c) => !c.target)) {
+      const res = splitModel(M, model, design.split.cuts.filter((c) => !c.target), tags);
       reports = res.reports;
       res.pieces.forEach((p) => bodies.push({ m: p.m, kind: 'piece' }));
       res.extras.forEach((e) => bodies.push({ m: e.m, kind: e.kind, name: e.name }));
@@ -142,7 +164,16 @@ export function runBuild(M, design, { mode = 'model', withStl = false } = {}) {
       bodies.push({ m: model, kind: 'piece' });
     }
     lids.forEach((l) => bodies.push({ m: l.m, kind: 'lid', name: l.name, side: l.side }));
-    (separates || []).forEach((p) => bodies.push({ m: p.m, kind: 'piece', name: p.name, own: true }));
+    // separate pieces (a blade that slides into a socket, a staff) are cut
+    // by the cuts aimed at them
+    for (const p of separates || []) {
+      const own = mode === 'split' ? (design.split?.cuts || []).filter((c) => c.target === p.key) : [];
+      if (!own.length) { bodies.push({ m: p.m, kind: 'piece', name: p.name, own: true, resin: p.resin }); continue; }
+      const res = splitModel(M, p.m, own, tags);
+      reports = reports.concat(res.reports);
+      res.pieces.forEach((q, i) => bodies.push({ m: q.m, kind: 'piece', name: `${p.name} ${i + 1}`, own: true, resin: p.resin }));
+      res.extras.forEach((e) => bodies.push({ m: e.m, kind: e.kind, name: e.name }));
+    }
 
     const used = new Set(materials.map((x) => x.filament));
     const byFilament = mode === 'split' && design.split?.byFilament && used.size > 1;
@@ -151,7 +182,7 @@ export function runBuild(M, design, { mode = 'model', withStl = false } = {}) {
     const out = [];
     for (const b of bodies) {
       for (const m of b.kind === 'pins' ? [b.m] : separateBodies(M, b.m)) {
-        if (byFilament && b.kind !== 'pins') {
+        if (byFilament && b.kind !== 'pins' && !b.resin) {
           for (const part of partitionByFilament(M, m, regions)) {
             for (const mm of separateBodies(M, part.m)) out.push({ ...b, m: mm, filament: part.filament });
           }
@@ -165,9 +196,27 @@ export function runBuild(M, design, { mode = 'model', withStl = false } = {}) {
       || ((a.bb.min[0] + a.bb.max[0]) - (b.bb.min[0] + b.bb.max[0])));
     let n = 0;
     const zoneAt = zoneTester(design);
+    // with colour zones the preview is split exactly along the zone
+    // boundaries (as the export is), not triangle by triangle
+    const zoneBoxes = withStl ? [] : (zones || []).map((z) => ({ ...z, bb: z.solid.boundingBox() }));
+    const overlaps = (a, b) => [0, 1, 2].every((k) => a.min[k] <= b.max[k] && b.min[k] <= a.max[k]);
     const pieces = out.map((b) => {
-      const data = meshData(b.m, tags);
-      data.triFil = triFilaments(data, design, zoneAt);
+      let data;
+      const hits = b.kind !== 'pins' && !b.resin && !b.filament ? zoneBoxes.filter((z) => overlaps(z.bb, { min: b.bb.min, max: b.bb.max })) : [];
+      if (hits.length) {
+        // cut the colour zones out exactly (later zones win), the rest keeps its parts' filaments
+        const list = [];
+        let rest = b.m;
+        for (let i = hits.length - 1; i >= 0; i--) {
+          const q = rest.intersect(hits[i].solid);
+          if (!q.isEmpty() && q.volume() > 0.01) { list.push({ ...meshData(q, tags), filament: hits[i].filament }); rest = rest.subtract(hits[i].solid); }
+        }
+        if (!rest.isEmpty()) { const r = meshData(rest, tags); list.push({ ...r, triFilList: triFilaments(r, design, null) }); }
+        data = joinMeshData(list);
+      } else {
+        data = meshData(b.m, tags);
+        data.triFil = triFilaments(data, design, zoneAt);
+      }
       const fit = fitPlate(vertsOf(b.m.hull()), plate);
       // pieces are named after the part most of their surface comes from
       let name = b.name;
@@ -176,9 +225,11 @@ export function runBuild(M, design, { mode = 'model', withStl = false } = {}) {
         for (const t of data.triTags) if (t >= 0) counts.set(t, (counts.get(t) || 0) + 1);
         const top = [...counts.entries()].sort((x, y) => y[1] - x[1])[0];
         const partName = top ? design.parts[top[0]]?.name : null;
-        name = mode === 'split' ? `Piece ${++n}${partName ? ` (${partName})` : ''}` : (out.filter((o) => o.kind === 'piece').length > 1 && partName ? partName : 'Full model');
+        const loose = out.filter((o) => o.kind === 'piece' && !o.own).length > 1;
+        const main = out.some((o) => o.own) ? `${design.name || 'Model'} (main body)` : 'Full model';
+        name = mode === 'split' ? `Piece ${++n}${partName ? ` (${partName})` : ''}` : (loose && partName ? partName : main);
       }
-      const piece = { name, kind: b.kind, side: b.side, bbox: b.bb, volume: b.m.volume(), fit, filament: b.filament, ...data };
+      const piece = { name, kind: b.kind, side: b.side, bbox: b.bb, volume: b.m.volume(), fit, filament: b.filament, ...(b.resin ? { resin: true } : {}), ...data };
       if (withStl) {
         const tf = printTransform(data.verts, fit, plate);
         piece.stl = toBinarySTL(tf(data.verts), data.tris, name);
@@ -219,8 +270,9 @@ const r1 = (v) => Math.round(v * 10) / 10;
 export function autoSplit(M, design, opts = {}) {
   return withArena(() => {
     const tags = new TagMap();
-    const { model } = buildModel(M, design, tags);
-    if (!model || model.isEmpty()) return { cuts: [], message: 'Model is empty.' };
+    const { model: built, separates } = buildModel(M, design, tags);
+    const model = built && !built.isEmpty() ? built : null;
+    if (!model && !(separates || []).length) return { cuts: [], message: 'Model is empty.' };
     const plate = design.split?.plate || DEFAULT_PLATE;
     const allowance = opts.jointAllowance ?? 36; // room for tenons / tabs
     const cuts = [];
@@ -305,22 +357,38 @@ export function autoSplit(M, design, opts = {}) {
         if (cur >= y1 - 1) return;
       }
     };
-    // models that are already split into print pieces are handled piece by
-    // piece, so pieces that already fit are left alone
-    const bodies = separateBodies(M, model);
-    if (bodies.length > 1) for (const b of bodies) solve(b, false, 0);
-    else solve(model, true, 0);
-    // check with real joints (they add length) and re-cut what overflows
-    for (let round = 0; round < 2 && cuts.length; round++) {
-      const trial = cuts.map((c, i) => ({ ...c, id: `t${i}`, joints: [{ type: 'auto' }] }));
-      const { pieces } = splitModel(M, model, trial, tags);
-      const bad = pieces.filter((p) => !fits(p.m));
-      if (!bad.length) break;
-      for (const p of bad) solve(p.m, false, 0);
+    // cuts for one solid; models that are already split into print pieces
+    // are handled piece by piece, so pieces that already fit are left alone
+    const plan = (solid) => {
+      const from = cuts.length;
+      const bodies = separateBodies(M, solid);
+      if (bodies.length > 1) for (const b of bodies) solve(b, false, 0);
+      else solve(solid, true, 0);
+      // check with real joints (they add length) and re-cut what overflows
+      for (let round = 0; round < 2 && cuts.length > from; round++) {
+        const trial = cuts.slice(from).map((c, i) => ({ ...c, id: `t${i}`, joints: [{ type: 'auto' }] }));
+        const { pieces } = splitModel(M, solid, trial, tags);
+        const bad = pieces.filter((p) => !fits(p.m));
+        if (!bad.length) break;
+        for (const p of bad) solve(p.m, false, 0);
+      }
+      return cuts.slice(from);
+    };
+    const mainCuts = model ? plan(model) : [];
+    // pieces that print on their own (a blade that slides into a socket, a
+    // staff) get cuts of their own; resin pieces are left to the resin printer
+    for (const sep of separates || []) {
+      if (sep.resin || fits(sep.m)) continue;
+      const bb = sep.m.boundingBox();
+      for (const c of plan(sep.m)) {
+        c.target = sep.key; c.targetName = sep.name; c.limit ||= limitOf(bb);
+        if (sep.joint) c.joint = sep.joint; // e.g. a staff that screws together
+      }
     }
     if (!cuts.length) return { cuts: [], message: 'The whole model already fits your printer.' };
     // even out simple length-only splits
-    if (cuts.every((c) => c.axis === 'y' && !c.limit)) {
+    if (model && mainCuts.length && mainCuts.every((c) => c.axis === 'y' && !c.limit)) {
+      const cuts = mainCuts;
       const bb = model.boundingBox();
       const n = cuts.length;
       const even = Array.from({ length: n }, (_, i) => r1(bb.min[1] + ((bb.max[1] - bb.min[1]) * (i + 1)) / (n + 1)));

@@ -6,6 +6,9 @@ import { makeZip, download } from './zip.js';
 import { packMeshes } from './stlimport.js';
 import { Section, Help } from './controls.jsx';
 
+// pieces printed in filament (resin pieces are exported on their own)
+const fdm = (r) => r.pieces.map((p, i) => (p.resin ? -1 : i)).filter((i) => i >= 0);
+
 const safe = (s) => (s || 'prop').replace(/[^a-z0-9-_]+/gi, '_').replace(/^_|_$/g, '');
 const inch = (mm) => {
   const v = mm / 25.4;
@@ -16,7 +19,7 @@ const inch = (mm) => {
 
 export function shoppingList(design, reports) {
   const s = design.scale || 1;
-  const items = [];
+  const items = [...(design.meta?.notes || [])];
   for (const f of design.features || []) {
     if (f.hidden) continue;
     if (f.type === 'channel' && f.clearance > 0) {
@@ -75,17 +78,20 @@ export function ExportPanel() {
         if (format === '3mf') await download(piece3mf(r, [single]), `${safe(d.name)}_${base(p, single)}.3mf`);
         else await download(new Blob([p.stl], { type: 'model/stl' }), `${safe(d.name)}_${base(p, single)}.stl`);
       } else if (format === '3mf') {
-        await download(piece3mf(r, r.pieces.map((_, i) => i)), `${safe(d.name)}_all_pieces.3mf`);
+        await download(piece3mf(r, fdm(r)), `${safe(d.name)}_all_pieces.3mf`);
       } else {
         const files = [];
         r.pieces.forEach((p, i) => {
+          // resin pieces get their own folder and stay out of the filament projects
+          if (p.resin) { files.push({ name: `resin/${base(p, i)}.stl`, data: p.stl }); return; }
           files.push({ name: `stl/${base(p, i)}.stl`, data: p.stl });
           files.push({ name: `3mf/${base(p, i)}.3mf`, blob: piece3mf(r, [i]) });
           if (p.parts.length > 1) {
             for (const q of p.parts) files.push({ name: `stl_by_filament/${base(p, i)}__filament${q.filament}_${safe(fils[q.filament - 1]?.name || '')}.stl`, data: q.stl });
           }
         });
-        files.push({ name: `${safe(d.name)}_all_pieces.3mf`, blob: piece3mf(r, r.pieces.map((_, i) => i)) });
+        files.push({ name: `${safe(d.name)}_all_pieces.3mf`, blob: piece3mf(r, fdm(r)) });
+        const resin = r.pieces.filter((p) => p.resin);
         const readme = [
           `${d.name} — exported from Prop Forge`, '',
           `Printer bed: ${d.split.plate.x} × ${d.split.plate.y} × ${d.split.plate.z} mm (${d.split.plate.name || 'custom'})`,
@@ -96,7 +102,9 @@ export function ExportPanel() {
           '  stl/              one STL per piece (single filament, any slicer).',
           '  stl_by_filament/  the filament parts of multi-filament pieces as separate STLs. Load all files of one',
           '                    piece together and answer "yes" to "load as a single object with multiple parts".',
-          `  ${safe(d.name)}_all_pieces.3mf  every piece in one project; use Arrange to spread them over plates.`, '',
+          `  ${safe(d.name)}_all_pieces.3mf  every filament piece in one project; use Arrange to spread them over plates.`,
+          ...(resin.length ? ['  resin/            pieces for a resin printer (e.g. materia): STLs at real size, not hollowed or supported;',
+            '                    orient, hollow and support them in your resin slicer (Chitubox, Lychee).'] : []), '',
           'Filament slots:', ...fils.map((f, i) => `  ${i + 1}: ${f.name}`), '',
           'Pieces:', ...r.pieces.map((p, i) => `  ${base(p, i)}  ${p.parts.length > 1 ? `[filaments ${p.parts.map((q) => q.filament).join(', ')}]` : `[filament ${p.parts[0]?.filament || 1}]`}${p.fit.fits ? '' : '  (TOO BIG for this bed!)'}`), '',
           'Joints:', ...(r.reports || []).map((x, i) => `  Cut ${i + 1}: ${Array.from(new Set(x.notes)).join('; ')}`), '',
@@ -115,6 +123,7 @@ export function ExportPanel() {
   };
 
   const list = shoppingList(d, b.reports);
+  const resinCount = pieces.filter((p) => p.resin).length;
 
   return (
     <div>
@@ -129,14 +138,15 @@ export function ExportPanel() {
         </button>
         <Help>The ZIP holds a 3MF and an STL per piece (already laid flat for printing){multi ? ', STLs per filament,' : ''} a README with the joints and shopping list, and your project file.</Help>
         {multi && <Help>Multi-filament: in the 3MFs every filament is its own part with its slot (1–{fils.length}) set, ready for Snapmaker Orca on the U1. Load matching filaments into those toolheads.</Help>}
-        {hasCuts && pieces.length > 1 && (
+        {resinCount > 0 && <Help>{resinCount} resin piece{resinCount > 1 ? 's go' : ' goes'} in the ZIP's "resin" folder as STL, for your resin printer. They are left out of the 3MF projects.</Help>}
+        {pieces.length > 1 && (
           <ul class="pieces">
             {pieces.map((p, i) => (
               <li key={i}>
-                <span class="nm">{p.name}</span>
+                <span class="nm">{p.name}{p.resin ? ' (resin)' : ''}</span>
                 <span class={p.fit.fits ? 'good' : 'bad'}>{p.fit.fits ? '✓' : '✗'}</span>
-                <button class="link" disabled={busy} onClick={() => exportAll('split', i)}>STL</button>
-                <button class="link" disabled={busy} onClick={() => exportAll('split', i, '3mf')}>3MF</button>
+                <button class="link" disabled={busy} onClick={() => exportAll(hasCuts ? 'split' : 'model', i)}>STL</button>
+                {!p.resin && <button class="link" disabled={busy} onClick={() => exportAll(hasCuts ? 'split' : 'model', i, '3mf')}>3MF</button>}
               </li>
             ))}
           </ul>
