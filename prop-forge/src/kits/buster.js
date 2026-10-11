@@ -99,7 +99,7 @@ function ledFeatures(o, pt, ys, sc) {
 const LED_NOTES = [
   'Materia magnets: 16 × 4 × 2 mm neodymium discs (2 per seat face, 2 per dome). Check polarity before gluing: every dome must stick to its seat.',
   'LEDs: 2 × 5 mm wide-angle ("straw hat") or diffused LEDs in your materia colour, one resistor each (100 Ω on 3 × AAA for green / blue / white, 150 Ω for red / yellow), and a 2-pin JST-PH plug + socket per LED so they unplug at the bay.',
-  'Battery: a 3 × AAA box with a built-in switch (about 48 × 36 × 14 mm) fits the bay; or an 18650 holder (77 × 21 × 20 mm) with a protected cell and 68 Ω resistors. Two LEDs at 15 mA run about 30 hours on alkaline AAAs.',
+  'Battery: the bay is 40 mm wide, 24 mm deep and runs between the two materia (about 120 mm at full size). A 3 × AAA box with a built-in switch fits (measure yours: up to 38 × 22 mm across); so does an 18650 holder (77 × 21 × 20 mm) with a protected cell, using 68 Ω resistors for green / blue / white and 120 Ω for red / yellow. Two LEDs at 15 mA run about 30 hours on alkaline AAAs.',
 ];
 const LED_STEPS = [
   'LED materia: solder each LED to its resistor and JST plug with about 15 cm of thin wire, then feed the plug from the materia hole along the channel into the bay before the blade pieces are glued.',
