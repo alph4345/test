@@ -368,10 +368,13 @@ add `data-claimed="2026.06.28"` to it if it should show.
   wrapped onto a second line and covered the top of every page; it stays
   on one line now. Drawing the streets on the globe took up to half a
   second a frame in Chrome, which stalled opening a cache from close in
-  and pulling back out; a frame now takes milliseconds. A window's
-  after-images match its size when its contents change as it flies. The
-  guard against a phone's double tap opening a cache goes by when the taps
-  happened, not by when a busy page got to them.
+  and pulling back out; a frame now takes milliseconds, and the names on
+  the globe cost far less to place, so choosing a cache flies about twice
+  as smoothly on a slower phone. A name far off the screen no longer hides
+  one of the same name on it (Albany, New York hid Albany, California).
+  A window's after-images match its size when its contents change as it
+  flies. The guard against a phone's double tap opening a cache goes by
+  when the taps happened, not by when a busy page got to them.
 - **The build warns** when the `PN0VA` folder beside this one has a
   `drops.js` or `drops.css` different from this build's own: the page is
   then built from that folder's code, most likely an older version. Copy
@@ -888,6 +891,33 @@ Natural Earth's 1:10m countries, and every landmark drawn when the globe is
 aimed at it, but for seven in San Francisco under the drops · the globe
 turning at about 60 frames a second on a desktop and 47 on a phone · two
 builds in a row byte-identical · every page at 1440 and 390px, JavaScript
+on and off: no console errors, failed requests, sideways scrolling or
+outside requests.
+
+**2026.10.11**, clean and flat builds, desktop and phone: the world
+listing and plotting the caches; choosing one flying the globe in to its
+city, its prompt with OPEN CACHE alone, + going on down to street level,
+quick presses each counted (three within a quarter of a second, three
+doublings, at full speed and slowed six times), and 0 and the globe button back out;
+OPEN CACHE, the cache's page with its list of drops and no drop open; a
+drop opened by click, Enter and the arrow keys, its photos of the spot and
+of what was left turned by the arrows, the arrow keys and a swipe; CLOSE,
+Esc and Back closing it, Forward opening it again, another chosen in its
+place without a step in Back; WORLD MAP, Esc and Back out to the globe;
+links to caches, to drops and to ones that don't exist · the test copy's
+caches with several drops, claimed ones and photos of both kinds · the
+street map with + and − and the recentre button alone, a double-click on
+that centring the cache as one click does · 12 widths from 320 to 1920px,
+phones on their side and tablets: the list at the foot of the map,
+centred, or under it; a drop's three windows clear of each other and of
+the list, or a screen of their own with the way back on top; the site's
+nav on one line at every width · reduced motion and JavaScript off ·
+screen changes timed (about 1.4 seconds in, 1.3 out; a drop's windows 0.7
+in and 0.3 out) · a cache chosen with the processor slowed four times,
+before and after the new pass over the names: the flight to it about twice
+as smooth on a phone, the names drawn the same but for two a far one of
+the same name had hidden · two builds byte-identical · both preview kits,
+each served by its own preview · every page at 1440 and 390px, JavaScript
 on and off: no console errors, failed requests, sideways scrolling or
 outside requests.
 

@@ -1334,18 +1334,35 @@
     if (!(k in widths)) { ctx.font = font; widths[k] = ctx.measureText(text).width; }
     return widths[k];
   }
+  // A name's place as a unit vector, and what it is said once by (a town
+  // and a capital alike), worked out the first time it comes up
+  function placeOf(pl) {
+    if (!pl.u) {
+      var l = pl[2] * RAD, f = pl[3] * RAD, c = Math.cos(f);
+      pl.u = [c * Math.cos(l), c * Math.sin(l), Math.sin(f)];
+      pl.said = (pl[0] === "k" ? "t" : pl[0]) + pl[1].toLowerCase();
+    }
+    return pl.u;
+  }
   function drawPlaces(all, placed) {
-    var zw = Math.log2(R * view.zoom / 40.74) - LABEL_BIAS, centre = [view.lng, view.lat], cand = [], seen = {};
+    var zw = Math.log2(R * view.zoom / 40.74) - LABEL_BIAS, cand = [], seen = {};
+    // Only names that can be on the screen: no further round the globe than
+    // its corners (a point that far out sits the scale times the sine of it
+    // from the middle), nor than 1.2 radians, where they squeeze up on the
+    // horizon. Every frame looks through thousands of names; this is three
+    // multiplications each.
+    var reach = (Math.hypot(Math.max(CX, W - CX), Math.max(CY, H - CY)) + 42) / proj.scale();
+    var near = Math.cos(reach < 1 ? Math.min(1.2, Math.asin(reach)) : 1.2);
     all.forEach(function (pl) {
       if (pl[4] > zw || zw > pl[5] + 0.5) return;
-      // a town the street map names as well as Natural Earth: once
-      var said = pl[0] + pl[1].toLowerCase();
-      if (pl[0] === "t" || pl[0] === "k") { if (seen["t" + pl[1].toLowerCase()]) return; seen["t" + pl[1].toLowerCase()] = 1; }
-      else if (seen[said]) return;
-      else seen[said] = 1;
-      if (d3.geoDistance([pl[2], pl[3]], centre) > 1.2) return;   // squeezed on the horizon
+      var u = placeOf(pl);
+      if (u[0] * FC[0] + u[1] * FC[1] + u[2] * FC[2] < near) return;
       var p = proj([pl[2], pl[3]]);
       if (p[0] < -40 || p[0] > W + 40 || p[1] < -10 || p[1] > H + 10) return;
+      // a town the street map names as well as Natural Earth: once (of
+      // those on the screen, so one of the same name far off hides none)
+      if (seen[pl.said]) return;
+      seen[pl.said] = 1;
       cand.push({ pl: pl, x: p[0], y: p[1] });
     });
     // A landmark goes down as if it showed a zoom and a half sooner than it
