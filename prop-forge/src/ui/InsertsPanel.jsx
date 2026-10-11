@@ -40,18 +40,22 @@ function addFeature(kind) {
   if (kind === 'dowel') f = dowel('Handle dowel', handle.from.slice(), handle.to.slice(), 9.53);
   else if (kind === 'rod') f = dowel('Steel rod', handle.from.slice(), [handle.to[0], handle.to[1] + 200, handle.to[2]], 6, { clearance: 0.15 });
   else if (kind === 'bay') f = bay('Electronics bay', (meta.bayPos || [0, cy, 0]).slice(), (meta.baySize || [30, 60, 14]).slice(), { lid: { side: meta.baySide || '+z', ledge: 8, magnets: { enabled: true, diameter: 6.2, depth: 3.2 } } });
-  else if (kind === 'battery') f = bay('18650 battery bay', (meta.bayPos || [0, cy, 0]).slice(), [21, 70, 21], { lid: { side: meta.baySide || '+z', ledge: 7, magnets: { enabled: true, diameter: 5.2, depth: 2.2 } } });
+  // an 18650 holder is about 77 × 21 × 20 mm; leave room for its wires
+  else if (kind === 'battery') f = bay('18650 battery bay', (meta.bayPos || [0, cy, 0]).slice(), [24, 82, 22], { lid: { side: meta.baySide || '+z', ledge: 7, magnets: { enabled: true, diameter: 5.2, depth: 2.2 } } });
   else if (kind === 'wire') {
+    // 8 mm passes a 2–3 pin JST plug, so parts with lights can come apart
     const p = meta.bayPos || [0, cy, 0];
-    f = dowel('Wire channel', p.slice(), [p[0], p[1] + 150, p[2]], 6, { clearance: 0 });
+    f = dowel('Wire channel', p.slice(), [p[0], p[1] + 150, p[2]], 8, { clearance: 0 });
   } else if (kind === 'led') {
     const T = bladePart ? bladePart.thickness / 2 : 5;
     const ys = bladePart ? bladePart.points.map((q) => q.y) : [0, 600];
     const y0 = Math.min(...ys), y1 = Math.max(...ys);
     const len = (y1 - y0) * 0.75;
     const x = bladePart ? bladePart.pos[0] + (bladePart.symmetric ? 0 : (Math.min(...bladePart.points.map((q) => q.x)) + Math.max(...bladePart.points.map((q) => q.x))) / 2) : 0;
-    f = bay('LED strip groove', [x, y0 + (y1 - y0) * 0.45, T], [12, Math.round(len), 8], { lid: { enabled: false } });
-    f.lid.enabled = false;
+    // 10 mm LED strip: an 11 mm channel with 3 mm of air in front of the
+    // LEDs, under a cover printed in translucent filament (the "lid"), which
+    // sits flush on a 1.5 mm ledge
+    f = bay('LED strip channel', [x, y0 + (y1 - y0) * 0.45, T - 4], [11, Math.round(len), 6], { lid: { side: '+z', ledge: 1.5, clearance: 0.15, magnets: { enabled: false } } });
   }
   else if (kind === 'grip' || kind === 'loop') {
     f = mount(kind === 'grip' ? 'Hand grip' : 'Strap loop', kind, [0, cy], 0);
@@ -112,6 +116,10 @@ function FeatureEditor({ f, idx }) {
                 </div>
               )}
               {f.lid.magnets?.enabled && f.lid.ledge < f.lid.magnets.diameter + 1 && <Help warn>Ledge is narrower than the magnets; widen the ledge to at least {Math.ceil(f.lid.magnets.diameter + 1.5)} mm.</Help>}
+              <Num label="Switch hole" unit="mm Ø" placeholder="none" value={f.lid.switchHole?.d ?? null} min={3} max={25} step={0.1}
+                hint="A hole through the lid for a panel-mount switch, e.g. 7.2 for a 7 mm push button, 12.2 for a 12 mm one, 6.2 for a 6 mm toggle"
+                onChange={(v) => set((x) => { x.lid.switchHole = v ? { d: v, offset: x.lid.switchHole?.offset || [0, 0] } : null; }, 'sw')} />
+              {/LED strip/i.test(f.name) && <Help>Print the cover (it is exported as a lid piece) in clear or natural PETG / PLA so the strip glows through it. Lightly sand it for an even glow.</Help>}
             </>
           )}
         </>
@@ -168,7 +176,7 @@ export function InsertsPanel() {
           <button onClick={() => addFeature('bay')}>Electronics bay</button>
           <button onClick={() => addFeature('battery')}>18650 battery</button>
           <button onClick={() => addFeature('wire')}>Wire channel</button>
-          <button onClick={() => addFeature('led')}>LED strip groove</button>
+          <button onClick={() => addFeature('led')} title="Channel for a 10 mm LED strip with a translucent cover">LED strip channel</button>
           <button onClick={() => addFeature('grip')} title="D-handle you hold, e.g. on the back of a shield">Hand grip</button>
           <button onClick={() => addFeature('loop')} title="Bridge for a nylon or leather strap">Strap loop</button>
           <button onClick={() => addFeature('shieldset')} title="Forearm strap loops + hand grip">Shield straps set</button>

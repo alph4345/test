@@ -74,8 +74,23 @@ function lerpTable(table, y, slopeOut) {
   return v0 + ((v1 - v0) * (y - y0)) / (y1 - y0 || 1);
 }
 
+const smooth = (t) => (t <= 0 ? 0 : t >= 1 ? 1 : t * t * (3 - 2 * t));
+
 export function warpPoint(w, x, y, z) {
   if (!w) return [x, y, z];
+  // pull a corner of the outline out into a point (e.g. a blade's heel):
+  // y moves by d at (x0, y0), fading to nothing by x1 and by y1; it only
+  // ever stretches, so the mesh stays valid
+  if (w.heel) {
+    const h = w.heel;
+    y -= h.d * smooth((h.x1 - x) / (h.x1 - h.x0)) * smooth((h.y1 - y) / (h.y1 - h.y0));
+  }
+  // scale outward from an axis along Y, leaving a core (e.g. a tsuba's
+  // centre hole) as it is
+  if (w.radial) {
+    const r0 = w.radial, dx = x - (r0.cx || 0), dz = z - (r0.cz || 0), r = Math.hypot(dx, dz);
+    if (r > r0.core) { const f = (r0.core + (r - r0.core) * r0.k) / r; x = (r0.cx || 0) + dx * f; z = (r0.cz || 0) + dz * f; }
+  }
   const k = lerpTable(w.widths, y, false), t = lerpTable(w.thick, y, false);
   const cx = w.cx || 0, cz = w.cz || 0;
   // a core strip (e.g. a row of holes down the middle) keeps its width

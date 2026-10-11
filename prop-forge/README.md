@@ -18,17 +18,22 @@ Snapmaker U1 and template sizes) is in [RESEARCH.md](RESEARCH.md).
      (Buster Sword, Revolver Gunblade, Zangetsu V1, Tanjiro's katana, Maka's
      scythe; see [REFERENCES.md](REFERENCES.md)).
    * **Generate a weapon** rolls a new weapon of a general type (greatsword,
-     katana, cleaver sword, gunblade, scythe), drawn in the style of your
-     models.
+     katana, cleaver sword, scythe). Greatswords come with a choice of
+     blade shape, point, fuller, guard (cross, swept, winged, block, disc),
+     grip, pommel and parrying hooks; scythes have their own blade shapes
+     (reaper, hooked, broad, crescent) on a staff that comes apart.
    * You can also open any STL as a new project or start blank. The panel
      lists the weapons still waiting for a reference.
 2. **Customize**: options made for that weapon, with picture choices,
    sliders and colour slots. Examples: the Buster's materia (open, filament
-   or resin-printed, optionally hollow with 5 mm LED sockets, wire channels
-   and a battery bay in the hilt), the gunblade's revolver cylinder
+   or resin-printed; with LEDs the domes print hollow and come off on
+   magnets, and the blade gets LED sockets, wire channels and a battery bay
+   with a magnetic lid and a switch hole), the gunblade's revolver cylinder
    (chambers, flute style and length, chamber holes, turns on a pin),
-   Tanjiro's tsuba shapes and a silver edge line, Zangetsu's chain, and
-   Maka's printable blade with red teeth. Generated weapons have a
+   Tanjiro's tsuba shapes and diameter and a silver edge line, Zangetsu's
+   heel (pointed, or cut off as in the V1 file), and Maka's printable blade
+   with red teeth on a printed or bought staff. Cloth handle wraps are left
+   off the print (wrap them for real). Generated weapons have a
    *Generate another* button (and a 🎲 per option group). Proportions of
    your meshes (blade length, width, grip length) stretch the model without
    breaking it.
@@ -50,7 +55,9 @@ Snapmaker U1 and template sizes) is in [RESEARCH.md](RESEARCH.md).
 3. **Inserts**: handle dowel / steel rod channels (real dowel sizes such as
    3/8" and 1/2"), electronics and 18650 battery bays with a removable lid
    (the lid is printed as its own piece and keeps the surface shape, with
-   optional magnet pockets), wire channels and LED strip grooves, and
+   optional magnet pockets and a switch hole), wire channels and LED strip
+   grooves (11 mm wide for 10 mm strip, with a clip-on cover you print in
+   translucent filament), and
    **hardware**: hand grips and strap loops that reach down to a curved
    shield back.
 4. **Split**: choose your printer and press *Auto-split*. Pieces that print
@@ -71,7 +78,8 @@ Snapmaker U1 and template sizes) is in [RESEARCH.md](RESEARCH.md).
    Clearances are adjustable. *Clamshell handle* splits just the grip
    front/back so you can fit electronics.
 5. **Export**: ZIP of STLs and 3MFs laid out for the bed, a README with the
-   joint list, and a shopping list (dowel lengths, pins, magnets, LEDs).
+   joint list, a shopping list (dowel lengths, pins, magnets, LEDs,
+   resistors, batteries) and assembly steps for the lights.
    Resin pieces (e.g. materia) go in a separate `resin/` folder and stay out
    of the filament 3MF projects.
 
@@ -91,10 +99,11 @@ the page is opened from disk. UI is Preact + Three.js.
 
 ### Weapon kits
 
-Each weapon lives in `src/kits/` (`buster.js`, `gunblade.js`, `zangetsu.js`,
-`katana.js`, `scythe.js`). A file exports a **legendary** kit (the creator's
-mesh plus options of its own) and a **generator** kit (a parametric weapon
-of the same general type). A kit variant lists option groups (`choice`
+Each weapon lives in `src/kits/`. Legendary kits (the creator's mesh plus
+options of its own) are in `buster.js`, `gunblade.js`, `zangetsu.js`,
+`katana.js` and `scythe.js` (Maka). Generator kits (parametric weapons of a
+general type) are `greatsword.js`, `reaper.js` (scythe), and the second
+exports of `zangetsu.js` (cleaver) and `katana.js`. A kit variant lists option groups (`choice`
 with optional outline icons, `range`, `toggle`, `fil` for filament slots;
 see `src/kits/core.js`) and a `build(opts)` that returns a design. Parts it
 builds are rebuilt whenever an option changes. Parts and inserts that are
@@ -107,7 +116,9 @@ Parts are built with the helpers in `src/templates/helpers.js` and
 bundled model, optionally with a proportion `warp`), `zone()` (colour zone),
 plus `dowel()`/`bay()` inserts. Flags: `separate` prints a part as its own
 piece (a shared name groups several parts into one piece), `resin` exports
-it for a resin printer, and `target` aims a hole at one part. Units are mm.
+it for a resin printer, `reference` shows a part see-through without
+printing it (a bought rod, for instance), and `target` aims a hole at one
+part. Units are mm.
 Y runs up the weapon. `npm test` builds every kit, and many random rolls of
 each generator, and checks that nothing comes apart.
 

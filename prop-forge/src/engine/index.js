@@ -134,7 +134,7 @@ export function runBuild(M, design, { mode = 'model', withStl = false } = {}) {
   return withArena(() => {
     const tags = new TagMap();
     const t0 = Date.now();
-    const { model, lids, warnings, materials, zones, raws, separates } = buildModel(M, design, tags);
+    const { model, lids, warnings, materials, zones, raws, separates, refs } = buildModel(M, design, tags);
     const plateR = design.split?.plate || DEFAULT_PLATE;
     const rawPieces = (raws || []).map((r) => {
       const fit = fitPlate(r.verts, plateR);
@@ -149,7 +149,9 @@ export function runBuild(M, design, { mode = 'model', withStl = false } = {}) {
       return piece;
     });
     const hasModel = model && !model.isEmpty();
-    if (!hasModel && !(separates || []).length) return { pieces: rawPieces, warnings: warnings.length || rawPieces.length ? warnings : ['Model is empty.'], reports: [] };
+    // reference-only parts are shown but never printed, split or exported
+    const refPieces = withStl ? [] : (refs || []).map((r) => ({ name: r.name, kind: 'ref', bbox: bboxOf(r.m), volume: r.m.volume(), fit: { fits: true }, ...meshData(r.m, tags) }));
+    if (!hasModel && !(separates || []).length) return { pieces: rawPieces.concat(refPieces), warnings: warnings.length || rawPieces.length ? warnings : ['Model is empty.'], reports: [] };
     const plate = design.split?.plate || DEFAULT_PLATE;
     let bodies = [];
     let reports = [];
@@ -243,7 +245,7 @@ export function runBuild(M, design, { mode = 'model', withStl = false } = {}) {
       }
       return piece;
     });
-    return { pieces: pieces.concat(rawPieces), warnings, reports, ms: Date.now() - t0 };
+    return { pieces: pieces.concat(rawPieces, refPieces), warnings, reports, ms: Date.now() - t0 };
   });
 }
 
@@ -294,6 +296,15 @@ export function autoSplit(M, design, opts = {}) {
     };
     const limitOf = (bb) => ({ x: [r1(bb.min[0] - 1), r1(bb.max[0] + 1)], y: [r1(bb.min[1] - 1), r1(bb.max[1] + 1)], z: [r1(bb.min[2] - 1), r1(bb.max[2] + 1)] });
 
+    // lengths that cuts must not cross: compartments with lids and regions a
+    // kit marks (e.g. materia seats), plus a margin for the joint
+    const sc0 = design.scale || 1;
+    const keepOut = [
+      ...((design.meta?.keepOut || []).map(([a, b]) => [a * sc0, b * sc0])),
+      ...(design.features || []).filter((f) => f.type === 'cavity' && !f.hidden && f.lid?.enabled && f.size[1] < plate.y * 0.6)
+        .map((f) => [f.pos[1] * sc0 - f.size[1] / 2, f.pos[1] * sc0 + f.size[1] / 2]),
+    ].map(([a, b]) => [a - 12, b + 12]);
+    const blocked = (y) => keepOut.find(([a, b]) => y > a && y < b);
     const short = Math.min(plate.x, plate.y);
     const minSlab = short * 0.35; // slabs shorter than this mean "too wide, cut lengthwise"
     const widthAt = (m, y, thin) => { const sl = slab(m, 1, y, y + thin); if (sl.isEmpty()) return 0; const b = sl.boundingBox(); return b.max[0] - b.min[0]; };
@@ -337,6 +348,9 @@ export function autoSplit(M, design, opts = {}) {
         }
         if (lo - cur >= minSlab || lo - cur >= y1 - cur - 1) {
           if (stagger && guard === 1 && lo - cur >= 2 * minSlab) lo = cur + (lo - cur) / 2;
+          // move a cut that lands in a keep-out zone to just below it
+          const hit = lo < y1 - 1 && blocked(lo);
+          if (hit && hit[0] - cur >= minSlab * 0.5) lo = hit[0];
           cuts.push({ axis: 'y', pos: r1(lo), limit });
           cur = lo;
           continue;
@@ -394,7 +408,7 @@ export function autoSplit(M, design, opts = {}) {
       const even = Array.from({ length: n }, (_, i) => r1(bb.min[1] + ((bb.max[1] - bb.min[1]) * (i + 1)) / (n + 1)));
       let ok = true, prev = bb.min[1];
       for (const y of even.concat([bb.max[1] + 1])) {
-        if (!fits(slab(model, 1, prev, y), 1, y, y < bb.max[1] ? allowance : 0)) { ok = false; break; }
+        if (blocked(y) || !fits(slab(model, 1, prev, y), 1, y, y < bb.max[1] ? allowance : 0)) { ok = false; break; }
         prev = y;
       }
       if (ok) cuts.forEach((c, i) => { c.pos = even[i]; });

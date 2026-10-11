@@ -19,6 +19,8 @@ const TABS = [
 ];
 const AX = { x: 0, y: 1, z: 2 };
 
+const printable = (b) => b.pieces.filter((p) => p.kind !== 'ref').length;
+
 function unionBox(pieces) {
   if (!pieces.length) return null;
   const min = [Infinity, Infinity, Infinity], max = [-Infinity, -Infinity, -Infinity];
@@ -154,7 +156,7 @@ export function App() {
     setUI({ busy: true });
     previewBuild(design, { mode }, (r) => {
       setBuild({ ...r, mode, error: null });
-      const box = unionBox(r.pieces.filter((p) => p.kind === 'piece' || p.kind === 'raw'));
+      const box = unionBox(r.pieces.filter((p) => p.kind === 'piece' || p.kind === 'raw' || p.kind === 'ref'));
       if (mode === 'model' && box) setModelBox(box);
       if (box && (firstFit.current || store.ui.refit)) {
         vp.current.setGrid(box);
@@ -168,6 +170,7 @@ export function App() {
 
   // push build results into the scene
   const colorOf = (piece, index, tag, triFil) => {
+    if (piece.kind === 'ref') return '#8d949c'; // bought parts (e.g. a metal rod), shown but not printed
     const sel = store.ui.sel;
     const d = store.design;
     if (store.ui.colorBy === 'piece' && store.build.mode === 'split') return tag === -3 ? mix(pieceColor(index), '#000000', 0.25) : pieceColor(index);
@@ -320,8 +323,9 @@ export function App() {
                 <label class="chk"><input type="checkbox" checked={ui.editorOpen} onChange={(e) => setUI({ editorOpen: e.target.checked })} /> Outline editor</label>
               )}
             </div>
-            <div class={`status${ui.busy ? ' busy' : ''}`}>{ui.busy ? 'Building…' : `${build.pieces.length} ${build.pieces.length === 1 ? 'piece' : 'pieces'} · ${build.ms || 0} ms`}</div>
+            <div class={`status${ui.busy ? ' busy' : ''}`}>{ui.busy ? 'Building…' : `${printable(build)} ${printable(build) === 1 ? 'piece' : 'pieces'} · ${build.ms || 0} ms`}</div>
             {warnings.length > 0 && <div class="warn-box">{warnings.map((w, i) => <div key={i}>⚠ {w}</div>)}</div>}
+            {build.pieces.some((p) => p.kind === 'ref') && ui.tab !== 'inserts' && <div class="legend"><span class="dot ref" /> See-through grey = bought part (e.g. a metal rod), shown for size but not printed</div>}
             {ui.tab === 'inserts' && design.features.length > 0 && <div class="legend"><span class="dot ins" /> Orange = inserts: hollows cut into the model (dowel and rod channels, electronics bays)</div>}
             {editingParts() && selPart?.op === 'paint' && <div class="legend"><span class="dot zone" /> Purple box = colour zone: what's inside prints in its filament (adds no material)</div>}
           </div>

@@ -2,11 +2,13 @@
 // plus generated weapons of the same type.
 import { hasModel } from '../templates/models.js';
 import { defaultsOf, rng, newSeed, randomOpts } from './core.js';
-import { buster, greatsword } from './buster.js';
-import { gunblade, gunbladeGen } from './gunblade.js';
+import { buster } from './buster.js';
+import { gunblade } from './gunblade.js';
 import { zangetsu, cleaver } from './zangetsu.js';
 import { katana, katanaGen } from './katana.js';
-import { scythe, scytheGen } from './scythe.js';
+import { scythe } from './scythe.js';
+import { greatsword } from './greatsword.js';
+import { reaper } from './reaper.js';
 
 const modelReady = (kit) => kit.models.every(hasModel);
 
@@ -17,7 +19,7 @@ export const LEGENDARY = [buster, gunblade, zangetsu, katana, scythe].filter(mod
 
 // Generators: general weapon types that can be rolled at random, drawn in
 // the style of the creator's models.
-export const GENERATORS = [greatsword, katanaGen, cleaver, gunbladeGen, scytheGen];
+export const GENERATORS = [greatsword, katanaGen, cleaver, reaper];
 
 export const KITS = [...LEGENDARY, ...GENERATORS];
 

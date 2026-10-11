@@ -113,7 +113,7 @@ export function bay(name, pos, size, o = {}) {
 
 export function defaultFilaments() {
   return [
-    { name: 'Silver / grey', color: '#c3c8cf' },
+    { name: 'Silver / grey', color: '#9aa2ad' },
     { name: 'Black', color: '#2b2d31' },
     { name: 'Brown', color: '#7a4f2c' },
     { name: 'Gold', color: '#d4a63a' },

@@ -51,7 +51,7 @@ export function ExportPanel() {
   const [busy, setBusy] = useState(false);
   const d = store.design;
   const b = store.build;
-  const pieces = b.mode === 'split' ? b.pieces : b.pieces;
+  const pieces = b.pieces.filter((p) => p.kind !== 'ref');
   const bad = pieces.filter((p) => p.kind === 'piece' && !p.fit.fits).length;
   const hasCuts = d.split.cuts.length > 0;
 
@@ -111,6 +111,7 @@ export function ExportPanel() {
           'Shopping list:', ...shoppingList(d, r.reports).map((x) => `  - ${x}`), '',
           'Assembly: dry-fit everything first. Glue joints with CA or 5-minute epoxy (screw joints stay unglued),',
           'push the dowel/rod through the handle with epoxy, then fill seams with wood filler, sand and paint.',
+          ...((d.meta?.steps || []).length ? ['', 'Lights and fittings:', ...d.meta.steps.map((x) => `  - ${x}`)] : []),
         ].join('\n');
         files.push({ name: 'README.txt', data: new TextEncoder().encode(readme) });
         files.push({ name: `${safe(d.name)}.propforge.json`, data: new TextEncoder().encode(JSON.stringify({ ...d, meshes: packMeshes(d) }, null, 1)) });
@@ -159,6 +160,11 @@ export function ExportPanel() {
       <Section title="Shopping list">
         {list.length ? <ul class="bullets">{list.map((x, i) => <li key={i}>{x}</li>)}</ul> : <Help>Nothing extra needed: no dowels, pins or magnets in this design yet.</Help>}
       </Section>
+      {(d.meta?.steps || []).length > 0 && (
+        <Section title="Lights and fittings">
+          <ol class="bullets">{d.meta.steps.map((x, i) => <li key={i}>{x}</li>)}</ol>
+        </Section>
+      )}
       <Section title="Print & finish tips">
         <ul class="bullets">
           <li>Print blades flat or on edge (the export already does this), never standing on end: layer lines then run along the blade, which is the strong direction.</li>

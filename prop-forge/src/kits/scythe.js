@@ -1,13 +1,12 @@
-// Maka's scythe (Soul Eater). Model variant: the creator's topper and
-// Soul's cuff buttons (Thingiverse 1863433), plus a printable blade drawn
-// after the board blade in the creator's photos (black with a red toothed
-// edge) whose tab slides into the topper's blade slot. Generated variant:
-// a whole scythe of the same design.
+// Maka's scythe (Soul Eater): the creator's eye topper (Thingiverse
+// 1863433) on its staff, with a printable blade drawn after the board blade
+// in the creator's photos (black with a red toothed edge) whose tab slides
+// into the topper's blade slot.
 import { COLORS as C, P, blade, box, cyl, sphere, lathe, dowel, design, hole as holePart } from '../templates/helpers.js';
 import { choice, range, toggle, fil, group, sizeGroup, circlePoly, icon, hole, defaultsOf } from './core.js';
 import { meshPart, zone, palette, thumbOf } from './parts.js';
 
-const PALETTE = () => palette(['Black', '#2b2d31'], ['Red', '#c4262e'], ['Silver', '#c3c8cf'], ['White', '#ecebe6']);
+const PALETTE = () => palette(['Black', '#2b2d31'], ['Red', '#c4262e'], ['Silver', '#9aa2ad'], ['White', '#f7f7f4']);
 
 // Topper frame (the creator's model, printed at 150%): body r 22.5 on the
 // staff axis, blade slot on +x from y 52.5 to 157.5 and 15 mm wide.
@@ -95,22 +94,31 @@ const bladeGroup = (extra = []) => group('Blade', [
   ...extra,
 ]);
 
-const staffGroup = (def = 'rod') => group('Staff', [
+const staffGroup = (def = 'printed') => group('Staff (handle)', [
   choice('staff', 'Staff', [
-    { v: 'rod', label: '17 mm metal rod (not printed)' },
     { v: 'printed', label: 'Printed, comes apart' },
-  ], def, { random: false, hint: 'The topper fits a 17 mm (about 11/16 in) rod or tube. A printed staff is cut into screw-together pieces in the Split step.' }),
-  range('staffLen', 'Staff length', 900, 1700, 1400, { step: 10, show: (o) => o.staff === 'printed', random: false }),
+    { v: 'rod', label: '17 mm metal rod (bought)' },
+  ], def, { random: false, hint: 'A printed staff is cut into screw-together lengths in the Split step. A metal rod or tube (17 mm, about 11/16 in) is shown see-through for size and isn\'t printed; only its end cap is.' }),
+  range('staffLen', 'Staff length', 900, 1700, 1400, { step: 10, random: false, hint: 'Many conventions allow staffs and polearms up to about 180 cm overall.' }),
+  range('staffD', 'Staff thickness', 22, 36, 28, { unit: 'mm Ø', show: (o) => o.staff === 'printed', random: false }),
 ]);
 
 function staffParts(o, socketR = 8.5) {
-  if (o.staff !== 'printed') return [];
   const L = o.staffLen;
+  if (o.staff === 'rod') {
+    const r = socketR - 0.1;
+    return [
+      { ...cyl('Metal rod (17 mm, not printed)', r, r, L + 44, [0, -L / 2 + 22, 0], { color: C.steel }), reference: true },
+      { ...lathe('Staff end cap', [P(r + 0.25, -L + 22), P(r + 4, -L + 22), P(r + 5.5, -L - 4, 'c'), P(r + 1, -L - 22, 'c'), P(0, -L - 25)], { color: C.black, filament: o.fil_trim, separate: true }), id: 'endcap' },
+      cyl('End cap socket', r + 0.25, r + 0.25, 30, [0, -L + 7, 0], { op: 'subtract', target: 'endcap' }),
+    ];
+  }
+  const R = (o.staffD || 28) / 2;
   // one piece of its own (cut into screw-together lengths in the Split step)
   return [
-    { ...cyl('Staff', 15, 15, L, [0, -L / 2, 0], { color: C.steel, filament: o.fil_staff, separate: 'staff' }), joint: 'thread' },
+    { ...cyl('Staff', R, R, L, [0, -L / 2, 0], { color: C.steel, filament: o.fil_staff, separate: 'staff' }), joint: 'thread' },
     cyl('Staff peg', socketR - 0.3, socketR - 0.3, 48, [0, 20, 0], { color: C.steel, filament: o.fil_staff, separate: 'staff' }),
-    lathe('Staff end cap', [P(17, -L + 2), P(18, -L - 14, 'c'), P(10, -L - 30, 'c'), P(0, -L - 34)], { color: C.black, filament: o.fil_trim, separate: 'staff' }),
+    lathe('Staff end cap', [P(R + 2, -L + 2), P(R + 3, -L - 14, 'c'), P(R * 0.6, -L - 30, 'c'), P(0, -L - 34)], { color: C.black, filament: o.fil_trim, separate: 'staff' }),
   ];
 }
 
@@ -127,7 +135,7 @@ function eyeZones(o, { y, z, r, stretch }) {
 
 // ---------------------------------------------------------------------
 // Your model
-const MODEL_KEYS = ['maka_top', 'maka_shim', 'maka_shim2', 'maka_button', 'maka_pin'];
+const MODEL_KEYS = ['maka_top', 'maka_shim', 'maka_shim2'];
 
 const modelVariant = {
   label: 'Your model',
@@ -142,8 +150,7 @@ const modelVariant = {
       toggle('eyeColour', 'Print the eye in colour (white, red iris, black pupil)', true, { random: false }),
       toggle('bandColour', 'Black band at the bottom', true, { random: false }),
     ]),
-    staffGroup('rod'),
-    group('Extras', [toggle('buttons', 'Soul\'s cuff buttons', true, { random: false })]),
+    staffGroup('printed'),
     group('Colours', [
       fil('fil_top', 'Topper', 3), fil('fil_blade', 'Blade', 1, { show: (o) => !o.board }), fil('fil_teeth', 'Teeth', 2, { show: (o) => o.teethOn && !o.board }),
       fil('fil_eye', 'Eye white', 4, { show: (o) => o.eyeColour }), fil('fil_iris', 'Iris', 2, { show: (o) => o.eyeColour }),
@@ -161,79 +168,7 @@ const modelVariant = {
       parts.push({ ...meshPart('Blade shim (2 mm)', 'maka_shim', { color: C.wood, filament: o.fil_top, separate: true }), pos: [-240, -230, 0] });
       parts.push({ ...meshPart('Blade shim (3 mm)', 'maka_shim2', { color: C.wood, filament: o.fil_top, separate: true }), pos: [-240, -230, 0] });
     }
-    if (o.buttons) {
-      // laid out behind the topper
-      parts.push({ ...meshPart('Cuff button', 'maka_button', { color: C.white, filament: o.fil_eye, separate: true }), pos: [-260, -40, 0] });
-      parts.push({ ...meshPart('Cuff button pin', 'maka_pin', { color: C.dark, filament: o.fil_trim, separate: true }), pos: [-260, -40, 0] });
-    }
     const d = design('Maka\'s Scythe', parts, { meta: { bayPos: [0, 120, 0], baySize: [14, 60, 14] } });
-    d.filaments = PALETTE();
-    return d;
-  },
-};
-
-// ---------------------------------------------------------------------
-// Generated: topper, blade and staff
-const EYES = { almond: { r: 15, stretch: 3.5 }, round: { r: 17, stretch: 1.4 }, slit: { r: 12, stretch: 4.6 } };
-
-const eyeIcon = (e) => {
-  const s = EYES[e];
-  const body = [[-9, -14], [9, -14], [9, 14], [-9, 14]];
-  if (!s) return icon(body);
-  const k = 7.5 / s.r;
-  const eye = circlePoly(s.r * k * 0.8, 32).map(([x, y]) => [x, y * Math.min(1.8, s.stretch * 0.5)]);
-  return icon(body, { poly: eye, color: '#ecebe6' }, { poly: circlePoly(2.6, 16).map(([x, y]) => [x, y * Math.min(1.8, s.stretch * 0.5)]), color: '#c4262e' });
-};
-
-const generatedVariant = {
-  label: 'Scythe',
-  groups: () => [
-    sizeGroup(),
-    bladeGroup(),
-    group('Topper', [
-      choice('eye', 'Eye on the topper', ['none', 'almond', 'round', 'slit'].map((v) => ({ v, label: v[0].toUpperCase() + v.slice(1), icon: eyeIcon(v), weight: v === 'none' ? 3 : 1 })), 'none'),
-      range('topH', 'Topper height', 140, 230, 178, { rand: [160, 200] }),
-      range('finHoles', 'Holes in the back fin', 0, 4, 2, { unit: '', rand: [0, 4] }),
-      toggle('eyeColour', 'Print the eye in colour', true, { random: false, show: (o) => o.eye !== 'none' }),
-      toggle('bandColour', 'Dark band at the bottom', true),
-    ]),
-    staffGroup('printed'),
-    group('Colours', [
-      fil('fil_top', 'Topper', 3), fil('fil_blade', 'Blade', 1), fil('fil_teeth', 'Teeth', 2, { show: (o) => o.teethOn }),
-      fil('fil_eye', 'Eye white', 4, { show: (o) => o.eyeColour && o.eye !== 'none' }), fil('fil_iris', 'Iris', 2, { show: (o) => o.eyeColour && o.eye !== 'none' }),
-      fil('fil_trim', 'Pupil, band, end cap', 1), fil('fil_staff', 'Staff', 3, { show: (o) => o.staff === 'printed' }),
-    ]),
-  ],
-  build(o) {
-    const r = 22.5, H = o.topH, k = H / 178.5;
-    const slot = { y0: 52.5 * k, y1: 157.5 * k, w: 15, depth: 22 };
-    const bodyId = 'topper';
-    const cap = 15;
-    const parts = [{
-      ...lathe('Topper', [P(r, 0), P(r, H - cap - 1.5), P(r - 1.5, H - cap - 1.5), P(r - 1.5, H - cap), P(r, H - cap), P(r, H - 1.2), P(r - 1.2, H)], { color: C.steel, filament: o.fil_top, sides: 72 }),
-      id: bodyId,
-    }];
-    parts.push(box('Blade slot', [slot.depth + 10, slot.y1 - slot.y0, slot.w], [r - slot.depth + (slot.depth + 10) / 2, (slot.y0 + slot.y1) / 2, 0], { op: 'subtract', target: bodyId }));
-    parts.push(box('Cap slot', [9, 10, 2 * r + 4], [0, H - 4, 0], { op: 'subtract', target: bodyId }));
-    parts.push(cyl('Rod socket', 8.5, 8.5, 90, [0, 0, 0], { op: 'subtract', target: bodyId }));
-    // back fin with holes
-    const finId = 'fin';
-    parts.push({ ...blade('Back fin', [P(-r + 2, slot.y0), P(-r + 2, slot.y1), P(-r - 22, slot.y1), P(-r - 22, slot.y0 + 38), P(-r - 8, slot.y0 + 14, 'c'), P(-r - 3, slot.y0)], { thickness: 15, edge: 15, bevel: 0, color: C.steel, filament: o.fil_top }), id: finId });
-    const nh = o.finHoles | 0;
-    for (let i = 0; i < nh; i++) {
-      const y = slot.y1 - 15 - i * ((slot.y1 - slot.y0 - 45) / Math.max(1, nh - 1 || 1));
-      parts.push(holePart(`Fin hole ${i + 1}`, 6.75, [-r - 11, nh === 1 ? (slot.y0 + slot.y1) / 2 + 10 : y, 0], 30, { target: finId }));
-    }
-    // eyes on both faces
-    const e = EYES[o.eye];
-    if (e) {
-      for (const s of [-1, 1]) parts.push({ ...sphere('Eye', e.r, [0, 105 * k, s * 15]), stretch: [1, e.stretch * k, 1], color: C.white, filament: o.fil_top });
-      if (o.eyeColour) parts.push(...eyeZones(o, { y: 105 * k, z: 15, r: e.r, stretch: e.stretch * k }));
-    }
-    if (o.bandColour) parts.push(zone('Bottom band', cyl('', 24, 24, slot.y0 - 6, [0, (slot.y0 - 6) / 2, 0]), o.fil_trim));
-    parts.push(...bladeParts(o, slot, r));
-    parts.push(...staffParts(o));
-    const d = design('Scythe', parts, { meta: { bayPos: [0, 120, 0], baySize: [14, 60, 14] } });
     d.filaments = PALETTE();
     return d;
   },
@@ -242,7 +177,7 @@ const generatedVariant = {
 export const scythe = {
   id: 'maka-scythe-parts',
   name: 'Maka\'s Scythe', category: 'Soul Eater', source: 'Soul Eater',
-  blurb: 'Your eye topper with a printable blade (red teeth in a second filament) that slides into its slot, plus Soul\'s cuff buttons.',
+  blurb: 'Your eye topper on its staff, with a printable blade (red teeth in a second filament) that slides into the topper\'s slot.',
   credit: 'Your model · thingiverse.com/thing:1863433 (blade drawn from your photos)',
   models: MODEL_KEYS,
   // topper plus the default printed blade
@@ -250,10 +185,3 @@ export const scythe = {
   variants: { model: modelVariant },
 };
 
-export const scytheGen = {
-  id: 'gen-scythe', generator: true,
-  name: 'Scythe', type: 'scythe',
-  blurb: 'Blade shape, toothed two-colour edge, topper and a take-apart printed staff.',
-  models: [],
-  variants: { generated: generatedVariant },
-};

@@ -104,7 +104,9 @@ export class Viewport {
       // creased normals look best but are slow on very dense meshes
       if (p.tris.length / 3 > 150000) { g = g.toNonIndexed(); g.computeVertexNormals(); } else g = toCreasedNormals(g, Math.PI / 15);
       g.setAttribute('color', new THREE.BufferAttribute(new Float32Array(p.tris.length * 3), 3));
-      const mesh = new THREE.Mesh(g, mat);
+      // reference parts (not printed) are drawn see-through
+      const refMat = this.refMaterial || (this.refMaterial = new THREE.MeshStandardMaterial({ vertexColors: true, metalness: 0.2, roughness: 0.6, transparent: true, opacity: 0.35, depthWrite: false }));
+      const mesh = new THREE.Mesh(g, p.kind === 'ref' ? refMat : mat);
       mesh.userData = { piece: p, index: i };
       if (offsets && offsets[i]) mesh.position.fromArray(offsets[i]);
       this.modelGroup.add(mesh);

@@ -1,11 +1,10 @@
 // Revolver gunblade (Final Fantasy VIII). Model variant: the creator's own
 // model (Thingiverse 3825730) with a rebuilt, fluted revolver cylinder.
-// Also the generic "gunblade" generator.
 import { COLORS as C, P, blade, flat, cyl, dowel, design, hole as holePart } from '../templates/helpers.js';
 import { choice, range, toggle, fil, group, sizeGroup, sectionWarp, circlePoly, icon, hole } from './core.js';
 import { meshPart, palette, thumbOf, revolver, pillow, clipAbove, xy } from './parts.js';
 
-const PALETTE = () => palette(['Silver', '#c3c8cf'], ['Gunmetal', '#4a4f57'], ['Black', '#2b2d31'], ['Gold', '#d4a63a']);
+const PALETTE = () => palette(['Silver', '#9aa2ad'], ['Gunmetal', '#4a4f57'], ['Black', '#2b2d31'], ['Gold', '#d4a63a']);
 
 // ---- revolver cylinder options (shared by both variants) ----
 function cylinderIcon(n, style, holes = true) {
@@ -123,174 +122,6 @@ const modelVariant = {
   },
 };
 
-// ---------------------------------------------------------------------
-// Generated
-function bladeOutline(o, yB) {
-  const L = o.bladeLen, W = o.bladeWidth;
-  const sx = W * 0.47, ex = -W * 0.53; // spine (+x) and edge (-x) at the base
-  const narrow = (o.taper / 100) * W * 0.45;
-  const yT = yB + L;
-  const pts = [P(ex, yB, 's')];
-  const ex2 = ex + narrow;
-  const tip = o.tip;
-  const notch = o.spineNotch ? [P(sx, yB + 30), P(sx - 4, yB + 37), P(sx + 1.5, yB + 43)] : [];
-  if (tip === 'revolver') {
-    // narrow point near the spine, with a stepped spine
-    pts.push(P(ex2, yB + L * 0.55, 'sc'), P(ex2 + W * 0.2, yB + L * 0.82, 'sc'), P(sx - W * 0.17, yT, 's'), P(sx - W * 0.13, yT));
-    pts.push(P(sx - W * 0.13, yT - L * 0.13), P(sx - 2, yT - L * 0.2, 'c'), P(sx, yT - L * 0.26));
-  } else if (tip === 'clip') {
-    pts.push(P(ex2, yB + L * 0.62, 'sc'), P(ex2 + W * 0.12, yB + L * 0.86, 'sc'), P((ex2 + sx) / 2 - W * 0.05, yT, 's'));
-    pts.push(P(sx - W * 0.22, yT - L * 0.1, 'sc'), P(sx, yT - L * 0.2, 's'));
-  } else if (tip === 'spear') {
-    const mid = (ex2 + sx) / 2;
-    pts.push(P(ex2, yT - W * 1.4, 'sc'), P(mid, yT, 's'), P(sx, yT - W * 1.4, 's'));
-  } else { // chisel: straight cut from the spine down to the edge
-    pts.push(P(ex2, yT - W * 1.1, 's'), P(sx, yT, 's'));
-  }
-  pts.push(...notch.reverse());
-  pts.push(P(sx, yB));
-  return pts;
-}
-
-function tipIcon(tip) {
-  const o = { bladeLen: 500, bladeWidth: 80, taper: 45, tip, spineNotch: false };
-  return icon(clipAbove(xy(bladeOutline(o, 0)), 330));
-}
-
-function gripOutline(o, top) {
-  const a = (o.gripAngle * Math.PI) / 180;
-  const dir = [-Math.sin(a), -Math.cos(a)], n = [Math.cos(a), -Math.sin(a)]; // n points to the back (+x)
-  const Lg = o.gripLen;
-  const left = [], right = [];
-  const N = 8;
-  for (let i = 0; i <= N; i++) {
-    const t = i / N;
-    const bend = 6 * Math.sin(Math.PI * t);
-    const c = [top[0] + dir[0] * Lg * t - n[0] * bend, top[1] + dir[1] * Lg * t - n[1] * bend];
-    let wb = 21 - 4 * Math.sin(Math.PI * Math.min(1, t * 1.6)), wf = 21 - 3 * Math.sin(Math.PI * Math.min(1, t * 1.4));
-    if (o.butt === 'flared' && t > 0.6) wf += 14 * ((t - 0.6) / 0.4) ** 1.6;
-    if (o.butt === 'flared' && t > 0.75) wb += 3 * ((t - 0.75) / 0.25);
-    right.push([c[0] + n[0] * wb, c[1] + n[1] * wb]);
-    left.push([c[0] - n[0] * wf, c[1] - n[1] * wf]);
-  }
-  const end = [top[0] + dir[0] * Lg, top[1] + dir[1] * Lg];
-  const cap = [];
-  if (o.butt === 'round') {
-    for (let i = 1; i < 6; i++) {
-      const t = i / 6, b = Math.PI * t;
-      cap.push([end[0] + n[0] * 19 * Math.cos(b) + dir[0] * 10 * Math.sin(b), end[1] + n[1] * 19 * Math.cos(b) + dir[1] * 10 * Math.sin(b)]);
-    }
-  }
-  // CCW: down the back (+x side), across the butt, up the front
-  const poly = [...right, ...cap, ...left.reverse()];
-  return { points: poly.map(([x, y], i) => P(x, y, i === 0 || i === poly.length - 1 ? '' : 'c')), end, dir, n };
-}
-
-function gripIcon(butt) {
-  return icon(xy(gripOutline({ gripAngle: 17, gripLen: 165, butt }, [0, 0]).points));
-}
-
-const generatedVariant = {
-  label: 'Gunblade',
-  base: { length: 863 },
-  groups: () => [
-    sizeGroup(),
-    group('Blade', [
-      choice('tip', 'Tip', [
-        { v: 'revolver', label: 'Stepped spine', icon: tipIcon('revolver') },
-        { v: 'clip', label: 'Clip point', icon: tipIcon('clip') },
-        { v: 'spear', label: 'Spear point', icon: tipIcon('spear') },
-        { v: 'chisel', label: 'Angled cut', icon: tipIcon('chisel') },
-      ], 'revolver'),
-      range('bladeLen', 'Blade length', 380, 720, 515, { step: 5, rand: [430, 640] }),
-      range('bladeWidth', 'Blade width', 55, 115, 81, { rand: [62, 100] }),
-      range('taper', 'Narrows toward the tip', 0, 80, 45, { unit: '%' }),
-      range('thickness', 'Thickness', 10, 20, 15, { step: 0.5, rand: [12, 17] }),
-      range('bevel', 'Edge grind width', 6, 30, 18, { rand: [10, 24], hint: 'How far in from the edge the bevel starts' }),
-      toggle('spineNotch', 'Notch in the spine', true),
-    ]),
-    cylinderOptions([
-      range('cylD', 'Cylinder diameter', 40, 58, 51.4, { step: 0.5, rand: [44, 56] }),
-      range('cylL', 'Cylinder length', 46, 72, 64, { rand: [52, 70] }),
-    ]),
-    group('Frame and grip', [
-      choice('guard', 'Trigger guard', [{ v: 'classic', label: 'Angular' }, { v: 'ring', label: 'Round' }, { v: 'none', label: 'None' }], 'classic'),
-      choice('hammer', 'Hammer', [{ v: 'spur', label: 'Spur' }, { v: 'round', label: 'Round' }, { v: 'none', label: 'None' }], 'spur'),
-      choice('butt', 'Grip end', [
-        { v: 'flared', label: 'Flared', icon: gripIcon('flared') },
-        { v: 'round', label: 'Rounded', icon: gripIcon('round') },
-        { v: 'straight', label: 'Square', icon: gripIcon('straight') },
-      ], 'flared'),
-      range('gripAngle', 'Grip angle', 5, 32, 17, { unit: '°', rand: [10, 26] }),
-      range('gripLen', 'Grip length', 120, 200, 165, { rand: [140, 185] }),
-      toggle('ring', 'Ring for a chain charm', true, { p: 0.6 }),
-      choice('barrel', 'Barrel along the spine', [{ v: 'none', label: 'None' }, { v: 'short', label: 'Short' }, { v: 'long', label: 'Long' }], 'short'),
-    ]),
-    rodGroup(),
-    colourGroup(),
-  ],
-  build(o) {
-    const R = o.cylD / 2, L = o.cylL;
-    const yb = 0; // bottom of the frame
-    const cy = yb + 14 + L / 2;
-    const yTop = cy + L / 2 + 70;
-    const xl = -R - 8, xr = R + 11;
-    const W = o.bladeWidth, sx = W * 0.47, ex = -W * 0.53;
-    const frameId = 'frame';
-    const parts = [];
-    // blade, starting 12 mm inside the frame
-    parts.push(blade('Blade', bladeOutline(o, yTop - 12), { thickness: o.thickness, edge: 2.4, bevel: o.bevel, color: C.steel, filament: o.fil_blade, tipThickness: o.thickness * 0.75 }));
-    // frame
-    const frame = flat('Frame', [
-      P(xl + 6, yb), P(xr - 4, yb), P(xr, yb + 6), P(xr, cy + L / 2 + 8), P(xr - 3, cy + L / 2 + 16), P(xr - 3, yTop - 14),
-      P(Math.max(xr - 3, sx), yTop - 6), P(sx + 1, yTop), P(ex - 1, yTop), P(ex - 1, yTop - 10),
-      P(Math.min(xl + 4, ex + 10), yTop - 26, 'c'), P(xl + 4, cy + L / 2 + 22, 'c'), P(xl, cy + L / 2 + 8), P(xl, yb + 10),
-    ], 16, { color: C.dark, filament: o.fil_frame });
-    parts.push({ ...frame, id: frameId });
-    parts.push(flat('Cylinder window', [P(-R - 0.8, cy - L / 2 - 1), P(R + 0.8, cy - L / 2 - 1), P(R + 0.8, cy + L / 2 + 1), P(-R - 0.8, cy + L / 2 + 1)], 60, { op: 'subtract', target: frameId }));
-    // trigger guard and trigger
-    if (o.guard !== 'none') {
-      const gy0 = yb - 6, gy1 = cy + 4, gx = xl - 34;
-      const outer = o.guard === 'ring'
-        ? circlePoly((gy1 - gy0) / 2, 28, xl - 8, (gy0 + gy1) / 2).map(([x, y]) => P(x, y, 'c'))
-        : [P(xl + 4, gy0), P(xl + 4, gy1), P(xl - 12, gy1 + 2), P(gx + 6, gy1 - 6), P(gx, gy0 + 14), P(gx + 4, gy0 + 4), P(xl - 14, gy0 - 6)];
-      const cxg = outer.reduce((s, p) => s + p.x, 0) / outer.length, cyg = outer.reduce((s, p) => s + p.y, 0) / outer.length;
-      const inner = outer.map((p) => { const dx = p.x - cxg, dy = p.y - cyg, l = Math.hypot(dx, dy) || 1; const k = Math.max(0.2, (l - 8) / l); return P(cxg + dx * k, cyg + dy * k, p.c ? 'c' : ''); });
-      const guardId = 'guard';
-      parts.push({ ...pillow('Trigger guard', outer, 12, { filament: o.fil_frame }), id: guardId });
-      parts.push(flat('Trigger guard opening', inner, 40, { op: 'subtract', target: guardId }));
-      parts.push(flat('Trigger', [P(xl + 2, cy - 10), P(xl - 12, cy - 18, 'c'), P(xl - 15, cy - 32, 'c'), P(xl - 9, cy - 42), P(xl - 6, cy - 30, 'c'), P(xl + 2, cy - 22)], 6, { color: C.dark, filament: o.fil_frame }));
-    }
-    if (o.hammer === 'spur') parts.push(flat('Hammer', [P(xr - 8, yb + 20), P(xr - 6, yb + 4), P(xr + 6, yb - 6), P(xr + 16, yb - 8), P(xr + 9, yb + 2), P(xr + 2, yb + 22)], 9, { color: C.dark, filament: o.fil_frame }));
-    if (o.hammer === 'round') parts.push(cyl('Hammer', 9, 9, 9, [xr - 2, yb + 4, 0], { rot: [90, 0, 0], color: C.dark, filament: o.fil_frame }));
-    // cylinder and pin
-    parts.push(...cylinderParts(o, { cx: 0, cy, R, L, frameId }));
-    // grip
-    const g = gripOutline(o, [(xl + xr) / 2 - 10, yb + 12]);
-    parts.push(pillow('Grip', g.points, 22, { color: C.wrap, filament: o.fil_grip, round: 6 }));
-    if (o.ring) {
-      const c = [g.end[0] + g.dir[0] * 4 - g.n[0] * 10, g.end[1] + g.dir[1] * 4 - g.n[1] * 10];
-      parts.push({ ...cyl('Charm ring', 9, 9, 6, [c[0], c[1], 0], { rot: [90, 0, 0], color: C.steel, filament: o.fil_cyl }), id: 'ring' });
-      parts.push(holePart('Charm ring hole', 5, [c[0], c[1], 0], 20, { target: 'ring' }));
-    }
-    // barrel lying along the spine, with a bore at the muzzle
-    if (o.barrel !== 'none') {
-      const len = o.barrel === 'long' ? o.bladeLen * 0.55 : o.bladeLen * 0.28;
-      const br = Math.min(11, o.thickness * 0.6 + 2);
-      const bx = sx + br * 0.45;
-      const y0b = cy + L / 2 + 6, y1b = yTop + len;
-      parts.push({ ...cyl('Barrel', br, br, y1b - y0b, [bx, (y0b + y1b) / 2, 0], { color: C.dark, filament: o.fil_frame }), id: 'barrel' });
-      parts.push(cyl('Muzzle ring', br + 2, br + 2, 10, [bx, y1b - 5, 0], { color: C.dark, filament: o.fil_frame }));
-      parts.push(cyl('Bore', br * 0.45, br * 0.45, 30, [bx, y1b, 0], { op: 'subtract', color: C.dark }));
-    }
-    const midX = (sx + ex) / 2 + W * 0.05;
-    const features = o.rod === 'none' ? [] : [dowel('Blade rod', [midX, cy + L / 2 + 14, 0], [midX, yTop + o.bladeLen * 0.7, 0], +o.rod, { id: 'k-rod' })];
-    const d = design('Gunblade', parts, { features, meta: { bayPos: [0, yTop - 30, 0], baySize: [40, 40, 12] } });
-    d.filaments = PALETTE();
-    return d;
-  },
-};
-
 export const gunblade = {
   id: 'revolver-gunblade-model',
   name: 'Revolver Gunblade', category: 'Final Fantasy', source: 'Final Fantasy VIII',
@@ -301,10 +132,3 @@ export const gunblade = {
   variants: { model: modelVariant },
 };
 
-export const gunbladeGen = {
-  id: 'gen-gunblade', generator: true,
-  name: 'Gunblade', type: 'gunblade',
-  blurb: 'A blade on a revolver frame: tip, cylinder, guard, hammer, grip and barrel styles.',
-  models: [],
-  variants: { generated: generatedVariant },
-};

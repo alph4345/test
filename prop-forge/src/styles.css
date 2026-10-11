@@ -228,3 +228,4 @@ button.dice { padding: 8px 10px; font-size: 13.5px; }
 .card-gen { color: var(--accent); font-size: 10.5px; margin-top: 2px; }
 .dot.zone { background: #9b6bff; border-radius: 3px; }
 .legend { max-width: calc(100% - 20px); }
+.dot.ref { background: #8d949c; opacity: .6; border-radius: 3px; }

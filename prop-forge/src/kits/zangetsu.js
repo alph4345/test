@@ -1,11 +1,11 @@
-// Zangetsu (Bleach, Shikai). Model variant: the creator's unreleased V1
-// (file units, scaled up). Generated variant: a cleaver blade in the same
-// style: no guard, wrapped tang, optional chain.
+// Zangetsu (Bleach, Shikai): the creator's unreleased V1 (file units,
+// scaled up), with a pointed or cut-off heel. Also the generic "cleaver
+// sword" generator: no guard, tang handle to wrap in cloth.
 import { COLORS as C, P, blade, box, ring, dowel, design } from '../templates/helpers.js';
 import { choice, range, toggle, fil, group, sizeGroup, sectionWarp, icon } from './core.js';
-import { meshPart, zone, palette, thumbOf, pillow, xy } from './parts.js';
+import { meshPart, palette, thumbOf, pillow, xy } from './parts.js';
 
-const PALETTE = () => palette(['Silver', '#c3c8cf'], ['White (wrap)', '#ecebe6'], ['Black', '#2b2d31'], ['Red', '#a3262a']);
+const PALETTE = () => palette(['Silver', '#9aa2ad'], ['White', '#f7f7f4'], ['Black', '#2b2d31'], ['Red', '#a3262a']);
 const UNIT = 1700 / 270.8; // the V1 file is 270.8 units long; shown at 1.70 m
 
 const dowelChoice = () => choice('dowel', 'Wooden dowel through the handle', [
@@ -33,7 +33,12 @@ const chainIcon = (n) => icon([[-3, 4], [3, 4], [3, 14], [-3, 14]], ...Array.fro
 }));
 
 // ---------------------------------------------------------------------
-// Your model (coordinates in file units; the design scale makes them mm)
+// Your model (coordinates in file units; the design scale makes them mm).
+// The heel (the corner of the blade nearest the handle, on the edge side)
+// is at (-18.9, -20.3); the V1 file ends it in a slanted cut, so by default
+// it is drawn out into a point.
+const heelIcon = (pointed) => icon([[-8, 14], [-8, pointed ? -7 : -2], [2, -1], [2, -12], [4, -12], [4, 14]]);
+
 const modelVariant = {
   label: 'Your model',
   groups: () => [
@@ -41,25 +46,26 @@ const modelVariant = {
     group('Proportions', [
       range('bladeLen', 'Blade length', 75, 125, 100, { unit: '%' }),
       range('bladeWidth', 'Blade width', 80, 125, 100, { unit: '%', hint: 'Widens toward the edge; the spine stays straight.' }),
-      range('handleLen', 'Handle length', 70, 140, 100, { unit: '%' }),
+      range('handleLen', 'Handle length', 70, 140, 100, { unit: '%', hint: 'The handle prints bare: wrap it with real cloth or bandage afterwards.' }),
     ]),
-    group('Chain', [
-      choice('chain', 'Broken chain at the end of the handle', [0, 2, 3, 4, 5].map((n) => ({ v: n, label: n ? `${n} links` : 'None', icon: chainIcon(n) })), 0),
+    group('Blade heel', [
+      choice('heel', 'Corner of the blade by the handle', [
+        { v: 'pointed', label: 'Pointed', icon: heelIcon(true) },
+        { v: 'cut', label: 'Cut off (as in V1)', icon: heelIcon(false) },
+      ], 'pointed'),
+      range('heelLen', 'Point length', 15, 140, 60, { show: (o) => o.heel === 'pointed', hint: 'How far the point reaches down past the cut-off corner.' }),
     ]),
     group('Strength', [dowelChoice()]),
-    group('Colours', [fil('fil_blade', 'Blade', 1), fil('fil_wrap', 'Handle wrap', 2), fil('fil_chain', 'Chain', 3, { show: (o) => o.chain > 0 })]),
+    group('Colours', [fil('fil_blade', 'Print colour', 1)]),
   ],
   build(o) {
     const w = sectionWarp([
       { y0: -80, y1: -12, len: o.handleLen / 100 },
       { y0: -12, y1: 205, len: o.bladeLen / 100, width: o.bladeWidth / 100 },
     ], { anchor: -12, cx: 9.5, ramp: 3 });
-    const hy0 = w.mapY(-76), hy1 = w.mapY(-12);
-    const parts = [
-      meshPart('Zangetsu', 'zangetsu_v1', { warp: w.warp, filament: o.fil_blade }),
-      zone('Handle wrap colour', box('', [12, hy1 - hy0, 8], [8.9, (hy0 + hy1) / 2, 1.5]), o.fil_wrap),
-      ...chain(o.chain, [10.6, w.mapY(-72.6) + 1.6, 1.5], UNIT, o),
-    ];
+    const sc = UNIT * ((o.size || 100) / 100);
+    const warp = o.heel === 'pointed' ? { ...w.warp, heel: { x0: -19, x1: -4, y0: -20.3, y1: -5, d: o.heelLen / sc } } : w.warp;
+    const parts = [meshPart('Zangetsu', 'zangetsu_v1', { warp, filament: o.fil_blade })];
     const features = o.dowel === 'none' ? [] : [dowel('Handle dowel', [8.9, w.mapY(-71), 1.5], [8.6, w.mapY(-8), 1.5], +o.dowel, { id: 'k-dowel' })];
     const d = design('Zangetsu', parts, { features, meta: { bayPos: [-4, 60, 1.5], baySize: [40, 80, 10] } });
     d.scale = UNIT;
@@ -109,11 +115,11 @@ const generatedVariant = {
     group('Handle', [
       range('handleLen', 'Handle length', 220, 460, 370, { step: 5, rand: [300, 420] }),
       range('tangW', 'Handle width', 32, 56, 44, { rand: [38, 50] }),
-      choice('wrap', 'Wrap', [{ v: 'bands', label: 'Cloth bands' }, { v: 'plain', label: 'Plain' }], 'bands'),
-      choice('chain', 'Broken chain', [0, 2, 3, 4, 5].map((n) => ({ v: n, label: n ? `${n} links` : 'None', icon: chainIcon(n) })), 3),
+      choice('wrap', 'Handle', [{ v: 'plain', label: 'Bare (wrap it with real cloth)', weight: 3 }, { v: 'bands', label: 'Printed cloth bands' }], 'plain'),
+      choice('chain', 'Chain at the end of the handle', [0, 2, 3, 4, 5].map((n) => ({ v: n, label: n ? `${n} links` : 'None', icon: chainIcon(n), weight: n ? 0.25 : 3 })), 0),
     ]),
     group('Strength', [dowelChoice()]),
-    group('Colours', [fil('fil_blade', 'Blade', 1), fil('fil_wrap', 'Handle wrap', 2), fil('fil_chain', 'Chain', 3, { show: (o) => o.chain > 0 })]),
+    group('Colours', [fil('fil_blade', 'Blade', 1), fil('fil_wrap', 'Handle', 1), fil('fil_chain', 'Chain', 3, { show: (o) => o.chain > 0 })]),
   ],
   build(o) {
     const L = o.bladeLen, T = o.thickness, tw = o.tangW, hl = o.handleLen;
@@ -147,7 +153,7 @@ export const zangetsu = {
 export const cleaver = {
   id: 'gen-cleaver', generator: true,
   name: 'Cleaver sword', type: 'cleaver sword',
-  blurb: 'Huge single-edged cleavers with no guard and a wrapped tang handle.',
+  blurb: 'Huge single-edged cleavers with no guard and a tang handle to wrap in cloth.',
   models: [],
   variants: { generated: generatedVariant },
 };

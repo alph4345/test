@@ -44,18 +44,18 @@ for (const kit of KITS) {
 }
 
 test('changing an option keeps hand-made parts, inserts and colours', async () => {
-  const kit = KITS.find((k) => k.id === 'gen-gunblade');
+  const kit = KITS.find((k) => k.id === 'gen-greatsword');
   const d0 = designFromRecipe(recipeFor(kit, 'generated'));
   d0.parts.push({ id: 'mine', name: 'My part', type: 'box', op: 'add', size: [10, 10, 10], pos: [0, 0, 0], rot: [0, 0, 0], stretch: [1, 1, 1], copies: { mode: 'none' }, filament: 1, color: '#fff' });
   d0.filaments[0].color = '#123456';
   d0.features.find((f) => f.id === 'k-rod').diameter = 6;
   d0.name = 'Mine';
-  const d1 = designFromRecipe({ ...d0.recipe, opts: { ...d0.recipe.opts, chambers: 8 } }, d0);
+  const d1 = designFromRecipe({ ...d0.recipe, opts: { ...d0.recipe.opts, guard: 'swept' } }, d0);
   assert.ok(d1.parts.some((p) => p.id === 'mine'));
   assert.equal(d1.filaments[0].color, '#123456');
   assert.equal(d1.features.find((f) => f.id === 'k-rod').diameter, 6);
   assert.equal(d1.name, 'Mine');
-  assert.equal(d1.parts.find((p) => p.type === 'revolver').flutes, 8);
+  assert.ok(d1.parts.some((p) => p.name === 'Swept guard'));
 });
 
 test('flutes are cut into the revolver cylinder', async () => {
@@ -70,22 +70,29 @@ test('flutes are cut into the revolver cylinder', async () => {
   assert.ok(fluted < smooth - 2000, `smooth ${smooth.toFixed(0)} vs fluted ${fluted.toFixed(0)}`);
 });
 
-test('Buster Sword: resin materia with LEDs, wiring and a battery bay', async () => {
+test('Buster Sword: resin materia domes with LEDs, wiring and a battery bay', async () => {
   const kit = KITS.find((k) => k.id === 'buster-sword-model');
   const r0 = recipeFor(kit);
-  const d = await withMeshes(designFromRecipe({ ...r0, opts: { ...r0.opts, materia: 'resin', led: true } }));
+  const d = await withMeshes(designFromRecipe({ ...r0, opts: { ...r0.opts, materia: 'resin', led: true, ledSwitch: true } }));
   const r = runBuild(M, d);
   assert.deepEqual(r.warnings, [], r.warnings.join('; '));
-  const materia = r.pieces.filter((p) => p.name.startsWith('Materia'));
-  assert.equal(materia.length, 2);
-  assert.ok(materia.every((p) => p.resin), 'materia are resin pieces');
-  // hollow with an LED socket: well under a solid 19.7 mm ball
-  const solid = (4 / 3) * Math.PI * 19.7 ** 3;
-  assert.ok(materia.every((p) => p.volume < solid * 0.45), materia.map((p) => p.volume.toFixed(0)).join(', '));
-  assert.ok(d.features.some((f) => f.type === 'cavity' && f.lid?.enabled), 'battery bay with a lid');
-  assert.ok(r.pieces.some((p) => p.kind === 'lid'), 'the bay lid is its own piece');
+  const domes = r.pieces.filter((p) => p.name.startsWith('Materia'));
+  assert.equal(domes.length, 4, 'front and back dome for each materia');
+  assert.ok(domes.every((p) => p.resin), 'domes are resin pieces');
+  // hollow: well under a solid half ball
+  const half = (2 / 3) * Math.PI * 19.7 ** 3;
+  assert.ok(domes.every((p) => p.volume < half * 0.5), domes.map((p) => p.volume.toFixed(0)).join(', '));
+  const lid = r.pieces.find((p) => p.kind === 'lid');
+  assert.ok(lid, 'the bay lid is its own piece');
+  // the lid covers the whole 40 mm bay (plus its ledge), not a sliver of it
+  assert.ok(lid.bbox.max[0] - lid.bbox.min[0] > 44, `lid width ${(lid.bbox.max[0] - lid.bbox.min[0]).toFixed(1)}`);
+  assert.ok(lid.volume > 20000, `lid volume ${lid.volume.toFixed(0)}`);
+  // auto-split keeps clear of the materia and the bay
+  const { autoSplit } = await import('../src/engine/index.js');
+  const cuts = autoSplit(M, d).cuts.filter((c) => c.axis === 'y' && !c.target);
+  assert.ok(cuts.every((c) => c.pos < 13 || c.pos > 187), cuts.map((c) => c.pos).join(', '));
   const out = runBuild(M, d, { withStl: true });
   const resin = out.pieces.filter((p) => p.resin);
-  assert.equal(resin.length, 2);
+  assert.equal(resin.length, 4);
   assert.ok(resin.every((p) => p.stl && p.stl.byteLength > 84), 'resin pieces export as STL');
 });

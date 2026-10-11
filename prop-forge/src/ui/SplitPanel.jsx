@@ -181,7 +181,7 @@ export function SplitPanel() {
   const sel = store.ui.sel?.kind === 'cut' ? store.ui.sel.id : null;
   const idx = split.cuts.findIndex((c) => c.id === sel);
   const b = store.build;
-  const pieces = b.mode === 'split' ? b.pieces : [];
+  const pieces = b.mode === 'split' ? b.pieces.filter((p) => p.kind !== 'ref') : [];
   const reports = new Map((b.reports || []).map((r) => [r.id, r]));
 
   const auto = async () => {

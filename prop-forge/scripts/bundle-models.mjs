@@ -6,7 +6,7 @@
 //   buster/buster_sword_complete.stl            (Thingiverse 1794243)
 //   gunblade/gb_*.stl                           (Thingiverse 3825730)
 //   tanjiro/pt1.stl … pt7.stl                   (Thingiverse 4708245)
-//   maka/ScytheTop.stl, BladeShims*.stl, Button*.stl (Thingiverse 1863433)
+//   maka/ScytheTop.stl, BladeShims*.stl            (Thingiverse 1863433)
 //   zangetsu-V1.stl                             (unreleased)
 //
 // Each mesh is repaired, moved into the template frame (Y along the weapon,
@@ -33,12 +33,10 @@ const MODELS = [
   })),
   // tanjiro: Z up with the blade towards -Z; tsuba centre at (23.8, -6), blade starts at z = 3.2
   ...['pt1', 'pt2', 'pt3', 'pt4', 'pt5', 'pt6', 'pt7'].map((n) => ({ key: `tanjiro_${n}`, file: `tanjiro/${n}.stl`, map: (x, y, z) => [x - 23.8, 3.2 - z, y + 6] })),
-  // maka: topper stands on Z; shims and buttons laid out beside it
+  // maka: topper stands on Z; the blade shims laid out beside it
   { key: 'maka_top', file: 'maka/ScytheTop.stl', map: (x, y, z) => [x, z, -y] },
   { key: 'maka_shim', file: 'maka/BladeShims.stl', map: (x, y, z) => [x + 60, y, z] },
   { key: 'maka_shim2', file: 'maka/BladeShims2.stl', map: (x, y, z) => [x + 95, y, z] },
-  { key: 'maka_button', file: 'maka/Button.stl', map: (x, y, z) => [x + 150, y + 20, z] },
-  { key: 'maka_pin', file: 'maka/ButtonPin.stl', map: (x, y, z) => [x + 150, y + 70, z] },
   // zangetsu: file X length, Y thickness, Z width
   { key: 'zangetsu_v1', file: 'zangetsu-V1.stl', unreleased: true, finalScale: 6.28, map: (x, y, z) => [z, x, y] },
 ];

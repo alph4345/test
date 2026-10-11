@@ -31,6 +31,7 @@ export function buildModel(M, design, tags) {
   const zones = []; // filament zones: colour a region without adding material
   const raws = []; // imported meshes that are not watertight: shown and exported as-is
   const separates = [];
+  const refs = [];
   const materials = []; // [{filament, solid}] in part order, later parts win overlaps
   design.parts.forEach((part, idx) => {
     if (part.hidden) return;
@@ -50,6 +51,8 @@ export function buildModel(M, design, tags) {
     let solid = inst.length === 1 ? inst[0] : M.Manifold.union(inst);
     if (s !== 1) solid = solid.scale(s);
     if (part.op === 'paint') { zones.push({ filament: +part.filament || 1, solid }); return; }
+    // shown for reference only (e.g. a metal rod you buy), never printed
+    if (part.reference && part.op !== 'subtract') { refs.push({ m: tags.tag(solid, idx), name: part.name }); return; }
     solid = tags.tag(solid, idx);
     // parts that print and assemble as their own piece (e.g. a tsuba that
     // slides on) are kept out of the fused model
@@ -86,7 +89,7 @@ export function buildModel(M, design, tags) {
   separates.length = 0;
   for (const g of groups.values()) separates.push({ m: g.solids.length === 1 ? g.solids[0] : M.Manifold.union(g.solids), name: g.name, resin: g.resin, key: g.key, joint: g.joint });
   materials.push(...zones);
-  if (!adds.length) return { model: null, lids: [], materials, zones, raws, separates, warnings: raws.length || separates.length ? warnings : warnings.concat('Nothing to build: add a part.') };
+  if (!adds.length) return { model: null, lids: [], materials, zones, raws, separates, refs, warnings: raws.length || separates.length ? warnings : warnings.concat('Nothing to build: add a part.') };
   let model = adds.length === 1 ? adds[0] : M.Manifold.union(adds);
   if (subs.length) model = model.subtract(subs.length === 1 ? subs[0] : M.Manifold.union(subs));
 
@@ -98,7 +101,7 @@ export function buildModel(M, design, tags) {
     if (res.added) materials.push({ filament: +f.filament || 1, solid: res.added });
     if (res.lid) lids.push(res.lid);
   }
-  return { model, lids, warnings, materials, zones, raws, separates };
+  return { model, lids, warnings, materials, zones, raws, separates, refs };
 }
 
 // One solid region per filament. Where parts of different filaments
@@ -183,6 +186,17 @@ export function applyFeature(M, model, f, s, tags, warnings, index = 0) {
             lidSolid = lidSolid.subtract(t);
           }
         }
+      }
+      // a hole through the lid for a panel-mount switch
+      const sw = f.lid.switchHole;
+      if (sw && +sw.d > 0 && !lidSolid.isEmpty()) {
+        const others = [0, 1, 2].filter((i) => i !== k);
+        const p = c.slice();
+        p[others[0]] += (sw.offset?.[0] || 0); p[others[1]] += (sw.offset?.[1] || 0);
+        const a = p.slice(), b = p.slice();
+        a[k] = top - sign * 40; b[k] = top + sign * 40;
+        const bore = rod(M, a, b, +sw.d / 2, 32);
+        if (bore) lidSolid = lidSolid.subtract(tags.tag(bore, TAG_FEATURE));
       }
       if (lidSolid.isEmpty()) warnings.push(`"${f.name}": the lid opening does not reach the surface on side ${side}.`);
       else lid = { m: lidSolid, name: `${f.name} lid`, featureId: f.id, side };

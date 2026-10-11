@@ -7,7 +7,7 @@ import { MODEL_THUMBS } from '../templates/models.js';
 import { choice, range, toggle, fil, group, sizeGroup, sectionWarp, circlePoly, icon, hole } from './core.js';
 import { meshPart, zone, palette, thumbOf, xy } from './parts.js';
 
-const PALETTE = () => palette(['Black', '#2b2d31'], ['Black (handle)', '#1d1f22'], ['Gold', '#c9a23f'], ['Silver', '#c3c8cf']);
+const PALETTE = () => palette(['Black', '#2b2d31'], ['Black (handle)', '#1d1f22'], ['Gold', '#c9a23f'], ['Silver', '#9aa2ad']);
 
 // ---- tsuba shapes (outline in the plane of the guard, radius ~1) ----
 function tsubaShape(style, R, n = 120) {
@@ -125,6 +125,7 @@ const modelVariant = {
     group('Tsuba (guard)', [
       choice('tsuba', 'Shape', ['yours', 'flame', 'mokko', 'aoi', 'square', 'round'].map((v) => ({ v, label: v === 'yours' ? 'Your tsuba' : TSUBA_LABEL[v], icon: tsubaIcon(v) })), 'yours',
         { hint: 'Other shapes are generated with the same centre hole, so they slide on like yours. The flame tsuba is the one Tanjiro carries later in the story.' }),
+      range('tsubaD', 'Diameter', 50, 100, 66, { unit: 'mm Ø', hint: 'Your tsuba is 66 mm across. The centre hole keeps its size, so it still fits the blade.' }),
     ]),
     group('Colours', [fil('fil_blade', 'Blade', 1), fil('fil_hamon', 'Edge line', 4, { show: (o) => o.hamon !== 'none' }), fil('fil_handle', 'Handle', 2), fil('fil_tsuba', 'Tsuba', 1)]),
   ],
@@ -139,8 +140,10 @@ const modelVariant = {
       meshPart('Handle (pt6)', 'tanjiro_pt6', { color: C.black, filament: o.fil_handle, separate: true }),
       meshPart('Handle end (pt5)', 'tanjiro_pt5', { color: C.black, filament: o.fil_handle, separate: true }),
     ];
-    if (o.tsuba === 'yours') parts.push(meshPart('Tsuba (pt7)', 'tanjiro_pt7', { color: C.dark, filament: o.fil_tsuba, separate: true }));
-    else parts.push(...tsubaParts(o.tsuba, { R: 33, t: 8.8, y: -4.4, holeR: 8.6, o }));
+    // your tsuba is stretched outward from its centre (r 10 and in stays put)
+    const D = o.tsubaD || 66;
+    if (o.tsuba === 'yours') parts.push(meshPart('Tsuba (pt7)', 'tanjiro_pt7', { color: C.dark, filament: o.fil_tsuba, separate: true, warp: D === 66 ? null : { radial: { cx: 0.1, cz: 0, core: 10, k: (D / 2 - 10) / 23 } } }));
+    else parts.push(...tsubaParts(o.tsuba, { R: D / 2, t: 8.8, y: -4.4, holeR: 8.6, o }));
     if (o.hamon !== 'none') {
       const rows = modelEdge();
       const edgeAt = (y) => tableAt(rows, y);
@@ -214,7 +217,7 @@ const generatedVariant = {
     ]),
     group('Tsuba and fittings', [
       choice('tsuba', 'Tsuba', ['round', 'mokko', 'aoi', 'square', 'spokes', 'flame'].map((v) => ({ v, label: TSUBA_LABEL[v], icon: tsubaIcon(v), weight: { round: 3, mokko: 3, aoi: 2, square: 2, spokes: 1, flame: 1 }[v] })), 'mokko'),
-      range('tsubaD', 'Tsuba size', 60, 90, 74, { unit: 'mm Ø', rand: [66, 82] }),
+      range('tsubaD', 'Tsuba diameter', 50, 100, 74, { unit: 'mm Ø', rand: [66, 82] }),
       toggle('habaki', 'Habaki (collar above the tsuba)', true, { p: 0.85 }),
     ]),
     group('Handle (tsuka)', [
