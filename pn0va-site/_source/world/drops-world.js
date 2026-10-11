@@ -298,10 +298,9 @@
 
   // A cache's screen shows one cache: drops.js's list of them is hidden
   // (see the CSS), and the way back, a real button so nobody has to hunt
-  // for it, heads its top bar in place of the word "Frequency". Where the
-  // page scrolls (a phone, a short screen) that would scroll away with it:
-  // there the way back floats at the foot of the screen instead, always in
-  // reach. The CSS shows the one or the other.
+  // for it, heads its top bar in place of the word "Frequency", on every
+  // screen. (On a phone it floated at the foot of the screen, and covered
+  // what was under it.)
   var BACK = '<span class="tri" aria-hidden="true"></span>' + GLOBE +
              '<span class="lbl">World map</span><span class="key" aria-hidden="true">Esc</span>';
   var back = el("button", "dp-world-back");
@@ -311,13 +310,6 @@
   back.addEventListener("click", toWorldByHand);
   var barHead = document.querySelector(".dp-bar .dp-panel__head");
   if (barHead) barHead.insertBefore(back, barHead.firstChild);
-  var floatBack = el("button", "dw-home");
-  floatBack.type = "button";
-  floatBack.title = back.title;
-  floatBack.innerHTML = BACK;
-  floatBack.addEventListener("click", toWorldByHand);
-  document.body.appendChild(floatBack);
-  function backButton() { return floatBack.getClientRects().length ? floatBack : back; }
 
   /* --- the map's data ----------------------------------------------------- */
   // Files from tools/make-world: "0" is the whole globe and carries the
@@ -1907,7 +1899,7 @@
     if (moving()) flash();
     if (fly()) fly().reset(world);
     document.title = title(i);
-    if (fromWorld) backButton().focus({ preventScroll: true });   // the keyboard's way back
+    if (fromWorld) back.focus({ preventScroll: true });   // the keyboard's way back
     await arrive(i, j, shell);                  // drops.open sizes the map, now it can be seen
   }
 

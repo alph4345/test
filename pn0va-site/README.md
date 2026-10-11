@@ -166,9 +166,9 @@ working. It is one page with two screens.
     chosen.
   - The street map has + and −, and a reticle that takes it back to the
     cache as it opened.
-  - On a phone the page scrolls: the street map takes half the screen,
-    then the drops, and WORLD MAP floats at the foot of the screen, always
-    in reach. A drop opens as a screen of its own over everything, with
+  - On a phone the page scrolls: WORLD MAP heads the top bar, as on a
+    desktop, then the street map takes half the screen, then the drops,
+    with nothing over them. A drop opens as a screen of its own, with
     **◀ DROPS**, the way back to the list, along its top beside the drop's
     number and title, and under it the spot's photos, the transmission in
     full and the photos of what was left. On a phone held sideways or a
@@ -189,8 +189,7 @@ a drop and a cache are and what a cache's page shows, for whoever wonders.
 
 On a phone held sideways the list sits beside the globe, as on a desktop.
 On any screen too short for a cache's page to fit (under 560px tall), the
-page scrolls rather than squeezing the street map, and WORLD MAP floats at
-its foot there too.
+page scrolls rather than squeezing the street map, WORLD MAP at its top.
 
 Every cache and every drop has its own address. `pn0va.com/drops#03`
 opens on cache 03 and its list; `pn0va.com/drops#007` opens drop 007's
@@ -364,6 +363,11 @@ add `data-claimed="2026.06.28"` to it if it should show.
 - **The street map** has no globe button now (WORLD MAP does that), and a
   double-click on its recentre button no longer zooms the map in off the
   cache.
+- **WORLD MAP on a phone** heads the cache's top bar, as on a desktop and
+  as ◀ DROPS heads a drop's screen. It floated at the foot of the screen
+  and covered the drops under it; nothing sits over the page now but the
+  site's nav. Where the bar is narrow, "What is a drop?" beside it keeps to
+  its ?.
 - **Fixes.** On a tablet held upright (701 to 900px wide) the site's nav
   wrapped onto a second line and covered the top of every page; it stays
   on one line now. Drawing the streets on the globe took up to half a

@@ -1201,7 +1201,7 @@ html.dw-ready .dp-shell{ grid-template-columns:minmax(0,1fr); }
    letters (as NEW is), a back arrow and the globe, and Esc beside them for
    keyboards. */
 .dp-bar .dp-panel__head > .dp-world-back + span{ display:none; }
-.dp-world-back, .dw-home{
+.dp-world-back{
   display:flex; align-items:center; gap:9px; flex:0 0 auto;
   margin:0; min-height:38px; padding:0 14px 0 10px; cursor:pointer; text-align:left;
   font:inherit; font-size:10px; letter-spacing:.16em; text-transform:uppercase; white-space:nowrap;
@@ -1212,45 +1212,42 @@ html.dw-ready .dp-shell{ grid-template-columns:minmax(0,1fr); }
 }
 /* its cursor: a solid black wedge pointing back, stepping that way when
    pointed at */
-.dp-world-back .tri, .dw-home .tri{
+.dp-world-back .tri{
   flex:0 0 auto; width:0; height:0;
   border-top:7px solid transparent; border-bottom:7px solid transparent; border-right:10px solid var(--pn-void);
 }
-.dp-world-back:hover .tri, .dw-home:hover .tri, .dp-world-back:focus-visible .tri, .dw-home:focus-visible .tri{
+.dp-world-back:hover .tri, .dp-world-back:focus-visible .tri{
   animation:dw-step-back .9s steps(1,end) infinite;
 }
 @keyframes dw-step-back{ 50%{ transform:translateX(-3px); } }
-@media (prefers-reduced-motion:reduce){ .dp-world-back .tri, .dw-home .tri{ animation:none !important; } }
-.dp-world-back svg, .dw-home svg{
+@media (prefers-reduced-motion:reduce){ .dp-world-back .tri{ animation:none !important; } }
+.dp-world-back svg{
   width:17px; height:17px; flex:0 0 auto;
   fill:none; stroke:var(--pn-void); stroke-width:1.4;
 }
-.dp-world-back .key, .dw-home .key{
+.dp-world-back .key{
   margin-left:4px; padding:3px 4px 2px; font-size:7px; letter-spacing:.1em;
   color:var(--pn-void); border:1px solid rgba(0,0,0,.45); border-radius:2px;
 }
-.dp-world-back:hover, .dw-home:hover{ filter:brightness(1.12); box-shadow:var(--pn-glow-hover); }
-.dp-world-back:focus-visible, .dw-home:focus-visible{ outline:2px solid var(--pn-focus); outline-offset:3px; }
-@media (pointer:coarse){ .dp-world-back .key, .dw-home .key{ display:none; } }
+.dp-world-back:hover{ filter:brightness(1.12); box-shadow:var(--pn-glow-hover); }
+.dp-world-back:focus-visible{ outline:2px solid var(--pn-focus); outline-offset:3px; }
+@media (pointer:coarse){ .dp-world-back .key{ display:none; } }
 
-/* Where a cache's page scrolls (a phone; any screen under 560px tall) the
-   bar's head scrolls away with it, so there the way back floats at the
-   foot of the screen instead, a thumb's size, over everything but the
-   help and an open drop (which has its own way back), and the page keeps
-   room under its last line for it. */
-.dw-home{ display:none; }
+/* On a phone too, and on any screen under 560px tall, where a cache's page
+   scrolls: WORLD MAP heads its bar, at the top of the page, as the way back
+   to the list heads a drop's own screen, a thumb's height. (It floated at
+   the foot of the screen, always in reach, and covered whatever was under
+   it.) Where the bar is narrow the help beside it keeps to its ?, its words
+   left to the title and to screen readers. */
 @media (max-width:900px), (max-height:560px){
-  html.dw-ready .dp-bar .dp-world-back{ display:none; }
-  html.js[data-view="drop"] .dw-home{
-    display:flex; position:fixed; z-index:400; left:50%; bottom:max(14px, env(safe-area-inset-bottom));
-    transform:translateX(-50%); min-height:48px; padding:0 20px 0 16px; font-size:11px;
-    animation:dw-home-in .3s ease-out .35s both;
-  }
-  html:has(.dp-help[open]) .dw-home, html:has(.dp-drop:not([hidden])) .dw-home{ display:none; }
-  html.dw-ready .dp-shell{ padding-bottom:84px; }
+  .dp-world-back{ min-height:44px; }
 }
-@keyframes dw-home-in{ from{ opacity:0; transform:translate(-50%, 18px); } }
-@media (prefers-reduced-motion:reduce){ html.js[data-view="drop"] .dw-home{ animation:none; } }
+@media (max-width:480px){
+  .dp-bar .dp-panel__head .dp-help > summary{ min-width:44px; min-height:44px; justify-content:center; }
+  .dp-bar .dp-help > summary .lbl{
+    position:absolute; width:1px; height:1px; overflow:hidden; clip:rect(0 0 0 0); white-space:nowrap;
+  }
+}
 
 @media (max-width:900px){
   .dw-shell{
@@ -1264,9 +1261,8 @@ html.dw-ready .dp-shell{ grid-template-columns:minmax(0,1fr); }
   .dw-zoom{ left:10px; top:10px; }
   .dw-open{ min-height:40px; }
   /* The cache's screen: no strip of caches above the bar now, so the cache
-     starts at the top. The way back floats at the foot of the screen (see
-     WORLD MAP); the help sits quietly at the right of the bar's head, a
-     thumb's height to tap. */
+     starts at the top. WORLD MAP heads the bar (see WORLD MAP); the help
+     sits quietly at the right of its head, a thumb's height to tap. */
   html.dw-ready .dp-shell{ grid-template-rows:minmax(0,1fr); }
   .dp-bar .dp-help > summary{ min-height:32px; padding:0 6px; }
 }
