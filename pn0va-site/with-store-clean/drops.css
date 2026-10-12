@@ -201,27 +201,28 @@ html.js body:has(.dp-shell){ overflow:hidden; }
 /* --- detail ---------------------------------------------------------------
    The cache's screen. Its name and coordinates across the top; under them
    the street map, the whole stage, and on it, at the middle of its foot,
-   the one menu: the drops left here. Choose one and its windows open round
-   that list over the map, which dims: photos of the spot to its left, of
-   what was left to its right, the transmission above it. Close them and
-   the list is on its own again.
+   the one menu: the drops left here. Beside it, always, the photos of the
+   spot. Choose a drop and its two windows open over the map: its
+   transmission, the most to read, the height of the stage on the right,
+   and the photos of what was left at the left, over the spot. Choose it
+   again (or HIDE, or Esc) and they go; the map and the spot stay.
 
    One grid: the map spans the stage, the windows sit in its columns on top
-   of it, a step in from its frame.
+   of it, a step in from its frame and clear of its buttons (top left).
    -------------------------------------------------------------------------- */
 .dp-detail{
   display:grid; gap:10px; min-height:0;
-  grid-template-columns:[l] minmax(0,1fr) [c] minmax(300px,380px) [d] minmax(0,1fr) [r];
-  grid-template-rows:[t] auto [s] minmax(0,1fr) [m] auto [b];
+  grid-template-columns:[l] minmax(0,1fr) [c] minmax(250px, min(28vw, 360px)) [d] minmax(0,1fr) [r];
+  grid-template-rows:[t] auto [s] minmax(0,3fr) [h] minmax(0,2fr) [b];
 }
 .dp-bar  { grid-column:l / r; grid-row:t / s; }
 .dp-map  { grid-column:l / r; grid-row:s / b; }
-.dp-log  { grid-column:c / d; grid-row:m / b; }
+.dp-log  { grid-column:c / d; grid-row:s / b; }
+.dp-spot { grid-column:l / c; grid-row:h / b; }
 .dp-drop { display:contents; }
 .dp-drop[hidden]{ display:none; }
-.dp-spot { grid-column:l / c; grid-row:s / b; }
-.dp-brief{ grid-column:c / d; grid-row:s / m; }
-.dp-items{ grid-column:d / r; grid-row:s / b; }
+.dp-items{ grid-column:l / c; grid-row:s / h; }
+.dp-brief{ grid-column:d / r; grid-row:s / b; }
 
 /* the windows over the map: clear of its head, a step in from its frame,
    lifted off it */
@@ -229,16 +230,17 @@ html.js body:has(.dp-shell){ overflow:hidden; }
   position:relative; z-index:2;
   box-shadow:0 0 0 1px #000, 0 10px 34px rgba(0,0,0,.85), 0 0 22px rgba(255,22,9,.16);
 }
-.dp-log  { margin:0 0 16px; max-height:min(42vh, 420px); align-self:end; }
-.dp-spot { margin:40px 0 16px 16px; }
-.dp-brief{ margin:40px 0 0; }
-.dp-items{ margin:40px 16px 16px 0; }
-.dp-drop__bar{ display:none; }        /* a phone's way back (below) */
+.dp-slot { margin:0; }                /* a <figure>: none of its own */
+.dp-log  { margin:0 0 24px; max-height:min(42vh, 420px); align-self:end; }
+/* the photos, a column right of the map's buttons */
+.dp-spot, .dp-items{ justify-self:start; width:min(calc(100% - 56px), 420px); }
+.dp-spot { margin:0 0 24px 56px; }
+.dp-items{ margin:40px 0 10px 56px; }
+.dp-brief{ margin:40px 16px 24px 0; justify-self:end; width:min(calc(100% - 16px), 620px); }
 
-/* the map keeps to itself (Leaflet's panes stack to 1000 inside it), and
-   dims while a drop's windows are open over it */
-.dp-map{ z-index:0; isolation:isolate; transition:filter .35s ease; }
-.dp-detail.is-open .dp-map{ filter:brightness(.3) saturate(.6); }
+/* the map keeps to itself (Leaflet's panes stack to 1000 inside it); it
+   stays lit with a drop open, the spot still to be found on it */
+.dp-map{ z-index:0; isolation:isolate; }
 
 /* --- the frequency bar ---------------------------------------------------
    The codec's defining element: a big tuned number, centred, with the
@@ -302,13 +304,14 @@ html:not(.js) .dp-mapcanvas{ display:none; }
 }
 
 /* --- the drops here: the one menu -----------------------------------------
-   Newest first: each drop's number and title, NEW for its first week or
-   CLAIMED once it is marked so, and under the title the date it was left.
-   A menu's cursor, a red wedge, steps in front of the one pointed at; the
-   open one is lit, with the bar down its side. */
+   Newest first: each drop's number and title, and under the title the date
+   it was left, NEW for its first week or CLAIMED once it is marked so. A
+   menu's cursor, a red wedge, steps in front of the one pointed at; the
+   open one is lit, with the bar down its side. At the end of every row its
+   toggle says what choosing it does: OPEN, or on the open one, HIDE. */
 .dp-log > .dp-panel__body{ padding:0; }
 .dp-logrow{
-  position:relative; display:grid; grid-template-columns:auto minmax(0,1fr) auto;
+  position:relative; display:grid; grid-template-columns:auto auto minmax(0,1fr) auto; grid-template-rows:auto auto;
   column-gap:10px; row-gap:3px; align-items:baseline;
   width:100%; margin:0; padding:10px 14px 9px 24px; text-align:left; cursor:pointer;
   font:inherit; color:var(--pn-ink-muted);
@@ -316,6 +319,8 @@ html:not(.js) .dp-mapcanvas{ display:none; }
   transition:color var(--pn-dur-state) ease, background var(--pn-dur-state) ease;
 }
 .dp-logrow:last-child{ border-bottom:0; }
+/* a tap shows in the row's own colours, not the browser's blue flash */
+.dp-logrow, .dp-row, .dp-gallery__go, .dp-close, .dp-gallery__frame{ -webkit-tap-highlight-color:transparent; }
 .dp-logrow::after{
   content:""; position:absolute; left:9px; top:50%; margin-top:-6px; width:0; height:0;
   border-top:6px solid transparent; border-bottom:6px solid transparent; border-left:8px solid var(--pn-red);
@@ -335,19 +340,58 @@ html:not(.js) .dp-mapcanvas{ display:none; }
 }
 .dp-logrow[aria-current="true"] .dp-logrow__n{ color:var(--pn-signal); }
 .dp-logrow__t{
-  grid-row:1; grid-column:2; min-width:0; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;
+  grid-row:1; grid-column:2 / 4; min-width:0; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;
   font-family:var(--pn-face-body); font-size:14px; font-style:italic; line-height:1.3;
   color:var(--pn-ink);
 }
 .dp-logrow[aria-current="true"] .dp-logrow__t{ color:var(--pn-ink-strong); }
 .dp-logrow__d{
-  grid-row:2; grid-column:2 / -1; font-size:8.5px; letter-spacing:.1em; font-variant-numeric:tabular-nums;
+  grid-row:2; grid-column:2; font-size:8.5px; letter-spacing:.1em; font-variant-numeric:tabular-nums;
 }
 .dp-logrow__s{
-  grid-row:1; grid-column:3; align-self:center; padding:3px 4px 2px; border-radius:2px;
+  grid-row:2; grid-column:3; justify-self:start; align-self:center; padding:3px 4px 2px; border-radius:2px;
   font-size:7px; line-height:1; letter-spacing:.14em; text-transform:uppercase;
 }
+/* the toggle: an outlined OPEN with a wedge pointing in; on the open drop
+   lit red, HIDE with a cross */
+.dp-logrow__x{
+  grid-row:1 / -1; grid-column:4; align-self:center;
+  display:inline-flex; align-items:center; justify-content:center; gap:7px;
+  min-width:62px; min-height:26px; padding:0 8px; box-sizing:border-box;
+  font-size:7.5px; line-height:1; letter-spacing:.14em; text-transform:uppercase;
+  color:var(--pn-ink); border:1px solid var(--pn-red-50); border-radius:var(--pn-radius-sm);
+  transition:color var(--pn-dur-state) ease, background var(--pn-dur-state) ease, border-color var(--pn-dur-state) ease;
+}
+.dp-logrow__x::before{ content:"Open"; }
+.dp-logrow__x::after{
+  content:""; width:0; height:0;
+  border-top:5px solid transparent; border-bottom:5px solid transparent; border-left:7px solid var(--pn-red);
+}
+.dp-logrow:focus-visible .dp-logrow__x{
+  color:var(--pn-signal); background:var(--pn-red-20); border-color:var(--pn-red);
+}
+/* pointed at (where there is a pointer: a tapped row keeps :hover on a phone) */
+@media (hover:hover){
+  .dp-logrow:hover .dp-logrow__x{ color:var(--pn-signal); background:var(--pn-red-20); border-color:var(--pn-red); }
+  .dp-logrow[aria-expanded="true"]:hover .dp-logrow__x{ color:var(--pn-void); background:var(--pn-signal); border-color:var(--pn-signal); }
+}
+.dp-logrow[aria-expanded="true"] .dp-logrow__x{
+  color:var(--pn-void); background:var(--pn-red); border-color:var(--pn-red); box-shadow:0 0 10px var(--pn-red-50);
+}
+.dp-logrow[aria-expanded="true"] .dp-logrow__x::before{ content:"Hide"; }
+.dp-logrow[aria-expanded="true"] .dp-logrow__x::after{
+  width:8px; height:8px; border:0;
+  background:linear-gradient(45deg, transparent 42%, currentColor 42% 58%, transparent 58%),
+             linear-gradient(-45deg, transparent 42%, currentColor 42% 58%, transparent 58%);
+}
 .dp-logrow__s:empty{ display:none; }
+/* a narrow list: NEW or CLAIMED on a line of its own under the date, clear
+   of the toggle */
+.dp-log{ container-type:inline-size; }
+@container (max-width:345px){
+  .dp-logrow:has(.dp-logrow__s:not(:empty)){ grid-template-rows:auto auto auto; }
+  .dp-logrow__s{ grid-row:3; grid-column:2 / 4; margin-top:1px; }
+}
 /* NEW is red, like the pointer: it is where to look. CLAIMED is quiet. */
 .dp-logrow__s.is-new{ color:var(--pn-void); background:var(--pn-red); }
 .dp-logrow__s.is-claimed{ padding:2px 3px 1px; color:var(--pn-ink-muted); border:1px solid var(--pn-ash); }
@@ -358,16 +402,19 @@ html:not(.js) .dp-mapcanvas{ display:none; }
 }
 
 /* --- a drop's photos: the spot, and what was left --------------------------
-   The whole photo, letterboxed, so nothing of it is cropped away; a click
-   opens it full size. Arrows at its sides when there is more than one, and
-   the arrow keys and a swipe; its file's name and date under it. */
+   The whole photo, letterboxed, so nothing of it is cropped away. Arrows at
+   its sides when there is more than one, and the arrow keys and a swipe;
+   its file's name and date under it. A photo opens nowhere else. */
 .dp-gallery .dp-panel__body{ position:relative; background:#000; }
 /* a sideways swipe is the page's to turn the photo with; up and down still
    scroll, and a pinch still zooms */
-.dp-gallery__link{
+.dp-gallery__frame{
   position:relative; display:block; width:100%; height:100%; overflow:hidden;
-  cursor:zoom-in; touch-action:pan-y pinch-zoom;
+  touch-action:pan-y pinch-zoom; -webkit-user-select:none; user-select:none;
 }
+/* whose spot it is: the open drop's, or with none open the newest's */
+.dp-spot__of{ margin-right:auto; color:var(--pn-ink-muted); letter-spacing:.14em; }
+.dp-spot__of:empty{ display:none; }
 .dp-gallery img{ position:relative; object-fit:contain; opacity:1; }
 /* where the photo is the wrong shape for its window, the same photo,
    blurred and dark, fills the rest rather than black bars */
@@ -397,13 +444,18 @@ html:not(.js) .dp-mapcanvas{ display:none; }
 .dp-gallery__go:focus-visible{ outline:2px solid var(--pn-focus); outline-offset:2px; }
 
 /* --- the transmission: what was left, and why -----------------------------
-   The codec's dialogue box: the drop's title, then when it was left and
-   what, then the words. Its head carries the way out of the drop: CLOSE,
-   or Esc. */
+   The codec's dialogue box, the biggest window: the drop's title, then when
+   it was left and what, then the words. Its head carries the way to hide
+   the drop, lit so it is found: HIDE, or Esc, or the drop's row again. */
 .dp-brief .dp-panel__head > .dp-idx{ margin-right:auto; }
-.dp-brief .dp-panel__body{ padding:14px 16px 16px; }
+/* a narrow transmission keeps HIDE inside it: the drop's number goes (its
+   row and title say it), then Esc's key */
+.dp-brief{ container-type:inline-size; }
+@container (max-width:360px){ .dp-brief .dp-panel__head > .dp-idx{ display:none; } }
+@container (max-width:290px){ .dp-close .key{ display:none; } }
+.dp-brief .dp-panel__body{ padding:16px 18px 18px; }
 .dp-brief__title{
-  margin:0 0 7px; font-weight:400; font-size:12px; line-height:1.5; letter-spacing:.08em;
+  margin:0 0 8px; font-weight:400; font-size:13px; line-height:1.5; letter-spacing:.08em;
   text-transform:uppercase; color:var(--pn-signal); text-shadow:0 0 10px rgba(255,22,9,.35);
   overflow-wrap:anywhere;
 }
@@ -420,28 +472,29 @@ html:not(.js) .dp-mapcanvas{ display:none; }
 .dp-brief__meta .is-new{ color:var(--pn-void); background:var(--pn-red); padding:3px 4px 2px; border-radius:2px;
   font-family:var(--pn-face-display); font-size:7px; letter-spacing:.14em; text-transform:uppercase; align-self:center; }
 .dp-brief__text p{
-  font-family:var(--pn-face-body); font-size:13.5px; line-height:1.65;
-  margin:0 0 9px; color:var(--pn-ink); max-width:68ch;
+  font-family:var(--pn-face-body); font-size:14.5px; line-height:1.7;
+  margin:0 0 11px; color:var(--pn-ink); max-width:66ch;
 }
 .dp-brief__text p:last-child{ margin-bottom:0; }
 .dp-close{
-  display:inline-flex; align-items:center; gap:7px; flex:0 0 auto;
-  min-height:26px; margin:-3px -4px -3px 0; padding:0 8px 0 7px; cursor:pointer;
-  font:inherit; font-size:8.5px; letter-spacing:.14em; text-transform:uppercase; color:var(--pn-ink);
-  background:none; border:1px solid var(--pn-red-50); border-radius:var(--pn-radius-sm);
+  display:inline-flex; align-items:center; gap:8px; flex:0 0 auto;
+  min-height:30px; margin:-5px -5px -5px 0; padding:0 9px 0 9px; cursor:pointer;
+  font:inherit; font-size:9px; letter-spacing:.14em; text-transform:uppercase; color:var(--pn-void);
+  background:var(--pn-red); border:1px solid var(--pn-red); border-radius:var(--pn-radius-sm);
+  box-shadow:0 0 12px var(--pn-red-50);
   transition:color var(--pn-dur-state) ease, background var(--pn-dur-state) ease, border-color var(--pn-dur-state) ease;
 }
 .dp-close .x{ position:relative; width:9px; height:9px; }
 .dp-close .x::before, .dp-close .x::after{
-  content:""; position:absolute; left:50%; top:50%; width:11px; height:1.6px; margin:-.8px 0 0 -5.5px;
-  background:var(--pn-red); transform:rotate(45deg);
+  content:""; position:absolute; left:50%; top:50%; width:11px; height:2px; margin:-1px 0 0 -5.5px;
+  background:currentColor; transform:rotate(45deg);
 }
 .dp-close .x::after{ transform:rotate(-45deg); }
 .dp-close .key{
-  padding:2px 3px 1px; font-size:6.5px; letter-spacing:.1em; color:var(--pn-ink-faint);
-  border:1px solid var(--pn-hairline); border-radius:2px;
+  padding:2px 3px 1px; font-size:6.5px; letter-spacing:.1em; color:inherit;
+  border:1px solid rgba(0,0,0,.45); border-radius:2px;
 }
-.dp-close:hover{ color:var(--pn-signal); background:var(--pn-red-20); border-color:var(--pn-red); }
+.dp-close:hover{ color:var(--pn-void); background:var(--pn-signal); border-color:var(--pn-signal); }
 .dp-close:focus-visible{ outline:2px solid var(--pn-focus); outline-offset:2px; }
 @media (pointer:coarse){ .dp-close .key{ display:none; } }
 
@@ -464,20 +517,22 @@ html:not(.js) .dp-entry{ display:contents; }   /* no JS: show them all, stacked 
 .dp-shell{ position:relative; z-index:1; }
 
 /* --------------------------------------------------------------------------
-   A SHORT DESKTOP — the list a little shorter, so the transmission keeps
-   room above it
+   A SHORT DESKTOP — the list a little shorter, so the map keeps room above
+   it, and the windows a little nearer its edges
    -------------------------------------------------------------------------- */
 @media (min-width:901px) and (max-height:760px){
-  .dp-log{ max-height:min(34vh, 300px); }
-  .dp-spot, .dp-brief, .dp-items{ margin-top:36px; }
+  .dp-log{ max-height:min(34vh, 300px); margin-bottom:16px; }
+  .dp-brief, .dp-items{ margin-top:36px; }
+  .dp-spot, .dp-brief{ margin-bottom:16px; }
 }
 
 /* --------------------------------------------------------------------------
    A PHONE, AND ANY SCREEN UNDER 560px TALL — the page scrolls: the bar, the
-   street map, the list of drops under it, full width. A drop opens as a
-   screen of its own over the page, its way back to the list along the top:
-   the photos of the spot, the transmission, the photos of what was left,
-   one under the other (two side by side where there is room).
+   street map, the photos of the spot and the list of drops, one under the
+   other (the map and the spot side by side where there is room). A drop
+   opens under its row, the rest of the list going on below it: its
+   transmission, then the photos of what was left (side by side where there
+   is room). Its row again, or HIDE, folds it away.
    -------------------------------------------------------------------------- */
 @media (max-width:900px), (max-height:560px){
   html.js:not([data-view="world"]) body:has(.dp-shell){ overflow:auto; }
@@ -487,50 +542,25 @@ html:not(.js) .dp-entry{ display:contents; }   /* no JS: show them all, stacked 
   }
   .dp-detail{
     grid-template-columns:minmax(0,1fr);
-    grid-template-rows:auto auto auto;
+    grid-template-rows:none;
   }
-  .dp-bar, .dp-map, .dp-log{ grid-column:1; grid-row:auto; }
-  .dp-map{ height:52vh; height:52svh; min-height:240px; }
-  .dp-log{ margin:0; max-height:none; align-self:auto; box-shadow:none; }
-  .dp-logrow{ padding:13px 14px 12px 26px; }
+  .dp-bar, .dp-map, .dp-spot, .dp-log{ grid-column:1; grid-row:auto; }
+  .dp-map{ height:42vh; height:42svh; min-height:240px; }
+  .dp-spot, .dp-log{ margin:0; width:auto; max-height:none; align-self:auto; justify-self:stretch; box-shadow:none; }
+  .dp-logrow{ padding:13px 12px 12px 26px; }
   .dp-logrow__t{ font-size:15px; }
+  .dp-logrow__x{ min-height:36px; min-width:70px; font-size:8px; }
 
-  /* the drop: a screen over the page, the nav included */
-  .dp-drop:not([hidden]){
-    display:block; position:fixed; inset:0; z-index:420;
-    overflow-y:auto; overscroll-behavior:contain; -webkit-overflow-scrolling:touch;
-    padding:0 10px max(20px, env(safe-area-inset-bottom));
-    background:var(--pn-void);
+  /* the drop: unfolded under its row, a shade lighter than the list */
+  .dp-log .dp-drop:not([hidden]){
+    display:block; padding:10px 10px 0;
+    background:var(--pn-red-07); border-bottom:1px solid var(--pn-divider);
+    animation:dp-unfold .24s ease-out;
   }
-  html.js body:has(.dp-drop:not([hidden])){ overflow:hidden; }
-  /* the page sits under the nav; with a drop open, over it */
-  html:has(.dp-drop:not([hidden])) .dp-shell{ z-index:300; }
-  .dp-drop__bar{
-    display:flex; align-items:center; gap:12px;
-    position:sticky; top:0; z-index:3; margin:0 -10px 10px; padding:max(10px, env(safe-area-inset-top)) 10px 10px;
-    background:rgba(0,0,0,.94); border-bottom:2px solid var(--pn-red);
-  }
-  .dp-drop__back{
-    display:flex; align-items:center; gap:9px; flex:0 0 auto;
-    min-height:44px; padding:0 16px 0 12px; cursor:pointer;
-    font:inherit; font-size:10px; letter-spacing:.16em; text-transform:uppercase;
-    color:var(--pn-void); background:var(--pn-red);
-    border:2px solid var(--pn-red); border-radius:var(--pn-radius-sm);
-    box-shadow:0 0 14px var(--pn-red-50);
-  }
-  .dp-drop__back .tri{
-    width:0; height:0; border-top:7px solid transparent; border-bottom:7px solid transparent;
-    border-right:10px solid var(--pn-void);
-  }
-  .dp-drop__back:focus-visible{ outline:2px solid var(--pn-focus); outline-offset:3px; }
-  .dp-drop__name{
-    min-width:0; font-size:9px; line-height:1.6; letter-spacing:.14em; text-transform:uppercase;
-    color:var(--pn-signal); overflow:hidden; text-overflow:ellipsis; white-space:nowrap;
-  }
-  .dp-spot, .dp-brief, .dp-items{ margin:0 0 10px; box-shadow:none; }
-  .dp-gallery .dp-panel__body{ flex:0 0 auto; aspect-ratio:4/3; }
+  .dp-log .dp-brief, .dp-log .dp-items{ margin:0 0 10px; width:auto; justify-self:stretch; box-shadow:none; }
+  .dp-gallery .dp-panel__body{ flex:0 0 auto; aspect-ratio:16/10; max-height:46vh; max-height:46svh; }
   .dp-gallery__go{ width:44px; height:56px; margin-top:-28px; }
-  .dp-close{ display:none; }                 /* the bar's way back does it */
+  .dp-close{ min-height:40px; margin:-8px -6px -8px 0; padding:0 12px; }
   .dp-brief__text p{ font-size:15px; line-height:1.65; }
 
   /* the help sheet is unchanged — it is the one overlay allowed */
@@ -542,20 +572,20 @@ html:not(.js) .dp-entry{ display:contents; }   /* no JS: show them all, stacked 
     top:54px; max-height:calc(100dvh - 76px); overflow-y:auto;
   }
 }
-/* side by side where there is room: the two sets of photos, the
-   transmission under them */
+@keyframes dp-unfold{ from{ opacity:0; transform:translateY(-8px); } }
+/* side by side where there is room: the map and the spot, its photos as
+   tall as the map; in an open drop, the transmission and what was left */
 @media (min-width:600px) and (max-width:900px), (min-width:600px) and (max-height:560px){
-  .dp-drop:not([hidden]){
-    display:grid; grid-template-columns:minmax(0,1fr) minmax(0,1fr); column-gap:10px; align-content:start;
-    grid-template-areas:"bar bar" "spot items" "brief brief";
-    /* rows the height of what is in them: the screen scrolls, rather than
-       squeezing them into it */
-    grid-template-rows:max-content max-content max-content;
+  .dp-detail{ grid-template-columns:minmax(0,3fr) minmax(0,2fr); }
+  .dp-bar, .dp-log{ grid-column:1 / -1; }
+  .dp-map{ grid-column:1; grid-row:2; }
+  .dp-spot{ grid-column:2; grid-row:2; }
+  .dp-spot .dp-panel__body{ flex:1 1 auto; aspect-ratio:auto; max-height:none; }
+  .dp-log .dp-drop:not([hidden]){
+    display:grid; grid-template-columns:minmax(0,3fr) minmax(0,2fr); column-gap:10px; align-items:start;
   }
-  .dp-drop__bar{ grid-area:bar; }
-  .dp-spot{ grid-area:spot; }
-  .dp-items{ grid-area:items; }
-  .dp-brief{ grid-area:brief; }
+  .dp-log .dp-brief{ grid-column:1; grid-row:1; }
+  .dp-log .dp-items{ grid-column:2; grid-row:1; }
 }
 
 /* --------------------------------------------------------------------------
@@ -607,8 +637,9 @@ html:not(.js) .dp-entry{ display:contents; }   /* no JS: show them all, stacked 
    -------------------------------------------------------------------------- */
 @media (max-width:900px){
   /* 1fr lets a single unbreakable line stretch the column, and with it the
-     whole page, past the edge of the screen. Pin the column to the screen. */
-  .dp-shell, .dp-detail{ grid-template-columns:minmax(0,1fr); }
+     whole page, past the edge of the screen. Pin the column to the screen
+     (drops.css pins the cache's own columns). */
+  .dp-shell{ grid-template-columns:minmax(0,1fr); }
 
   .dp-bar .dp-panel__body{
     grid-template-columns:minmax(0,1fr) auto;
@@ -697,6 +728,46 @@ html:not(.js) .dw-shell, html.js:not([data-view="world"]) .dw-shell{ display:non
   font-size:9px; letter-spacing:.16em; text-transform:uppercase; color:var(--pn-ink);
 }
 .dw-help b{ font-weight:400; color:var(--pn-red); font-size:8px; margin-right:10px; }
+/* the list's order: by number, unless another is chosen here */
+.dw-sortbar{
+  display:flex; flex-wrap:wrap; align-items:center; gap:6px 10px;
+  padding:8px 12px; border-bottom:1px solid var(--pn-divider);
+}
+.dw-sortbar label{ font-size:8px; letter-spacing:.16em; text-transform:uppercase; color:var(--pn-red); }
+.dw-sortbar select{
+  -webkit-appearance:none; appearance:none; min-width:0; min-height:30px; padding:0 30px 0 10px; cursor:pointer;
+  font:inherit; font-size:9px; letter-spacing:.12em; text-transform:uppercase; color:var(--pn-ink);
+  background-color:#000;
+  background-image:linear-gradient(45deg, transparent 50%, var(--pn-red) 50%), linear-gradient(135deg, var(--pn-red) 50%, transparent 50%);
+  background-position:calc(100% - 16px) 52%, calc(100% - 11px) 52%;
+  background-size:5px 5px; background-repeat:no-repeat;
+  border:1px solid var(--pn-red-50); border-radius:var(--pn-radius-sm);
+  transition:border-color var(--pn-dur-state) ease, color var(--pn-dur-state) ease;
+}
+.dw-sortbar select:hover{ border-color:var(--pn-red); color:var(--pn-signal); }
+.dw-sortbar select:focus-visible{ outline:2px solid var(--pn-focus); outline-offset:2px; }
+.dw-sortbar option{ background:#000; color:var(--pn-ink); }
+.dw-sortnote{
+  flex:1 1 100%; margin:0;
+  font-family:var(--pn-face-body); font-size:11.5px; line-height:1.4; color:var(--pn-ink-muted);
+}
+.dw-sortnote:empty{ display:none; }
+/* by city, state or country: a heading over each place's caches, at the
+   top of the list while they scroll under it */
+.dw-group{
+  position:sticky; top:0; z-index:2;
+  display:flex; justify-content:space-between; gap:10px; margin:0; padding:9px 12px 7px;
+  background:var(--pn-surface-alt); border-bottom:1px solid var(--pn-red-30);
+  font-size:8px; line-height:1.3; letter-spacing:.16em; text-transform:uppercase; color:var(--pn-red);
+}
+.dw-group > span:first-child{ min-width:0; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+.dw-group .dp-idx{ color:var(--pn-ink-faint); }
+/* nearest first: how far each one is, under its name */
+.dw-dist{
+  display:none; grid-column:2 / -1;
+  font-size:8.5px; letter-spacing:.12em; text-transform:uppercase; color:var(--pn-red);
+}
+.is-near .dw-dist:not(:empty){ display:block; }
 .dw-item{ position:relative; border-bottom:1px solid var(--pn-divider); }
 .dw-row{
   position:relative; display:grid; grid-template-columns:auto minmax(0,1fr) auto auto;
@@ -707,6 +778,7 @@ html:not(.js) .dw-shell, html.js:not([data-view="world"]) .dw-shell{ display:non
 }
 /* pointed at: marked; chosen: lit, with the bar down its side */
 .dw-row:hover{ background:var(--pn-red-07); color:var(--pn-ink); }
+.dw-row, .dw-sortbar select{ -webkit-tap-highlight-color:transparent; }   /* the row's own colours, not a blue flash */
 .dw-row[aria-current="true"]{ background:var(--pn-red-20); color:var(--pn-signal); }
 .dw-item:has(> .dw-row[aria-current="true"])::before{
   content:""; position:absolute; left:0; top:0; bottom:0; width:3px; background:var(--pn-red); z-index:1;
@@ -977,6 +1049,8 @@ html.dw-ready .dp-shell{ grid-template-columns:minmax(0,1fr); }
   .dw-row{ padding:11px 12px 10px; }
   .dw-line{ -webkit-line-clamp:1; }
   .dw-list .dw-help{ display:none; }          /* the opened row says what to do */
+  .dw-sortbar{ padding:6px 10px; }
+  .dw-sortbar select{ min-height:40px; font-size:10px; }
   .dw-zoom{ left:10px; top:10px; }
   .dw-open{ min-height:40px; }
   /* The cache's screen: no strip of caches above the bar now, so the cache
@@ -988,8 +1062,8 @@ html.dw-ready .dp-shell{ grid-template-columns:minmax(0,1fr); }
 
 /* --------------------------------------------------------------------------
    A CACHE ON A PHONE — a page that scrolls (drops.css lays it out: the
-   street map half the screen, the drops under it, a drop a screen of its
-   own). The world stays one screen.
+   street map, the photos of the spot, the drops, a drop opening under its
+   row). The world stays one screen.
    -------------------------------------------------------------------------- */
 @media (max-width:900px){
   html.dw-ready .dp-shell{ grid-template-rows:auto; }
@@ -1000,7 +1074,7 @@ html.dw-ready .dp-shell{ grid-template-columns:minmax(0,1fr); }
    was a strip 120px tall over a list no taller, too short for the chosen
    cache's row to open in: they sit side by side instead, as on a desktop,
    each the full height. (A cache's page scrolls, as on any short screen,
-   and a drop is a screen of its own, its two sets of photos side by side.)
+   the map and the spot side by side, a drop opening under its row.)
    -------------------------------------------------------------------------- */
 @media (max-width:900px) and (min-width:560px) and (orientation:landscape){
   .dw-shell{ grid-template-columns:minmax(270px,40%) minmax(0,1fr); grid-template-rows:minmax(0,1fr); }

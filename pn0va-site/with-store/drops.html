@@ -28,7 +28,7 @@
 <link rel="stylesheet" href="vendor/leaflet/leaflet.css?v=ec929f11">
 <link rel="stylesheet" href="tokens.css?v=cf68e78a">
 <link rel="stylesheet" href="page-style.css?v=82b15d5a">
-<link rel="stylesheet" href="drops.css?v=cb7271ff">
+<link rel="stylesheet" href="drops.css?v=2c49c384">
 <style>
 /* Self-hosted faces — no Google Fonts request, no CDN failure mode. */
 @font-face{
@@ -166,8 +166,9 @@
      cache is "CACHE 03", a single drop "DROP #003". Each cache is
      a <section class="dp-cache"> below, and the drops left there
      are the <article class="dp-entry"> blocks inside it. NEWEST
-     first, caches and drops alike: the lists are built by reading
-     these blocks top to bottom.
+     first, caches and drops alike: a cache's list of drops is
+     read top to bottom. (The world's list of caches goes by
+     number, or however a visitor sorts it.)
 
      A NEW DROP AT A CACHE YOU ALREADY HAVE
      1. Copy one <article class="dp-entry"> block into that
@@ -202,6 +203,8 @@
      2. Set the data-* attributes on the <section>:
           data-n        cache number, two digits, e.g. "04"
           data-place    the cache's name
+          data-city / data-state / data-country    where it is,
+                        in words: the world's list sorts by them
           data-about    a line or two on the cache and its place:
                         what it is and what it is like there. It
                         leads wherever the cache is listed, and
@@ -235,6 +238,19 @@
   <section class="dp-panel dw-list" aria-label="Caches" data-fly="left" data-fly-delay="60">
     <div class="dp-panel__head"><span>Caches</span><span class="dp-idx" id="dw-count">&mdash;</span></div>
     <p class="dw-help"><b>Help</b>Pick a cache to find it.</p>
+    <div class="dw-sortbar">
+      <label for="dw-sort">Sort</label>
+      <select id="dw-sort">
+        <option value="number">Number</option>
+        <option value="newest">Newest</option>
+        <option value="name">Name</option>
+        <option value="city">City</option>
+        <option value="state">State</option>
+        <option value="country">Country</option>
+        <option value="near">Near me</option>
+      </select>
+      <p class="dw-sortnote" id="dw-sortnote" role="status"></p>
+    </div>
     <div class="dp-panel__body" id="dw-rows"></div>
   </section>
   <section class="dp-panel dw-stage" aria-label="World" data-fly="right" data-fly-delay="60">
@@ -248,9 +264,10 @@
               <p>Something the operator leaves at a real place for whoever
                  finds it. Drops are left at caches, places the operator
                  comes back to, each in plain sight and marked with a P_N0VA
-                 sticker. A cache's page lists every drop left there: choose
-                 one for photos of the spot and of what was left, and its
-                 transmission.</p>
+                 sticker. A cache's page shows its street map and photos of
+                 the spot, and lists every drop left there: choose one for
+                 its transmission and photos of what was left, and again to
+                 hide them.</p>
               <p>On the world map, a ! over a cache means something was
                  left there in the last week.</p>
             </div>
@@ -298,9 +315,10 @@
               <p>Something the operator leaves at a real place for whoever
                  finds it. Drops are left at caches, places the operator
                  comes back to, each in plain sight and marked with a P_N0VA
-                 sticker. A cache's page lists every drop left there: choose
-                 one for photos of the spot and of what was left, and its
-                 transmission.</p>
+                 sticker. A cache's page shows its street map and photos of
+                 the spot, and lists every drop left there: choose one for
+                 its transmission and photos of what was left, and again to
+                 hide them.</p>
               <p>On the world map, a ! over a cache means something was
                  left there in the last week.</p>
             </div>
@@ -339,38 +357,34 @@
       </div>
     </section>
 
+    <!-- THE SPOT — always in view, with the map: photos of where the open
+         drop was left or, with none open, the newest one; each to go
+         through left and right. -->
+    <figure class="dp-panel dp-slot dp-gallery dp-spot" data-fly="left" data-fly-delay="100" aria-label="Photos of the spot">
+      <div class="dp-panel__head"><span>Spot</span><span class="dp-spot__of" id="r-spotof"></span><span class="dp-idx" id="r-spotn">—</span></div>
+      <div class="dp-panel__body dp-panel__body--flush">
+        <div class="dp-gallery__frame" id="s-spotframe"><img class="dp-gallery__bg" src="images/spot-placeholder.svg?v=42f2cfe1" alt="" aria-hidden="true"><img id="s-spot" src="images/spot-placeholder.svg?v=42f2cfe1" alt=""></div>
+        <button class="dp-gallery__go dp-gallery__prev" id="s-spotprev" type="button" aria-label="Earlier photo of the spot" hidden><span class="tri" aria-hidden="true"></span></button>
+        <button class="dp-gallery__go dp-gallery__next" id="s-spotnext" type="button" aria-label="Later photo of the spot" hidden><span class="tri" aria-hidden="true"></span></button>
+      </div>
+      <figcaption id="s-spotcap">—</figcaption>
+    </figure>
+
     <!-- THE DROPS — the one menu, at the centre: every drop left at this
-         cache, newest first. Choose one and its windows open round the
-         list; close them and the list is on its own again. -->
+         cache, newest first. A row opens its drop, and closes it again. -->
     <section class="dp-panel dp-log" data-fly="bottom" data-fly-delay="140" aria-label="Drops at this cache">
       <div class="dp-panel__head"><span>Drops</span><span class="dp-idx" id="r-logn">—</span></div>
       <div class="dp-panel__body" id="dp-log"></div>
     </section>
 
-    <!-- A DROP — opened from the list: photos of the spot it was left at
-         and of what was left, each to go through left and right, and its
-         transmission between them: what was left, and why. On a phone it
-         is a screen of its own, with the way back to the list at its top. -->
+    <!-- A DROP — opened from the list, and hidden from it again: its
+         transmission, what was left and why, and photos of what was left,
+         to go through left and right. On a phone they open under its row. -->
     <div class="dp-drop" id="dp-drop" role="region" aria-label="The chosen drop" hidden>
-      <div class="dp-drop__bar">
-        <button class="dp-drop__back" id="dp-drop-back" type="button"><span class="tri" aria-hidden="true"></span>Drops</button>
-        <span class="dp-drop__name" id="r-dropname">—</span>
-      </div>
-
-      <figure class="dp-panel dp-slot dp-gallery dp-spot" data-fly="left" data-fly-delay="60" style="margin:0" aria-label="Photos of the spot">
-        <div class="dp-panel__head"><span>Spot</span><span class="dp-idx" id="r-spotn">—</span></div>
-        <div class="dp-panel__body dp-panel__body--flush">
-          <a class="dp-gallery__link" id="s-spotlink" href="images/spot-placeholder.svg?v=42f2cfe1" target="_blank" rel="noopener"><img class="dp-gallery__bg" src="images/spot-placeholder.svg?v=42f2cfe1" alt="" aria-hidden="true"><img id="s-spot" src="images/spot-placeholder.svg?v=42f2cfe1" alt=""></a>
-          <button class="dp-gallery__go dp-gallery__prev" id="s-spotprev" type="button" aria-label="Earlier photo of the spot" hidden><span class="tri" aria-hidden="true"></span></button>
-          <button class="dp-gallery__go dp-gallery__next" id="s-spotnext" type="button" aria-label="Later photo of the spot" hidden><span class="tri" aria-hidden="true"></span></button>
-        </div>
-        <figcaption id="s-spotcap">—</figcaption>
-      </figure>
-
-      <section class="dp-panel dp-codec dp-brief" data-fly="top" data-fly-delay="100" aria-label="Transmission">
+      <section class="dp-panel dp-codec dp-brief" data-fly="right" data-fly-delay="60" aria-label="Transmission">
         <div class="dp-panel__head">
           <span>Transmission</span><span class="dp-idx" id="r-dropn">—</span>
-          <button class="dp-close" id="dp-close" type="button" title="Close (Esc)"><span class="x" aria-hidden="true"></span>Close<span class="key" aria-hidden="true">Esc</span></button>
+          <button class="dp-close" id="dp-close" type="button" title="Hide this drop (Esc)"><span class="x" aria-hidden="true"></span>Hide<span class="key" aria-hidden="true">Esc</span></button>
         </div>
         <div class="dp-panel__body">
           <h2 class="dp-brief__title" id="r-title">—</h2>
@@ -379,10 +393,10 @@
         </div>
       </section>
 
-      <figure class="dp-panel dp-slot dp-gallery dp-items" data-fly="right" data-fly-delay="140" style="margin:0" aria-label="Photos of what was left">
+      <figure class="dp-panel dp-slot dp-gallery dp-items" data-fly="left" data-fly-delay="120" aria-label="Photos of what was left">
         <div class="dp-panel__head"><span>Items</span><span class="dp-item-claimed" id="r-claimed" hidden></span><span class="dp-idx" id="r-itemn">—</span></div>
         <div class="dp-panel__body dp-panel__body--flush">
-          <a class="dp-gallery__link" id="s-itemlink" href="images/item-placeholder.svg?v=53bfe82d" target="_blank" rel="noopener"><img class="dp-gallery__bg" src="images/item-placeholder.svg?v=53bfe82d" alt="" aria-hidden="true"><img id="s-item" src="images/item-placeholder.svg?v=53bfe82d" alt=""></a>
+          <div class="dp-gallery__frame" id="s-itemframe"><img class="dp-gallery__bg" src="images/item-placeholder.svg?v=53bfe82d" alt="" aria-hidden="true"><img id="s-item" src="images/item-placeholder.svg?v=53bfe82d" alt=""></div>
           <button class="dp-gallery__go dp-gallery__prev" id="s-itemprev" type="button" aria-label="Earlier photo of what was left" hidden><span class="tri" aria-hidden="true"></span></button>
           <button class="dp-gallery__go dp-gallery__next" id="s-itemnext" type="button" aria-label="Later photo of what was left" hidden><span class="tri" aria-hidden="true"></span></button>
         </div>
@@ -400,6 +414,7 @@
 <div hidden id="dp-data">
 
   <section class="dp-cache" data-n="03" data-place="Telegraph Hill"
+           data-city="San Francisco" data-state="California" data-country="United States"
            data-lat="37.802139" data-lng="-122.4058" data-zoom="17"
            data-about="Under Coit Tower at the top of Telegraph Hill. Garden stairs, wild parrots, and the city spread out below.">
 
@@ -415,6 +430,7 @@
   </section>
 
   <section class="dp-cache" data-n="02" data-place="Island Signal"
+           data-city="San Francisco" data-state="California" data-country="United States"
            data-lat="37.826977" data-lng="-122.422955" data-zoom="17"
            data-about="Alcatraz, a ferry ride out into the bay: the old prison, its lighthouse, and the skyline across the water.">
 
@@ -430,6 +446,7 @@
   </section>
 
   <section class="dp-cache" data-n="01" data-place="West Woods"
+           data-city="San Francisco" data-state="California" data-country="United States"
            data-lat="37.769420" data-lng="-122.486214" data-zoom="17"
            data-about="The wooded west of Golden Gate Park: meadows and small lakes under eucalyptus and cypress, the city out of earshot.">
 
@@ -450,11 +467,11 @@
 <script src="vendor/leaflet/leaflet.js?v=5a640ff8"></script>
 <script src="vendor/protomaps-leaflet/protomaps-leaflet.js?v=9d8eec24"></script>
 <script src="drops-map.js?v=c472e168" data-map="maps/drops.pmtiles?v=0a2d46bf"></script>
-<script src="drops.js?v=b2308a6d"></script>
+<script src="drops.js?v=b05fd20e"></script>
 <script src="vendor/world/d3-array.min.js?v=08cb6252"></script>
 <script src="vendor/world/d3-geo.min.js?v=b7604723"></script>
 <script src="vendor/world/topojson-client.min.js?v=bc057598"></script>
-<script src="drops-world.js?v=66c95b3d" data-world="maps/world/" data-world-v="42189bc6" data-landmarks="maps/landmarks.json?v=a9e7a54f"></script>
+<script src="drops-world.js?v=6275e5ce" data-world="maps/world/" data-world-v="42189bc6" data-landmarks="maps/landmarks.json?v=a9e7a54f"></script>
 <script src="page-script.js?v=bd1a70b0"></script>
 </body>
 </html>

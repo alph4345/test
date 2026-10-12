@@ -727,8 +727,9 @@ DROPS_PHONE_CSS = """
    -------------------------------------------------------------------------- */
 @media (max-width:900px){
   /* 1fr lets a single unbreakable line stretch the column, and with it the
-     whole page, past the edge of the screen. Pin the column to the screen. */
-  .dp-shell, .dp-detail{ grid-template-columns:minmax(0,1fr); }
+     whole page, past the edge of the screen. Pin the column to the screen
+     (drops.css pins the cache's own columns). */
+  .dp-shell{ grid-template-columns:minmax(0,1fr); }
 
   .dp-bar .dp-panel__body{
     grid-template-columns:minmax(0,1fr) auto;
@@ -877,17 +878,17 @@ def fly_in_drops(html: str) -> str:
 
     page-script.js flies each one in from the edge it sits against (the list
     of caches from the left, the frequency bar from the top, the map from
-    the right, the list of drops from below; a drop's windows, as it opens,
-    its spot from the left, its transmission from the top and its items from
-    the right). It loads after drops.js, so the lists and the map are built
-    before anything moves."""
+    the right, the list of drops from below, the photos of the spot from
+    the left; a drop's two windows, as it opens, its transmission from the
+    right and the photos of what was left from the left). It loads after
+    drops.js, so the lists and the map are built before anything moves."""
     panels = [('class="dp-panel dp-manifest"', "left", 60),
               ('class="dp-panel dp-codec dp-bar"', "top", 60),
               ('class="dp-panel dp-map dp-scan"', "right", 140),
               ('class="dp-panel dp-log"', "bottom", 140),
-              ('class="dp-panel dp-slot dp-gallery dp-spot"', "left", 60),
-              ('class="dp-panel dp-codec dp-brief"', "top", 100),
-              ('class="dp-panel dp-slot dp-gallery dp-items"', "right", 140)]
+              ('class="dp-panel dp-slot dp-gallery dp-spot"', "left", 100),
+              ('class="dp-panel dp-codec dp-brief"', "right", 60),
+              ('class="dp-panel dp-slot dp-gallery dp-items"', "left", 120)]
     for cls, where, delay in panels:
         if html.count(cls) != 1:
             sys.exit("drops.html changed; update fly_in_drops() in build.py")
@@ -927,6 +928,19 @@ WORLD_HTML = """
   <section class="dp-panel dw-list" aria-label="Caches" data-fly="left" data-fly-delay="60">
     <div class="dp-panel__head"><span>Caches</span><span class="dp-idx" id="dw-count">&mdash;</span></div>
     <p class="dw-help"><b>Help</b>Pick a cache to find it.</p>
+    <div class="dw-sortbar">
+      <label for="dw-sort">Sort</label>
+      <select id="dw-sort">
+        <option value="number">Number</option>
+        <option value="newest">Newest</option>
+        <option value="name">Name</option>
+        <option value="city">City</option>
+        <option value="state">State</option>
+        <option value="country">Country</option>
+        <option value="near">Near me</option>
+      </select>
+      <p class="dw-sortnote" id="dw-sortnote" role="status"></p>
+    </div>
     <div class="dp-panel__body" id="dw-rows"></div>
   </section>
   <section class="dp-panel dw-stage" aria-label="World" data-fly="right" data-fly-delay="60">
@@ -987,6 +1001,46 @@ html:not(.js) .dw-shell, html.js:not([data-view="world"]) .dw-shell{ display:non
   font-size:9px; letter-spacing:.16em; text-transform:uppercase; color:var(--pn-ink);
 }
 .dw-help b{ font-weight:400; color:var(--pn-red); font-size:8px; margin-right:10px; }
+/* the list's order: by number, unless another is chosen here */
+.dw-sortbar{
+  display:flex; flex-wrap:wrap; align-items:center; gap:6px 10px;
+  padding:8px 12px; border-bottom:1px solid var(--pn-divider);
+}
+.dw-sortbar label{ font-size:8px; letter-spacing:.16em; text-transform:uppercase; color:var(--pn-red); }
+.dw-sortbar select{
+  -webkit-appearance:none; appearance:none; min-width:0; min-height:30px; padding:0 30px 0 10px; cursor:pointer;
+  font:inherit; font-size:9px; letter-spacing:.12em; text-transform:uppercase; color:var(--pn-ink);
+  background-color:#000;
+  background-image:linear-gradient(45deg, transparent 50%, var(--pn-red) 50%), linear-gradient(135deg, var(--pn-red) 50%, transparent 50%);
+  background-position:calc(100% - 16px) 52%, calc(100% - 11px) 52%;
+  background-size:5px 5px; background-repeat:no-repeat;
+  border:1px solid var(--pn-red-50); border-radius:var(--pn-radius-sm);
+  transition:border-color var(--pn-dur-state) ease, color var(--pn-dur-state) ease;
+}
+.dw-sortbar select:hover{ border-color:var(--pn-red); color:var(--pn-signal); }
+.dw-sortbar select:focus-visible{ outline:2px solid var(--pn-focus); outline-offset:2px; }
+.dw-sortbar option{ background:#000; color:var(--pn-ink); }
+.dw-sortnote{
+  flex:1 1 100%; margin:0;
+  font-family:var(--pn-face-body); font-size:11.5px; line-height:1.4; color:var(--pn-ink-muted);
+}
+.dw-sortnote:empty{ display:none; }
+/* by city, state or country: a heading over each place's caches, at the
+   top of the list while they scroll under it */
+.dw-group{
+  position:sticky; top:0; z-index:2;
+  display:flex; justify-content:space-between; gap:10px; margin:0; padding:9px 12px 7px;
+  background:var(--pn-surface-alt); border-bottom:1px solid var(--pn-red-30);
+  font-size:8px; line-height:1.3; letter-spacing:.16em; text-transform:uppercase; color:var(--pn-red);
+}
+.dw-group > span:first-child{ min-width:0; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+.dw-group .dp-idx{ color:var(--pn-ink-faint); }
+/* nearest first: how far each one is, under its name */
+.dw-dist{
+  display:none; grid-column:2 / -1;
+  font-size:8.5px; letter-spacing:.12em; text-transform:uppercase; color:var(--pn-red);
+}
+.is-near .dw-dist:not(:empty){ display:block; }
 .dw-item{ position:relative; border-bottom:1px solid var(--pn-divider); }
 .dw-row{
   position:relative; display:grid; grid-template-columns:auto minmax(0,1fr) auto auto;
@@ -997,6 +1051,7 @@ html:not(.js) .dw-shell, html.js:not([data-view="world"]) .dw-shell{ display:non
 }
 /* pointed at: marked; chosen: lit, with the bar down its side */
 .dw-row:hover{ background:var(--pn-red-07); color:var(--pn-ink); }
+.dw-row, .dw-sortbar select{ -webkit-tap-highlight-color:transparent; }   /* the row's own colours, not a blue flash */
 .dw-row[aria-current="true"]{ background:var(--pn-red-20); color:var(--pn-signal); }
 .dw-item:has(> .dw-row[aria-current="true"])::before{
   content:""; position:absolute; left:0; top:0; bottom:0; width:3px; background:var(--pn-red); z-index:1;
@@ -1267,6 +1322,8 @@ html.dw-ready .dp-shell{ grid-template-columns:minmax(0,1fr); }
   .dw-row{ padding:11px 12px 10px; }
   .dw-line{ -webkit-line-clamp:1; }
   .dw-list .dw-help{ display:none; }          /* the opened row says what to do */
+  .dw-sortbar{ padding:6px 10px; }
+  .dw-sortbar select{ min-height:40px; font-size:10px; }
   .dw-zoom{ left:10px; top:10px; }
   .dw-open{ min-height:40px; }
   /* The cache's screen: no strip of caches above the bar now, so the cache
@@ -1278,8 +1335,8 @@ html.dw-ready .dp-shell{ grid-template-columns:minmax(0,1fr); }
 
 /* --------------------------------------------------------------------------
    A CACHE ON A PHONE — a page that scrolls (drops.css lays it out: the
-   street map half the screen, the drops under it, a drop a screen of its
-   own). The world stays one screen.
+   street map, the photos of the spot, the drops, a drop opening under its
+   row). The world stays one screen.
    -------------------------------------------------------------------------- */
 @media (max-width:900px){
   html.dw-ready .dp-shell{ grid-template-rows:auto; }
@@ -1290,7 +1347,7 @@ html.dw-ready .dp-shell{ grid-template-columns:minmax(0,1fr); }
    was a strip 120px tall over a list no taller, too short for the chosen
    cache's row to open in: they sit side by side instead, as on a desktop,
    each the full height. (A cache's page scrolls, as on any short screen,
-   and a drop is a screen of its own, its two sets of photos side by side.)
+   the map and the spot side by side, a drop opening under its row.)
    -------------------------------------------------------------------------- */
 @media (max-width:900px) and (min-width:560px) and (orientation:landscape){
   .dw-shell{ grid-template-columns:minmax(270px,40%) minmax(0,1fr); grid-template-rows:minmax(0,1fr); }

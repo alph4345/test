@@ -119,6 +119,7 @@
   var list = drops.entries.map(function (e, i) {
     var d = e.dataset, left = drops.drops(i), latest = left[0] || null;
     return { i: i, n: d.n || "", place: d.place || "", about: (d.about || "").trim(),
+             city: (d.city || "").trim(), state: (d.state || "").trim(), country: (d.country || "").trim(),
              lat: parseFloat(d.lat), lng: parseFloat(d.lng), drops: left, latest: latest, placed: latest ? latest.dataset.placed || "" : "",
              isNew: !!latest && claimedOf(latest) === null && daysSince(latest.dataset.placed) < NEW_DAYS,
              claimed: left.length > 0 && left.every(function (x) { return claimedOf(x) !== null; }) };
@@ -234,6 +235,7 @@
     a.appendChild(el("span", "dw-place", d.place));
     a.appendChild(tagFor(d) || el("span"));
     a.appendChild(el("span", "dw-date", d.placed));
+    a.appendChild(el("span", "dw-dist"));            // how far, sorted nearest first
     if (d.about) a.appendChild(el("span", "dw-about", d.about));
     var line = plural(d.drops.length, "drop") +
                (x.title ? (d.drops.length > 1 ? " \u00b7 latest \u201c" : " \u00b7 \u201c") + x.title + "\u201d" : "");
@@ -264,6 +266,103 @@
     mores.push(more);
   });
 
+  /* --- the list's order ----------------------------------------------------- */
+  // By number unless asked otherwise (the menu over the list): the newest
+  // first, by name, under headings by city, state or country (each cache's
+  // data-city, data-state and data-country), or nearest first, from where
+  // the visitor is: the browser asks them, and where they are goes nowhere
+  // but into this sum. A cache keeps its index (rowBtns, mores, sel); only
+  // where its row stands changes, and the arrows walk the rows as they stand.
+  var sortBox = document.getElementById("dw-sort"), sortNote = document.getElementById("dw-sortnote");
+  var order = list.map(function (d) { return d.i; }), sorted = "number", here = null;
+  function text(a, b) { return a.localeCompare(b, undefined, { sensitivity: "base", numeric: true }); }
+  function num(d) { var v = parseInt(d.n, 10); return isFinite(v) ? v : Infinity; }
+  function byNumber(a, b) { return (num(a) - num(b)) || text(a.n, b.n); }
+  // km between where the visitor is and cache d (Infinity: not known)
+  function dist(d) {
+    if (!here || !hasPos(d)) return Infinity;
+    var r = Math.PI / 180, s = Math.sin((d.lat - here.lat) * r / 2), t = Math.sin((d.lng - here.lng) * r / 2);
+    var h = s * s + Math.cos(here.lat * r) * Math.cos(d.lat * r) * t * t;
+    return 12742 * Math.asin(Math.min(1, Math.sqrt(h)));
+  }
+  // in miles where the visitor's language does: "12 km", "350 m", "7.5 mi"
+  var MILES = /^(en-(US|GB|LR)|my)\b/i.test(navigator.language || "");
+  function far(km) {
+    if (MILES) {
+      var mi = km / 1.609344;
+      return (mi < 0.1 ? "under 0.1" : mi < 10 ? mi.toFixed(1) : Math.round(mi).toLocaleString("en-US")) + " mi";
+    }
+    if (km < 1) return Math.max(10, Math.round(km * 100) * 10) + " m";
+    return (km < 10 ? km.toFixed(1) : Math.round(km).toLocaleString("en-US")) + " km";
+  }
+  // the headings a sort puts its caches under (none: one run, in order)
+  var GROUPS = {
+    city:    function (d) { return d.city ? [d.city, d.state || d.country] : []; },
+    state:   function (d) { return d.state ? [d.state, d.country] : []; },
+    country: function (d) { return d.country ? [d.country] : []; }
+  };
+  var ORDERS = {
+    number: byNumber,
+    newest: function (a, b) { return text(b.placed, a.placed) || byNumber(a, b); },
+    name:   function (a, b) { return text(a.place, b.place) || byNumber(a, b); },
+    near:   function (a, b) { return (dist(a) - dist(b)) || byNumber(a, b); }
+  };
+  function label(parts) { return parts.filter(Boolean).join(", "); }
+  // The rows in the order asked for, under their headings.
+  function arrange(how) {
+    var group = GROUPS[how], cmp = ORDERS[how] || byNumber;
+    var ds = list.slice().sort(group ? function (a, b) {
+      var x = label(group(a)), y = label(group(b));
+      return (!x - !y) || text(x, y) || byNumber(a, b);     // somewhere unsaid last
+    } : cmp);
+    order = ds.map(function (d) { return d.i; });
+    sorted = how;
+    [].slice.call(rows.querySelectorAll(".dw-group")).forEach(function (g) { g.remove(); });
+    var last = null;
+    ds.forEach(function (d) {
+      var g = group ? label(group(d)) : null;
+      if (group && g !== last) {
+        var n = ds.filter(function (x) { return label(group(x)) === g; }).length, h = el("p", "dw-group");
+        h.appendChild(el("span", null, g || "Somewhere else"));
+        h.appendChild(el("span", "dp-idx", String(n)));
+        rows.appendChild(h);
+        last = g;
+      }
+      rows.appendChild(rowBtns[d.i].parentNode);
+    });
+    rows.classList.toggle("is-near", how === "near");
+    if (sel >= 0 && rowBtns[sel]) reveal(rowBtns[sel].parentNode);
+  }
+  function say(words) { if (sortNote) sortNote.textContent = words || ""; }
+  // Nearest first: where the visitor is, once (the browser asks them); then
+  // each row says how far. Not allowed, or not found: the order stays.
+  function nearMe() {
+    if (here) { arrange("near"); say(""); return; }
+    if (!navigator.geolocation) { say("This browser can't say where you are."); sortBox.value = sorted; return; }
+    say("Finding where you are\u2026");
+    navigator.geolocation.getCurrentPosition(function (p) {
+      here = { lat: p.coords.latitude, lng: p.coords.longitude };
+      list.forEach(function (d) {
+        var km = dist(d);
+        rowBtns[d.i].querySelector(".dw-dist").textContent = isFinite(km) ? far(km) + " away" : "";
+      });
+      say("");
+      if (sortBox.value === "near") arrange("near");
+    }, function (err) {
+      say(err && err.code === 1 ? "Location not allowed: the list stays as it was."
+                                : "Couldn't find where you are: the list stays as it was.");
+      if (sortBox.value === "near") sortBox.value = sorted;
+    }, { timeout: 15000, maximumAge: 600000 });
+  }
+  if (sortBox) {
+    sortBox.value = "number";               // a reload starts in order again
+    sortBox.addEventListener("change", function () {
+      if (sortBox.value === "near") nearMe();
+      else { say(""); arrange(sortBox.value); }
+    });
+  }
+  arrange("number");
+
   // Where the prompt goes: by the cache on the globe, or under its row: on
   // a phone, and wherever the globe can't show the cache.
   var narrow = window.matchMedia("(max-width: 900px)");
@@ -278,11 +377,13 @@
     });
   }
   // the opened row in full view inside the list, which scrolls on its own
+  // (clear of the heading that stays at its top, sorted by place)
   function reveal(item) {
     var a = item.getBoundingClientRect(), b = rows.getBoundingClientRect();
+    var g = rows.querySelector(".dw-group"), top = b.top + (g ? g.offsetHeight : 0);
     if (!b.height) return;
     if (a.bottom > b.bottom) rows.scrollTop += a.bottom - b.bottom + 4;
-    if (a.top < b.top) rows.scrollTop -= b.top - a.top + 4;
+    if (a.top < top) rows.scrollTop -= top - a.top + 4;
   }
   function onNarrow() { dock(); draw(); }
   // a row given the focus back (the prompt closing, the world returning),
@@ -1688,7 +1789,7 @@
       if (!plain) return;
       if (root.dataset.view === "world") {
         ev.preventDefault();
-        rowBtns[clamp(sel + step, 0, list.length - 1)].focus();
+        rowBtns[order[clamp(order.indexOf(sel) + step, 0, order.length - 1)]].focus();
       } else if (t && t.closest && t.closest(".leaflet-container")) {
         ev.preventDefault();
         panStreet(ev.key, ev.shiftKey);

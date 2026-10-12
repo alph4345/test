@@ -120,11 +120,21 @@ there are no hints. The nav and the home page's menu call the page
 **Cache**; its address is still `pn0va.com/drops`, so links to it keep
 working. It is one page with two screens.
 
-- **The world** (`pn0va.com/drops`): the list of caches, each with its
-  number and name, a line or two on what the cache is and where, and, short
-  under that, when its latest drop was left, how many drops have been left
-  there and the latest one's title; and a globe with a mark for each. It
-  opens with no cache chosen, the globe turned to where the caches are.
+- **The world** (`pn0va.com/drops`): the list of caches, in order by
+  number, each with its number and name, a line or two on what the cache
+  is and where, and, short under that, when its latest drop was left, how
+  many drops have been left there and the latest one's title; and a globe
+  with a mark for each. It opens with no cache chosen, the globe turned to
+  where the caches are.
+  - **Sort**, over the list, puts it another way: **Newest** (the latest
+    drop first), **Name**, **City**, **State** or **Country** (under a
+    heading for each place, from each cache's `data-city`, `data-state`
+    and `data-country`), or **Near me**: nearest first, each row saying
+    how far, in miles in the US and UK and kilometres elsewhere. The
+    browser asks before it says where you are, and that stays in the
+    page; refused or not found, the list stays as it was and says why. A
+    reload starts in number order again, and the arrow keys go down the
+    list as it is shown.
   - **Choose a cache in the list** (a click, Enter, or the arrow keys down
     it) and the globe flies in to it, the cache in the middle, close enough
     to see its city and the streets around it (64x where the street map
@@ -150,40 +160,45 @@ working. It is one page with two screens.
   (CACHE 03 over TELEGRAPH HILL), its coordinates, when its latest drop was
   left and how many there are, and what the cache is and where, along the
   top; under them its street map,
-  at street level, filling the screen. On the map, at the middle of its
+  at street level, filling the screen, the cache's mark in the middle of
+  what the list of drops leaves clear. On the map, at the middle of its
   foot, is the page's one menu: **the drops left there**, newest first,
-  each with its number, title and date, and NEW or CLAIMED.
-  - **Choose a drop** (a click, or Enter on it) and its windows fly in
-    round the list while the map dims behind them: **Spot**, photos of
-    where it was left, on the left; **Transmission**, what was left and
-    why, above the list; **Items**, photos of what was left, on the right.
-    The list stays where it is, the chosen drop marked: choose another in
-    it (or move down it with the arrow keys) and the windows show that one
+  each with its number, title and date, NEW or CLAIMED, and at its end
+  what choosing it does: **OPEN**, or on the open one, solid red,
+  **HIDE**. Beside the list, always, is **Spot**: photos of where the open
+  drop was left or, with none open, the newest drop's; its head says
+  whose (SPOT #007).
+  - **Choose a drop** (a click, or Enter on it) and its two windows fly
+    in: **Transmission**, what was left and why, the height of the map at
+    its right, the biggest window on the page; and **Items**, photos of
+    what was left, at its left over the Spot. The map stays lit. The list
+    stays where it is, the chosen drop marked: choose another in it (or
+    move down it with the arrow keys) and the windows show that one
     instead.
-  - **CLOSE** at the head of the transmission, Esc, or the browser's Back
-    closes them: they fly off and the list is on its own again.
+  - **Choose the open drop again**, **HIDE** (solid red at the head of the
+    transmission), Esc, or the browser's Back hides it: its two windows
+    fly off, and the map, the Spot and the list stay.
   - **WORLD MAP**, solid red at the head of the top bar, Esc with no drop
     open, or Back pulls back out to the globe, where that cache is still
     chosen.
   - The street map has + and −, and a reticle that takes it back to the
     cache as it opened.
   - On a phone the page scrolls: WORLD MAP heads the top bar, as on a
-    desktop, then the street map takes half the screen, then the drops,
-    with nothing over them. A drop opens as a screen of its own, with
-    **◀ DROPS**, the way back to the list, along its top beside the drop's
-    number and title, and under it the spot's photos, the transmission in
-    full and the photos of what was left. On a phone held sideways or a
-    small tablet the two sets of photos sit side by side, the transmission
-    under them.
+    desktop, then the street map, the Spot and the drops, with nothing
+    over them. A drop opens under its row, the rest of the list carrying
+    on below it: its transmission in full, then the photos of what was
+    left. Its row again (its toggle says HIDE) or HIDE folds it away. On a
+    phone held sideways or a small tablet the street map and the Spot sit
+    side by side, and so do an open drop's transmission and its photos.
 
 **The photos.** Spot and Items work alike. Each photo shows its file's
 name and the date in it, and the window's head counts them (1/3). The
 arrows on the photo and a swipe across it go through them, earliest first
 and round again from the last, and so do the left and right arrow keys
-once the photo or an arrow has the focus (Tab to it, or click an arrow). A
-click on the photo opens it full size. A drop with one photo shows its
-date in the head instead of a count; one with none says there is no photo
-yet.
+once the photo or an arrow has the focus (Tab to it, or click an arrow).
+The photo itself opens nothing: a click on it leaves you on the page. A
+drop with one photo shows its date in the head instead of a count; one
+with none says there is no photo yet.
 
 **"What is a drop?"**, the small ? in the corner of the top bar, says what
 a drop and a cache are and what a cache's page shows, for whoever wonders.
@@ -268,11 +283,13 @@ Everything is in `drops.html`, in the brand kit's `drops` folder (or the
 snapshot in `_source/brand-kit/drops/`); the comment at its top says the
 same. Each cache is a `<section class="dp-cache">`, and the drops left
 there are the `<article class="dp-entry">` blocks inside it, newest first.
-Caches go newest first too. (`dp-zone` and `dp-point` sections, from
-before caches, still work.)
+Caches go newest first too; the world's list puts them in order by number
+all the same, or however a visitor sorts it. (`dp-zone` and `dp-point`
+sections, from before caches, still work.)
 
 ```html
 <section class="dp-cache" data-n="03" data-place="Telegraph Hill"
+         data-city="San Francisco" data-state="California" data-country="United States"
          data-lat="37.802139" data-lng="-122.4058" data-zoom="17"
          data-about="Under Coit Tower at the top of Telegraph Hill. Garden stairs, wild parrots, and the city spread out below.">
 
@@ -300,7 +317,9 @@ before caches, still work.)
   place, what it is and what it is like there, which leads wherever the
   cache is listed and sits under its name on its page (the three caches
   here have one each to start you off: rewrite them as you like);
-  `data-lat` and `data-lng` where it is, in decimal
+  `data-city`, `data-state` and `data-country` where it is, in words,
+  which the world's list sorts by and heads its places with (leave out
+  any that don't apply); `data-lat` and `data-lng` where it is, in decimal
   degrees; `data-zoom` how close its street map opens: 17 is street level,
   15 or 16 shows more of the neighbourhood. Either way the map zooms from 8
   out to 19 in.
@@ -341,6 +360,35 @@ and turns hollow on the globe. `data-claimed` without a date shows
 
 Drop 001's story says it was recovered on 2026.06.28, but it is not marked:
 add `data-claimed="2026.06.28"` to it if it should show.
+
+## 2026.10.12 update
+
+- **The world's list goes by number** (01, 02, 03...), no longer newest
+  first, and **Sort** over it puts it another way: Newest, Name, City,
+  State, Country, or Near me (nearest first, with how far each one is;
+  the browser asks first, and where you are stays in the page). City,
+  State and Country put a heading over each place's caches. Caches now
+  say where they are in words: `data-city`, `data-state` and
+  `data-country` (the three here have theirs).
+- **A cache's page always shows the map and the Spot.** The Spot, photos
+  of where the open drop was left (or the newest drop's), sits beside the
+  list of drops, and the map no longer dims. Only a drop's Transmission
+  and Items come and go: the transmission is the biggest window now, the
+  height of the map at its right, in larger type; Items is smaller, at
+  its left over the Spot. The cache's mark sits in the middle of the map
+  left clear above the list, so a long list no longer covers it.
+- **Each drop in the list has a toggle,** OPEN, or on the open one, solid
+  red, HIDE: choosing the open drop again hides it. HIDE (formerly CLOSE)
+  at the head of the transmission is solid red too.
+- **On a phone a drop opens under its row** in the list, the rest of the
+  list carrying on below it, rather than as a screen of its own; its row
+  again, or HIDE, folds it away. The Spot follows the street map (beside
+  it on a phone held sideways or a small tablet).
+- **A photo no longer opens in a new tab** when clicked; the arrows, the
+  arrow keys and a swipe still go through a drop's photos.
+- **Fix.** The photo windows were meant to sit a step in from the map's
+  edges, but a style written on them overruled it; they sit clear of the
+  map's head and its zoom buttons now.
 
 ## 2026.10.11 update
 
@@ -910,6 +958,30 @@ turning at about 60 frames a second on a desktop and 47 on a phone · two
 builds in a row byte-identical · every page at 1440 and 390px, JavaScript
 on and off: no console errors, failed requests, sideways scrolling or
 outside requests.
+
+**2026.10.12**, clean and flat builds and a test copy with eight
+drops at one cache, most with two or three photos of each kind, desktop and
+phone: the world's list in order by number; Sort putting it Newest, Name,
+City, State and Country (a heading over each place) and back; Near me
+allowed (nearest first, how far in miles) and refused (the list as it was,
+a note saying why); the arrow keys following the order shown · a cache's
+page at 12 widths from 320 to 1920px, phones on their side and tablets: the
+map and the Spot always shown, the Spot the newest drop's and then the open
+one's; the cache's mark in view and clear of the list, after a recentre
+too, 15 times out of 15 from a link in each build; the list centred at the
+map's foot, scrolling inside itself when long, or under the map and the
+Spot; every row's toggle OPEN and the open one's HIDE, clear of its NEW or
+CLAIMED (on a line of its own where the list is narrow); a drop's
+transmission the biggest window, its items over the Spot, clear of each
+other and of the list; on a phone the drop under its row, the rest of the
+list below it; HIDE solid red and inside its window at every width; the
+row again, HIDE, Esc and Back hiding it · a click on a photo opening
+nothing, the arrows, the arrow keys and a swipe turning them · a drop's two
+windows flying in in about 0.75 seconds and away in 0.3 on a desktop,
+unfolding in place on a phone · two builds byte-identical · the three
+preview kits, each served by its own preview · every page at 1440 and
+390px, JavaScript on and off: no console errors, failed requests, sideways
+scrolling or outside requests.
 
 **2026.10.11, update 2**, clean and flat builds, desktop and phone: each
 cache's description leading its row in the world's list (whole, in up to
