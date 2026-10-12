@@ -45,15 +45,17 @@ function prepareMesh(M, { verts, tris, maxTris = 80000 }) {
   });
 }
 
+// Buffers handed over to the page instead of copied. Anything missing is
+// skipped, and each buffer is listed once (a repeat makes postMessage fail).
 export function transferList(result) {
-  const t = [];
-  if (result && result.verts && result.tris && !result.pieces) t.push(result.verts.buffer, result.tris.buffer);
+  const t = new Set();
+  const add = (x) => { const buf = x instanceof ArrayBuffer ? x : x?.buffer; if (buf instanceof ArrayBuffer && buf.byteLength) t.add(buf); };
+  if (result && result.verts && result.tris && !result.pieces) { add(result.verts); add(result.tris); }
   if (result && result.pieces) {
     for (const p of result.pieces) {
-      t.push(p.verts.buffer, p.tris.buffer, p.triTags.buffer, p.triFil.buffer);
-      if (p.stl) t.push(p.stl);
-      for (const q of p.parts || []) t.push(q.verts.buffer, q.stl);
+      add(p.verts); add(p.tris); add(p.triTags); add(p.triFil); add(p.stl);
+      for (const q of p.parts || []) { add(q.verts); add(q.stl); }
     }
   }
-  return t;
+  return [...t];
 }

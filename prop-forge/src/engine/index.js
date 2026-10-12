@@ -152,7 +152,10 @@ export function runBuild(M, design, { mode = 'model', withStl = false } = {}) {
     });
     const hasModel = model && !model.isEmpty();
     // reference-only parts are shown but never printed, split or exported
-    const refPieces = withStl ? [] : (refs || []).map((r) => ({ name: r.name, kind: 'ref', bbox: bboxOf(r.m), volume: r.m.volume(), fit: { fits: true }, ...meshData(r.m, tags) }));
+    const refPieces = withStl ? [] : (refs || []).map((r) => {
+      const data = meshData(r.m, tags);
+      return { name: r.name, kind: 'ref', bbox: bboxOf(r.m), volume: r.m.volume(), fit: { fits: true }, ...data, triFil: new Int8Array(data.triTags.length) };
+    });
     if (!hasModel && !(separates || []).length) return { pieces: rawPieces.concat(refPieces), warnings: warnings.length || rawPieces.length ? warnings : ['Model is empty.'], reports: [] };
     const plate = design.split?.plate || DEFAULT_PLATE;
     let bodies = [];

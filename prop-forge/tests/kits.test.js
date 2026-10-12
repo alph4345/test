@@ -158,3 +158,19 @@ test('a staff comes apart into the chosen number of sections around its core', a
     assert.equal(threads.length, opts.apart - 1, `${id}: printed threads fit around the core`);
   }
 });
+
+test('every build result can be handed back from the worker (see-through parts included)', async () => {
+  const { transferList } = await import('../src/engine/handler.js');
+  const cases = KITS.map((kit) => [kit, {}]);
+  const maka = KITS.find((k) => k.id === 'maka-scythe-parts');
+  cases.push([maka, { core: 'tube16' }], [maka, { staff: 'rod' }]);
+  for (const [kit, extra] of cases) {
+    const r0 = recipeFor(kit, variantsOf(kit)[0]);
+    const d = await withMeshes(designFromRecipe({ ...r0, opts: { ...r0.opts, ...extra } }));
+    for (const withStl of [false, true]) {
+      const r = runBuild(M, d, { withStl });
+      assert.ok(r.pieces.every((p) => p.verts && p.tris && p.triTags && p.triFil), `${kit.id}: every piece has its mesh arrays`);
+      assert.doesNotThrow(() => structuredClone(r, { transfer: transferList(r) }), `${kit.id} ${JSON.stringify(extra)}`);
+    }
+  }
+});
