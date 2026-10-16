@@ -358,17 +358,20 @@
        that path, so it loads wherever the page is served from */
     var none = o.img.getAttribute("src"), photos = [], shown = 0, whose = "";
     var bg = o.frame.querySelector(".dp-gallery__bg");
+    /* a photo already showing is left be: set again, it would be fetched
+       again, and one still on its way dropped */
+    function put(img, src){ if (img && img.getAttribute("src") !== src) img.src = src; }
     function draw(){
       if (!photos.length){
-        o.img.src = none;
-        if (bg) bg.src = none;
+        put(o.img, none);
+        put(bg, none);
         o.img.alt = o.cap.textContent = o.empty;
         o.count.textContent = "—";
         return;
       }
       var src = photos[shown], name = decodeURIComponent(src.split("/").pop().split("?")[0]), date = dateIn(name);
-      o.img.src = src;
-      if (bg) bg.src = src;
+      put(o.img, src);
+      put(bg, src);
       o.img.alt = o.what + (whose ? " " + whose : "") +
                   (date ? ", photographed " + date : "") + (photos.length > 1 ? " (photo " + (shown + 1) + " of " + photos.length + ")" : "");
       o.cap.textContent = name + (date ? " · " + date : "");
