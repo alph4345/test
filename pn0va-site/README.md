@@ -987,6 +987,33 @@ builds in a row byte-identical · every page at 1440 and 390px, JavaScript
 on and off: no console errors, failed requests, sideways scrolling or
 outside requests.
 
+**2026.10.16**, clean and flat builds and a test copy with eight drops
+at one cache and each cache's own photos of its spot, desktop and phone: a
+cache's page at 12 widths from 320 to 1920px, phones on their side and
+tablets: on a desktop four windows in a grid and none over another (the
+map and the Spot side by side and as tall, the list under the map, beside
+it the drop's place saying how to choose one), one under the other on a
+phone, the map and the Spot side by side and as tall from 600px; the bar
+whole on a short laptop screen, the page scrolling instead, and choosing
+a drop there (1350x561, 1280x610, 1366x640, 1024x600) scrolling just far
+enough to show it whole, clear of the menu, and HIDE taking the page back
+to where it was; scrolled to its foot, a drop opening and hiding without
+the page jumping to its top; a screen that fits never scrolling; every
+other page still held in place while its windows fly (a cache at 1440x900
+and on a phone, the world, Blog, Projects, Store) · the Spot the
+cache's own photos, the same whichever drop is open, turned or hidden · a
+drop flying into its place beside the list, the photos of what was left at
+its words' side, or under its row on a phone (photos over words, or side by
+side where there is room); CLAIMED with its date in its transmission; its
+row again, HIDE, Esc and Back hiding it · the cache's mark in the middle of
+its map from a link, 15 times out of 15 in each build · the build putting
+cache<n>_ photos on their cache and spot<n>_ ones from before on their
+drop's cache, in date order · every earlier suite run again on both builds
+and the test copy · two builds byte-identical · the three preview kits,
+each served by its own preview · every page at 1440 and 390px, JavaScript
+on and off: no console errors, failed requests, sideways scrolling or
+outside requests.
+
 **2026.10.12**, clean and flat builds and a test copy with eight
 drops at one cache, most with two or three photos of each kind, desktop and
 phone: the world's list in order by number; Sort putting it Newest, Name,
