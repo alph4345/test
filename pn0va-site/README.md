@@ -159,46 +159,49 @@ working. It is one page with two screens.
 - **A cache** (`pn0va.com/drops#03`): its name, large, under its number
   (CACHE 03 over TELEGRAPH HILL), its coordinates, when its latest drop was
   left and how many there are, and what the cache is and where, along the
-  top; under them its street map,
-  at street level, filling the screen, the cache's mark in the middle of
-  what the list of drops leaves clear. On the map, at the middle of its
-  foot, is the page's one menu: **the drops left there**, newest first,
-  each with its number, title and date, NEW or CLAIMED, and at its end
-  what choosing it does: **OPEN**, or on the open one, solid red,
-  **HIDE**. Beside the list, always, is **Spot**: photos of where the open
-  drop was left or, with none open, the newest drop's; its head says
-  whose (SPOT #007).
-  - **Choose a drop** (a click, or Enter on it) and its two windows fly
-    in: **Transmission**, what was left and why, the height of the map at
-    its right, the biggest window on the page; and **Items**, photos of
-    what was left, at its left over the Spot. The map stays lit. The list
-    stays where it is, the chosen drop marked: choose another in it (or
-    move down it with the arrow keys) and the windows show that one
-    instead.
+  top. Under that, four windows in a grid, none over another: where the
+  cache is, side by side and always in view, its **street map**, at street
+  level with the cache's mark in the middle, and **Spot**, the cache's own
+  photos of the place the drops are left (one place, however many drops);
+  and under those **the drops left there**, the page's one menu, newest
+  first, each with its number, title and date, NEW or CLAIMED, and at its
+  end what choosing it does: **OPEN**, or on the open one, solid red,
+  **HIDE**. Beside the drops is the chosen drop's place, which with none
+  chosen says how to choose one.
+  - **Choose a drop** (a click, or Enter on it) and it flies into its
+    place: **Transmission**, what was left and why, with the photos of
+    what was left at its side. That is all that changes: the map, the Spot
+    and the list stay as they are, the chosen drop marked. Choose another
+    in the list (or move down it with the arrow keys) and its place shows
+    that one instead.
   - **Choose the open drop again**, **HIDE** (solid red at the head of the
-    transmission), Esc, or the browser's Back hides it: its two windows
-    fly off, and the map, the Spot and the list stay.
+    transmission), Esc, or the browser's Back hides it: it flies off and
+    its place says how to choose one again.
+  - On a screen too short for the four windows at a size worth looking at
+    (a window under about 650 to 680px tall, as a laptop's browser often
+    is), they keep that size and the page scrolls; choosing a drop there
+    scrolls it just far enough to show the drop whole.
   - **WORLD MAP**, solid red at the head of the top bar, Esc with no drop
     open, or Back pulls back out to the globe, where that cache is still
     chosen.
   - The street map has + and −, and a reticle that takes it back to the
     cache as it opened.
   - On a phone the page scrolls: WORLD MAP heads the top bar, as on a
-    desktop, then the street map, the Spot and the drops, with nothing
-    over them. A drop opens under its row, the rest of the list carrying
-    on below it: its transmission in full, then the photos of what was
-    left. Its row again (its toggle says HIDE) or HIDE folds it away. On a
-    phone held sideways or a small tablet the street map and the Spot sit
-    side by side, and so do an open drop's transmission and its photos.
+    desktop, then the street map, the Spot and the drops, one under the
+    other. A drop opens under its row, the rest of the list carrying on
+    below it: the photos of what was left, then its transmission in full.
+    Its row again (its toggle says HIDE) or HIDE folds it away. On a phone
+    held sideways or a small tablet the street map and the Spot sit side
+    by side, and so do an open drop's photos and its transmission.
 
-**The photos.** Spot and Items work alike. Each photo shows its file's
-name and the date in it, and the window's head counts them (1/3). The
+**The photos.** The Spot's and a drop's work alike. Each photo shows its
+file's name and the date in it, with a count (1/3) beside it. The
 arrows on the photo and a swipe across it go through them, earliest first
 and round again from the last, and so do the left and right arrow keys
 once the photo or an arrow has the focus (Tab to it, or click an arrow).
-The photo itself opens nothing: a click on it leaves you on the page. A
-drop with one photo shows its date in the head instead of a count; one
-with none says there is no photo yet.
+The photo itself opens nothing: a click on it leaves you on the page. One
+photo shows its date instead of a count; none, a note that there is no
+photo yet.
 
 **"What is a drop?"**, the small ? in the corner of the top bar, says what
 a drop and a cache are and what a cache's page shows, for whoever wonders.
@@ -323,18 +326,21 @@ sections, from before caches, still work.)
   degrees; `data-zoom` how close its street map opens: 17 is street level,
   15 or 16 shows more of the neighbourhood. Either way the map zooms from 8
   out to 19 in.
-- **Photos:** put them in the same `drops/images/` folder, named for what
-  they show, the drop's number, `_` and the date as MMDDYY:
-  `spot4_092326.jpg` is the spot drop 004 was left at, on 2026.09.23, and
-  `item4_092326.jpg` is what was left there. A second photo the same day
-  takes a letter after the date (`spot4_092326b.jpg`). The build finds
+- **Photos** go in the same `drops/images/` folder, named for what they
+  show and the date as MMDDYY. **The spot is the cache's**, one place
+  however many drops are left there: `cache3_092326.jpg` is cache 03's
+  spot, photographed 2026.09.23. **What was left is the drop's**:
+  `item4_092326.jpg` is what drop 004 left. A second photo the same day
+  takes a letter after the date (`cache3_092326b.jpg`). The build finds
   them and puts each set in date order; the page shows each one's name and
   date. JPEG, PNG, WebP, GIF or SVG; about 1600 pixels on the long side is
-  plenty. To choose the photos and their order yourself, list them in the
-  drop's `data-spots` or `data-items`, separated by spaces
-  (`data-spots="images/a.jpg images/b.jpg"`, so no spaces in the names);
-  the build leaves those alone. From before: `data-photos` still counts as
-  the spot's photos, and `data-item` as a single photo of what was left.
+  plenty. To choose the photos and their order yourself, list them on the
+  cache's `<section>` as `data-spots`, or on the drop's `<article>` as
+  `data-items`, separated by spaces (`data-spots="images/a.jpg
+  images/b.jpg"`, so no spaces in the names); the build leaves those
+  alone. From before: photos named `spot<n>_` (n a drop's number), and a
+  drop's `data-spots` or `data-photos`, count as photos of its cache's
+  spot; `data-item` as a single photo of what was left.
 
 Then run `python build.py`. For a cache in a new place it fetches the
 street map first (see *The Drops map*). Nothing else needs touching: the
@@ -350,16 +356,38 @@ found, add `data-claimed` with the date to its `<article>` in `drops.html`:
 ```
 
 and run `python build.py`. On its cache's page the drop is then tagged
-**CLAIMED** in the list of drops, in place of NEW, and the head of its
-Items window says **CLAIMED** with the date (just **CLAIMED** where the
-window is too narrow for both). The photos are left alone, so later
-visitors still see what was left there. Once every drop at a cache is
-claimed, the cache says **CLAIMED** in the world list and in its prompt,
-and turns hollow on the globe. `data-claimed` without a date shows
-**CLAIMED** alone; deleting it undoes it. Nothing ever says "unclaimed".
+**CLAIMED** in the list of drops, in place of NEW, and its transmission
+says **CLAIMED** with the date beside when it was left. The photos are
+left alone, so later visitors still see what was left there. Once every
+drop at a cache is claimed, the cache says **CLAIMED** in the world list
+and in its prompt, and turns hollow on the globe. `data-claimed` without
+a date shows **CLAIMED** alone; deleting it undoes it. Nothing ever says
+"unclaimed".
 
 Drop 001's story says it was recovered on 2026.06.28, but it is not marked:
 add `data-claimed="2026.06.28"` to it if it should show.
+
+## 2026.10.16 update
+
+- **A cache's page is four windows in a grid, none over another.** Where
+  the cache is across the top, its street map and the photos of its spot
+  side by side, always in view; under them the list of drops and, beside
+  it, the chosen drop's place. Nothing floats over the map any more.
+- **The spot is the cache's**, one place however many drops are left
+  there: its photos are the cache's own and stay put whichever drop is
+  open. They are named `cache<n>_<MMDDYY>` now (see *Adding a drop, or a
+  cache*); `spot<n>_` photos from before count toward their drop's cache.
+- **Only the drop comes and goes:** its transmission, with the photos of
+  what was left at its side, flies into its place beside the list. With
+  none chosen, the place says how to choose one. CLAIMED, with its date,
+  is now in the transmission's facts, by when the drop was left.
+- **On a phone** the page runs bar, map, spot, list, a drop opening under
+  its row; held sideways or on a small tablet, the map and the spot side
+  by side.
+- **A desktop too short for the grid** (a laptop's browser window, say)
+  scrolls rather than squeezing it. Choosing a drop there scrolls just
+  far enough to show it whole, and the page stays where it is as drops
+  fly in and out.
 
 ## 2026.10.12 update
 

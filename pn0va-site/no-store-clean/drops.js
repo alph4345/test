@@ -58,12 +58,10 @@
     logn:    $("r-logn"),
     drop:    $("dp-drop"),
     close:   $("dp-close"),
-    spotof:  $("r-spotof"),
     title:   $("r-title"),
     meta:    $("r-meta"),
     brief:   $("dp-brief"),
-    dropn:   $("r-dropn"),
-    claimed: $("r-claimed")
+    dropn:   $("r-dropn")
   };
 
   /* --- helpers ---------------------------------------------------------- */
@@ -95,9 +93,8 @@
     return x;
   }
 
-  /* On a phone, and on any screen under 560px tall, the page scrolls and a
-     drop opens under its row in the list (see the CSS), not as windows
-     round the list. */
+  /* On a phone, and on any screen under 560px tall, a drop opens under its
+     row in the log (see the CSS), not in its own place beside the log. */
   var sheet = window.matchMedia("(max-width:900px), (max-height:560px)");
   var reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
   /* page-script.js's window flight, which loads after this */
@@ -153,7 +150,7 @@
       if (el.about){ el.about.textContent = d.about || ""; el.about.hidden = !d.about; }
 
       buildLog(drops);
-      showSpot(drops[0] || null);
+      spot.set(spotsOf(pt, drops), "of cache " + d.n);   // the cache's, whatever is open
 
       el.osm.href = "https://www.openstreetmap.org/?mlat=" + d.lat + "&mlon=" + d.lng +
                     "#map=" + (d.zoom || 17) + "/" + d.lat + "/" + d.lng;
@@ -231,11 +228,26 @@
     if (top < 60 || top > innerHeight * 0.45)
       window.scrollTo({ top: scrollY + top - 64, behavior: reduceMotion ? "auto" : "smooth" });
   }
-  /* The spot, always in view: where the open drop was left or, with none
-     open, the newest one; its head says whose. */
-  function showSpot(e){
-    spot.set(e ? (listOf(e, "spots") || listOf(e, "photos") || []) : [], e ? e.dataset.n : "");
-    el.spotof.textContent = e ? "#" + e.dataset.n : "";
+  /* a desktop too short for the grid scrolls: the drop's place, beside the
+     log, brought whole into view as a drop opens (still clear of the nav) */
+  var place = document.querySelector(".dp-nodrop");
+  function showPlace(){
+    if (!place) return;
+    var r = place.getBoundingClientRect(), over = r.bottom + 12 - innerHeight;
+    if (over > 0) window.scrollTo({ top: scrollY + Math.min(over, r.top - 64), behavior: reduceMotion ? "auto" : "smooth" });
+  }
+  /* The photos of the spot: the cache's own, one place however many drops
+     are left there (data-spots on its <section>, which build.py fills in
+     from the images named cache<n>_<MMDDYY>). A page from before has them
+     on its drops (data-spots, or data-photos): those, oldest drop first. */
+  function spotsOf(pt, drops){
+    var own = listOf(pt, "spots");
+    if (own) return own;
+    var all = [];
+    drops.slice().reverse().forEach(function(e){
+      (listOf(e, "spots") || listOf(e, "photos") || []).forEach(function(s){ if (all.indexOf(s) < 0) all.push(s); });
+    });
+    return all;
   }
 
   function openDrop(j){
@@ -256,8 +268,10 @@
     el.title.textContent = x.title || "Drop " + x.n;
     el.dropn.textContent = "#" + x.n;
     el.meta.textContent = "";
+    /* when it was left, NEW or CLAIMED (and when), and what */
     if (x.placed) el.meta.appendChild(fact("Left", x.placed));
-    if (claimed === null && isNew(e)) el.meta.appendChild(make("span", "is-new", "New"));
+    if (claimed !== null) el.meta.appendChild(claimed ? fact("Claimed", claimed) : make("span", "is-claimed", "Claimed"));
+    else if (isNew(e)) el.meta.appendChild(make("span", "is-new", "New"));
     if (x.itemcap) el.meta.appendChild(fact("Item", x.itemcap));
     el.brief.textContent = "";
     [].forEach.call(e.querySelectorAll("p"), function(p){
@@ -265,25 +279,19 @@
     });
     el.brief.parentNode.scrollTop = 0;
 
-    /* CLAIMED in the items' head, the photos left clear; the date where the
-       head has room for it (the CSS decides) */
-    el.claimed.hidden = claimed === null;
-    el.claimed.textContent = claimed === null ? "" : "Claimed";
-    if (claimed){ el.claimed.appendChild(make("span", "d", " " + claimed)); }
-
-    showSpot(e);
-    items.set(listOf(e, "items") || (x.item ? [x.item] : []), x.n);
+    items.set(listOf(e, "items") || (x.item ? [x.item] : []), "at drop " + x.n);
 
     placeDrop();
     if (was < 0){
       el.drop.hidden = false;
       el.detail.classList.add("is-open");
-      /* round the list, flown in; on a phone, unfolded under its row */
+      /* in its place beside the log, flown in; on a phone, unfolded under its row */
       var f = !sheet.matches && flight();
       if (f) f.enter(el.drop, IN);
       else mark(el.drop);
     }
     if (sheet.matches) showRow(j);
+    else showPlace();
     document.dispatchEvent(new CustomEvent("pn0va:drop", { detail: { index: current, drop: j } }));
   }
   function fact(label, value){
@@ -297,9 +305,9 @@
     [].forEach.call(scope.querySelectorAll("[data-fly]"), function(w){ w.classList.add("landed"); });
   }
 
-  /* Back to the list: the drop's windows fly off (fold away on a phone)
-     and are gone, and the spot shows the newest drop's again. now: at
-     once (another cache taking the screen). */
+  /* Back to the log: the drop flies off (folds away on a phone) and is
+     gone, its place saying how to choose another. now: at once (another
+     cache taking the screen). */
   function closeDrop(now){
     if (opened < 0) return;
     var row = rowsOf()[opened], inside = el.drop.contains(document.activeElement);
@@ -311,13 +319,12 @@
       r.setAttribute("aria-expanded", "false");
     });
     el.detail.classList.remove("is-open");
-    showSpot(dropsOf[current][0] || null);
     var f = !now && !sheet.matches && flight();
     function gone(){
       if (me !== turnOver) return;           // opened again meanwhile
       el.drop.hidden = true;
       if (window.pn0vaFly) window.pn0vaFly.reset(el.drop);
-      placeDrop();                           // home, round the list
+      placeDrop();                           // home, in its place beside the log
     }
     if (f) f.exit(el.drop, OUT).then(gone);   /* windows out of sight just go */
     else gone();
@@ -334,12 +341,13 @@
     return v.length ? v : null;
   }
 
-  /* --- a drop's photos: the spot, and what was left ------------------------
+  /* --- the photos: the spot's, and what a drop left ----------------------
      Each in date order (build.py fills data-spots and data-items in from
-     the images named spot<n>_<MMDDYY> and item<n>_<MMDDYY>: spot4_092326.jpg
-     is drop 004's spot on 2026.09.23). The arrows, the arrow keys and a
-     swipe go round them; each says its file's name and the date in it. */
-  /* "spot4_092326b.jpg" -> "2026.09.23"; "" where the name has no date */
+     the images named cache<n>_<MMDDYY> and item<n>_<MMDDYY>: cache3_092326.jpg
+     is cache 03's spot on 2026.09.23, item4_092326.jpg what drop 004 left).
+     The arrows, the arrow keys and a swipe go round them; each says its
+     file's name and the date in it. */
+  /* "item4_092326b.jpg" -> "2026.09.23"; "" where the name has no date */
   function dateIn(name){
     var m = /_(\d\d)(\d\d)(\d\d)[a-z0-9-]*\.[a-z0-9]+$/i.exec(name);
     if (!m || +m[1] < 1 || +m[1] > 12 || +m[2] < 1 || +m[2] > 31) return "";
@@ -348,7 +356,7 @@
   function Gallery(o){
     /* the placeholder as the page names it: the build roots and stamps
        that path, so it loads wherever the page is served from */
-    var none = o.img.getAttribute("src"), photos = [], shown = 0, dropN = "";
+    var none = o.img.getAttribute("src"), photos = [], shown = 0, whose = "";
     var bg = o.frame.querySelector(".dp-gallery__bg");
     function draw(){
       if (!photos.length){
@@ -361,7 +369,7 @@
       var src = photos[shown], name = decodeURIComponent(src.split("/").pop().split("?")[0]), date = dateIn(name);
       o.img.src = src;
       if (bg) bg.src = src;
-      o.img.alt = o.what + (dropN ? " at drop " + dropN : "") +
+      o.img.alt = o.what + (whose ? " " + whose : "") +
                   (date ? ", photographed " + date : "") + (photos.length > 1 ? " (photo " + (shown + 1) + " of " + photos.length + ")" : "");
       o.cap.textContent = name + (date ? " · " + date : "");
       o.count.textContent = photos.length > 1 ? (shown + 1) + "/" + photos.length : (date || "1/1");
@@ -389,7 +397,7 @@
     return {
       box: o.box,
       set: function(list, n){
-        photos = list; shown = 0; dropN = n || "";
+        photos = list; shown = 0; whose = n || "";
         o.prev.hidden = o.next.hidden = photos.length < 2;
         draw();
       },
@@ -401,7 +409,7 @@
                        what: "The spot", empty: "No photo of the spot yet" });
   var items = Gallery({ box: document.querySelector(".dp-items"), img: $("s-item"), frame: $("s-itemframe"),
                         cap: $("s-itemcap"), count: $("r-itemn"), prev: $("s-itemprev"), next: $("s-itemnext"),
-                        what: "What was left", empty: "No photo of what was left yet" });
+                        what: "What was left", empty: "No photo yet" });
 
   /* --- map -------------------------------------------------------------- */
 
@@ -493,29 +501,12 @@
     map.on("moveend zoomend", markHome);
     map.on("zoomend", fitRingLabels);
     placeRingLabels(lat, lng);
-    homeView();
     drawGraticule();
     markHome();
   }
 
-  /* Where the cache's mark sits on its map: in the middle of what the list
-     of drops leaves clear above it, the list covering the map's foot (on a
-     phone, where nothing is over the map, the middle). In pixels up from
-     the map's middle; measured from the layout, not the screen, so windows
-     still flying in don't count. */
-  function lift(){
-    var body = $("dp-map").parentNode, panel = el.detail.querySelector(".dp-map"), log = el.detail.querySelector(".dp-log");
-    if (sheet.matches || !panel || !log || !body.offsetHeight || !log.offsetHeight) return 0;
-    var top = panel.offsetTop + body.offsetTop, mid = top + body.offsetHeight / 2;
-    return Math.max(0, Math.round(mid - (top + log.offsetTop) / 2));
-  }
-  /* the map on the cache, its mark where it shows: the view's middle that
-     far below the mark, in one move */
-  function homeView(){
-    var up = lift(), at = L.latLng(home.lat, home.lng);
-    if (up) at = map.unproject(map.project(at, home.zoom).add([0, up]), home.zoom);
-    map.setView(at, home.zoom, { animate:false });
-  }
+  /* the map on the cache, its mark in the middle */
+  function homeView(){ map.setView([home.lat, home.lng], home.zoom, { animate:false }); }
 
   function moveMap(lat, lng, zoom){
     if (typeof L === "undefined") return;
@@ -550,7 +541,7 @@
     var here = map.latLngToContainerPoint([home.lat, home.lng]);
     var mid  = map.getSize().divideBy(2);
     var put  = map.getZoom() === home.zoom &&
-               Math.abs(here.x - mid.x) < 2 && Math.abs(here.y - (mid.y - lift())) < 2;
+               Math.abs(here.x - mid.x) < 2 && Math.abs(here.y - mid.y) < 2;
     recenterBtn.classList.toggle("is-home", put);
   }
 
@@ -649,7 +640,7 @@
   });
 
   /* The map's box changes size: the view stays where it was or, left on
-     the cache, stays on it, its mark clear of the list. */
+     the cache, stays on it. */
   function resized(){
     if (!map) return;
     var was = !!home && !!recenterBtn && recenterBtn.classList.contains("is-home");

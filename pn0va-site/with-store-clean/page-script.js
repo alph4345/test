@@ -153,10 +153,15 @@
 
   // The offscreen start positions extend the document past the viewport,
   // which flashes scrollbars while the windows fly. Suppress scrolling
-  // until the last flight in progress has ended.
+  // until the last flight in progress has ended. Content running past a
+  // frame the height of the screen (a cache's page on a short laptop
+  // screen) scrolls as the page's overflow, and hiding that would snap the
+  // page back to its top: such a page is left be.
   let locks = 0, prevOverflow = '';
   function lockScroll(ms)
   {
+    const root = document.documentElement;
+    if (!locks && root.scrollHeight > document.body.getBoundingClientRect().bottom + window.scrollY + 1) return;
     if (!locks++)
     {
       prevOverflow = document.documentElement.style.overflow;

@@ -28,7 +28,7 @@
 <link rel="stylesheet" href="vendor/leaflet/leaflet.css?v=ec929f11">
 <link rel="stylesheet" href="tokens.css?v=cf68e78a">
 <link rel="stylesheet" href="page-style.css?v=82b15d5a">
-<link rel="stylesheet" href="drops.css?v=2c49c384">
+<link rel="stylesheet" href="drops.css?v=93625b33">
 <style>
 /* Self-hosted faces — no Google Fonts request, no CDN failure mode. */
 @font-face{
@@ -185,17 +185,15 @@
                         off and nothing shows.
      3. Write its transmission: what was left, and why. A
         paragraph or two.
-     4. Photos: put them in the images folder, named for what they
-        show, the drop's number and the date as MMDDYY:
-          spot4_092326.jpg   the spot drop 004 was left at,
-                             photographed 2026.09.23
-          item4_092326.jpg   what was left
+     4. Photos of what was left: put them in the images folder,
+        named item, the drop's number and the date as MMDDYY:
+          item4_092326.jpg   what drop 004 left, photographed
+                             2026.09.23
         A second photo the same day takes a letter after the date
-        (spot4_092326b.jpg). build.py finds them; the page shows
+        (item4_092326b.jpg). build.py finds them; the page shows
         them in date order, with arrows, and says each one's name
         and date. Or list them yourself, in the order you want:
-        data-spots="images/a.jpg images/b.jpg" (data-items the
-        same).
+        data-items="images/a.jpg images/b.jpg".
 
      A NEW CACHE
      1. Copy a whole <section class="dp-cache"> block, put it
@@ -212,6 +210,12 @@
           data-lat / data-lng    decimal degrees, signed
           data-zoom     how close its street map opens: 17 is
                         street level, 16-18 is usually right
+     3. Photos of the spot, the cache's own (one place, however
+        many drops are left there): in the images folder, named
+        cache, its number and the date as MMDDYY:
+          cache3_092326.jpg  cache 03, photographed 2026.09.23
+        (a letter after the date for a second that day), or listed
+        on the <section> as data-spots="images/a.jpg images/b.jpg".
      Then run python build.py, which fetches the street map for a
      new place. Nothing else needs touching — no CSS, no JS.
      ============================================================ -->
@@ -344,7 +348,7 @@
     </section>
 
     <!-- map -->
-    <section class="dp-panel dp-map dp-scan" data-fly="right" data-fly-delay="140" aria-label="Cache location">
+    <section class="dp-panel dp-map dp-scan" data-fly="left" data-fly-delay="120" aria-label="Cache location">
       <div class="dp-panel__head">
         <span>Location</span>
         <span class="dp-idx">OpenStreetMap</span>
@@ -357,11 +361,10 @@
       </div>
     </section>
 
-    <!-- THE SPOT — always in view, with the map: photos of where the open
-         drop was left or, with none open, the newest one; each to go
-         through left and right. -->
-    <figure class="dp-panel dp-slot dp-gallery dp-spot" data-fly="left" data-fly-delay="100" aria-label="Photos of the spot">
-      <div class="dp-panel__head"><span>Spot</span><span class="dp-spot__of" id="r-spotof"></span><span class="dp-idx" id="r-spotn">—</span></div>
+    <!-- THE SPOT — where the drops are left, beside the map and always in
+         view: the cache's own photos of it, to go through left and right. -->
+    <figure class="dp-panel dp-slot dp-gallery dp-spot" data-fly="right" data-fly-delay="120" aria-label="Photos of the spot">
+      <div class="dp-panel__head"><span>Spot</span><span class="dp-idx" id="r-spotn">—</span></div>
       <div class="dp-panel__body dp-panel__body--flush">
         <div class="dp-gallery__frame" id="s-spotframe"><img class="dp-gallery__bg" src="images/spot-placeholder.svg?v=42f2cfe1" alt="" aria-hidden="true"><img id="s-spot" src="images/spot-placeholder.svg?v=42f2cfe1" alt=""></div>
         <button class="dp-gallery__go dp-gallery__prev" id="s-spotprev" type="button" aria-label="Earlier photo of the spot" hidden><span class="tri" aria-hidden="true"></span></button>
@@ -370,38 +373,44 @@
       <figcaption id="s-spotcap">—</figcaption>
     </figure>
 
-    <!-- THE DROPS — the one menu, at the centre: every drop left at this
-         cache, newest first. A row opens its drop, and closes it again. -->
-    <section class="dp-panel dp-log" data-fly="bottom" data-fly-delay="140" aria-label="Drops at this cache">
+    <!-- THE DROPS — the log: every drop left at this cache, newest first.
+         A row opens its drop, and hides it again. -->
+    <section class="dp-panel dp-log" data-fly="bottom" data-fly-delay="180" aria-label="Drops at this cache">
       <div class="dp-panel__head"><span>Drops</span><span class="dp-idx" id="r-logn">—</span></div>
       <div class="dp-panel__body" id="dp-log"></div>
     </section>
 
-    <!-- A DROP — opened from the list, and hidden from it again: its
-         transmission, what was left and why, and photos of what was left,
-         to go through left and right. On a phone they open under its row. -->
+    <!-- With no drop open, the drop's place says how to open one. -->
+    <section class="dp-panel dp-nodrop" data-fly="bottom" data-fly-delay="220" aria-label="No drop open">
+      <div class="dp-panel__head"><span>Transmission</span><span class="dp-idx">—</span></div>
+      <div class="dp-panel__body"><p>Choose a drop in the log to read what was left there, and why.</p></div>
+    </section>
+
+    <!-- A DROP — opened from the log, and hidden from it again: its
+         transmission, what was left and why, beside the photos of what was
+         left, to go through left and right. On a phone it opens under its row. -->
     <div class="dp-drop" id="dp-drop" role="region" aria-label="The chosen drop" hidden>
       <section class="dp-panel dp-codec dp-brief" data-fly="right" data-fly-delay="60" aria-label="Transmission">
         <div class="dp-panel__head">
           <span>Transmission</span><span class="dp-idx" id="r-dropn">—</span>
           <button class="dp-close" id="dp-close" type="button" title="Hide this drop (Esc)"><span class="x" aria-hidden="true"></span>Hide<span class="key" aria-hidden="true">Esc</span></button>
         </div>
-        <div class="dp-panel__body">
-          <h2 class="dp-brief__title" id="r-title">—</h2>
-          <p class="dp-brief__meta" id="r-meta"></p>
-          <div class="dp-brief__text" id="dp-brief"></div>
+        <div class="dp-panel__body dp-brief__body">
+          <figure class="dp-slot dp-gallery dp-items" aria-label="Photos of what was left">
+            <div class="dp-items__photo">
+              <div class="dp-gallery__frame" id="s-itemframe"><img class="dp-gallery__bg" src="images/item-placeholder.svg?v=53bfe82d" alt="" aria-hidden="true"><img id="s-item" src="images/item-placeholder.svg?v=53bfe82d" alt=""></div>
+              <button class="dp-gallery__go dp-gallery__prev" id="s-itemprev" type="button" aria-label="Earlier photo of what was left" hidden><span class="tri" aria-hidden="true"></span></button>
+              <button class="dp-gallery__go dp-gallery__next" id="s-itemnext" type="button" aria-label="Later photo of what was left" hidden><span class="tri" aria-hidden="true"></span></button>
+            </div>
+            <figcaption><span class="dp-items__cap" id="s-itemcap">—</span><span class="dp-idx" id="r-itemn">—</span></figcaption>
+          </figure>
+          <div class="dp-brief__words">
+            <h2 class="dp-brief__title" id="r-title">—</h2>
+            <p class="dp-brief__meta" id="r-meta"></p>
+            <div class="dp-brief__text" id="dp-brief"></div>
+          </div>
         </div>
       </section>
-
-      <figure class="dp-panel dp-slot dp-gallery dp-items" data-fly="left" data-fly-delay="120" aria-label="Photos of what was left">
-        <div class="dp-panel__head"><span>Items</span><span class="dp-item-claimed" id="r-claimed" hidden></span><span class="dp-idx" id="r-itemn">—</span></div>
-        <div class="dp-panel__body dp-panel__body--flush">
-          <div class="dp-gallery__frame" id="s-itemframe"><img class="dp-gallery__bg" src="images/item-placeholder.svg?v=53bfe82d" alt="" aria-hidden="true"><img id="s-item" src="images/item-placeholder.svg?v=53bfe82d" alt=""></div>
-          <button class="dp-gallery__go dp-gallery__prev" id="s-itemprev" type="button" aria-label="Earlier photo of what was left" hidden><span class="tri" aria-hidden="true"></span></button>
-          <button class="dp-gallery__go dp-gallery__next" id="s-itemnext" type="button" aria-label="Later photo of what was left" hidden><span class="tri" aria-hidden="true"></span></button>
-        </div>
-        <figcaption id="s-itemcap">—</figcaption>
-      </figure>
     </div>
 
   </div>
@@ -467,11 +476,11 @@
 <script src="vendor/leaflet/leaflet.js?v=5a640ff8"></script>
 <script src="vendor/protomaps-leaflet/protomaps-leaflet.js?v=9d8eec24"></script>
 <script src="drops-map.js?v=c472e168" data-map="maps/drops.pmtiles?v=0a2d46bf"></script>
-<script src="drops.js?v=b05fd20e"></script>
+<script src="drops.js?v=8d004914"></script>
 <script src="vendor/world/d3-array.min.js?v=08cb6252"></script>
 <script src="vendor/world/d3-geo.min.js?v=b7604723"></script>
 <script src="vendor/world/topojson-client.min.js?v=bc057598"></script>
 <script src="drops-world.js?v=6275e5ce" data-world="maps/world/" data-world-v="42189bc6" data-landmarks="maps/landmarks.json?v=a9e7a54f"></script>
-<script src="page-script.js?v=bd1a70b0"></script>
+<script src="page-script.js?v=3515bd0b"></script>
 </body>
 </html>

@@ -3,12 +3,13 @@
    rev 2026.10.11 · requires tokens.css + components.css first
    --------------------------------------------------------------------------
    Layout is an MGS inventory screen: a cache's name and coordinates over
-   its street map, and on the map one menu, the drops left there; a drop
-   opens its windows round it. Everything is framed as equipment — panels
-   have bezels and corner brackets, every value carries a label and a unit,
-   and a cache is designated (CACHE 02) over its name.
+   its street map and the photos of its spot, and under them one menu, the
+   drops left there, with the chosen drop beside it. Everything is framed as
+   equipment — panels have bezels and corner brackets, every value carries
+   a label and a unit, and a cache is designated (CACHE 02) over its name.
 
-   On a desktop the page never scrolls; panels scroll internally.
+   On a desktop the page fills the screen and panels scroll internally;
+   one too short for them scrolls instead.
    ========================================================================== */
 
 /* --------------------------------------------------------------------------
@@ -160,10 +161,11 @@ html:not(.js) .dp-help__panel::after{
 }
 
 /* --------------------------------------------------------------------------
-   PAGE FRAME — single screen on a desktop; panels scroll internally
+   PAGE FRAME — a desktop's screen, filled, its windows sharing it; on one
+   too short for them at a size worth looking at, they keep that size and
+   the page scrolls rather than squeezing them. Long lists scroll inside
+   their windows.
    -------------------------------------------------------------------------- */
-html.js body:has(.dp-shell){ overflow:hidden; }
-
 .dp-shell{
   display:grid;
   grid-template-columns:236px minmax(0,1fr);
@@ -199,48 +201,56 @@ html.js body:has(.dp-shell){ overflow:hidden; }
 .dp-row{ position:relative; }
 
 /* --- detail ---------------------------------------------------------------
-   The cache's screen. Its name and coordinates across the top; under them
-   the street map, the whole stage, and on it, at the middle of its foot,
-   the one menu: the drops left here. Beside it, always, the photos of the
-   spot. Choose a drop and its two windows open over the map: its
-   transmission, the most to read, the height of the stage on the right,
-   and the photos of what was left at the left, over the spot. Choose it
-   again (or HIDE, or Esc) and they go; the map and the spot stay.
-
-   One grid: the map spans the stage, the windows sit in its columns on top
-   of it, a step in from its frame and clear of its buttons (top left).
+   The cache's screen: windows in a grid, none over another. Its name and
+   coordinates across the top; under them, side by side and always in
+   view, where it is: the street map and the photos of the spot. Under
+   those the log of the drops left there and, beside it, the one chosen in
+   it: its transmission, what was left and why, by the photos of what was
+   left. With none chosen, that place says how to choose one. Choose it
+   again (or HIDE, or Esc) and it goes; nothing else moves.
    -------------------------------------------------------------------------- */
 .dp-detail{
   display:grid; gap:10px; min-height:0;
-  grid-template-columns:[l] minmax(0,1fr) [c] minmax(250px, min(28vw, 360px)) [d] minmax(0,1fr) [r];
-  grid-template-rows:[t] auto [s] minmax(0,3fr) [h] minmax(0,2fr) [b];
+  grid-template-columns:minmax(0,1fr) minmax(0,1fr);
+  /* the bar its own height whatever the screen; the rest share what is
+     left, and keep a size worth looking at where it is short */
+  grid-template-rows:max-content minmax(210px,1fr) minmax(210px,1fr);
+  grid-template-areas:"bar bar" "map spot" "log drop";
 }
-.dp-bar  { grid-column:l / r; grid-row:t / s; }
-.dp-map  { grid-column:l / r; grid-row:s / b; }
-.dp-log  { grid-column:c / d; grid-row:s / b; }
-.dp-spot { grid-column:l / c; grid-row:h / b; }
+.dp-bar  { grid-area:bar; }
+.dp-map  { grid-area:map; }
+.dp-spot { grid-area:spot; }
+.dp-log  { grid-area:log; }
+.dp-nodrop, .dp-brief{ grid-area:drop; }
 .dp-drop { display:contents; }
 .dp-drop[hidden]{ display:none; }
-.dp-items{ grid-column:l / c; grid-row:s / h; }
-.dp-brief{ grid-column:d / r; grid-row:s / b; }
-
-/* the windows over the map: clear of its head, a step in from its frame,
-   lifted off it */
-.dp-log, .dp-spot, .dp-brief, .dp-items{
-  position:relative; z-index:2;
-  box-shadow:0 0 0 1px #000, 0 10px 34px rgba(0,0,0,.85), 0 0 22px rgba(255,22,9,.16);
-}
 .dp-slot { margin:0; }                /* a <figure>: none of its own */
-.dp-log  { margin:0 0 24px; max-height:min(42vh, 420px); align-self:end; }
-/* the photos, a column right of the map's buttons */
-.dp-spot, .dp-items{ justify-self:start; width:min(calc(100% - 56px), 420px); }
-.dp-spot { margin:0 0 24px 56px; }
-.dp-items{ margin:40px 0 10px 56px; }
-.dp-brief{ margin:40px 16px 24px 0; justify-self:end; width:min(calc(100% - 16px), 620px); }
 
-/* the map keeps to itself (Leaflet's panes stack to 1000 inside it); it
-   stays lit with a drop open, the spot still to be found on it */
+/* the drop takes its place over the prompt there, which goes once it is open */
+.dp-brief{ position:relative; z-index:1; }
+.dp-detail.is-open .dp-nodrop{ visibility:hidden; }
+
+/* the map keeps to itself (Leaflet's panes stack to 1000 inside it) */
 .dp-map{ z-index:0; isolation:isolate; }
+
+/* no drop chosen: the drop's place, quiet, dim, a screen with no signal on
+   it, and what to do */
+.dp-nodrop{ border-color:var(--pn-divider); }
+.dp-nodrop::before, .dp-nodrop::after{ border-color:var(--pn-ash); }
+.dp-nodrop .dp-panel__head{ color:var(--pn-ink-faint); border-bottom-color:var(--pn-divider); }
+.dp-nodrop .dp-panel__body{
+  display:grid; place-items:center; padding:18px; text-align:center;
+  background:repeating-linear-gradient(to bottom, rgba(255,255,255,.018) 0 1px, transparent 1px 4px);
+}
+.dp-nodrop p{
+  max-width:24em; margin:0; font-family:var(--pn-face-body); font-size:13px; line-height:1.6;
+  color:var(--pn-ink-muted);
+}
+.dp-nodrop p::before{
+  content:"No signal"; display:block; margin-bottom:10px;
+  font-family:var(--pn-face-display); font-size:9px; letter-spacing:.3em; text-transform:uppercase;
+  color:var(--pn-red-60);
+}
 
 /* --- the frequency bar ---------------------------------------------------
    The codec's defining element: a big tuned number, centred, with the
@@ -401,20 +411,24 @@ html:not(.js) .dp-mapcanvas{ display:none; }
   color:var(--pn-ink-faint);
 }
 
-/* --- a drop's photos: the spot, and what was left --------------------------
+/* --- the photos: the spot's, and what each drop left -----------------------
    The whole photo, letterboxed, so nothing of it is cropped away. Arrows at
    its sides when there is more than one, and the arrow keys and a swipe;
    its file's name and date under it. A photo opens nowhere else. */
-.dp-gallery .dp-panel__body{ position:relative; background:#000; }
+.dp-gallery .dp-panel__body, .dp-items__photo{ position:relative; background:#000; }
 /* a sideways swipe is the page's to turn the photo with; up and down still
    scroll, and a pinch still zooms */
 .dp-gallery__frame{
   position:relative; display:block; width:100%; height:100%; overflow:hidden;
   touch-action:pan-y pinch-zoom; -webkit-user-select:none; user-select:none;
 }
-/* whose spot it is: the open drop's, or with none open the newest's */
-.dp-spot__of{ margin-right:auto; color:var(--pn-ink-muted); letter-spacing:.14em; }
-.dp-spot__of:empty{ display:none; }
+/* what was left: beside the transmission's words, the photo over its name,
+   date and count */
+.dp-items{ display:flex; flex-direction:column; min-width:0; min-height:0; background:#000; }
+.dp-items__photo{ flex:1 1 auto; min-height:0; overflow:hidden; }
+.dp-items figcaption{ display:flex; justify-content:space-between; gap:10px; text-align:left; }
+.dp-items__cap{ min-width:0; overflow:hidden; text-overflow:ellipsis; }
+.dp-items figcaption .dp-idx{ flex:0 0 auto; color:var(--pn-ink-faint); }
 .dp-gallery img{ position:relative; object-fit:contain; opacity:1; }
 /* where the photo is the wrong shape for its window, the same photo,
    blurred and dark, fills the rest rather than black bars */
@@ -453,7 +467,12 @@ html:not(.js) .dp-mapcanvas{ display:none; }
 .dp-brief{ container-type:inline-size; }
 @container (max-width:360px){ .dp-brief .dp-panel__head > .dp-idx{ display:none; } }
 @container (max-width:290px){ .dp-close .key{ display:none; } }
-.dp-brief .dp-panel__body{ padding:16px 18px 18px; }
+.dp-brief__body{
+  display:grid; grid-template-columns:minmax(0,5fr) minmax(0,7fr);
+  padding:0; overflow:hidden;
+}
+.dp-brief__body > .dp-items{ border-right:1px solid var(--pn-hairline); }
+.dp-brief__words{ min-height:0; overflow:auto; padding:16px 18px 18px; }
 .dp-brief__title{
   margin:0 0 8px; font-weight:400; font-size:13px; line-height:1.5; letter-spacing:.08em;
   text-transform:uppercase; color:var(--pn-signal); text-shadow:0 0 10px rgba(255,22,9,.35);
@@ -470,6 +489,8 @@ html:not(.js) .dp-mapcanvas{ display:none; }
   text-transform:uppercase; color:var(--pn-red); margin-right:4px;
 }
 .dp-brief__meta .is-new{ color:var(--pn-void); background:var(--pn-red); padding:3px 4px 2px; border-radius:2px;
+  font-family:var(--pn-face-display); font-size:7px; letter-spacing:.14em; text-transform:uppercase; align-self:center; }
+.dp-brief__meta .is-claimed{ color:var(--pn-ink-muted); border:1px solid var(--pn-ash); padding:2px 3px 1px; border-radius:2px;
   font-family:var(--pn-face-display); font-size:7px; letter-spacing:.14em; text-transform:uppercase; align-self:center; }
 .dp-brief__text p{
   font-family:var(--pn-face-body); font-size:14.5px; line-height:1.7;
@@ -498,16 +519,7 @@ html:not(.js) .dp-mapcanvas{ display:none; }
 .dp-close:focus-visible{ outline:2px solid var(--pn-focus); outline-offset:2px; }
 @media (pointer:coarse){ .dp-close .key{ display:none; } }
 
-/* CLAIMED in the items' head, beside its label: the photos are left clear,
-   so whoever comes later can still see what was there */
-.dp-item-claimed{
-  min-width:0; color:var(--pn-red); letter-spacing:.14em;
-  white-space:nowrap; overflow:hidden; text-overflow:ellipsis;
-}
-.dp-item-claimed[hidden]{ display:none; }
 .dp-slot .dp-panel__head > .dp-idx{ flex:0 0 auto; white-space:nowrap; }
-.dp-items{ container-type:inline-size; }
-@container (max-width:300px){ .dp-item-claimed .d{ display:none; } }
 
 /* entries: only the current one renders */
 .dp-entry{ display:none; }
@@ -516,26 +528,16 @@ html:not(.js) .dp-entry{ display:contents; }   /* no JS: show them all, stacked 
 
 .dp-shell{ position:relative; z-index:1; }
 
-/* --------------------------------------------------------------------------
-   A SHORT DESKTOP — the list a little shorter, so the map keeps room above
-   it, and the windows a little nearer its edges
-   -------------------------------------------------------------------------- */
-@media (min-width:901px) and (max-height:760px){
-  .dp-log{ max-height:min(34vh, 300px); margin-bottom:16px; }
-  .dp-brief, .dp-items{ margin-top:36px; }
-  .dp-spot, .dp-brief{ margin-bottom:16px; }
-}
 
 /* --------------------------------------------------------------------------
    A PHONE, AND ANY SCREEN UNDER 560px TALL — the page scrolls: the bar, the
-   street map, the photos of the spot and the list of drops, one under the
-   other (the map and the spot side by side where there is room). A drop
-   opens under its row, the rest of the list going on below it: its
-   transmission, then the photos of what was left (side by side where there
-   is room). Its row again, or HIDE, folds it away.
+   street map, the photos of the spot and the log, one under the other (the
+   map and the spot side by side where there is room). A drop opens under
+   its row, the rest of the log going on below it: the photos of what was
+   left, then its transmission (side by side where there is room). Its row
+   again, or HIDE, folds it away.
    -------------------------------------------------------------------------- */
 @media (max-width:900px), (max-height:560px){
-  html.js:not([data-view="world"]) body:has(.dp-shell){ overflow:auto; }
   .dp-shell{
     grid-template-columns:minmax(0,1fr);
     height:auto; min-height:100vh; min-height:100dvh;
@@ -543,22 +545,25 @@ html:not(.js) .dp-entry{ display:contents; }   /* no JS: show them all, stacked 
   .dp-detail{
     grid-template-columns:minmax(0,1fr);
     grid-template-rows:none;
+    grid-template-areas:"bar" "map" "spot" "log";
   }
-  .dp-bar, .dp-map, .dp-spot, .dp-log{ grid-column:1; grid-row:auto; }
+  .dp-nodrop{ display:none; }
   .dp-map{ height:42vh; height:42svh; min-height:240px; }
-  .dp-spot, .dp-log{ margin:0; width:auto; max-height:none; align-self:auto; justify-self:stretch; box-shadow:none; }
+  .dp-spot .dp-panel__body{ flex:0 0 auto; aspect-ratio:16/10; max-height:46vh; max-height:46svh; }
   .dp-logrow{ padding:13px 12px 12px 26px; }
   .dp-logrow__t{ font-size:15px; }
   .dp-logrow__x{ min-height:36px; min-width:70px; font-size:8px; }
 
-  /* the drop: unfolded under its row, a shade lighter than the list */
+  /* the drop: unfolded under its row, a shade lighter than the log */
   .dp-log .dp-drop:not([hidden]){
-    display:block; padding:10px 10px 0;
+    display:block; padding:10px;
     background:var(--pn-red-07); border-bottom:1px solid var(--pn-divider);
     animation:dp-unfold .24s ease-out;
   }
-  .dp-log .dp-brief, .dp-log .dp-items{ margin:0 0 10px; width:auto; justify-self:stretch; box-shadow:none; }
-  .dp-gallery .dp-panel__body{ flex:0 0 auto; aspect-ratio:16/10; max-height:46vh; max-height:46svh; }
+  .dp-brief__body{ display:block; overflow:visible; }
+  .dp-brief__body > .dp-items{ border-right:0; border-bottom:1px solid var(--pn-hairline); }
+  .dp-items__photo{ flex:0 0 auto; aspect-ratio:16/10; max-height:46vh; max-height:46svh; }
+  .dp-brief__words{ overflow:visible; padding:14px 14px 16px; }
   .dp-gallery__go{ width:44px; height:56px; margin-top:-28px; }
   .dp-close{ min-height:40px; margin:-8px -6px -8px 0; padding:0 12px; }
   .dp-brief__text p{ font-size:15px; line-height:1.65; }
@@ -574,18 +579,18 @@ html:not(.js) .dp-entry{ display:contents; }   /* no JS: show them all, stacked 
 }
 @keyframes dp-unfold{ from{ opacity:0; transform:translateY(-8px); } }
 /* side by side where there is room: the map and the spot, its photos as
-   tall as the map; in an open drop, the transmission and what was left */
+   tall as the map; in an open drop, the photos of what was left and its
+   transmission */
 @media (min-width:600px) and (max-width:900px), (min-width:600px) and (max-height:560px){
-  .dp-detail{ grid-template-columns:minmax(0,3fr) minmax(0,2fr); }
-  .dp-bar, .dp-log{ grid-column:1 / -1; }
-  .dp-map{ grid-column:1; grid-row:2; }
-  .dp-spot{ grid-column:2; grid-row:2; }
-  .dp-spot .dp-panel__body{ flex:1 1 auto; aspect-ratio:auto; max-height:none; }
-  .dp-log .dp-drop:not([hidden]){
-    display:grid; grid-template-columns:minmax(0,3fr) minmax(0,2fr); column-gap:10px; align-items:start;
+  .dp-detail{
+    grid-template-columns:minmax(0,1fr) minmax(0,1fr);
+    grid-template-areas:"bar bar" "map spot" "log log";
   }
-  .dp-log .dp-brief{ grid-column:1; grid-row:1; }
-  .dp-log .dp-items{ grid-column:2; grid-row:1; }
+  .dp-spot{ height:42vh; height:42svh; min-height:240px; }      /* the map's height, whatever its photo */
+  .dp-spot .dp-panel__body{ flex:1 1 auto; aspect-ratio:auto; max-height:none; }
+  .dp-brief__body{ display:grid; grid-template-columns:minmax(0,2fr) minmax(0,3fr); align-items:start; }
+  .dp-brief__body > .dp-items{ border-right:1px solid var(--pn-hairline); border-bottom:0; }
+  .dp-items__photo{ aspect-ratio:4/3; max-height:none; }
 }
 
 /* --------------------------------------------------------------------------

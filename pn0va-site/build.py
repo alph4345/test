@@ -846,49 +846,65 @@ def self_hosted_map_html(html: str) -> str:
 
 
 def drop_photos(html: str) -> str:
-    """drops.html: each drop's photos, as lists on its <article>: of the spot
-    it was left at (data-spots), the images named spot<n>_<MMDDYY>, and of
-    what was left (data-items), named item<n>_<MMDDYY>, in the drops' images
-    folder, in date order. spot4_092326.jpg is drop 004's spot on
-    2026.09.23; spot4_092326b.jpg a second that day. A drop that lists its
-    own keeps them (data-photos, from before, is its spots)."""
+    """drops.html: the photos, as lists on the blocks they belong to, in date
+    order, from the drops' images folder. The spot is the cache's, one place
+    however many drops are left there: cache<n>_<MMDDYY> on its <section>
+    (data-spots; cache3_092326.jpg is cache 03 on 2026.09.23). What was left
+    is each drop's: item<n>_<MMDDYY> on its <article> (data-items;
+    item4_092326.jpg is drop 004's). A second photo the same day takes a
+    letter after the date. Names from before, spot<n>_<MMDDYY> (n a drop's
+    number), count as photos of that drop's cache's spot. A block that lists
+    its own photos keeps them (data-photos, from before, is the spot's)."""
     found: dict[tuple, list] = {}
     for f in sorted((BRAND / "drops/images").iterdir()):
-        m = re.fullmatch(r"(spot|item)(\d+)_(\d\d)(\d\d)(\d\d)([a-z0-9-]*)\.(jpe?g|png|webp|gif|svg)", f.name, re.I)
+        m = re.fullmatch(r"(cache|spot|item)(\d+)_(\d\d)(\d\d)(\d\d)([a-z0-9-]*)\.(jpe?g|png|webp|gif|svg)", f.name, re.I)
         if m:
             when = (m.group(5), m.group(3), m.group(4), m.group(6).lower())     # year, month, day, then a/b...
             found.setdefault((m.group(1).lower(), int(m.group(2))), []).append((when, f.name))
 
-    def add(m):
+    def listed(have):
+        return " ".join("images/" + name for _, name in sorted(have))
+
+    def drop(m):
         tag = m.group(0)
         n = re.search(r'data-n="0*(\d+)"', tag)
-        if not n:
-            return tag
-        for kind, attr, mine in (("spot", "data-spots", ("data-spots=", "data-photos=")),
-                                 ("item", "data-items", ("data-items=",))):
-            have = found.get((kind, int(n.group(1))))
-            if have and not any(a in tag for a in mine):
-                tag = tag[:-1] + f' {attr}="' + " ".join("images/" + name for _, name in sorted(have)) + '">'
+        have = found.get(("item", int(n.group(1)))) if n else None
+        if have and "data-items=" not in tag:
+            tag = tag[:-1] + f' data-items="{listed(have)}">'
         return tag
-    return re.sub(r'<article class="dp-entry"[^>]*>', add, html)
+
+    def cache(m):
+        block = re.sub(r'<article class="dp-entry"[^>]*>', drop, m.group(0))
+        tag = re.match(r'<section[^>]*>', block).group(0)
+        n = re.search(r'data-n="0*(\d+)"', tag)
+        mine = ("data-spots=", "data-photos=")
+        if not n or any(x in tag for x in mine):
+            return block
+        have = list(found.get(("cache", int(n.group(1))), []))
+        for d in re.findall(r'<article class="dp-entry"[^>]*\sdata-n="0*(\d+)"', block):
+            have += found.get(("spot", int(d)), [])
+        if not have:
+            return block
+        return block.replace(tag, tag[:-1] + f' data-spots="{listed(have)}">', 1)
+    return re.sub(r'<section class="dp-(?:cache|zone|point)".*?</section>', cache, html, flags=re.S)
 
 
 def fly_in_drops(html: str) -> str:
-    """drops.html: the About page's window entrance, for the seven panels.
+    """drops.html: the About page's window entrance, for the seven windows.
 
     page-script.js flies each one in from the edge it sits against (the list
     of caches from the left, the frequency bar from the top, the map from
-    the right, the list of drops from below, the photos of the spot from
-    the left; a drop's two windows, as it opens, its transmission from the
-    right and the photos of what was left from the left). It loads after
-    drops.js, so the lists and the map are built before anything moves."""
+    the left and the photos of the spot from the right, the log of drops
+    and the empty place beside it from below; a drop, as it opens, from the
+    right into that place). It loads after drops.js, so the lists and the
+    map are built before anything moves."""
     panels = [('class="dp-panel dp-manifest"', "left", 60),
               ('class="dp-panel dp-codec dp-bar"', "top", 60),
-              ('class="dp-panel dp-map dp-scan"', "right", 140),
-              ('class="dp-panel dp-log"', "bottom", 140),
-              ('class="dp-panel dp-slot dp-gallery dp-spot"', "left", 100),
-              ('class="dp-panel dp-codec dp-brief"', "right", 60),
-              ('class="dp-panel dp-slot dp-gallery dp-items"', "left", 120)]
+              ('class="dp-panel dp-map dp-scan"', "left", 120),
+              ('class="dp-panel dp-slot dp-gallery dp-spot"', "right", 120),
+              ('class="dp-panel dp-log"', "bottom", 180),
+              ('class="dp-panel dp-nodrop"', "bottom", 220),
+              ('class="dp-panel dp-codec dp-brief"', "right", 60)]
     for cls, where, delay in panels:
         if html.count(cls) != 1:
             sys.exit("drops.html changed; update fly_in_drops() in build.py")
