@@ -2,9 +2,9 @@ This folder is the website, ready to upload. Upload everything in it
 except this note, including .htaccess and the maps folder.
 
 Double-clicking index.html shows a bare page: the pages link to
-/style.css, /drops and so on, and "/" means the top of the website on
+/style.css, /caches and so on, and "/" means the top of the website on
 a web server but the top of the drive on your computer.
 
 To see the site on your computer first, double-click PREVIEW.cmd in the
 pn0va-site folder, or drag this folder onto it. It shows this folder
-the way the web host will, Drops map included, with nothing to install.
+the way the web host will, street maps included, with nothing to install.

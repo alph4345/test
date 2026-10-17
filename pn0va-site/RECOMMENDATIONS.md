@@ -9,12 +9,12 @@ is what's left, and the answers to the security questions.
 
 1. **Upload the new `with-store-clean` (or `no-store-clean`) folder.** The live
    Drops map says "API key required" because Carto now wants a key; the new
-   build carries its own map (README, *The Drops map*), so that goes away. The
+   build carries its own map (README, *The street map*), so that goes away. The
    upload also replaces the old `.htaccess`, which sends every page into a
    redirect loop on a standard Apache server ("too many redirects"). If
    pn0va.com loads fine today, your host behaves differently from stock
    Apache, but the new file works either way. Upload the `maps` folder too:
-   without it the Drops page falls back to rings on plain ground. To check
+   without it the Caches page falls back to rings on plain ground. To check
    the folder on your computer first, double-click `PREVIEW.cmd` (README,
    *Local preview*).
 2. **Turn on HTTPS**, then force it (see README, *The server*). This matters
@@ -59,7 +59,7 @@ My recommendation is **B**, unless you edit the animation in Animate yourself.
 
 ## Security
 
-### Drops: can someone edit its data?
+### Caches: can someone edit its data?
 
 **No, not in a way anyone else would see.** The page is a set of plain files.
 A visitor can change what their own browser shows (every browser's developer
@@ -77,17 +77,18 @@ your host offers it.
 
 **Everything on the page is public**, including what the page doesn't display:
 
-- The page source lists every cache's exact coordinates (to about
-  10 cm), and every drop's photos, caption and story, including claimed ones.
+- The page source lists every site's exact coordinates (to about
+  10 cm), and every cache's photos, what is inside and its log, found ones
+  included.
 - Files on the server can be fetched even when no page links to them. Folder
   listings are now switched off, but a guessable name like
-  `images/spot4_092326.jpg` or `images/item4_092326.jpg` can still be opened.
-  Keep a drop's photos out of `drops/images/` until you publish it: the
+  `images/site3_092326.jpg` or `images/item4_092326.jpg` can still be opened.
+  Keep a cache's photos out of `drops/images/` until you publish it: the
   build copies everything in that folder.
 - **Photos carry where and when they were taken.** A phone writes its GPS
-  position, the time and its model into every photo. For a photo of the
-  spot that is the cache, which is public anyway, but a photo of what was
-  left, taken at home, gives your home away. Take it out before adding the photo:
+  position, the time and its model into every photo. For a photo of a
+  site that is the site, which is public anyway, but a photo of what is
+  inside a cache, taken at home, gives your home away. Take it out before adding the photo:
   on Windows, right-click the photo, *Properties*, *Details*, *Remove
   Properties and Personal Information*, *Create a copy with all possible
   properties removed*; on an iPhone, turn off *Location* under *Options* at
@@ -97,20 +98,20 @@ your host offers it.
 
 **In the real world:**
 
-- Coordinates plus dates show where you were and when (a spot photo's name
-  carries its date, and the page shows it), so keep caches away from home
-  and work and publish after you've left the area. A cache you return to
+- Coordinates plus dates show where you were and when (a site photo's name
+  carries its date, and the page shows it), so keep sites away from home
+  and work and publish after you've left the area. A site you return to
   makes your visits easier to predict; vary the times.
-- Cache 02's coordinates (drop #002) are 31 m from the centre of Alcatraz
+- Site 02's coordinates (cache #002) are 31 m from the centre of Alcatraz
   Island, which is National Park Service land. Leaving items there generally
   needs permission, and many parks have rules on geocaches.
 - A sticker put on a wall, rail or sign can count as graffiti or littering.
-  Stuck to the drop itself (its box, bag or tag), it marks the drop without
-  marking the place.
+  Stuck to the cache itself (its box, bag or tag), it marks the cache
+  without marking the place.
 
 **The map** no longer depends on anyone. Carto now answers keyless requests
 with "API key required" tiles, so the streets come from a file on your own
-server instead (README, *The Drops map*). Visitors' browsers ask no map
+server instead (README, *The street map*). Visitors' browsers ask no map
 company for anything, and no one can change its terms or switch it off.
 
 ### Store: how safe is it?
@@ -179,21 +180,21 @@ scripts you'll use (Square, analytics); adding it now risks breaking them.
   A `<p class="date">` under each project's title in `projects.html`, as the
   blog posts have, would tell visitors how current each one is.
 
-### Drops
+### Caches
 
-- No drop has a photo of its spot or of what was left yet: each shows the
-  two placeholders (README, *Adding a drop, or a cache*).
+- No site has a photo yet, and no cache a photo of what is inside: each
+  shows the two placeholders (README, *Adding a cache, or a site*).
 - A phone's photos are 3 to 5 MB each, and the build copies them as they
   are. Make them about 1600 pixels on the long side first (on Windows,
   Photos, *Resize image*), or the photo windows will be slow to turn on a
   phone.
-- Drop #001's text says it was found: its item caption reads "Found &
-  claimed" and its story ends "Recovered 2026.06.28." The page doesn't mark it
-  claimed until you add `data-claimed="2026.06.28"` to it (README, *Marking a
-  drop claimed*).
-- With JavaScript off, the Cache page is an empty frame: the records are
+- Cache #001's text says it was found: what is inside reads "Found &
+  claimed" and its log ends "Recovered 2026.06.28." The page doesn't mark it
+  found until you add `data-found="2026.06.28"` to it (README, *Marking a
+  cache found*).
+- With JavaScript off, the Caches page is an empty frame: the records are
   filled in by the script, and always have been. The build could also write
-  each cache and its drops out as plain text for that case.
+  each site and its caches out as plain text for that case.
 
 ### Store
 
@@ -204,7 +205,7 @@ scripts you'll use (Square, analytics); adding it now risks breaking them.
 ### About
 
 - The portrait and text are placeholders. The text still says "geocaching
-  adventures" (the page is Drops now), invites people to get in touch with no
+  adventures" (the page is Caches now), invites people to get in touch with no
   way to do it, and lists generic skills.
 
 ### Everywhere

@@ -14,7 +14,8 @@ after changing anything in ../pn0va-brand and both variants pick it up.
 
 What it does to the 2026-07-06 build:
   * swaps the corrected logotype (katakana ピー・ノバ, outlined)
-  * retires geocache.html -> drops.html and drops the dead geo-* CSS
+  * retires geocache.html -> caches.html (the Caches page: sites and the
+    caches hidden at them) and drops the dead geo-* CSS
   * migrates the palette: body copy off pure white onto linen, yellow out,
     greys warmed, the two drifted reds fixed
   * self-hosts Press Start 2P and CreateJS, removing both CDN dependencies
@@ -74,13 +75,13 @@ ICONS = ROOT / "_source/icons"
 # (clean URL path, description). {store} only reads out on the store build.
 PAGE_META = {
     "index.html":    ("", "P_N0VA: a retro JRPG-styled home for writing, projects "
-                          "and real-world drops{store}."),
+                          "and real-world caches{store}."),
     "blog.html":     ("blog", "Posts from P_N0VA on development, creative projects "
                               "and building this site."),
     "projects.html": ("projects", "Projects by P_N0VA: web, animation and game experiments."),
-    "drops.html":    ("drops", "Cache: items P_N0VA leaves at caches around the world, "
-                               "in plain sight and marked with a P_N0VA sticker, each with "
-                               "photos of the spot and of what was left, and a transmission."),
+    "caches.html":   ("caches", "Caches: small things P_N0VA hides at sites around the world, "
+                                "in plain sight and marked with a P_N0VA sticker, each with "
+                                "photos of the site and of what is inside, and a log."),
     "store.html":    ("store", "Handmade layered wood and acrylic pins, keychains and "
                                "custom art plates from P_N0VA."),
     "about.html":    ("about", "About P_N0VA, the operator behind the site."),
@@ -201,7 +202,7 @@ def strip_geo_css(text: str) -> str:
 # ------------------------------------------------------------------- nav ---
 def nav_html(current: str, with_shop: bool) -> str:
     items = [("index.html", "Home"), ("blog.html", "Blog"),
-             ("projects.html", "Projects"), ("drops.html", "Cache")]
+             ("projects.html", "Projects"), ("caches.html", "Caches")]
     if with_shop:
         items.append(("store.html", "Store"))
     items.append(("about.html", "About"))
@@ -258,12 +259,12 @@ def add_head_tags(html: str, page: str, with_shop: bool) -> str:
 HOME_MENU = {
     True:  ('    <a href="blog.html" class="menu-item">Blog</a>\n'
             '    <a href="projects.html" class="menu-item">Projects</a>\n'
-            '    <a href="drops.html" class="menu-item">Cache</a>\n'
+            '    <a href="caches.html" class="menu-item">Caches</a>\n'
             '    <a href="store.html" class="menu-item">Store</a>\n'
             '    <a href="about.html" class="menu-item">About</a>'),
     False: ('    <a href="blog.html" class="menu-item">Blog</a>\n'
             '    <a href="projects.html" class="menu-item">Projects</a>\n'
-            '    <a href="drops.html" class="menu-item">Cache</a>\n'
+            '    <a href="caches.html" class="menu-item">Caches</a>\n'
             '    <a href="about.html" class="menu-item">About</a>'),
 }
 
@@ -701,89 +702,6 @@ def build_reader(html: str, unit: str) -> str:
     return html
 
 
-# Appended to the brand kit's drops.css, so the kit itself stays untouched.
-DROPS_BAR_CSS = """
-/* --------------------------------------------------------------------------
-   FREQUENCY BAR HEIGHT — added by build.py
-   drops.css means the bar to "stay about 70px and give the height back to
-   the map", but Latest and Drops are <dl>s, and a browser gives every <dl>
-   1em of margin above and below: the bar was 96px on a desktop and 113px on
-   a phone. Without the margins it is 75px and 85px, and the map gets the rest.
-   -------------------------------------------------------------------------- */
-.dp-bar .dp-readout{ margin:0; }
-"""
-
-DROPS_PHONE_CSS = """
-/* --------------------------------------------------------------------------
-   PHONE FREQUENCY BAR — added by build.py
-   One row could not hold the cache's name, both coordinates and the
-   readouts: below ~700px they were drawn on top of each other. It is two
-   rows now — the name and the readouts on top, the coordinates across the
-   full width below.
-
-   The bar's head also stays. It holds the only "What is a drop?" button,
-   so hiding it left phone visitors no way to open the explainer. Only the
-   "Frequency" label goes, to make room.
-   -------------------------------------------------------------------------- */
-@media (max-width:900px){
-  /* 1fr lets a single unbreakable line stretch the column, and with it the
-     whole page, past the edge of the screen. Pin the column to the screen
-     (drops.css pins the cache's own columns). */
-  .dp-shell{ grid-template-columns:minmax(0,1fr); }
-
-  .dp-bar .dp-panel__body{
-    grid-template-columns:minmax(0,1fr) auto;
-    grid-template-areas:"desig meta" "freq freq";
-    row-gap:6px;
-  }
-  .dp-bar .dp-panel__body:has(> .dp-about:not([hidden])){ grid-template-areas:"desig meta" "freq freq" "about about"; }
-  .dp-desig{ grid-area:desig; }
-  .dp-meta { grid-area:meta; }
-  .dp-freq { grid-area:freq; }
-  .dp-about{ grid-area:about; font-size:13px; }
-  .dp-freq .v{ font-size:clamp(13px,4.3vw,18px); }
-
-  .dp-bar .dp-panel__head{ display:flex; padding:4px 8px 4px 6px; }
-  .dp-bar .dp-panel__head > span:first-child{ display:none; }
-  .dp-bar .dp-headgroup{ flex:1 1 auto; min-width:0; justify-content:flex-end; }
-
-  /* The readouts were hidden here "because they live in the help panel",
-     which never showed them, so phones had neither. The count of drops
-     fits on any phone; the latest drop's date joins it where there is room. */
-  .dp-meta .dp-readout:nth-of-type(2){ display:flex; }
-
-  /* The channel strip's rows kept the desktop list's width:100%, so each
-     one filled the strip and the others sat off-screen with nothing to
-     say they were there. Sized to their content, several show at once. */
-  .dp-row{ width:auto; }
-}
-/* Widths measured with the widest values, 888 drops: the latest date fits
-   from 520px, and below 340px the count doesn't. */
-@media (min-width:520px) and (max-width:900px){
-  .dp-meta .dp-readout:nth-of-type(1){ display:flex; }
-}
-@media (max-width:339px){
-  .dp-meta .dp-readout:nth-of-type(2){ display:none; }
-}
-
-/* Laptops (901-1340px): the one-row bar needs ~1,100px, so it overlapped
-   itself by up to 175px here too. Same two rows as on phones; the readouts
-   wrap inside their cell rather than run into the designation. */
-@media (min-width:901px) and (max-width:1340px){
-  .dp-bar .dp-panel__body{
-    grid-template-columns:fit-content(62%) minmax(0,1fr);
-    grid-template-areas:"desig meta" "freq freq";
-    row-gap:6px;
-  }
-  .dp-bar .dp-panel__body:has(> .dp-about:not([hidden])){ grid-template-areas:"desig meta" "freq freq" "about about"; }
-  .dp-desig{ grid-area:desig; }
-  .dp-meta { grid-area:meta; }
-  .dp-freq { grid-area:freq; }
-  .dp-about{ grid-area:about; }
-}
-"""
-
-
 # --- the street map: served by this site, not by Carto ----------------------
 # Carto began answering keyless tile requests with "API key required", which
 # blanked the Drops map. The streets now come from maps/drops.pmtiles (cut from
@@ -833,7 +751,7 @@ def self_hosted_map_js(js: str) -> str:
 def self_hosted_map_html(html: str) -> str:
     """drops.html: load the map renderer and drops-map.js ahead of drops.js."""
     old = '<script src="drops.js'
-    if old not in html or "Carto dark · OSM" not in html:
+    if old not in html:
         sys.exit("drops.html changed; update self_hosted_map_html() in build.py")
     # no map file yet: say nothing, so the page doesn't ask for one and 404
     has_map = (MAP_SRC / "drops.pmtiles").exists()
@@ -842,25 +760,28 @@ def self_hosted_map_html(html: str) -> str:
         '<script src="drops-map.js?v=' + VER + '"'
         + (' data-map="maps/drops.pmtiles"' if has_map else '') + '></script>\n'
         + old, 1)
+    # (a kit from before named the map's source in its head)
     return html.replace("Carto dark · OSM", "OpenStreetMap", 1)
 
 
 def drop_photos(html: str) -> str:
     """drops.html: the photos, as lists on the blocks they belong to, in date
-    order, from the drops' images folder. The spot is the cache's, one place
-    however many drops are left there: cache<n>_<MMDDYY> on its <section>
-    (data-spots; cache3_092326.jpg is cache 03 on 2026.09.23). What was left
-    is each drop's: item<n>_<MMDDYY> on its <article> (data-items;
-    item4_092326.jpg is drop 004's). A second photo the same day takes a
-    letter after the date. Names from before, spot<n>_<MMDDYY> (n a drop's
-    number), count as photos of that drop's cache's spot. A block that lists
-    its own photos keeps them (data-photos, from before, is the spot's)."""
+    order, from the images folder. A site's photos are its own, one place
+    however many caches are hidden there: site<n>_<MMDDYY> on its <section>
+    (data-photos; site3_092326.jpg is site 03 on 2026.09.23). What is inside
+    a cache is the cache's: item<n>_<MMDDYY> on its <article> (data-items;
+    item4_092326.jpg is cache 004's). A second photo the same day takes a
+    letter after the date. Names from before count as photos of the site:
+    cache<n>_<MMDDYY> (n the site's number) and spot<n>_<MMDDYY> (n a
+    cache's number: its site's). A block that lists its own photos keeps
+    them (data-photos, or data-spots from before, on a site)."""
     found: dict[tuple, list] = {}
     for f in sorted((BRAND / "drops/images").iterdir()):
-        m = re.fullmatch(r"(cache|spot|item)(\d+)_(\d\d)(\d\d)(\d\d)([a-z0-9-]*)\.(jpe?g|png|webp|gif|svg)", f.name, re.I)
+        m = re.fullmatch(r"(site|cache|spot|item)(\d+)_(\d\d)(\d\d)(\d\d)([a-z0-9-]*)\.(jpe?g|png|webp|gif|svg)", f.name, re.I)
         if m:
             when = (m.group(5), m.group(3), m.group(4), m.group(6).lower())     # year, month, day, then a/b...
-            found.setdefault((m.group(1).lower(), int(m.group(2))), []).append((when, f.name))
+            kind = {"cache": "site"}.get(m.group(1).lower(), m.group(1).lower())
+            found.setdefault((kind, int(m.group(2))), []).append((when, f.name))
 
     def listed(have):
         return " ".join("images/" + name for _, name in sorted(have))
@@ -873,31 +794,32 @@ def drop_photos(html: str) -> str:
             tag = tag[:-1] + f' data-items="{listed(have)}">'
         return tag
 
-    def cache(m):
+    def site(m):
         block = re.sub(r'<article class="dp-entry"[^>]*>', drop, m.group(0))
         tag = re.match(r'<section[^>]*>', block).group(0)
         n = re.search(r'data-n="0*(\d+)"', tag)
         mine = ("data-spots=", "data-photos=")
         if not n or any(x in tag for x in mine):
             return block
-        have = list(found.get(("cache", int(n.group(1))), []))
+        have = list(found.get(("site", int(n.group(1))), []))
         for d in re.findall(r'<article class="dp-entry"[^>]*\sdata-n="0*(\d+)"', block):
             have += found.get(("spot", int(d)), [])
         if not have:
             return block
-        return block.replace(tag, tag[:-1] + f' data-spots="{listed(have)}">', 1)
-    return re.sub(r'<section class="dp-(?:cache|zone|point)".*?</section>', cache, html, flags=re.S)
+        return block.replace(tag, tag[:-1] + f' data-photos="{listed(have)}">', 1)
+    # a site was a <section class="dp-cache"> before (and a zone, a point)
+    return re.sub(r'<section class="dp-(?:site|cache|zone|point)".*?</section>', site, html, flags=re.S)
 
 
 def fly_in_drops(html: str) -> str:
     """drops.html: the About page's window entrance, for the seven windows.
 
     page-script.js flies each one in from the edge it sits against (the list
-    of caches from the left, the frequency bar from the top, the map from
-    the left and the photos of the spot from the right, the log of drops
-    and the empty place beside it from below; a drop, as it opens, from the
-    right into that place). It loads after drops.js, so the lists and the
-    map are built before anything moves."""
+    of sites from the left, the top bar from the top, the map from the left
+    and the site's photos from the right, the list of caches and the empty
+    place beside it from below; a cache, as it opens, from the right into
+    that place). It loads after drops.js, so the lists and the map are built
+    before anything moves."""
     panels = [('class="dp-panel dp-manifest"', "left", 60),
               ('class="dp-panel dp-codec dp-bar"', "top", 60),
               ('class="dp-panel dp-map dp-scan"', "left", 120),
@@ -940,10 +862,10 @@ WORLD_HTML = """
 <!-- ========= WORLD: every cache on the globe (drops-world.js) ==========
      The first screen. html[data-view] says which one is showing; without
      JavaScript this one stays hidden. -->
-<section class="dw-shell" id="dw" aria-label="Caches around the world">
-  <section class="dp-panel dw-list" aria-label="Caches" data-fly="left" data-fly-delay="60">
-    <div class="dp-panel__head"><span>Caches</span><span class="dp-idx" id="dw-count">&mdash;</span></div>
-    <p class="dw-help"><b>Help</b>Pick a cache to find it.</p>
+<section class="dw-shell" id="dw" aria-label="Sites around the world">
+  <section class="dp-panel dw-list" aria-label="Sites" data-fly="left" data-fly-delay="60">
+    <div class="dp-panel__head"><span>Sites</span><span class="dp-idx" id="dw-count">&mdash;</span></div>
+    <p class="dw-help"><b>Help</b>Pick a site to find it.</p>
     <div class="dw-sortbar">
       <label for="dw-sort">Sort</label>
       <select id="dw-sort">
@@ -964,7 +886,7 @@ WORLD_HTML = """
     <div class="dp-panel__body dw-globe" id="dw-globe">
       <canvas id="dw-canvas" aria-hidden="true"></canvas>
       <div class="dw-callout" id="dw-callout" aria-hidden="true" hidden></div>
-      <div class="dw-card" id="dw-card" role="group" aria-label="Chosen cache" hidden></div>
+      <div class="dw-card" id="dw-card" role="group" aria-label="Chosen site" hidden></div>
     </div>
   </section>
 </section>
@@ -981,7 +903,7 @@ def world_view(html: str) -> str:
     # decided before the page draws, so the other screen never flashes past
     html = html.replace(js_on, js_on + "\n<script>document.documentElement.dataset.view"
                         " = /^#./.test(location.hash) ? \"drop\" : \"world\";</script>", 1)
-    # the world has its own "What is a drop?", top right as on a drop: the
+    # the world has its own "How it works", top right as on a site: the
     # other lives in a panel that is hidden here
     html = html.replace('<main class="dp-shell">', WORLD_HTML.replace(
         "__HELP__", help_box.group(0).replace('id="dp-help"', 'id="dw-help"')) +
@@ -1114,10 +1036,11 @@ html:not(.js) .dw-shell, html.js:not([data-view="world"]) .dw-shell{ display:non
   color:var(--pn-void); background:var(--pn-red); border-radius:2px;
 }
 
-/* CLAIMED: the owner's mark (data-claimed in drops.html). In the list of
-   caches a quiet tag, once every drop at the cache is claimed; on a cache's
-   page (drops.js), a tag in its list of drops and a word in the head of
-   its items (see drops.css). A drop without the mark shows nothing. */
+/* FOUND: the owner's mark (data-found in drops.html; data-claimed, from
+   before). In the list of sites a quiet tag, once every cache at the site
+   is found; on a site's page (drops.js), a tag in its list of caches and a
+   word in the open cache's details (see drops.css). A cache without the
+   mark shows nothing. */
 .dp-claimed-tag{
   display:inline-block; align-self:center; justify-self:end; padding:2px 4px 1px;
   font-size:7px; line-height:1; letter-spacing:.14em; text-transform:uppercase;
@@ -1459,7 +1382,9 @@ def build(with_shop: bool):
     (out / "vendor").mkdir(exist_ok=True)
     shutil.copy(BRAND / "logo-anim/vendor/createjs-1.0.0.min.js", out / "vendor")
 
-    # --- drops replaces geocache -------------------------------------------
+    # --- caches.html replaces geocache.html ----------------------------------
+    # (built from the brand kit's drops page: the Drops page, before sites
+    # and caches had their names)
     (out / "geocache.html").unlink(missing_ok=True)
     drops = (BRAND / "drops/drops.html").read_text(encoding="utf-8")
     # brand-kit paths -> site root
@@ -1472,20 +1397,20 @@ def build(with_shop: bool):
                    '', drops)
     # use the site's own nav markup so every page matches
     drops = re.sub(r'<nav class="pn-nav">.*?</nav>',
-                   '<nav id="navbar">\n    <ul>\n' + nav_html("drops.html", with_shop) +
+                   '<nav id="navbar">\n    <ul>\n' + nav_html("caches.html", with_shop) +
                    "\n    </ul>\n  </nav>", drops, flags=re.S)
     drops = drops.replace('<link rel="stylesheet" href="drops.css',
                           '<link rel="stylesheet" href="page-style.css?v=' + VER +
                           '">\n<link rel="stylesheet" href="drops.css')
     drops = world_view(fly_in_drops(self_hosted_map_html(drop_photos(drops))))
-    (out / "drops.html").write_text(drops, encoding="utf-8", newline=NL)
+    (out / "caches.html").write_text(drops, encoding="utf-8", newline=NL)
 
     # No FIREFLY_CSS here: the living layer belongs to the home page only.
     # Interior pages are pure instrument — a firefly drifting over a map you
     # are trying to read is atmosphere in the wrong place.
     shutil.copy(BRAND / "drops/drops.css", out / "drops.css")
     (out / "drops.css").write_text((out / "drops.css").read_text(encoding="utf-8")
-                                   + DROPS_BAR_CSS + DROPS_PHONE_CSS + DROPS_MAP_CSS
+                                   + DROPS_MAP_CSS
                                    + DROPS_WORLD_CSS, encoding="utf-8", newline=NL)
     (out / "drops.js").write_text(
         self_hosted_map_js(
@@ -1535,7 +1460,7 @@ def build(with_shop: bool):
         encoding="utf-8", newline=NL)
 
     # --- pages --------------------------------------------------------------
-    for page in PAGES + ["drops.html"]:
+    for page in PAGES + ["caches.html"]:
         f = out / page
         html = f.read_text(encoding="utf-8")
         html = retarget_nav(html, page, with_shop)
@@ -1579,7 +1504,7 @@ def build(with_shop: bool):
     for name in ("favicon.ico", "favicon.svg", "apple-touch-icon.png"):
         shutil.copy(ICONS / name, out / name)
     shutil.copy(ICONS / "og-image.png", out / "images/og-image.png")
-    for page in PAGES + ["drops.html"] + (["store.html"] if with_shop else []):
+    for page in PAGES + ["caches.html"] + (["store.html"] if with_shop else []):
         f = out / page
         f.write_text(add_head_tags(f.read_text(encoding="utf-8"), page, with_shop),
                      encoding="utf-8", newline=NL)
@@ -2345,17 +2270,17 @@ STORE_JS = """/* ===============================================================
 
 
 # ------------------------------------------------------------ clean URLs ---
-# pn0va.com/drops instead of pn0va.com/drops.html. Every page except the home
+# pn0va.com/caches instead of pn0va.com/caches.html. Every page except the home
 # page becomes its own folder with an index.html inside, so the server can
 # serve it from a bare path. That means the pages sit one level deep, so every
 # asset path has to become root-relative — which is exactly why this build
 # MUST be served and can never be opened by double-clicking a file.
 
-HTACCESS = """# Clean URLs — serve /drops from /drops/index.html
+HTACCESS = """# Clean URLs — serve /caches from /caches/index.html
 # -Indexes: never list a folder's files. Without it, /images/ could show
 # every image uploaded, including photos for a drop not published yet.
 Options -MultiViews -Indexes
-# Every page is a folder (drops/index.html) served at a URL with no trailing
+# Every page is a folder (caches/index.html) served at a URL with no trailing
 # slash. Apache's own habit is to redirect folder URLs to add the slash; the
 # rule below strips it again, and the two bounced every page back and forth
 # until the browser gave up ("too many redirects"). Tested on Apache 2.4.
@@ -2371,12 +2296,12 @@ RewriteEngine On
 # RewriteCond %{HTTP:X-Forwarded-Proto} !https
 # RewriteRule ^ https://%{HTTP_HOST}%{REQUEST_URI} [R=301,L]
 
-# strip a trailing slash: /drops/ -> /drops
+# strip a trailing slash: /caches/ -> /caches
 RewriteCond %{REQUEST_FILENAME} -d
 RewriteCond %{REQUEST_URI} ^(.+)/$
 RewriteRule ^ %1 [R=301,L]
 
-# /drops -> /drops/index.html
+# /caches -> /caches/index.html
 RewriteCond %{REQUEST_FILENAME} !-f
 RewriteCond %{REQUEST_FILENAME}/index.html -f
 RewriteRule ^(.*)$ $1/index.html [L]
@@ -2389,11 +2314,15 @@ RewriteRule ^blog\\.html$       /blog        [R=301,L]
 RewriteRule ^projects\\.html$   /projects    [R=301,L]
 RewriteRule ^about\\.html$      /about       [R=301,L]
 RewriteRule ^store\\.html$      /store       [R=301,L]
-RewriteRule ^drops\\.html$      /drops       [R=301,L]
+RewriteRule ^caches\\.html$     /caches      [R=301,L]
 
-# these two were renamed, not just re-pathed
-RewriteRule ^geocache\\.html$   /drops       [R=301,L]
-RewriteRule ^geocache/?$        /drops       [R=301,L]
+# these were renamed, not just re-pathed: the Caches page was Drops (and
+# before that Geocache), and a link from then keeps its #03, which the
+# browser carries over to the new address
+RewriteRule ^drops\\.html$      /caches      [R=301,L]
+RewriteRule ^drops/?$           /caches      [R=301,L]
+RewriteRule ^geocache\\.html$   /caches      [R=301,L]
+RewriteRule ^geocache/?$        /caches      [R=301,L]
 RewriteRule ^shop\\.html$       /store       [R=301,L]
 RewriteRule ^shop/?$            /store       [R=301,L]
 
@@ -2451,7 +2380,7 @@ def build_clean(flat: pathlib.Path, with_shop: bool) -> pathlib.Path:
     wipe(out)
     shutil.copytree(flat, out, dirs_exist_ok=True)
 
-    pages = ["blog", "projects", "drops", "about"] + (["store"] if with_shop else [])
+    pages = ["blog", "projects", "caches", "about"] + (["store"] if with_shop else [])
     assets = ("style.css", "page-style.css", "drops.css", "reader.css", "tokens.css",
               "script.js", "page-script.js", "reader.js", "drops.js", "store.js",
               "drops-map.js", "drops-world.js", "favicon.ico", "favicon.svg", "apple-touch-icon.png")
@@ -2463,8 +2392,8 @@ def build_clean(flat: pathlib.Path, with_shop: bool) -> pathlib.Path:
         html = html.replace('="images/', '="/images/').replace('="fonts/', '="/fonts/')
         html = html.replace('="vendor/', '="/vendor/')
         html = html.replace("url('fonts/", "url('/fonts/")
-        # data-* attributes on the drop records point at images too, and a
-        # drop's photos (of the spot, of what was left) are lists of them
+        # data-* attributes on the site and cache records point at images
+        # too, and their photos (of the site, of what is inside) are lists
         html = html.replace('="images/', '="/images/')
         html = re.sub(r'data-(photos|spots|items)="([^"]*)"', lambda m: f'data-{m.group(1)}="' + " ".join(
             "/" + u if u.startswith("images/") else u for u in m.group(2).split()) + '"', html)
@@ -2503,12 +2432,12 @@ def build_clean(flat: pathlib.Path, with_shop: bool) -> pathlib.Path:
         "except this note, including .htaccess and the maps folder.\n"
         "\n"
         "Double-clicking index.html shows a bare page: the pages link to\n"
-        "/style.css, /drops and so on, and \"/\" means the top of the website on\n"
+        "/style.css, /caches and so on, and \"/\" means the top of the website on\n"
         "a web server but the top of the drive on your computer.\n"
         "\n"
         "To see the site on your computer first, double-click PREVIEW.cmd in the\n"
         "pn0va-site folder, or drag this folder onto it. It shows this folder\n"
-        "the way the web host will, Drops map included, with nothing to install.\n",
+        "the way the web host will, street maps included, with nothing to install.\n",
         encoding="utf-8", newline=NL)
     return out
 
@@ -2589,12 +2518,12 @@ def check_js(folder: pathlib.Path):
 
 
 def map_gaps():
-    """The caches the street map does not cover, as
-    "CACHE 04 (33.3902, -111.8684)".
+    """The sites the street map does not cover, as
+    "SITE 04 (33.3902, -111.8684)".
 
-    None means there is no map file at all. One map file covers every cache;
-    it only needs making again when a cache sits outside the area it was cut
-    for, so compare the caches in drops.html with the list tools/make-map.py
+    None means there is no map file at all. One map file covers every site;
+    it only needs making again when a site sits outside the area it was cut
+    for, so compare the sites in drops.html with the list tools/make-map.py
     recorded inside the file.
     """
     import gzip, json, math
@@ -2617,12 +2546,12 @@ def map_gaps():
 
     html = (BRAND / "drops/drops.html").read_text(encoding="utf-8")
     outside = []
-    for m in re.finditer(r'<(section class="dp-(?:cache|zone|point)"|article class="dp-entry")(.*?)>', html, re.S):
+    for m in re.finditer(r'<(section class="dp-(?:site|cache|zone|point)"|article class="dp-entry")(.*?)>', html, re.S):
         attrs = dict(re.findall(r'data-(n|lat|lng)="([^"]*)"', m.group(2)))
         if "lat" not in attrs or "lng" not in attrs:
             continue
         here = (float(attrs["lat"]), float(attrs["lng"]))
-        what = "CACHE" if "section" in m.group(1) else "DROP"
+        what = "SITE" if "section" in m.group(1) else "CACHE"
         # covered = at least 1 km of detail on every side of the marker
         if not any(km_between(here, d) <= km - 1 for d in made_for):
             outside.append(f"{what} {attrs.get('n', '?')} ({here[0]:.4f}, {here[1]:.4f})")
@@ -2635,10 +2564,10 @@ def have_map_tools() -> bool:
 
 
 def ensure_map() -> None:
-    """Before building, cut the street map again if a cache is outside it.
+    """Before building, cut the street map again if a site is outside it.
 
-    So adding a cache somewhere new takes nothing but adding it to drops.html
-    and building: tools/make-map.py fetches the area around every cache from
+    So adding a site somewhere new takes nothing but adding it to drops.html
+    and building: tools/make-map.py fetches the area around every site from
     the newest OpenStreetMap build (build.protomaps.com), a few MB per city.
     Without the tools or a connection the build goes on with the map it has,
     and check_map() says so at the end.
@@ -2654,7 +2583,7 @@ def ensure_map() -> None:
 
 
 def check_map() -> None:
-    """After building, say if a cache is still without a street map."""
+    """After building, say if a site is still without a street map."""
     gaps = map_gaps()
     if gaps == []:
         return
@@ -2665,7 +2594,7 @@ def check_map() -> None:
 
 
 def check_brand_drops() -> None:
-    """The brand kit beside this folder wins (see BRAND), Drops page and all.
+    """The brand kit beside this folder wins (see BRAND), Caches page and all.
     Its drops.js and drops.css are code rather than content: where they differ
     from the bundled copy's, the page is being built from another version of
     them, most likely the kit's original, older one. Say so."""
@@ -2676,10 +2605,10 @@ def check_brand_drops() -> None:
         return f.read_bytes().replace(b"\r\n", b"\n") if f.exists() else b""
     stale = [n for n in ("drops.js", "drops.css") if text(theirs / n) != text(own / n)]
     if stale:
-        print(f"\n  ! The Drops page is built from {theirs},\n"
+        print(f"\n  ! The Caches page is built from {theirs},\n"
               f"    whose {' and '.join(stale)} {'differ' if len(stale) > 1 else 'differs'} from this build's own copy in\n"
               f"    _source/brand-kit/drops. If the page looks wrong, copy that folder\n"
-              f"    over yours, keeping the caches you have added to its drops.html.\n")
+              f"    over yours, keeping the sites and caches you have added to its drops.html.\n")
 
 
 if __name__ == "__main__":
@@ -2694,7 +2623,7 @@ if __name__ == "__main__":
         stamp_assets(c)
         print(f"  built {d.name:11s} {len(list(d.rglob('*'))):3d} files"
               f"   +  {c.name:17s} {len(list(c.rglob('*'))):3d} files")
-    print("\n  -clean       = pn0va.com/drops URLs: the one you upload")
+    print("\n  -clean       = pn0va.com/caches URLs: the one you upload")
     print("  flat builds  = open by double-clicking (no street map)")
     print("  preview      = double-click PREVIEW.cmd, or  python tools/preview.py")
     check_map()

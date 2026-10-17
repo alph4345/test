@@ -9,18 +9,18 @@ On Windows, double-click PREVIEW.cmd instead: it does the same with nothing
 installed. tools/preview.ps1 is its server; keep the two in step.
 
 Why not just double-click index.html: the -clean builds link to /style.css,
-/drops and so on, which only mean "the top of the website" on a web server.
+/caches and so on, which only mean "the top of the website" on a web server.
 And why not `python -m http.server`: it cannot send parts of files, which the
-Drops map needs, and it knows nothing about the .htaccess rules.
+street map needs, and it knows nothing about the .htaccess rules.
 
 This server reads the build's own .htaccess and follows it the way Apache
 does, so the preview cannot drift from the real site:
 
-  * /drops is served from drops/index.html, and /drops/ redirects to /drops;
-  * old addresses (/drops.html, /geocache.html, /shop ...) redirect;
+  * /caches is served from caches/index.html, and /caches/ redirects to /caches;
+  * old addresses (/drops, /drops.html, /geocache.html, /shop ...) redirect;
   * a missing page shows the home page, with a 404 status.
 
-It also answers range requests (the Drops map reads its file in pieces) and
+It also answers range requests (the street maps read their file in pieces) and
 tells the browser to cache nothing, so a rebuild shows on the next reload.
 Only this computer can open it: it listens on 127.0.0.1.
 """
@@ -80,10 +80,10 @@ class Site:
         f = (self.root / rel).resolve()
         if f != self.root and self.root not in f.parents:
             return "missing", None
-        # /drops/ -> /drops
+        # /caches/ -> /caches
         if path != "/" and path.endswith("/") and f.is_dir():
             return "redirect", path.rstrip("/") or "/"
-        # /drops -> drops/index.html
+        # /caches -> caches/index.html
         if f.is_dir() and (f / "index.html").is_file():
             return "file", f / "index.html"
         # old addresses. Apache applies these before looking for the file.
@@ -131,8 +131,8 @@ class Handler(http.server.BaseHTTPRequestHandler):
 
     def answer(self, body: bool):
         site = self.server.site
-        # one leading slash: a redirect to //drops would send the browser to a
-        # host called "drops" (and urlsplit would read it that way too)
+        # one leading slash: a redirect to //caches would send the browser to a
+        # host called "caches" (and urlsplit would read it that way too)
         raw, _, query = self.path.partition("?")
         path = "/" + urllib.parse.unquote(raw).lstrip("/")
         query = "?" + query if query else ""
@@ -188,7 +188,7 @@ class Handler(http.server.BaseHTTPRequestHandler):
             self.send_header("Content-Range", f"bytes {start}-{end}/{size}")
         # cache nothing, so a rebuild shows at once. This covers the 301s too:
         # a browser keeps a cached 301 for good, and the flat builds, if
-        # previewed at this address later, have no /drops to be sent to.
+        # previewed at this address later, have no /caches to be sent to.
         self.send_header("Cache-Control", "no-store")
         self.send_header("X-Content-Type-Options", "nosniff")     # as the host sends
         self.end_headers()

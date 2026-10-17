@@ -3,18 +3,18 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>P_N0VA — CACHE</title>
-<meta name="description" content="Cache: items P_N0VA leaves at caches around the world, in plain sight and marked with a P_N0VA sticker, each with photos of the spot and of what was left, and a transmission.">
-<link rel="canonical" href="https://pn0va.com/drops">
-<link rel="icon" href="/favicon.ico?v=99a8a369" sizes="32x32">
-<link rel="icon" href="/favicon.svg?v=5e2fc924" type="image/svg+xml">
-<link rel="apple-touch-icon" href="/apple-touch-icon.png?v=41e7ef3e">
+<title>P_N0VA — CACHES</title>
+<meta name="description" content="Caches: small things P_N0VA hides at sites around the world, in plain sight and marked with a P_N0VA sticker, each with photos of the site and of what is inside, and a log.">
+<link rel="canonical" href="https://pn0va.com/caches">
+<link rel="icon" href="favicon.ico?v=99a8a369" sizes="32x32">
+<link rel="icon" href="favicon.svg?v=5e2fc924" type="image/svg+xml">
+<link rel="apple-touch-icon" href="apple-touch-icon.png?v=41e7ef3e">
 <meta name="theme-color" content="#000000">
 <meta property="og:type" content="website">
 <meta property="og:site_name" content="P_N0VA">
-<meta property="og:title" content="P_N0VA — CACHE">
-<meta property="og:description" content="Cache: items P_N0VA leaves at caches around the world, in plain sight and marked with a P_N0VA sticker, each with photos of the spot and of what was left, and a transmission.">
-<meta property="og:url" content="https://pn0va.com/drops">
+<meta property="og:title" content="P_N0VA — CACHES">
+<meta property="og:description" content="Caches: small things P_N0VA hides at sites around the world, in plain sight and marked with a P_N0VA sticker, each with photos of the site and of what is inside, and a log.">
+<meta property="og:url" content="https://pn0va.com/caches">
 <meta property="og:image" content="https://pn0va.com/images/og-image.png?v=40ae7efb">
 <meta property="og:image:width" content="1200">
 <meta property="og:image:height" content="630">
@@ -25,15 +25,15 @@
 <script>document.documentElement.classList.add('js');</script>
 <script>document.documentElement.dataset.view = /^#./.test(location.hash) ? "drop" : "world";</script>
 
-<link rel="stylesheet" href="/vendor/leaflet/leaflet.css?v=ec929f11">
-<link rel="stylesheet" href="/tokens.css?v=cf68e78a">
-<link rel="stylesheet" href="/page-style.css?v=5d41a34f">
-<link rel="stylesheet" href="/drops.css?v=93625b33">
+<link rel="stylesheet" href="vendor/leaflet/leaflet.css?v=ec929f11">
+<link rel="stylesheet" href="tokens.css?v=cf68e78a">
+<link rel="stylesheet" href="page-style.css?v=32f52766">
+<link rel="stylesheet" href="drops.css?v=6402a319">
 <style>
 /* Self-hosted faces — no Google Fonts request, no CDN failure mode. */
 @font-face{
   font-family:'Press Start 2P';
-  src:url('/fonts/press-start-2p-latin-400-normal.woff2') format('woff2');
+  src:url('fonts/press-start-2p-latin-400-normal.woff2') format('woff2');
   font-weight:400; font-style:normal; font-display:block;
 }
 /* ------------------------------------------------------------------
@@ -145,89 +145,91 @@
   white-space:nowrap; text-shadow:0 0 6px #000, 0 0 3px #000, 0 0 2px #000;
 }
 
-/* graticule: edge ticks + live bounds, the mm-ruler habit applied to a map */
+/* graticule: edge ticks, the mm-ruler habit applied to a map */
 .dp-grat{ position:absolute; inset:0; pointer-events:none; z-index:450; }
 .dp-grat svg{ width:100%; height:100%; display:block; color:var(--pn-red); }
-.dp-bounds{
-  position:absolute; right:6px; top:6px; z-index:460; pointer-events:none;
-  font-size:7.5px; letter-spacing:.14em; line-height:1.7; text-align:right;
-  color:var(--pn-ink-faint); text-shadow:0 0 5px #000;
-}
-.dp-bounds b{ color:var(--pn-ink-muted); font-weight:400; font-variant-numeric:tabular-nums; }
 </style>
 </head>
 
 <body>
 
 <!-- ============================================================
-     HOW TO ADD A DROP
+     HOW TO ADD A CACHE
      ------------------------------------------------------------
-     Drops are left at CACHES: places used again and again. A
-     cache is "CACHE 03", a single drop "DROP #003". Each cache is
-     a <section class="dp-cache"> below, and the drops left there
-     are the <article class="dp-entry"> blocks inside it. NEWEST
-     first, caches and drops alike: a cache's list of drops is
-     read top to bottom. (The world's list of caches goes by
-     number, or however a visitor sorts it.)
+     Caches are hidden at SITES: places used again and again. A
+     site is "SITE 03", a single cache "CACHE #003". Each site is
+     a <section class="dp-site"> below, and the caches hidden
+     there are the <article class="dp-entry"> blocks inside it.
+     NEWEST first, sites and caches alike: a site's list of
+     caches is read top to bottom. (The world's list of sites
+     goes by number, or however a visitor sorts it.)
 
-     A NEW DROP AT A CACHE YOU ALREADY HAVE
+     A NEW CACHE AT A SITE YOU ALREADY HAVE
      1. Copy one <article class="dp-entry"> block into that
-        cache's <section>, above the drops already there.
+        site's <section>, above the caches already there.
      2. Set the data-* attributes on the <article>:
-          data-n        drop number, three digits, e.g. "004" (one
-                        count across all the caches)
-          data-placed   YYYY.MM.DD
-          data-title    the drop's name
-          data-itemcap  what was left, in a few words
-          data-claimed  YYYY.MM.DD, only once you know the drop was
-                        found (or data-claimed alone, with no date):
-                        CLAIMED shows on the cache's page. Leave it
-                        off and nothing shows.
-     3. Write its transmission: what was left, and why. A
-        paragraph or two.
-     4. Photos of what was left: put them in the images folder,
-        named item, the drop's number and the date as MMDDYY:
-          item4_092326.jpg   what drop 004 left, photographed
+          data-n        cache number, three digits, e.g. "004" (one
+                        count across all the sites)
+          data-placed   the day it was hidden, YYYY.MM.DD
+          data-title    the cache's name
+          data-inside   what is inside, in a few words; several
+                        things, separated by semicolons:
+                        data-inside="Zine, issue 3; Sticker sheet"
+          data-found    YYYY.MM.DD, only once you know the cache
+                        was found (or data-found alone, with no
+                        date): FOUND shows on the site's page.
+                        Leave it off and nothing shows.
+     3. Write its log: what is inside, and why. A paragraph or two.
+     4. Photos of what is inside: put them in the images folder,
+        named item, the cache's number and the date as MMDDYY:
+          item4_092326.jpg   inside cache 004, photographed
                              2026.09.23
         A second photo the same day takes a letter after the date
-        (item4_092326b.jpg). build.py finds them; the page shows
-        them in date order, with arrows, and says each one's name
-        and date. Or list them yourself, in the order you want:
-        data-items="/images/a.jpg /images/b.jpg".
+        (item4_092326b.jpg). build.py finds them and puts them in
+        date order. With several things inside, the first photo
+        shows the first thing named in data-inside, the second
+        photo the second thing, and so on; the arrows go through
+        them. Or list the photos yourself, in the order you want:
+        data-items="images/a.jpg images/b.jpg".
 
-     A NEW CACHE
-     1. Copy a whole <section class="dp-cache"> block, put it
-        first, and keep one drop in it (step 2 above).
+     A NEW SITE
+     1. Copy a whole <section class="dp-site"> block, put it
+        first, and keep one cache in it (step 2 above).
      2. Set the data-* attributes on the <section>:
-          data-n        cache number, two digits, e.g. "04"
-          data-place    the cache's name
+          data-n        site number, two digits, e.g. "04"
+          data-place    the site's name
           data-city / data-state / data-country    where it is,
                         in words: the world's list sorts by them
-          data-about    a line or two on the cache and its place:
-                        what it is and what it is like there. It
-                        leads wherever the cache is listed, and
-                        sits under its name on its page.
+          data-about    a line or two on the site: what it is and
+                        what it is like there. It leads wherever
+                        the site is listed, and sits under its
+                        name on its page.
           data-lat / data-lng    decimal degrees, signed
           data-zoom     how close its street map opens: 17 is
                         street level, 16-18 is usually right
-     3. Photos of the spot, the cache's own (one place, however
-        many drops are left there): in the images folder, named
-        cache, its number and the date as MMDDYY:
-          cache3_092326.jpg  cache 03, photographed 2026.09.23
+     3. Photos of the site (one place, however many caches are
+        hidden there): in the images folder, named site, its
+        number and the date as MMDDYY:
+          site3_092326.jpg   site 03, photographed 2026.09.23
         (a letter after the date for a second that day), or listed
-        on the <section> as data-spots="/images/a.jpg /images/b.jpg".
+        on the <section> as data-photos="images/a.jpg images/b.jpg".
      Then run python build.py, which fetches the street map for a
      new place. Nothing else needs touching — no CSS, no JS.
+
+     FROM BEFORE, and still read: <section class="dp-cache"> is a
+     site; data-itemcap is data-inside and data-claimed is
+     data-found; photos named cache3_ (site 03) or spot4_ (the
+     site of cache 004) are photos of the site.
      ============================================================ -->
 
 <nav id="navbar">
     <ul>
       
-      <li><a href="/">Home</a></li>
-      <li><a href="/blog">Blog</a></li>
-      <li><a href="/projects">Projects</a></li>
-      <li><a href="/drops" class="active">Cache</a></li>
-      <li><a href="/about">About</a></li>
+      <li><a href="index.html">Home</a></li>
+      <li><a href="blog.html">Blog</a></li>
+      <li><a href="projects.html">Projects</a></li>
+      <li><a href="caches.html" class="active">Caches</a></li>
+      <li><a href="about.html">About</a></li>
     
     </ul>
   </nav>
@@ -237,10 +239,10 @@
 <!-- ========= WORLD: every cache on the globe (drops-world.js) ==========
      The first screen. html[data-view] says which one is showing; without
      JavaScript this one stays hidden. -->
-<section class="dw-shell" id="dw" aria-label="Caches around the world">
-  <section class="dp-panel dw-list" aria-label="Caches" data-fly="left" data-fly-delay="60">
-    <div class="dp-panel__head"><span>Caches</span><span class="dp-idx" id="dw-count">&mdash;</span></div>
-    <p class="dw-help"><b>Help</b>Pick a cache to find it.</p>
+<section class="dw-shell" id="dw" aria-label="Sites around the world">
+  <section class="dp-panel dw-list" aria-label="Sites" data-fly="left" data-fly-delay="60">
+    <div class="dp-panel__head"><span>Sites</span><span class="dp-idx" id="dw-count">&mdash;</span></div>
+    <p class="dw-help"><b>Help</b>Pick a site to find it.</p>
     <div class="dw-sortbar">
       <label for="dw-sort">Sort</label>
       <select id="dw-sort">
@@ -258,27 +260,26 @@
   </section>
   <section class="dp-panel dw-stage" aria-label="World" data-fly="right" data-fly-delay="60">
     <div class="dp-panel__head"><span>World</span><details class="dp-help" id="dw-help">
-            <summary title="What is a drop?">
+            <summary title="How it works">
               <span class="q" aria-hidden="true">?</span>
-              <span class="lbl">What is a drop?</span>
+              <span class="lbl">How it works</span>
             </summary>
             <div class="dp-help__panel" role="note">
-              <h3>What is a drop?</h3>
-              <p>Something the operator leaves at a real place for whoever
-                 finds it. Drops are left at caches, places the operator
-                 comes back to, each in plain sight and marked with a P_N0VA
-                 sticker. A cache's page shows its street map and photos of
-                 the spot, and lists every drop left there: choose one for
-                 its transmission and photos of what was left, and again to
-                 hide them.</p>
-              <p>On the world map, a ! over a cache means something was
-                 left there in the last week.</p>
+              <h3>How it works</h3>
+              <p>P_N0VA hides caches, small things left for whoever finds
+                 them, at sites around the world: real places, each cache in
+                 plain sight and marked with a P_N0VA sticker. A site's page
+                 shows its street map and photos of the place, and lists
+                 every cache hidden there. Pick one to see what is inside and
+                 read its log; pick it again to put it away.</p>
+              <p>On the world map, a ! over a site means a cache was hidden
+                 there in the last week.</p>
             </div>
           </details></div>
     <div class="dp-panel__body dw-globe" id="dw-globe">
       <canvas id="dw-canvas" aria-hidden="true"></canvas>
       <div class="dw-callout" id="dw-callout" aria-hidden="true" hidden></div>
-      <div class="dw-card" id="dw-card" role="group" aria-label="Chosen cache" hidden></div>
+      <div class="dw-card" id="dw-card" role="group" aria-label="Chosen site" hidden></div>
     </div>
   </section>
 </section>
@@ -286,9 +287,9 @@
 <main class="dp-shell">
 
   <!-- ============ MANIFEST RAIL ============ -->
-  <section class="dp-panel dp-manifest" data-fly="left" data-fly-delay="60" aria-label="Caches">
+  <section class="dp-panel dp-manifest" data-fly="left" data-fly-delay="60" aria-label="Sites">
     <div class="dp-panel__head">
-      <span>Caches</span>
+      <span>Sites</span>
       <span class="dp-idx" id="dp-count">—</span>
     </div>
     <div class="dp-panel__body" id="dp-rows"></div>
@@ -297,109 +298,97 @@
   <!-- ============ DETAIL ============ -->
   <div class="dp-detail">
 
-    <!-- FREQUENCY BAR — the codec's tuned readout: the cache's name, the one
-         thing to read first, and its coordinates, the frequency you tune to
-         in order to reach it. -->
-    <section class="dp-panel dp-codec dp-bar" data-fly="top" data-fly-delay="60" aria-label="Cache">
+    <!-- THE TOP BAR — which site this is, the first thing read: its number
+         and name, and a line on what it is like there. One row on a
+         desktop, the way back to the world (WORLD MAP, which drops-world.js
+         puts in its head) at its left and how it all works at its right. -->
+    <section class="dp-panel dp-codec dp-bar" data-fly="top" data-fly-delay="60" aria-label="Site">
       <div class="dp-panel__head">
-        <span>Frequency</span>
+        <span>Site</span>
         <span class="dp-headgroup">
           <!-- <details> so the explainer opens with no JavaScript at all, and
-               gets keyboard support and Esc from the browser for free. It
-               lives in the frequency bar because that panel is the top row in
-               BOTH layouts. Quiet: it is there for whoever wonders. -->
+               gets keyboard support and Esc from the browser for free. Quiet:
+               it is there for whoever wonders. -->
           <details class="dp-help" id="dp-help">
-            <summary title="What is a drop?">
+            <summary title="How it works">
               <span class="q" aria-hidden="true">?</span>
-              <span class="lbl">What is a drop?</span>
+              <span class="lbl">How it works</span>
             </summary>
             <div class="dp-help__panel" role="note">
-              <h3>What is a drop?</h3>
-              <p>Something the operator leaves at a real place for whoever
-                 finds it. Drops are left at caches, places the operator
-                 comes back to, each in plain sight and marked with a P_N0VA
-                 sticker. A cache's page shows its street map and photos of
-                 the spot, and lists every drop left there: choose one for
-                 its transmission and photos of what was left, and again to
-                 hide them.</p>
-              <p>On the world map, a ! over a cache means something was
-                 left there in the last week.</p>
+              <h3>How it works</h3>
+              <p>P_N0VA hides caches, small things left for whoever finds
+                 them, at sites around the world: real places, each cache in
+                 plain sight and marked with a P_N0VA sticker. A site's page
+                 shows its street map and photos of the place, and lists
+                 every cache hidden there. Pick one to see what is inside and
+                 read its log; pick it again to put it away.</p>
+              <p>On the world map, a ! over a site means a cache was hidden
+                 there in the last week.</p>
             </div>
           </details>
         </span>
       </div>
       <div class="dp-panel__body">
-        <h1 class="dp-desig"><span class="dp-desig__n">Cache&nbsp;<span id="r-n">—</span></span><span class="dp-desig__name" id="r-place">—</span></h1>
-
-        <span class="dp-freq">
-          <span class="v"><span id="r-lat">—</span><span class="u">°N</span></span>
-          <span class="v"><span id="r-lng">—</span><span class="u">°W</span></span>
-        </span>
-
-        <span class="dp-meta">
-          <dl class="dp-readout"><dt>Latest</dt><dd id="r-placed">—</dd></dl>
-          <dl class="dp-readout"><dt>Drops</dt><dd id="r-count">—</dd></dl>
-        </span>
-
-        <!-- what the cache is, and where: its data-about -->
+        <h1 class="dp-desig"><span class="dp-desig__n">Site&nbsp;<span id="r-n">—</span></span><span class="dp-desig__name" id="r-place">—</span></h1>
+        <!-- what the site is, and where: its data-about -->
         <p class="dp-about" id="r-about" hidden></p>
       </div>
     </section>
 
-    <!-- map -->
-    <section class="dp-panel dp-map dp-scan" data-fly="left" data-fly-delay="120" aria-label="Cache location">
+    <!-- THE MAP — the site at street level; its coordinates in the head, a
+         link to the place on OpenStreetMap -->
+    <section class="dp-panel dp-map dp-scan" data-fly="left" data-fly-delay="120" aria-label="Map of the site">
       <div class="dp-panel__head">
-        <span>Location</span>
-        <span class="dp-idx">OpenStreetMap</span>
+        <span>Map</span>
+        <a class="dp-coords dp-osm" href="#" target="_blank" rel="noopener" title="Open this place on OpenStreetMap"><span class="v"><span id="r-lat">—</span><span class="u">°N</span> <span id="r-lng">—</span><span class="u">°W</span></span><span class="go" aria-hidden="true">OSM</span></a>
       </div>
       <div class="dp-panel__body dp-panel__body--flush">
         <div class="dp-mapcanvas" id="dp-map"></div>
         <div class="dp-grat" id="dp-grat" aria-hidden="true"></div>
-        <div class="dp-bounds" id="dp-bounds" aria-hidden="true"></div>
-        <a class="dp-map-fallback" id="dp-osm" href="#" target="_blank" rel="noopener">&#9670; VIEW LOCATION ON OPENSTREETMAP &#9670;</a>
+        <a class="dp-map-fallback dp-osm" id="dp-osm" href="#" target="_blank" rel="noopener">&#9670; VIEW THE SITE ON OPENSTREETMAP &#9670;</a>
       </div>
     </section>
 
-    <!-- THE SPOT — where the drops are left, beside the map and always in
-         view: the cache's own photos of it, to go through left and right. -->
-    <figure class="dp-panel dp-slot dp-gallery dp-spot" data-fly="right" data-fly-delay="120" aria-label="Photos of the spot">
-      <div class="dp-panel__head"><span>Spot</span><span class="dp-idx" id="r-spotn">—</span></div>
+    <!-- PHOTOS — of the site, beside the map and always in view: the place
+         its caches are hidden, to go through left and right. The same
+         whichever cache is open. -->
+    <figure class="dp-panel dp-slot dp-gallery dp-spot" data-fly="right" data-fly-delay="120" aria-label="Photos of the site">
+      <div class="dp-panel__head"><span>Photos</span><span class="dp-idx" id="r-spotn">—</span></div>
       <div class="dp-panel__body dp-panel__body--flush">
-        <div class="dp-gallery__frame" id="s-spotframe"><img class="dp-gallery__bg" src="/images/spot-placeholder.svg?v=42f2cfe1" alt="" aria-hidden="true"><img id="s-spot" src="/images/spot-placeholder.svg?v=42f2cfe1" alt=""></div>
-        <button class="dp-gallery__go dp-gallery__prev" id="s-spotprev" type="button" aria-label="Earlier photo of the spot" hidden><span class="tri" aria-hidden="true"></span></button>
-        <button class="dp-gallery__go dp-gallery__next" id="s-spotnext" type="button" aria-label="Later photo of the spot" hidden><span class="tri" aria-hidden="true"></span></button>
+        <div class="dp-gallery__frame" id="s-spotframe"><img class="dp-gallery__bg" src="images/spot-placeholder.svg?v=620e531b" alt="" aria-hidden="true"><img id="s-spot" src="images/spot-placeholder.svg?v=620e531b" alt=""></div>
+        <button class="dp-gallery__go dp-gallery__prev" id="s-spotprev" type="button" aria-label="Earlier photo of the site" hidden><span class="tri" aria-hidden="true"></span></button>
+        <button class="dp-gallery__go dp-gallery__next" id="s-spotnext" type="button" aria-label="Later photo of the site" hidden><span class="tri" aria-hidden="true"></span></button>
       </div>
-      <figcaption id="s-spotcap">—</figcaption>
+      <figcaption id="s-spotcap"></figcaption>
     </figure>
 
-    <!-- THE DROPS — the log: every drop left at this cache, newest first.
-         A row opens its drop, and hides it again. -->
-    <section class="dp-panel dp-log" data-fly="bottom" data-fly-delay="180" aria-label="Drops at this cache">
-      <div class="dp-panel__head"><span>Drops</span><span class="dp-idx" id="r-logn">—</span></div>
+    <!-- THE CACHES — every one hidden at this site, newest first. A row
+         opens its cache, and puts it away again. -->
+    <section class="dp-panel dp-log" data-fly="bottom" data-fly-delay="180" aria-label="Caches at this site">
+      <div class="dp-panel__head"><span>Caches</span><span class="dp-idx" id="r-logn">—</span></div>
       <div class="dp-panel__body" id="dp-log"></div>
     </section>
 
-    <!-- With no drop open, the drop's place says how to open one. -->
-    <section class="dp-panel dp-nodrop" data-fly="bottom" data-fly-delay="220" aria-label="No drop open">
-      <div class="dp-panel__head"><span>Transmission</span><span class="dp-idx">—</span></div>
-      <div class="dp-panel__body"><p>Choose a drop in the log to read what was left there, and why.</p></div>
+    <!-- With no cache open, its place says how to open one. -->
+    <section class="dp-panel dp-nodrop" data-fly="bottom" data-fly-delay="220" aria-label="No cache open">
+      <div class="dp-panel__head"><span>Cache</span><span class="dp-idx">—</span></div>
+      <div class="dp-panel__body"><p>Pick a cache to see what is inside and read its log.</p></div>
     </section>
 
-    <!-- A DROP — opened from the log, and hidden from it again: its
-         transmission, what was left and why, beside the photos of what was
-         left, to go through left and right. On a phone it opens under its row. -->
-    <div class="dp-drop" id="dp-drop" role="region" aria-label="The chosen drop" hidden>
-      <section class="dp-panel dp-codec dp-brief" data-fly="right" data-fly-delay="60" aria-label="Transmission">
+    <!-- A CACHE — opened from the list, and put away from it again: what is
+         inside, one thing at a time, beside its log. On a phone it opens
+         under its row. -->
+    <div class="dp-drop" id="dp-drop" role="region" aria-label="The chosen cache" hidden>
+      <section class="dp-panel dp-codec dp-brief" data-fly="right" data-fly-delay="60" aria-label="Cache">
         <div class="dp-panel__head">
-          <span>Transmission</span><span class="dp-idx" id="r-dropn">—</span>
-          <button class="dp-close" id="dp-close" type="button" title="Hide this drop (Esc)"><span class="x" aria-hidden="true"></span>Hide<span class="key" aria-hidden="true">Esc</span></button>
+          <span>Cache</span><span class="dp-idx" id="r-dropn">—</span>
         </div>
         <div class="dp-panel__body dp-brief__body">
-          <figure class="dp-slot dp-gallery dp-items" aria-label="Photos of what was left">
+          <figure class="dp-slot dp-gallery dp-items" aria-label="What is inside">
             <div class="dp-items__photo">
-              <div class="dp-gallery__frame" id="s-itemframe"><img class="dp-gallery__bg" src="/images/item-placeholder.svg?v=53bfe82d" alt="" aria-hidden="true"><img id="s-item" src="/images/item-placeholder.svg?v=53bfe82d" alt=""></div>
-              <button class="dp-gallery__go dp-gallery__prev" id="s-itemprev" type="button" aria-label="Earlier photo of what was left" hidden><span class="tri" aria-hidden="true"></span></button>
-              <button class="dp-gallery__go dp-gallery__next" id="s-itemnext" type="button" aria-label="Later photo of what was left" hidden><span class="tri" aria-hidden="true"></span></button>
+              <div class="dp-gallery__frame" id="s-itemframe"><img class="dp-gallery__bg" src="images/item-placeholder.svg?v=16e8f032" alt="" aria-hidden="true"><img id="s-item" src="images/item-placeholder.svg?v=16e8f032" alt=""></div>
+              <button class="dp-gallery__go dp-gallery__prev" id="s-itemprev" type="button" aria-label="The thing before" hidden><span class="tri" aria-hidden="true"></span></button>
+              <button class="dp-gallery__go dp-gallery__next" id="s-itemnext" type="button" aria-label="The next thing" hidden><span class="tri" aria-hidden="true"></span></button>
             </div>
             <figcaption><span class="dp-items__cap" id="s-itemcap">—</span><span class="dp-idx" id="r-itemn">—</span></figcaption>
           </figure>
@@ -416,19 +405,19 @@
 </main>
 
 <!-- ============================================================
-     CACHES and their DROPS — newest first. Content only; no
+     SITES and their CACHES — newest first. Content only; no
      styling here.
      ============================================================ -->
 <div hidden id="dp-data">
 
-  <section class="dp-cache" data-n="03" data-place="Telegraph Hill"
+  <section class="dp-site" data-n="03" data-place="Telegraph Hill"
            data-city="San Francisco" data-state="California" data-country="United States"
            data-lat="37.802139" data-lng="-122.4058" data-zoom="17"
            data-about="Under Coit Tower at the top of Telegraph Hill. Garden stairs, wild parrots, and the city spread out below.">
 
     <article class="dp-entry" data-n="003" data-placed="2026.07.20"
              data-title="Stairs and Parrots"
-             data-itemcap="Enamel pin — Game Boy">
+             data-inside="Enamel pin — Game Boy">
       <p>Placed at dusk, halfway up a staircase most people take at a jog. If you
          hear the flock before you see it, you have gone too far.</p>
       <p>Take the item, leave something of equal or greater mystery, and sign the
@@ -437,14 +426,14 @@
 
   </section>
 
-  <section class="dp-cache" data-n="02" data-place="Island Signal"
+  <section class="dp-site" data-n="02" data-place="Island Signal"
            data-city="San Francisco" data-state="California" data-country="United States"
            data-lat="37.826977" data-lng="-122.422955" data-zoom="17"
            data-about="Alcatraz, a ferry ride out into the bay: the old prison, its lighthouse, and the skyline across the water.">
 
     <article class="dp-entry" data-n="002" data-placed="2026.07.04"
              data-title="Island Signal"
-             data-itemcap="What you're looking for">
+             data-inside="What you're looking for">
       <p>This one required a boat ride to place. It sits within sight of one of the
          most photographed views around, tucked where thousands of people walk past
          every week without a second glance.</p>
@@ -453,14 +442,14 @@
 
   </section>
 
-  <section class="dp-cache" data-n="01" data-place="West Woods"
+  <section class="dp-site" data-n="01" data-place="West Woods"
            data-city="San Francisco" data-state="California" data-country="United States"
            data-lat="37.769420" data-lng="-122.486214" data-zoom="17"
            data-about="The wooded west of Golden Gate Park: meadows and small lakes under eucalyptus and cypress, the city out of earshot.">
 
     <article class="dp-entry" data-n="001" data-placed="2026.06.15"
              data-title="The First Drop"
-             data-itemcap="Found &amp; claimed">
+             data-inside="Found &amp; claimed">
       <p>Somewhere among the trees west of the city, beneath a landmark that has
          watched over the spot for more than a century. I hid it here because this
          is where the whole idea started — the first place I ever went looking for
@@ -472,14 +461,14 @@
 
 </div>
 
-<script src="/vendor/leaflet/leaflet.js?v=5a640ff8"></script>
-<script src="/vendor/protomaps-leaflet/protomaps-leaflet.js?v=9d8eec24"></script>
-<script src="/drops-map.js?v=c472e168" data-map="maps/drops.pmtiles?v=0a2d46bf"></script>
-<script src="/drops.js?v=78c8f502"></script>
-<script src="/vendor/world/d3-array.min.js?v=08cb6252"></script>
-<script src="/vendor/world/d3-geo.min.js?v=b7604723"></script>
-<script src="/vendor/world/topojson-client.min.js?v=bc057598"></script>
-<script src="/drops-world.js?v=6275e5ce" data-world="maps/world/" data-world-v="42189bc6" data-landmarks="maps/landmarks.json?v=a9e7a54f"></script>
-<script src="/page-script.js?v=3515bd0b"></script>
+<script src="vendor/leaflet/leaflet.js?v=5a640ff8"></script>
+<script src="vendor/protomaps-leaflet/protomaps-leaflet.js?v=9d8eec24"></script>
+<script src="drops-map.js?v=c472e168" data-map="maps/drops.pmtiles?v=0a2d46bf"></script>
+<script src="drops.js?v=1febb3cc"></script>
+<script src="vendor/world/d3-array.min.js?v=08cb6252"></script>
+<script src="vendor/world/d3-geo.min.js?v=b7604723"></script>
+<script src="vendor/world/topojson-client.min.js?v=bc057598"></script>
+<script src="drops-world.js?v=db41e2bd" data-world="maps/world/" data-world-v="42189bc6" data-landmarks="maps/landmarks.json?v=a9e7a54f"></script>
+<script src="page-script.js?v=3515bd0b"></script>
 </body>
 </html>

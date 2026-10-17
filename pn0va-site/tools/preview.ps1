@@ -8,11 +8,11 @@
   two in step. It reads the build's own .htaccess and follows it the way
   Apache does:
 
-    * /drops is served from drops/index.html, and /drops/ redirects to /drops;
-    * old addresses (/drops.html, /geocache.html, /shop ...) redirect;
+    * /caches is served from caches/index.html, and /caches/ redirects to /caches;
+    * old addresses (/drops, /drops.html, /geocache.html, /shop ...) redirect;
     * a missing page shows the home page, with a 404 status.
 
-  It also answers range requests (the Drops map reads its file in pieces)
+  It also answers range requests (the street maps read their file in pieces)
   and tells the browser to cache nothing, so a rebuild shows on the next
   reload. Only this computer can open it.
 
@@ -141,13 +141,13 @@ function Resolve-Target([string]$path) {
     return @{ Kind = 'missing' }
   }
   $isDir = [IO.Directory]::Exists($full)
-  # /drops/ -> /drops
+  # /caches/ -> /caches
   if ($path -ne '/' -and $path.EndsWith('/') -and $isDir) {
     $to = $path.TrimEnd('/')
     if (-not $to) { $to = '/' }
     return @{ Kind = 'redirect'; To = $to }
   }
-  # /drops -> drops/index.html
+  # /caches -> caches/index.html
   $index = [IO.Path]::Combine($full, 'index.html')
   if ($isDir -and [IO.File]::Exists($index)) { return @{ Kind = 'file'; File = $index } }
   # old addresses. Apache applies these before looking for the file.
@@ -226,7 +226,7 @@ function Send-File($ctx, [string]$file, [int]$status) {
   if ($status -eq 206) { $res.AddHeader('Content-Range', "bytes $start-$end/$size") }
   # cache nothing, so a rebuild shows at once. This covers the 301s too:
   # a browser keeps a cached 301 for good, and the flat builds, if
-  # previewed at this address later, have no /drops to be sent to.
+  # previewed at this address later, have no /caches to be sent to.
   $res.AddHeader('Cache-Control', 'no-store')
   $res.AddHeader('X-Content-Type-Options', 'nosniff')     # as the host sends
   $res.ContentLength64 = $end - $start + 1
@@ -258,8 +258,8 @@ function Invoke-Request($ctx) {
   $query = ''
   $q = $raw.IndexOf('?')
   if ($q -ge 0) { $query = $raw.Substring($q); $raw = $raw.Substring(0, $q) }
-  # one leading slash: a redirect to //drops would send the browser to a
-  # host called "drops"
+  # one leading slash: a redirect to //caches would send the browser to a
+  # host called "caches"
   $path = '/' + [Uri]::UnescapeDataString($raw).TrimStart('/')
   $t = Resolve-Target $path
   if ($t.Kind -eq 'redirect') {

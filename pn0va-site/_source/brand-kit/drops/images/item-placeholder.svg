@@ -6,6 +6,6 @@
     <path d="M -42 0 Q -42 -26 0 -26 Q 42 -26 42 0 Z" fill="#ff1609"/>
     <rect x="-8" y="-4" width="16" height="18" fill="#B0A49B"/>
   </g>
-  <text x="200" y="195" fill="#B0A49B" font-family="monospace" font-size="18" text-anchor="middle" letter-spacing="4">ITEM PHOTO</text>
-  <text x="200" y="225" fill="#883333" font-family="monospace" font-size="12" text-anchor="middle">replace with your image</text>
+  <text x="200" y="195" fill="#B0A49B" font-family="monospace" font-size="18" text-anchor="middle" letter-spacing="4">NO PHOTO YET</text>
+  <text x="200" y="225" fill="#883333" font-family="monospace" font-size="12" text-anchor="middle">of what is inside</text>
 </svg>

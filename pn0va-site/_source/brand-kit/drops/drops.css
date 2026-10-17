@@ -1,12 +1,12 @@
 /* ==========================================================================
-   DROPS — page styles
-   rev 2026.10.11 · requires tokens.css + components.css first
+   CACHES — page styles
+   rev 2026.10.17 · requires tokens.css + components.css first
    --------------------------------------------------------------------------
-   Layout is an MGS inventory screen: a cache's name and coordinates over
-   its street map and the photos of its spot, and under them one menu, the
-   drops left there, with the chosen drop beside it. Everything is framed as
-   equipment — panels have bezels and corner brackets, every value carries
-   a label and a unit, and a cache is designated (CACHE 02) over its name.
+   Layout is an MGS inventory screen: a site's name over its street map and
+   its photos, and under them one menu, the caches hidden there, with the
+   chosen cache beside it. Everything is framed as equipment — panels have
+   bezels and corner brackets, every value carries a label and a unit, and
+   a site is designated (SITE 02) before its name.
 
    On a desktop the page fills the screen and panels scroll internally;
    one too short for them scrolls instead.
@@ -108,6 +108,7 @@
   font-family:var(--pn-face-body); font-size:12px; line-height:1.5;
   color:var(--pn-ink); margin:0;
 }
+.dp-help__panel p + p{ margin-top:8px; }
 
 /* No JS: the panel can still open, but nothing can close it by clicking
    away, so give it a visible hint that Esc / clicking the ? again works. */
@@ -134,16 +135,15 @@ html:not(.js) .dp-help__panel::after{
 /* the live value the operator is reading = bone */
 .dp-readout--live dd{ color:var(--pn-signal); }
 
-/* Designation — the cache's name, big and in bone, the first thing read,
-   with its number over it in red, the channel's label. The coordinates
-   beside it are the tuned value; the name says where that is. */
+/* Designation — the site's name, big and in bone, the first thing read,
+   with its number before it in red, the channel's label. */
 .dp-desig{
-  display:flex; flex-direction:column; gap:5px; min-width:0; margin:0;
+  display:flex; align-items:baseline; flex-wrap:wrap; gap:3px 12px; min-width:0; margin:0;
   font-weight:400; font-variant-numeric:tabular-nums;
 }
 .dp-desig__n{ font-size:9px; letter-spacing:.2em; text-transform:uppercase; color:var(--pn-red); white-space:nowrap; }
 .dp-desig__name{
-  font-size:clamp(15px,2.1vw,22px); line-height:1.25; letter-spacing:.06em; text-transform:uppercase;
+  font-size:clamp(15px,1.75vw,21px); line-height:1.25; letter-spacing:.06em; text-transform:uppercase;
   color:var(--pn-signal); text-shadow:0 0 12px rgba(255,22,9,.45);
   overflow-wrap:anywhere;
 }
@@ -201,20 +201,20 @@ html:not(.js) .dp-help__panel::after{
 .dp-row{ position:relative; }
 
 /* --- detail ---------------------------------------------------------------
-   The cache's screen: windows in a grid, none over another. Its name and
-   coordinates across the top; under them, side by side and always in
-   view, where it is: the street map and the photos of the spot. Under
-   those the log of the drops left there and, beside it, the one chosen in
-   it: its transmission, what was left and why, by the photos of what was
-   left. With none chosen, that place says how to choose one. Choose it
-   again (or HIDE, or Esc) and it goes; nothing else moves.
+   The site's screen: four windows in a grid, none over another, under a
+   one-row bar with its name. Side by side and always in view, where it is:
+   the street map and the site's photos. Under them the list of the caches
+   hidden there and, beside it, the one chosen in it: what is inside and
+   its log. With none chosen, that place says how to choose one. Choose it
+   again (or Esc) and it goes; nothing else moves. The list and the cache
+   have the larger share of the height: they are what is read.
    -------------------------------------------------------------------------- */
 .dp-detail{
   display:grid; gap:10px; min-height:0;
   grid-template-columns:minmax(0,1fr) minmax(0,1fr);
   /* the bar its own height whatever the screen; the rest share what is
      left, and keep a size worth looking at where it is short */
-  grid-template-rows:max-content minmax(210px,1fr) minmax(210px,1fr);
+  grid-template-rows:max-content minmax(150px,.85fr) minmax(220px,1.15fr);
   grid-template-areas:"bar bar" "map spot" "log drop";
 }
 .dp-bar  { grid-area:bar; }
@@ -226,15 +226,15 @@ html:not(.js) .dp-help__panel::after{
 .dp-drop[hidden]{ display:none; }
 .dp-slot { margin:0; }                /* a <figure>: none of its own */
 
-/* the drop takes its place over the prompt there, which goes once it is open */
+/* the cache takes its place over the prompt there, which goes once it is open */
 .dp-brief{ position:relative; z-index:1; }
 .dp-detail.is-open .dp-nodrop{ visibility:hidden; }
 
 /* the map keeps to itself (Leaflet's panes stack to 1000 inside it) */
 .dp-map{ z-index:0; isolation:isolate; }
 
-/* no drop chosen: the drop's place, quiet, dim, a screen with no signal on
-   it, and what to do */
+/* no cache chosen: its place, quiet, dim, a screen with no signal on it,
+   and what to do */
 .dp-nodrop{ border-color:var(--pn-divider); }
 .dp-nodrop::before, .dp-nodrop::after{ border-color:var(--pn-ash); }
 .dp-nodrop .dp-panel__head{ color:var(--pn-ink-faint); border-bottom-color:var(--pn-divider); }
@@ -252,47 +252,38 @@ html:not(.js) .dp-help__panel::after{
   color:var(--pn-red-60);
 }
 
-/* --- the frequency bar ---------------------------------------------------
-   The codec's defining element: a big tuned number, centred, with the
-   channel identity on one side and its state on the other. The coordinates
-   ARE the frequency here — they're what you tune to. */
-.dp-bar .dp-panel__body{
-  display:grid; align-items:center; gap:4px 14px;
+/* --- the top bar -----------------------------------------------------------
+   One row: the way back to the world at its left (WORLD MAP, which
+   drops-world.js puts in the head), the site's number and name with the
+   line on what it is like there in the middle, how it all works at its
+   right. Its head and body lay out as the one grid. */
+.dp-bar{
+  display:grid; align-items:center; column-gap:18px; row-gap:3px;
   grid-template-columns:auto minmax(0,1fr) auto;
-  padding:6px 16px;
+  grid-template-areas:"back desig help" "back about help";
+  padding:9px 14px 10px;
 }
-/* what the cache is and where (its data-about): a line under the rest, in
-   the reading face, the whole width of the bar */
+.dp-bar > .dp-panel__head, .dp-bar > .dp-panel__body{ display:contents; }
+.dp-bar .dp-panel__head > span:first-child, .dp-bar .dp-world-back{ grid-area:back; }
+.dp-bar .dp-headgroup{ grid-area:help; align-self:start; }
+.dp-bar .dp-desig{ grid-area:desig; }
+.dp-bar:has(> .dp-panel__body > .dp-about[hidden]) .dp-desig{ grid-row:1 / span 2; }
+/* what the site is and where (its data-about): under the name, in the
+   reading face, two lines at most */
 .dp-about{
-  grid-column:1 / -1; margin:0 0 2px; max-width:72em;
+  grid-area:about; margin:0; max-width:72em;
   font-family:var(--pn-face-body); font-size:12.5px; line-height:1.45;
   letter-spacing:0; text-transform:none; color:var(--pn-ink);
+  display:-webkit-box; -webkit-box-orient:vertical; -webkit-line-clamp:2; overflow:hidden;
 }
-/* the bar is a strip, not a panel — every row inside it runs horizontal so
-   it stays about 70px and gives the height back to the map */
-.dp-bar .dp-readout{ flex-direction:row; align-items:baseline; gap:6px; }
-.dp-bar .dp-readout dt{ font-size:8px; }
-.dp-bar .dp-readout dd{ font-size:11px; }
-
-.dp-freq{
-  display:flex; align-items:baseline; justify-content:center; gap:clamp(10px,2vw,24px);
-  font-variant-numeric:tabular-nums;
-}
-.dp-freq .v{
-  font-size:clamp(14px,2.2vw,22px); letter-spacing:.06em; color:var(--pn-signal);
-  text-shadow:0 0 10px rgba(255,22,9,.45);
-}
-.dp-freq .u{ font-size:9px; letter-spacing:.16em; color:var(--pn-ink-faint); margin-left:4px; }
-.dp-meta{
-  display:flex; gap:clamp(8px,1.6vw,18px); align-items:center;
-  justify-content:flex-end; flex-wrap:wrap;
-}
+.dp-about[hidden]{ display:none; }
 
 /* codec frame: a second inset line inside the border, the way the codec's
    panels are drawn. Only on the two panels that are literally codec parts. */
 .dp-codec{ border-color:var(--pn-red); }
 .dp-codec::before,.dp-codec::after{ width:11px; height:11px; }
 .dp-codec > .dp-panel__body{ box-shadow:inset 0 0 0 1px rgba(255,22,9,.18); }
+.dp-bar{ box-shadow:inset 0 0 0 1px rgba(255,22,9,.18); }
 
 /* map */
 .dp-map .dp-panel__body{ padding:0; position:relative; }
@@ -303,6 +294,40 @@ html:not(.js) .dp-help__panel::after{
 }
 html:not(.js) .dp-map-fallback{ display:block; }
 html:not(.js) .dp-mapcanvas{ display:none; }
+/* the site's coordinates, heading its map: the way to the place on
+   OpenStreetMap, for directions. A narrow map keeps the way, not the
+   numbers. */
+.dp-map{ container-type:inline-size; }
+.dp-coords{
+  display:inline-flex; align-items:center; gap:9px; min-width:0;
+  color:var(--pn-ink-muted); text-decoration:none; letter-spacing:.1em; font-variant-numeric:tabular-nums;
+  transition:color var(--pn-dur-state) ease;
+}
+.dp-coords .v{ min-width:0; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+.dp-coords .u{ margin-left:2px; color:var(--pn-ink-faint); }
+.dp-coords .go{
+  flex:0 0 auto; padding:3px 4px 2px; border:1px solid var(--pn-red-50); border-radius:2px;
+  font-size:7px; letter-spacing:.12em; color:var(--pn-red);
+  transition:color var(--pn-dur-state) ease, background var(--pn-dur-state) ease;
+}
+.dp-coords:hover{ color:var(--pn-signal); }
+.dp-coords:hover .go{ color:var(--pn-void); background:var(--pn-red); }
+.dp-coords:focus-visible{ outline:2px solid var(--pn-focus); outline-offset:2px; }
+@container (max-width:330px){
+  .dp-coords .v{ display:none; }
+  .dp-ring-label{ display:none; }          /* the rings say enough this small */
+  .dp-map .leaflet-control-attribution{ font-size:6.5px !important; letter-spacing:.02em; line-height:1.4; }
+}
+/* the map's credit, folded to a © on a map too narrow for it once it has
+   been seen (drops.js); a tap opens it again */
+.leaflet-control-attribution.dp-credit--folded{
+  position:relative; width:18px; height:18px; padding:0 !important; cursor:pointer;
+  font-size:0 !important;
+}
+.leaflet-control-attribution.dp-credit--folded::before{
+  content:"\00A9"; position:absolute; inset:0; display:grid; place-items:center;
+  font-size:10px; letter-spacing:0; color:var(--pn-ink-muted);
+}
 
 /* photo slots — the codec's portrait frames */
 .dp-slot .dp-panel__body{ padding:0; display:grid; place-items:center; overflow:hidden; }
@@ -313,24 +338,24 @@ html:not(.js) .dp-mapcanvas{ display:none; }
   flex:0 0 auto; line-height:1.4;
 }
 
-/* --- the drops here: the one menu -----------------------------------------
-   Newest first: each drop's number and title, and under the title the date
-   it was left, NEW for its first week or CLAIMED once it is marked so. A
-   menu's cursor, a red wedge, steps in front of the one pointed at; the
-   open one is lit, with the bar down its side. At the end of every row its
-   toggle says what choosing it does: OPEN, or on the open one, HIDE. */
+/* --- the caches here: the one menu ----------------------------------------
+   Newest first, a row each: its number and title, the day it was hidden,
+   NEW for its first week or FOUND once it is marked so. A menu's cursor, a
+   red wedge, steps in front of the one pointed at; the open one is lit,
+   with the bar down its side. At the end of every row a quiet wedge says
+   it opens; on the open one, lit red, HIDE puts it away. */
 .dp-log > .dp-panel__body{ padding:0; }
 .dp-logrow{
-  position:relative; display:grid; grid-template-columns:auto auto minmax(0,1fr) auto; grid-template-rows:auto auto;
-  column-gap:10px; row-gap:3px; align-items:baseline;
-  width:100%; margin:0; padding:10px 14px 9px 24px; text-align:left; cursor:pointer;
+  position:relative; display:grid; grid-template-columns:auto minmax(0,1fr) auto auto auto;
+  column-gap:12px; align-items:center;
+  width:100%; margin:0; padding:9px 12px 9px 24px; text-align:left; cursor:pointer;
   font:inherit; color:var(--pn-ink-muted);
   background:none; border:0; border-bottom:1px solid var(--pn-divider); border-radius:0;
   transition:color var(--pn-dur-state) ease, background var(--pn-dur-state) ease;
 }
 .dp-logrow:last-child{ border-bottom:0; }
 /* a tap shows in the row's own colours, not the browser's blue flash */
-.dp-logrow, .dp-row, .dp-gallery__go, .dp-close, .dp-gallery__frame{ -webkit-tap-highlight-color:transparent; }
+.dp-logrow, .dp-row, .dp-gallery__go, .dp-gallery__frame{ -webkit-tap-highlight-color:transparent; }
 .dp-logrow::after{
   content:""; position:absolute; left:9px; top:50%; margin-top:-6px; width:0; height:0;
   border-top:6px solid transparent; border-bottom:6px solid transparent; border-left:8px solid var(--pn-red);
@@ -346,46 +371,45 @@ html:not(.js) .dp-mapcanvas{ display:none; }
   background:var(--pn-red);
 }
 .dp-logrow__n{
-  font-size:11px; letter-spacing:.06em; color:var(--pn-red); font-variant-numeric:tabular-nums;
+  grid-column:1; font-size:11px; letter-spacing:.06em; color:var(--pn-red); font-variant-numeric:tabular-nums;
 }
 .dp-logrow[aria-current="true"] .dp-logrow__n{ color:var(--pn-signal); }
 .dp-logrow__t{
-  grid-row:1; grid-column:2 / 4; min-width:0; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;
+  grid-column:2; min-width:0; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;
   font-family:var(--pn-face-body); font-size:14px; font-style:italic; line-height:1.3;
   color:var(--pn-ink);
 }
 .dp-logrow[aria-current="true"] .dp-logrow__t{ color:var(--pn-ink-strong); }
 .dp-logrow__d{
-  grid-row:2; grid-column:2; font-size:8.5px; letter-spacing:.1em; font-variant-numeric:tabular-nums;
+  grid-column:3; font-size:8.5px; letter-spacing:.1em; font-variant-numeric:tabular-nums; white-space:nowrap;
 }
 .dp-logrow__s{
-  grid-row:2; grid-column:3; justify-self:start; align-self:center; padding:3px 4px 2px; border-radius:2px;
-  font-size:7px; line-height:1; letter-spacing:.14em; text-transform:uppercase;
+  grid-column:4; justify-self:start; padding:3px 4px 2px; border-radius:2px;
+  font-size:7px; line-height:1; letter-spacing:.14em; text-transform:uppercase; white-space:nowrap;
 }
-/* the toggle: an outlined OPEN with a wedge pointing in; on the open drop
-   lit red, HIDE with a cross */
+.dp-logrow__s:empty{ display:none; }
+/* the toggle: a quiet wedge pointing in; on the open cache lit red, HIDE
+   with a cross */
 .dp-logrow__x{
-  grid-row:1 / -1; grid-column:4; align-self:center;
+  grid-column:5; justify-self:end;
   display:inline-flex; align-items:center; justify-content:center; gap:7px;
-  min-width:62px; min-height:26px; padding:0 8px; box-sizing:border-box;
+  min-width:22px; min-height:26px; padding:0 4px; box-sizing:border-box;
   font-size:7.5px; line-height:1; letter-spacing:.14em; text-transform:uppercase;
-  color:var(--pn-ink); border:1px solid var(--pn-red-50); border-radius:var(--pn-radius-sm);
+  color:var(--pn-ink); border:1px solid transparent; border-radius:var(--pn-radius-sm);
   transition:color var(--pn-dur-state) ease, background var(--pn-dur-state) ease, border-color var(--pn-dur-state) ease;
 }
-.dp-logrow__x::before{ content:"Open"; }
 .dp-logrow__x::after{
   content:""; width:0; height:0;
-  border-top:5px solid transparent; border-bottom:5px solid transparent; border-left:7px solid var(--pn-red);
+  border-top:5px solid transparent; border-bottom:5px solid transparent; border-left:7px solid var(--pn-red-60);
 }
-.dp-logrow:focus-visible .dp-logrow__x{
-  color:var(--pn-signal); background:var(--pn-red-20); border-color:var(--pn-red);
-}
+.dp-logrow:focus-visible .dp-logrow__x::after{ border-left-color:var(--pn-signal); }
 /* pointed at (where there is a pointer: a tapped row keeps :hover on a phone) */
 @media (hover:hover){
-  .dp-logrow:hover .dp-logrow__x{ color:var(--pn-signal); background:var(--pn-red-20); border-color:var(--pn-red); }
+  .dp-logrow:hover .dp-logrow__x::after{ border-left-color:var(--pn-signal); }
   .dp-logrow[aria-expanded="true"]:hover .dp-logrow__x{ color:var(--pn-void); background:var(--pn-signal); border-color:var(--pn-signal); }
 }
 .dp-logrow[aria-expanded="true"] .dp-logrow__x{
+  min-width:62px; padding:0 8px;
   color:var(--pn-void); background:var(--pn-red); border-color:var(--pn-red); box-shadow:0 0 10px var(--pn-red-50);
 }
 .dp-logrow[aria-expanded="true"] .dp-logrow__x::before{ content:"Hide"; }
@@ -394,27 +418,30 @@ html:not(.js) .dp-mapcanvas{ display:none; }
   background:linear-gradient(45deg, transparent 42%, currentColor 42% 58%, transparent 58%),
              linear-gradient(-45deg, transparent 42%, currentColor 42% 58%, transparent 58%);
 }
-.dp-logrow__s:empty{ display:none; }
-/* a narrow list: NEW or CLAIMED on a line of its own under the date, clear
-   of the toggle */
+/* a narrow list: two lines a row, the title over the day and NEW or
+   FOUND, the toggle beside both */
 .dp-log{ container-type:inline-size; }
-@container (max-width:345px){
-  .dp-logrow:has(.dp-logrow__s:not(:empty)){ grid-template-rows:auto auto auto; }
-  .dp-logrow__s{ grid-row:3; grid-column:2 / 4; margin-top:1px; }
+@container (max-width:420px){
+  .dp-logrow{ grid-template-columns:auto auto minmax(0,1fr) auto; row-gap:3px; column-gap:10px; padding:10px 12px 9px 24px; }
+  .dp-logrow__n{ grid-column:1; grid-row:1; align-self:baseline; }
+  .dp-logrow__t{ grid-column:2 / 4; grid-row:1; align-self:baseline; }
+  .dp-logrow__d{ grid-column:2; grid-row:2; }
+  .dp-logrow__s{ grid-column:3; grid-row:2; }
+  .dp-logrow__x{ grid-column:4; grid-row:1 / -1; }
 }
-/* NEW is red, like the pointer: it is where to look. CLAIMED is quiet. */
+/* NEW is red, like the pointer: it is where to look. FOUND is quiet. */
 .dp-logrow__s.is-new{ color:var(--pn-void); background:var(--pn-red); }
 .dp-logrow__s.is-claimed{ padding:2px 3px 1px; color:var(--pn-ink-muted); border:1px solid var(--pn-ash); }
-/* nothing left here yet */
+/* nothing hidden here yet */
 .dp-log__none{
   margin:0; padding:14px; font-size:8px; letter-spacing:.14em; text-transform:uppercase;
   color:var(--pn-ink-faint);
 }
 
-/* --- the photos: the spot's, and what each drop left -----------------------
+/* --- the photos: the site's, and what is inside a cache --------------------
    The whole photo, letterboxed, so nothing of it is cropped away. Arrows at
    its sides when there is more than one, and the arrow keys and a swipe;
-   its file's name and date under it. A photo opens nowhere else. */
+   the count heads the window. A photo opens nowhere else. */
 .dp-gallery .dp-panel__body, .dp-items__photo{ position:relative; background:#000; }
 /* a sideways swipe is the page's to turn the photo with; up and down still
    scroll, and a pinch still zooms */
@@ -422,13 +449,26 @@ html:not(.js) .dp-mapcanvas{ display:none; }
   position:relative; display:block; width:100%; height:100%; overflow:hidden;
   touch-action:pan-y pinch-zoom; -webkit-user-select:none; user-select:none;
 }
-/* what was left: beside the transmission's words, the photo over its name,
-   date and count */
+/* a photo of the site: the date in its name over its corner (nothing,
+   where there is no photo) */
+.dp-spot > figcaption{
+  position:absolute; left:8px; bottom:8px; z-index:2; pointer-events:none;
+  padding:4px 6px 3px; border:1px solid var(--pn-hairline); border-radius:2px;
+  background:rgba(0,0,0,.72); color:var(--pn-ink-muted); letter-spacing:.12em;
+}
+.dp-spot > figcaption:empty{ display:none; }
+.dp-panel__head .dp-idx:empty{ display:none; }
+/* what is inside: beside the log's words, the photo over the name of the
+   thing it shows and the count */
 .dp-items{ display:flex; flex-direction:column; min-width:0; min-height:0; background:#000; }
 .dp-items__photo{ flex:1 1 auto; min-height:0; overflow:hidden; }
 .dp-items figcaption{ display:flex; justify-content:space-between; gap:10px; text-align:left; }
-.dp-items__cap{ min-width:0; overflow:hidden; text-overflow:ellipsis; }
-.dp-items figcaption .dp-idx{ flex:0 0 auto; color:var(--pn-ink-faint); }
+.dp-items__cap{
+  min-width:0; overflow:hidden; text-overflow:ellipsis;
+  font-family:var(--pn-face-body); font-size:12.5px; letter-spacing:0; color:var(--pn-ink);
+}
+.dp-items.is-empty figcaption{ display:none; }
+.dp-items figcaption .dp-idx{ flex:0 0 auto; align-self:center; color:var(--pn-ink-faint); }
 .dp-gallery img{ position:relative; object-fit:contain; opacity:1; }
 /* where the photo is the wrong shape for its window, the same photo,
    blurred and dark, fills the rest rather than black bars */
@@ -436,9 +476,12 @@ html:not(.js) .dp-mapcanvas{ display:none; }
   position:absolute; inset:0; object-fit:cover; opacity:1;
   filter:blur(18px) brightness(.32) saturate(.7); transform:scale(1.15);
 }
+/* turned to a photo still on its way: the one before dims until it comes */
+.dp-gallery__frame img{ transition:opacity .15s ease; }
+.dp-gallery__frame.is-turning img{ opacity:.35; }
 .dp-gallery figcaption{ white-space:nowrap; overflow:hidden; text-overflow:ellipsis; text-transform:none; letter-spacing:.08em; }
 .dp-gallery__go{
-  position:absolute; top:50%; z-index:2; width:38px; height:50px; margin-top:-25px; padding:0;
+  position:absolute; top:50%; z-index:2; width:34px; height:46px; margin-top:-23px; padding:0;
   display:grid; place-items:center; cursor:pointer;
   background:rgba(0,0,0,.72); border:1px solid var(--pn-red-50); border-radius:var(--pn-radius-sm);
   transition:background var(--pn-dur-state) ease, border-color var(--pn-dur-state) ease;
@@ -447,39 +490,33 @@ html:not(.js) .dp-mapcanvas{ display:none; }
 .dp-gallery__prev{ left:8px; }
 .dp-gallery__next{ right:8px; }
 .dp-gallery__go .tri{
-  width:0; height:0; border-top:9px solid transparent; border-bottom:9px solid transparent;
+  width:0; height:0; border-top:8px solid transparent; border-bottom:8px solid transparent;
 }
-.dp-gallery__prev .tri{ border-right:12px solid var(--pn-red); margin-right:2px; }
-.dp-gallery__next .tri{ border-left:12px solid var(--pn-red); margin-left:2px; }
+.dp-gallery__prev .tri{ border-right:11px solid var(--pn-red); margin-right:2px; }
+.dp-gallery__next .tri{ border-left:11px solid var(--pn-red); margin-left:2px; }
 .dp-gallery__go:hover{ background:var(--pn-red-20); border-color:var(--pn-red); }
 .dp-gallery__go:hover .tri{ border-left-color:var(--pn-signal); border-right-color:var(--pn-signal); }
 .dp-gallery__prev:hover .tri{ border-left-color:transparent; }
 .dp-gallery__next:hover .tri{ border-right-color:transparent; }
 .dp-gallery__go:focus-visible{ outline:2px solid var(--pn-focus); outline-offset:2px; }
 
-/* --- the transmission: what was left, and why -----------------------------
-   The codec's dialogue box, the biggest window: the drop's title, then when
-   it was left and what, then the words. Its head carries the way to hide
-   the drop, lit so it is found: HIDE, or Esc, or the drop's row again. */
-.dp-brief .dp-panel__head > .dp-idx{ margin-right:auto; }
-/* a narrow transmission keeps HIDE inside it: the drop's number goes (its
-   row and title say it), then Esc's key */
-.dp-brief{ container-type:inline-size; }
-@container (max-width:360px){ .dp-brief .dp-panel__head > .dp-idx{ display:none; } }
-@container (max-width:290px){ .dp-close .key{ display:none; } }
+/* --- a cache: what is inside, and its log -----------------------------------
+   The codec's dialogue box, the biggest window: what is inside at its
+   left, a thing at a time; then the cache's title, when it was hidden,
+   NEW or FOUND, and its log. Its row in the list puts it away, or Esc. */
 .dp-brief__body{
   display:grid; grid-template-columns:minmax(0,5fr) minmax(0,7fr);
   padding:0; overflow:hidden;
 }
 .dp-brief__body > .dp-items{ border-right:1px solid var(--pn-hairline); }
-.dp-brief__words{ min-height:0; overflow:auto; padding:16px 18px 18px; }
+.dp-brief__words{ min-height:0; overflow:auto; padding:14px 18px 18px; }
 .dp-brief__title{
-  margin:0 0 8px; font-weight:400; font-size:13px; line-height:1.5; letter-spacing:.08em;
+  margin:0 0 6px; font-weight:400; font-size:13px; line-height:1.5; letter-spacing:.08em;
   text-transform:uppercase; color:var(--pn-signal); text-shadow:0 0 10px rgba(255,22,9,.35);
   overflow-wrap:anywhere;
 }
 .dp-brief__meta{
-  display:flex; flex-wrap:wrap; gap:4px 14px; margin:0 0 12px; padding-bottom:10px;
+  display:flex; flex-wrap:wrap; align-items:center; gap:4px 12px; margin:0 0 12px; padding-bottom:10px;
   border-bottom:1px solid var(--pn-divider);
 }
 .dp-brief__meta:empty{ display:none; }
@@ -489,35 +526,14 @@ html:not(.js) .dp-mapcanvas{ display:none; }
   text-transform:uppercase; color:var(--pn-red); margin-right:4px;
 }
 .dp-brief__meta .is-new{ color:var(--pn-void); background:var(--pn-red); padding:3px 4px 2px; border-radius:2px;
-  font-family:var(--pn-face-display); font-size:7px; letter-spacing:.14em; text-transform:uppercase; align-self:center; }
+  font-family:var(--pn-face-display); font-size:7px; letter-spacing:.14em; text-transform:uppercase; }
 .dp-brief__meta .is-claimed{ color:var(--pn-ink-muted); border:1px solid var(--pn-ash); padding:2px 3px 1px; border-radius:2px;
-  font-family:var(--pn-face-display); font-size:7px; letter-spacing:.14em; text-transform:uppercase; align-self:center; }
+  font-family:var(--pn-face-display); font-size:7px; letter-spacing:.14em; text-transform:uppercase; }
 .dp-brief__text p{
   font-family:var(--pn-face-body); font-size:14.5px; line-height:1.7;
   margin:0 0 11px; color:var(--pn-ink); max-width:66ch;
 }
 .dp-brief__text p:last-child{ margin-bottom:0; }
-.dp-close{
-  display:inline-flex; align-items:center; gap:8px; flex:0 0 auto;
-  min-height:30px; margin:-5px -5px -5px 0; padding:0 9px 0 9px; cursor:pointer;
-  font:inherit; font-size:9px; letter-spacing:.14em; text-transform:uppercase; color:var(--pn-void);
-  background:var(--pn-red); border:1px solid var(--pn-red); border-radius:var(--pn-radius-sm);
-  box-shadow:0 0 12px var(--pn-red-50);
-  transition:color var(--pn-dur-state) ease, background var(--pn-dur-state) ease, border-color var(--pn-dur-state) ease;
-}
-.dp-close .x{ position:relative; width:9px; height:9px; }
-.dp-close .x::before, .dp-close .x::after{
-  content:""; position:absolute; left:50%; top:50%; width:11px; height:2px; margin:-1px 0 0 -5.5px;
-  background:currentColor; transform:rotate(45deg);
-}
-.dp-close .x::after{ transform:rotate(-45deg); }
-.dp-close .key{
-  padding:2px 3px 1px; font-size:6.5px; letter-spacing:.1em; color:inherit;
-  border:1px solid rgba(0,0,0,.45); border-radius:2px;
-}
-.dp-close:hover{ color:var(--pn-void); background:var(--pn-signal); border-color:var(--pn-signal); }
-.dp-close:focus-visible{ outline:2px solid var(--pn-focus); outline-offset:2px; }
-@media (pointer:coarse){ .dp-close .key{ display:none; } }
 
 .dp-slot .dp-panel__head > .dp-idx{ flex:0 0 auto; white-space:nowrap; }
 
@@ -531,11 +547,11 @@ html:not(.js) .dp-entry{ display:contents; }   /* no JS: show them all, stacked 
 
 /* --------------------------------------------------------------------------
    A PHONE, AND ANY SCREEN UNDER 560px TALL — the page scrolls: the bar, the
-   street map, the photos of the spot and the log, one under the other (the
-   map and the spot side by side where there is room). A drop opens under
-   its row, the rest of the log going on below it: the photos of what was
-   left, then its transmission (side by side where there is room). Its row
-   again, or HIDE, folds it away.
+   street map and the site's photos side by side (square on a phone), then
+   the list. A cache opens under its row, the rest of the list going on
+   below it: what is inside, then its log (side by side where there is
+   room). Its row stays pinned to the top of the screen while the cache is
+   read, HIDE always to hand; it, again, folds the cache away.
    -------------------------------------------------------------------------- */
 @media (max-width:900px), (max-height:560px){
   .dp-shell{
@@ -543,18 +559,39 @@ html:not(.js) .dp-entry{ display:contents; }   /* no JS: show them all, stacked 
     height:auto; min-height:100vh; min-height:100dvh;
   }
   .dp-detail{
-    grid-template-columns:minmax(0,1fr);
+    gap:8px;
     grid-template-rows:none;
-    grid-template-areas:"bar" "map" "spot" "log";
+    grid-template-areas:"bar bar" "map spot" "log log";
   }
   .dp-nodrop{ display:none; }
-  .dp-map{ height:42vh; height:42svh; min-height:240px; }
-  .dp-spot .dp-panel__body{ flex:0 0 auto; aspect-ratio:16/10; max-height:46vh; max-height:46svh; }
-  .dp-logrow{ padding:13px 12px 12px 26px; }
-  .dp-logrow__t{ font-size:15px; }
-  .dp-logrow__x{ min-height:36px; min-width:70px; font-size:8px; }
+  /* square on a phone, each half the screen wide */
+  .dp-map, .dp-spot{ height:auto; aspect-ratio:1 / 1; }
+  .dp-spot .dp-panel__body{ flex:1 1 auto; }
 
-  /* the drop: unfolded under its row, a shade lighter than the log */
+  /* the bar: the way back and the help on one line, the name under them,
+     then what the site is like */
+  .dp-bar{
+    grid-template-columns:minmax(0,1fr) auto;
+    grid-template-areas:"back help" "desig desig" "about about";
+    row-gap:7px; padding:8px 10px 11px;
+  }
+  .dp-bar .dp-world-back, .dp-bar .dp-panel__head > span:first-child{ justify-self:start; }
+  .dp-bar .dp-headgroup{ align-self:center; }
+  .dp-bar:has(> .dp-panel__body > .dp-about[hidden]) .dp-desig{ grid-row:auto; }
+  .dp-about{ font-size:13px; -webkit-line-clamp:3; }
+
+  .dp-logrow__t{ font-size:15px; }
+  .dp-logrow__x{ min-height:36px; min-width:30px; }
+  .dp-logrow[aria-expanded="true"] .dp-logrow__x{ min-width:70px; font-size:8px; }
+
+  /* the open row, pinned under the nav while its cache is read */
+  .dp-log > .dp-panel__body{ overflow:visible; }
+  .dp-open > .dp-logrow{
+    position:sticky; top:var(--dp-under-nav, 46px); z-index:3;
+    background:linear-gradient(var(--pn-red-20), var(--pn-red-20)), var(--pn-void);
+    box-shadow:0 1px 0 var(--pn-divider), 0 6px 12px rgba(0,0,0,.55);
+  }
+  /* the cache: unfolded under its row, a shade lighter than the list */
   .dp-log .dp-drop:not([hidden]){
     display:block; padding:10px;
     background:var(--pn-red-07); border-bottom:1px solid var(--pn-divider);
@@ -562,10 +599,13 @@ html:not(.js) .dp-entry{ display:contents; }   /* no JS: show them all, stacked 
   }
   .dp-brief__body{ display:block; overflow:visible; }
   .dp-brief__body > .dp-items{ border-right:0; border-bottom:1px solid var(--pn-hairline); }
-  .dp-items__photo{ flex:0 0 auto; aspect-ratio:16/10; max-height:46vh; max-height:46svh; }
+  .dp-items__photo{ flex:0 0 auto; aspect-ratio:4/3; max-height:46vh; max-height:46svh; }
   .dp-brief__words{ overflow:visible; padding:14px 14px 16px; }
-  .dp-gallery__go{ width:44px; height:56px; margin-top:-28px; }
-  .dp-close{ min-height:40px; margin:-8px -6px -8px 0; padding:0 12px; }
+  .dp-gallery__go{ width:40px; height:52px; margin-top:-26px; }
+  /* the site's photos, half the screen wide: arrows to match */
+  .dp-spot{ container-type:inline-size; }
+  /* an open cache, under its row: the row is its head */
+  .dp-log .dp-brief > .dp-panel__head{ display:none; }
   .dp-brief__text p{ font-size:15px; line-height:1.65; }
 
   /* the help sheet is unchanged — it is the one overlay allowed */
@@ -578,24 +618,29 @@ html:not(.js) .dp-entry{ display:contents; }   /* no JS: show them all, stacked 
   }
 }
 @keyframes dp-unfold{ from{ opacity:0; transform:translateY(-8px); } }
-/* side by side where there is room: the map and the spot, its photos as
-   tall as the map; in an open drop, the photos of what was left and its
-   transmission */
+@container (max-width:260px){
+  .dp-spot .dp-gallery__go{ width:28px; height:38px; margin-top:-19px; }
+  .dp-spot .dp-gallery__prev{ left:5px; }
+  .dp-spot .dp-gallery__next{ right:5px; }
+  .dp-spot .dp-gallery__go .tri{ border-top-width:6px; border-bottom-width:6px; }
+  .dp-spot .dp-gallery__prev .tri{ border-right-width:8px; }
+  .dp-spot .dp-gallery__next .tri{ border-left-width:8px; }
+  .dp-spot > figcaption{ left:5px; bottom:5px; padding:3px 4px 2px; font-size:7px; }
+}
+/* side by side where there is room: in an open cache, what is inside and
+   its log */
 @media (min-width:600px) and (max-width:900px), (min-width:600px) and (max-height:560px){
-  .dp-detail{
-    grid-template-columns:minmax(0,1fr) minmax(0,1fr);
-    grid-template-areas:"bar bar" "map spot" "log log";
-  }
-  .dp-spot{ height:42vh; height:42svh; min-height:240px; }      /* the map's height, whatever its photo */
-  .dp-spot .dp-panel__body{ flex:1 1 auto; aspect-ratio:auto; max-height:none; }
+  /* wider (a tablet, a phone on its side): as tall as leaves the list in
+     sight, and never shorter than a map worth reading */
+  .dp-map, .dp-spot{ aspect-ratio:auto; height:max(240px, min(42vh, 50vw)); height:max(240px, min(42svh, 50vw)); }
   .dp-brief__body{ display:grid; grid-template-columns:minmax(0,2fr) minmax(0,3fr); align-items:start; }
   .dp-brief__body > .dp-items{ border-right:1px solid var(--pn-hairline); border-bottom:0; }
   .dp-items__photo{ aspect-ratio:4/3; max-height:none; }
 }
 
 /* --------------------------------------------------------------------------
-   A PHONE WITHOUT THE WORLD VIEW — drops.js's list of caches, the only
-   way between them then, as a strip across the top
+   A PHONE WITHOUT THE WORLD VIEW — drops.js's list of sites, the only way
+   between them then, as a strip across the top
    -------------------------------------------------------------------------- */
 @media (max-width:900px){
   .dp-shell{ padding:58px 10px 10px; gap:8px; }
@@ -604,18 +649,8 @@ html:not(.js) .dp-entry{ display:contents; }   /* no JS: show them all, stacked 
   .dp-row{
     grid-template-columns:auto auto; gap:6px; align-items:baseline;
     border-bottom:0; border-right:1px solid var(--pn-divider);
-    padding:8px 12px; white-space:nowrap; flex:0 0 auto;
+    padding:8px 12px; white-space:nowrap; flex:0 0 auto; width:auto;
   }
-  .dp-row__d{ display:none; }               /* the date is in the readout */
+  .dp-row__d{ display:none; }
   .dp-row[aria-current="true"]::before{ width:100%; height:2px; top:auto; bottom:0; }
-
-  /* frequency bar stays one line — stacking it cost 85px */
-  .dp-bar .dp-panel__head{ display:none; }
-  .dp-bar .dp-panel__body{
-    grid-template-columns:auto minmax(0,1fr) auto;
-    padding:5px 10px; gap:8px;
-  }
-  .dp-freq .v{ font-size:clamp(12px,3.4vw,17px); }
-  .dp-meta .dp-readout{ display:none; }     /* placed/elapsed live in the help panel */
-  .dp-meta{ gap:8px; }
 }

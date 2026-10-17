@@ -69,17 +69,17 @@ def brand_kit() -> pathlib.Path:
 
 
 def drop_points() -> list[tuple[float, float]]:
-    """Where the caches are (a <section class="dp-cache">), and any drop
-    that has a place of its own."""
+    """Where the sites are (a <section class="dp-site">; dp-cache from
+    before), and any cache that has a place of its own."""
     html = (brand_kit() / "drops" / "drops.html").read_text(encoding="utf-8")
     pts = []
-    for m in re.finditer(r'<(?:section class="dp-(?:cache|zone|point)"|article class="dp-entry")(.*?)>', html, re.S):
+    for m in re.finditer(r'<(?:section class="dp-(?:site|cache|zone|point)"|article class="dp-entry")(.*?)>', html, re.S):
         lat = re.search(r'data-lat="([-\d.]+)"', m.group(1))
         lng = re.search(r'data-lng="([-\d.]+)"', m.group(1))
         if lat and lng:
             pts.append((float(lat.group(1)), float(lng.group(1))))
     if not pts:
-        sys.exit("no caches with data-lat / data-lng found in drops.html")
+        sys.exit("no sites with data-lat / data-lng found in drops.html")
     return pts
 
 

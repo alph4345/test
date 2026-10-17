@@ -1,35 +1,37 @@
 /* ==========================================================================
-   DROPS — the world view
+   CACHES — the world view
    --------------------------------------------------------------------------
-   One page, two screens. The WORLD: a globe with every cache on it
-   and the list of caches, each with how many drops were left there and
-   when the latest was. A CACHE: the page drops.js draws (frequency bar,
-   street map, and on it the list of the drops left there, each opening
-   its photos and transmission).
+   One page, two screens. The WORLD: a globe with every site on it and the
+   list of sites, each with how many caches are hidden there and when the
+   latest was. A SITE: the page drops.js draws (its name, its street map
+   and photos, and the list of the caches hidden there, each opening what
+   is inside and its log).
 
-     drops         the world
-     drops#03      cache 03, its list of drops (a link opens straight on it)
-     drops#003     drop 003 open, on the page of the cache it was left at
+     caches         the world
+     caches#03      site 03, its list of caches (a link opens straight on it)
+     caches#003     cache 003 open, on the page of the site it is hidden at
 
-   The world opens with no cache chosen, the globe turned to where the
-   caches are. Choose one in the list (a click, Enter or the arrow keys) or
-   by its mark on the globe, and the globe flies to it, the cache in the
+   (Inside this file a site is still a "cache" and a cache a "drop", as they
+   were called when it was written.)
+
+   The world opens with no site chosen, the globe turned to where the
+   sites are. Choose one in the list (a click, Enter or the arrow keys) or
+   by its mark on the globe, and the globe flies to it, the site in the
    middle, in to its city (or as close as it already is). A prompt opens by
-   it: what is there (how many drops, when the latest was left, its title,
-   item and the first line of its story, and where the cache is) and OPEN
-   CACHE. On a phone, where the globe is small, the same opens under the
-   cache's row instead. The prompt's x, Esc, or a click on bare globe closes
-   it. The globe's + and - zoom (to street level near a cache), and the
-   globe button goes back to the whole globe.
+   it: what is there (how many caches, when the latest was hidden, its
+   title, and where the site is) and OPEN SITE. On a phone, where the globe
+   is small, the same opens under the site's row instead. The prompt's x,
+   Esc, or a click on bare globe closes it. The globe's + and - zoom (to
+   street level near a site), and the globe button goes back to the whole
+   globe.
 
-   OPEN CACHE is the only way in: the globe dives, the list flies off, and
-   the cache's windows fly in with the About page's flight and red
-   after-images, at twice its speed. The cache's screen shows that one
-   cache: its list of drops, at the middle of the map. Opening one of them
-   is a step in the address (drops#003) that Back undoes, so a link from
-   there opens on that drop and Back closes it. WORLD MAP (heading its top
-   bar, or floating at the foot of the screen where the page scrolls), Esc
-   with no drop open, or the browser's Back pulls back out to the globe.
+   OPEN SITE is the only way in: the globe dives, the list flies off, and
+   the site's windows fly in with the About page's flight and red
+   after-images, at twice its speed. The site's screen shows that one site:
+   its list of caches, under its map. Opening one of them is a step in the
+   address (caches#003) that Back undoes, so a link from there opens on
+   that cache and Back puts it away. WORLD MAP (heading its top bar), Esc
+   with no cache open, or the browser's Back pulls back out to the globe.
 
    The globe is a map: coast, lakes, country borders, state and province
    lines, and the names of countries, states, cities, peaks and landmarks.
@@ -39,23 +41,24 @@
    simplified to the pixel, so zooming in only sharpens it. Landmarks come
    from maps/landmarks.json, which is meant to be added to.
 
-   Every cache has its own mark, which grows as you zoom in. Caches too
-   close to tell apart sit on a ring round the spot they share, each on a
+   Every site has its own mark, which grows as you zoom in. Sites too
+   close to tell apart sit on a ring round the point they share, each on a
    thread back to it. Hover one for what is there (as the prompt says it,
    short of where), or a city, peak or landmark for what it is (pointing at
-   a cache in the list marks it on the globe too). Zoom with + and -, the
+   a site in the list marks it on the globe too). Zoom with + and -, the
    mouse wheel, a pinch, or the + - 0 keys; the globe button goes back to
    the whole globe.
 
-   It reads the same <section class="dp-cache"> records as drops.js, so a
-   new cache, or a new drop at one, is on the globe with nothing more to
-   do. A cache is NEW while its latest drop is in its first week. Once every
-   drop left at a cache is marked data-claimed, the cache is drawn hollow,
-   CLAIMED in the list; a drop without the mark shows nothing either way.
+   It reads the same <section class="dp-site"> records as drops.js, so a
+   new site, or a new cache at one, is on the globe with nothing more to
+   do. A site is NEW while its latest cache is in its first week. Once
+   every cache hidden at a site is marked data-found, the site is drawn
+   hollow, FOUND in the list; a cache without the mark shows nothing
+   either way.
 
    Colours come from tokens.css: an ember sea, slate land, ash coasts and
    state lines, taupe borders, red instruments (graticule, rim, pointer),
-   linen marks and names, bone for the cache you are on.
+   linen marks and names, bone for the site you are on.
    ========================================================================== */
 
 (function () {
@@ -107,10 +110,12 @@
     var then = new Date(+p[0], +p[1] - 1, +p[2]);
     return isNaN(then) ? Infinity : (Date.now() - then) / 86400000;
   }
-  // data-claimed="2026.06.28" or bare data-claimed: claimed ("" if no date)
+  // data-found="2026.06.28" or bare data-found (data-claimed, from before):
+  // found ("" if no date)
   function claimedOf(e) {
-    if (!e.hasAttribute("data-claimed")) return null;
-    var v = (e.getAttribute("data-claimed") || "").trim();
+    var at = e.hasAttribute("data-found") ? "data-found" : e.hasAttribute("data-claimed") ? "data-claimed" : null;
+    if (!at) return null;
+    var v = (e.getAttribute(at) || "").trim();
     return /^(no|false|0)$/i.test(v) ? null : v;
   }
   // A cache: where it is and the drops left there, newest first. NEW while
@@ -126,10 +131,10 @@
   });
   // drops#03 is cache 03, drops#003 drop 003 at its cache: [cache, drop]
   function find(id) { return id ? drops.find(id) : null; }
-  // "P_N0VA — CACHE 03 · TELEGRAPH HILL"
+  // "P_N0VA — SITE 03 · TELEGRAPH HILL"
   function title(i) {
     var d = list[i];
-    return TITLE.replace(/CACHE$/, "CACHE " + d.n + (d.place ? " \u00b7 " + d.place.toUpperCase() : ""));
+    return TITLE.replace(/CACHES?$/, "SITE " + d.n + (d.place ? " \u00b7 " + d.place.toUpperCase() : ""));
   }
   function plural(n, one) { return n + " " + one + (n === 1 ? "" : "s"); }
   function hasPos(d) { return isFinite(d.lat) && isFinite(d.lng); }
@@ -145,7 +150,7 @@
     return x;
   }
   function tagFor(d) {
-    if (d.claimed) return el("span", "dp-claimed-tag", "Claimed");
+    if (d.claimed) return el("span", "dp-claimed-tag", "Found");
     if (d.isNew) return el("span", "dp-new", "New");
     return null;
   }
@@ -182,20 +187,20 @@
     if (d.about && how !== "row") box.appendChild(el("span", "dw-about", d.about));
     if (how === "prompt" && hasPos(d)) box.appendChild(el("span", "dw-at", coords(d)));
     var recent = el("span", "dw-recent"), when = el("span", "dw-when");
-    when.appendChild(el("span", null, plural(d.drops.length, "drop")));     // each part kept
-    if (d.placed) when.appendChild(el("span", null, (many ? "Latest " : "Left ") + d.placed));
+    when.appendChild(el("span", null, plural(d.drops.length, "cache")));    // each part kept
+    if (d.placed) when.appendChild(el("span", null, (many ? "Latest " : "Hidden ") + d.placed));
     if (a) when.appendChild(el("span", null, a));                         // whole (see the CSS)
     recent.appendChild(when);
-    if (d.claimed) recent.appendChild(el("em", null, many ? "All claimed" : "Claimed"));
+    if (d.claimed) recent.appendChild(el("em", null, many ? "All found" : "Found"));
     else if (d.isNew) recent.appendChild(el("em", null, "New"));
-    if (x.title && how !== "popup") recent.appendChild(kv("Drop #" + x.n, el("i", null, x.title)));
+    if (x.title && how !== "popup") recent.appendChild(kv("Cache #" + x.n, el("i", null, x.title)));
     box.appendChild(recent);
     if (how === "popup") return;
     // OPEN CACHE, the one way in (the globe's own buttons do the zooming)
     var acts = el("div", "dw-acts");
     var go = el("a", "dw-open");
     go.href = "#" + d.n;
-    go.innerHTML = '<span class="tri" aria-hidden="true"></span>Open cache';
+    go.innerHTML = '<span class="tri" aria-hidden="true"></span>Open site';
     if (how === "row") go.addEventListener("click", function (ev) { if (ghost(ev)) ev.preventDefault(); });
     acts.appendChild(go);
     box.appendChild(acts);
@@ -227,7 +232,7 @@
   function byKeys(x) {
     try { return x.matches(":focus-visible"); } catch (e) { return true; }
   }
-  document.getElementById("dw-count").textContent = String(list.length).padStart(2, "0") + (list.length === 1 ? " CACHE" : " CACHES");
+  document.getElementById("dw-count").textContent = String(list.length).padStart(2, "0") + (list.length === 1 ? " SITE" : " SITES");
   list.forEach(function (d) {
     var item = el("div", "dw-item"), a = el("button", "dw-row"), x = latestOf(d);
     a.type = "button";
@@ -237,7 +242,7 @@
     a.appendChild(el("span", "dw-date", d.placed));
     a.appendChild(el("span", "dw-dist"));            // how far, sorted nearest first
     if (d.about) a.appendChild(el("span", "dw-about", d.about));
-    var line = plural(d.drops.length, "drop") +
+    var line = plural(d.drops.length, "cache") +
                (x.title ? (d.drops.length > 1 ? " \u00b7 latest \u201c" : " \u00b7 \u201c") + x.title + "\u201d" : "");
     a.appendChild(el("span", "dw-line", line));
     a.addEventListener("mouseenter", function () { if (d.i !== sel) setHover({ drop: d.i }); });
@@ -1323,7 +1328,7 @@
   closer.innerHTML = '<svg viewBox="0 0 10 10" aria-hidden="true" focusable="false"><path d="M1.5 1.5l7 7M8.5 1.5l-7 7"/></svg>';
   closer.addEventListener("click", function (ev) { var i = sel; select(-1); if (!ev.detail) focusRow(i); });
   function cacheHead(box, d) {
-    box.appendChild(el("b", null, "Cache " + d.n));
+    box.appendChild(el("b", null, "Site " + d.n));
     box.appendChild(el("span", "dw-place", d.place));
   }
   var KIND = { c: "Country", s: "State / province", k: "Capital", t: "City", p: "Peak", l: "Landmark" };

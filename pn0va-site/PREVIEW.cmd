@@ -1,6 +1,6 @@
 @echo off
 rem Preview the site on this computer, the way the web host will show it:
-rem clean addresses, redirects and the Drops map included.
+rem clean addresses, redirects and the street maps included.
 rem
 rem Double-click this file and pick a build, or drag a site folder onto it.
 rem Nothing to install: the server is tools\preview.ps1, run by the
