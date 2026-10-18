@@ -944,14 +944,17 @@ html:not(.js) .dw-shell, html.js:not([data-view="world"]) .dw-shell{ display:non
   font-size:9px; letter-spacing:.16em; text-transform:uppercase; color:var(--pn-ink);
 }
 .dw-help b{ font-weight:400; color:var(--pn-red); font-size:8px; margin-right:10px; }
-/* the list's order: by number, unless another is chosen here */
+/* the list's order: by number, unless another is chosen here. One line:
+   the label, the menu and RESET (the menu gives up width for it, a menu
+   being as wide as its longest choice), the note under them */
 .dw-sortbar{
-  display:flex; flex-wrap:wrap; align-items:center; gap:6px 10px;
+  display:grid; grid-template-columns:auto minmax(0, max-content) auto; justify-content:start;
+  align-items:center; gap:6px 10px;
   padding:8px 12px; border-bottom:1px solid var(--pn-divider);
 }
 .dw-sortbar label{ font-size:8px; letter-spacing:.16em; text-transform:uppercase; color:var(--pn-red); }
 .dw-sortbar select{
-  -webkit-appearance:none; appearance:none; min-width:0; min-height:30px; padding:0 30px 0 10px; cursor:pointer;
+  -webkit-appearance:none; appearance:none; width:100%; min-width:0; min-height:30px; padding:0 30px 0 10px; cursor:pointer;
   font:inherit; font-size:9px; letter-spacing:.12em; text-transform:uppercase; color:var(--pn-ink);
   background-color:#000;
   background-image:linear-gradient(45deg, transparent 50%, var(--pn-red) 50%), linear-gradient(135deg, var(--pn-red) 50%, transparent 50%);
@@ -973,11 +976,11 @@ html:not(.js) .dw-shell, html.js:not([data-view="world"]) .dw-shell{ display:non
   transition:border-color var(--pn-dur-state) ease, color var(--pn-dur-state) ease;
 }
 .dw-sortreset[hidden]{ display:none; }
-.dw-sortreset::before{ content:"\00d7"; font-size:12px; line-height:1; color:var(--pn-red); }
+.dw-sortreset::before{ content:"\\00D7"; font-size:12px; line-height:1; color:var(--pn-red); }
 .dw-sortreset:hover{ border-color:var(--pn-red); color:var(--pn-signal); }
 .dw-sortreset:focus-visible{ outline:2px solid var(--pn-focus); outline-offset:2px; }
 .dw-sortnote{
-  flex:1 1 100%; margin:0;
+  grid-column:1 / -1; margin:0;
   font-family:var(--pn-face-body); font-size:11.5px; line-height:1.4; color:var(--pn-ink-muted);
 }
 .dw-sortnote:empty{ display:none; }
@@ -2564,6 +2567,14 @@ def check_js(folder: pathlib.Path):
             bad.append(f"{js.name}: {first.strip()}")
     if bad:
         sys.exit("\n  JAVASCRIPT IS BROKEN — build aborted:\n    " + "\n    ".join(bad))
+    # The same eaten backslash in the CSS held in this file ("\00d7" for
+    # "\\00d7") leaves a NUL character in a stylesheet instead of the glyph.
+    # No page, stylesheet or script of the site has one on purpose.
+    nul = sorted(str(f.relative_to(folder)) for f in folder.rglob("*")
+                 if f.suffix in (".html", ".css", ".js") and "vendor" not in f.parts
+                 and f.is_file() and b"\x00" in f.read_bytes())
+    if nul:
+        sys.exit("\n  A NUL CHARACTER (an escape Python ate) — build aborted:\n    " + "\n    ".join(nul))
     return None
 
 

@@ -487,6 +487,9 @@ has no trace of it; its parts are in `_source/test-kit/`.
   there is more than one thing (or photo) to turn to.
 - **The demo kit has PHONE VIEW** (see *The test kit's phone view*); the
   site and its other kits do not.
+- **The build stops** if a page, stylesheet or script comes out with a NUL
+  character: a CSS escape written into `build.py` with one backslash too
+  few, which Python turns into one (RESET's × first came out that way).
 
 ## 2026.10.17 update
 
@@ -1156,8 +1159,8 @@ and the menu lit with any other order, one click on RESET back to the
 list by number (no headings or distances, RESET gone, the keyboard on the
 menu), the menu's own Number the same, Near me allowed (by distance,
 RESET there) and refused (the order it was, a note why), RESET a 40px
-target on a phone; the server rules letting the page ask where the
-visitor is · the arrows on the photos only with more than one to turn to:
+target on a phone, on the menu's line and marked × at 9 widths from 320
+to 1920px; the server rules letting the page ask where the visitor is · the arrows on the photos only with more than one to turn to:
 TEST POINT's cache 006, four things, each named under its photo, the key
 tag on the placeholder, round from the last to the first by the arrows,
 the arrow keys, a drag and a tap on a phone; 004's two; one thing or one
