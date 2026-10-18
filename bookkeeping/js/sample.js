@@ -43,17 +43,17 @@
       Object.assign(base(D(-260)), {
         id: 'sample-juniper', name: 'Juniper Hale', company: '', email: 'juniper@example.com', phone: '(555) 010-4417',
         social: '@juniper.makes', address1: '2210 SE Alder St', address2: '', city: 'Portland', region: 'OR', postal: '97214', country: '',
-        tags: ['market regular'], notes: 'Found us at the spring makers market. Loves anything that glows.', archived: false,
+        tags: ['market regular'], notes: 'Found us at the spring makers market. Loves anything that glows.', archived: false, taxProfileId: 'oregon',
       }),
       Object.assign(base(D(-25)), {
         id: 'sample-marisol', name: 'Marisol Vega', company: '', email: 'marisol.vega@example.com', phone: '(555) 010-2290',
         social: '', address1: '418 N 4th Ave', address2: 'Apt 3', city: 'Tucson', region: 'AZ', postal: '85705', country: '',
-        tags: ['custom order', 'wedding'], notes: 'Bridal party set for the wedding. Rose gold only, no nickel (sensitive ears).', archived: false,
+        tags: ['custom order', 'wedding'], notes: 'Bridal party set for the wedding. Rose gold only, no nickel (sensitive ears).', archived: false, taxProfileId: 'arizona',
       }),
       Object.assign(base(D(-130)), {
         id: 'sample-oddfellows', name: 'Theo Park', company: 'Odd Fellows Coffee', email: 'theo@example.com', phone: '(555) 010-7731',
         social: '', address1: '95 Market St', address2: '', city: 'Bend', region: 'OR', postal: '97701', country: '',
-        tags: ['wholesale'], notes: 'Wholesale at 50% of retail, Net 30. Restocks before the holidays.', archived: false,
+        tags: ['wholesale'], notes: 'Wholesale at 50% of retail, Net 30. Restocks before the holidays.', archived: false, taxProfileId: 'oregon',
       }),
       Object.assign(base(D(-215)), {
         id: 'sample-priya', name: 'Priya Raman', company: '', email: 'priya.r@example.com', phone: '',
@@ -106,7 +106,7 @@
       Object.assign(base(D(-3)), docBase, {
         id: 'sample-inv-4', number: num('invoice', 4), seq: 4, customerId: 'sample-priya', title: 'Tarot oracle, engraved',
         issueDate: D(-3), dueDate: D(11), items: [item('oracle', 1), item('engraving', 1, { details: 'Moon phases on the back' })],
-        shipping: 850, taxRate: 8, notes: settings.docs.invoiceNotes, paymentLink: 'https://example.com/pay/sample-invoice',
+        shipping: 850, taxRate: 8, taxLabel: 'NY sales tax', notes: settings.docs.invoiceNotes, paymentLink: 'https://example.com/pay/sample-invoice',
         status: 'sent', sentAt: at(D(-3)),
       }),
       Object.assign(base(D(0)), docBase, {
@@ -126,16 +126,44 @@
     const payments = [
       pay(1, D(-250), 4200, 'square-in-person', { customerId: 'sample-juniper', memo: 'Music box charm, spring makers market' }),
       pay(2, D(-210), 9500, 'square-online', { customerId: 'sample-priya', memo: 'Pocket tarot oracle' }),
-      pay(3, D(-160), 6400, 'cash', { customerId: 'sample-juniper', memo: 'Custom keychains, summer craft fair' }),
+      pay(3, D(-160), 21120, 'square-in-person', { memo: 'Tucson summer market sales', salesTax: 1120, taxProfileId: 'arizona', reference: 'Square daily summary' }),
       pay(4, D(-120), 18000, 'check', { customerId: 'sample-oddfellows', memo: 'Spring wholesale restock', reference: 'Check #1027' }),
       pay(5, D(-90), 3600, 'square-in-person', { customerId: 'sample-sam', memo: 'Resin coaster set' }),
       pay(6, D(-60), 8400, 'square-in-person', { customerId: 'sample-juniper', invoiceId: 'sample-inv-1', reference: 'Square receipt 7HQ2' }),
       pay(7, D(-20), 15000, 'check', { customerId: 'sample-oddfellows', invoiceId: 'sample-inv-2', reference: 'Check #1042' }),
-      pay(8, D(-11), 14310, 'square-online', { customerId: 'sample-marisol', invoiceId: 'sample-inv-3', reference: 'Square receipt 3MZK', memo: 'Deposit' }),
-      pay(9, D(-2), 3600, 'square-in-person', { customerId: 'sample-priya', memo: 'Two keychains for book club' }),
+      pay(8, D(-20), 68640, 'square-in-person', { memo: 'Fall Craft Fair sales', salesTax: 3640, taxProfileId: 'arizona', reference: 'Square daily summary' }),
+      pay(9, D(-11), 14310, 'square-online', { customerId: 'sample-marisol', invoiceId: 'sample-inv-3', reference: 'Square receipt 3MZK', memo: 'Deposit' }),
+      pay(10, D(-2), 3600, 'square-in-person', { customerId: 'sample-priya', memo: 'Two keychains for book club' }),
     ];
 
-    return { customers, estimates, invoices, payments };
+    const exp = (n, date, category, amount, vendor, description, extra) => Object.assign(base(date), {
+      id: 'sample-exp-' + n, date, category, amount, vendor, description, businessPercent: 100, paidWith: 'Business card', notes: '', receipts: [],
+    }, extra);
+    const expenses = [
+      exp(1, D(-280), 'licenses', 1200, 'Arizona Dept. of Revenue', 'TPT license renewal'),
+      exp(2, D(-250), 'booth', 7500, 'Tucson Makers Market', 'Spring market booth'),
+      exp(3, D(-210), 'office', 11999, 'Canva', 'Canva Pro, yearly plan'),
+      exp(4, D(-200), 'materials', 8640, 'ArtResin', 'Resin and pigments'),
+      exp(5, D(-180), 'advertising', 3299, 'Vistaprint', 'Business cards and stickers'),
+      exp(6, D(-160), 'tools', 4899, 'Rio Grande', 'Jewelry pliers set'),
+      exp(7, D(-150), 'materials', 12418, 'DigiKey', 'LED modules and supercapacitors'),
+      exp(8, D(-120), 'packaging', 3890, 'Uline', 'Gift boxes and tissue'),
+      exp(9, D(-90), 'materials', 4275, 'Rio Grande', 'Sterling ear wires'),
+      exp(10, D(-40), 'shipping', 1865, 'USPS', 'Postage for the wholesale order'),
+      exp(11, D(-25), 'phone', 7200, 'Mint Mobile', 'Phone plan, 3 months', { businessPercent: 40, paidWith: 'Personal card' }),
+      exp(12, D(-20), 'booth', 12000, 'Fall Craft Fair', 'Fall fair booth and table'),
+      exp(13, D(-20), 'parking', 1000, 'City of Tucson', 'Fair parking'),
+      exp(14, D(-12), 'materials', 6320, 'Fire Mountain Gems', 'Beads and findings'),
+    ];
+    const trip = (n, date, purpose, miles) => Object.assign(base(date), { id: 'sample-trip-' + n, date, purpose, miles, notes: '' });
+    const mileage = [
+      trip(1, D(-250), 'Tucson Makers Market, round trip', 46),
+      trip(2, D(-120), 'Supply run to the bead store', 18),
+      trip(3, D(-20), 'Fall Craft Fair, round trip', 112),
+      trip(4, D(-5), 'Post office: shipping orders', 6),
+    ];
+
+    return { customers, estimates, invoices, payments, expenses, mileage };
   }
 
   NB.sample = { build };

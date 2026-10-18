@@ -56,6 +56,7 @@
       { label: 'Method', value: (p) => p.methodName || '' },
       { label: 'Reference', value: (p) => p.reference || '' },
       { label: 'Amount', value: (p) => m(p.amount) },
+      { label: 'Sales tax', value: (p) => m(NB.tax.paymentSalesTax(p, invoices.get(p.invoiceId))) },
       { label: 'Fee', value: (p) => m(p.fee || 0) },
       { label: 'Net', value: (p) => m((p.amount || 0) - (p.fee || 0)) },
     ]);
@@ -192,6 +193,7 @@
               <dl class="facts">
                 <div><dt>Received</dt><dd>${fmt.money(p.amount)}</dd></div>
                 <div><dt>Processing fee</dt><dd>${fmt.money(p.fee || 0)}</dd></div>
+                ${NB.tax.paymentSalesTax(p, invoice) ? html`<div><dt>Sales tax inside</dt><dd>${fmt.money(NB.tax.paymentSalesTax(p, invoice))}</dd></div>` : ''}
                 <div class="facts-key"><dt>Net</dt><dd>${fmt.money((p.amount || 0) - (p.fee || 0))}</dd></div>
                 <div><dt>Method</dt><dd>${p.methodName || ''}</dd></div>
                 ${method ? html`<div><dt>Rate</dt><dd>${feeText(method)}</dd></div>` : ''}
@@ -279,12 +281,20 @@
       if (params.id && !existing) { root.innerHTML = out(empty('Payment not found', 'It may have been deleted.')); return; }
       const methods = s.paymentMethods;
       const firstSquare = methods.find((m) => /square/i.test(m.name)) || methods[0];
+      const startCustomer = NB.store.get('customers', params.customerId);
+      const startProfile = NB.store.taxProfile((startCustomer && startCustomer.taxProfileId) || s.docs.defaultTaxProfileId);
       const draft = existing ? clone(existing) : {
         id: uid(), date: today, amount: 0, methodId: firstSquare ? firstSquare.id : '', reference: '', fee: 0,
         customerId: params.customerId || '', invoiceId: params.invoiceId || '', memo: '', notes: '',
+        taxProfileId: startProfile ? startProfile.id : '', salesTax: 0,
       };
       let feeAuto = !existing || (existing.fee || 0) === NB.calc.feeFor(NB.store.method(existing.methodId), existing.amount);
+      const existingProfile = existing && NB.store.taxProfile(existing.taxProfileId);
+      let taxAuto = !existing || (existing.salesTax || 0) === (existingProfile ? NB.tax.taxIncluded(existing.amount, existingProfile.rate) : 0);
+      let taxTouched = !!existing;
       let dirty = false;
+      const profileOptions = (selected) => html`<option value="">No sales tax</option>
+        ${s.taxProfiles.map((p) => html`<option value="${p.id}" ${p.id === selected ? raw('selected') : ''}>${p.name} · ${fmt.qty(p.rate)}%</option>`)}`;
 
       const otherPaid = (invoiceId) => NB.store.all('payments').filter((p) => p.invoiceId === invoiceId && p.id !== draft.id).reduce((a, p) => a + (p.amount || 0), 0);
       const invInfo = (invoiceId) => {
@@ -344,6 +354,15 @@
                   <input name="fee" id="pay-fee" class="num" inputmode="decimal" value="${fmt.input(draft.fee || 0)}" autocomplete="off">
                   <span class="hint" data-fee-hint></span>
                 </div>
+                <div class="field field-wide" data-tax-field>
+                  <label for="pay-tax-profile">Sales tax included</label>
+                  <div class="field-row">
+                    <select name="taxProfileId" id="pay-tax-profile">${profileOptions(draft.taxProfileId)}</select>
+                    <input name="salesTax" id="pay-sales-tax" class="num tax-amount" inputmode="decimal" value="${fmt.input(draft.salesTax || 0)}"
+                      aria-label="Sales tax amount" autocomplete="off">
+                  </div>
+                  <span class="hint" data-tax-hint></span>
+                </div>
                 <label class="field field-wide"><span>What it was for (printed on the receipt)</span>
                   <input name="memo" id="pay-memo" value="${draft.memo || ''}" placeholder="Deposit, balance, market custom order…" autocomplete="off"></label>
                 <label class="field field-wide"><span>Private notes (never printed)</span>
@@ -376,6 +395,21 @@
         $('[data-fee-hint]').innerHTML = out(feeAuto
           ? html`Estimated at ${feeText(method)}.`
           : html`Entered by hand. <button type="button" class="linkish" data-act="refee">Use ${feeText(method)}</button>`);
+        $('[data-tax-field]').hidden = !!info;
+        if (!info) {
+          const p = NB.store.taxProfile(draft.taxProfileId);
+          if (taxAuto) {
+            draft.salesTax = p ? NB.tax.taxIncluded(draft.amount, p.rate) : 0;
+            const taxEl = $('#pay-sales-tax');
+            if (document.activeElement !== taxEl) taxEl.value = fmt.input(draft.salesTax);
+          }
+          $('[data-tax-hint]').innerHTML = out(!taxAuto && p
+            ? html`Entered by hand. <button type="button" class="linkish" data-act="retax">Work it out at ${fmt.qty(p.rate)}%</button>`
+            : p
+              ? html`The tax already inside the amount, at ${fmt.qty(p.rate)}%. It belongs to the state, so it isn’t counted as income.`
+              : html`If this sale included sales tax, like a market day, choose where it was collected.`);
+        }
+        const taxInside = info ? NB.tax.paymentSalesTax(draft, info.inv) : Math.min(draft.salesTax || 0, Math.max(draft.amount, 0));
         const quick = [];
         if (info && info.before > 0) quick.push(html`<button type="button" class="chip chip-sm" data-amount="${info.before}">Full balance ${fmt.money(info.before)}</button>`);
         if (info && info.deposit > 0 && info.deposit < info.before) quick.push(html`<button type="button" class="chip chip-sm" data-amount="${info.deposit}">Deposit ${fmt.money(info.deposit)}</button>`);
@@ -385,6 +419,7 @@
           <div><dt>Amount</dt><dd>${fmt.money(draft.amount)}</dd></div>
           <div><dt>Processing fee</dt><dd>−${fmt.money(draft.fee || 0)}</dd></div>
           <div class="totals-total"><dt>You keep</dt><dd>${fmt.money(draft.amount - (draft.fee || 0))}</dd></div>
+          ${taxInside ? html`<div class="totals-sub"><dt>Sales tax inside, owed to the state</dt><dd>${fmt.money(taxInside)}</dd></div>` : ''}
           ${info ? html`
             <div class="totals-sub"><dt>${info.inv.number} balance before</dt><dd>${fmt.money(info.before)}</dd></div>
             <div class="totals-key"><dt>${after < 0 ? 'Overpaid by' : 'Balance after'}</dt><dd>${fmt.money(Math.abs(after))}</dd></div>` : ''}`);
@@ -405,6 +440,11 @@
           draft.fee = isNaN(v) ? 0 : Math.max(0, v);
           feeAuto = false;
           sync();
+        } else if (el.id === 'pay-sales-tax') {
+          const v = fmt.parse(el.value);
+          draft.salesTax = isNaN(v) ? 0 : Math.max(0, v);
+          taxAuto = false;
+          sync();
         }
       };
       root.onchange = (e) => {
@@ -424,6 +464,18 @@
           sync();
         } else if (el.id === 'pay-customer') {
           draft.customerId = el.value;
+          const c = NB.store.get('customers', el.value);
+          if (!taxTouched && c && c.taxProfileId && NB.store.taxProfile(c.taxProfileId)) {
+            draft.taxProfileId = c.taxProfileId;
+            $('#pay-tax-profile').value = c.taxProfileId;
+            taxAuto = true;
+            sync();
+          }
+        } else if (el.id === 'pay-tax-profile') {
+          draft.taxProfileId = el.value;
+          taxTouched = true;
+          taxAuto = true;
+          sync();
         } else if (el.id === 'pay-method') {
           draft.methodId = el.value;
           sync();
@@ -432,6 +484,7 @@
       root._focusout = (e) => {
         if (e.target.id === 'pay-amount' && e.target.value) e.target.value = fmt.input(draft.amount);
         if (e.target.id === 'pay-fee') e.target.value = fmt.input(draft.fee || 0);
+        if (e.target.id === 'pay-sales-tax') e.target.value = fmt.input(draft.salesTax || 0);
       };
       root.onclick = async (e) => {
         const q = e.target.closest('[data-amount]');
@@ -445,6 +498,7 @@
         const b = e.target.closest('[data-act]');
         if (!b) return;
         if (b.dataset.act === 'refee') { feeAuto = true; sync(); }
+        else if (b.dataset.act === 'retax') { taxAuto = true; sync(); }
         else if (b.dataset.act === 'new-customer') {
           const c = await NB.customers.quickAdd();
           if (c) { draft.customerId = c.id; $('#pay-customer').innerHTML = out(customerOptions(c.id)); dirty = true; }
@@ -467,6 +521,10 @@
           invoiceId: v.invoiceId || null,
           customerId: v.invoiceId ? (NB.store.get('invoices', v.invoiceId) || {}).customerId || null : v.customerId || null,
         });
+        // A payment on an invoice takes its sales tax from the invoice.
+        if (rec.invoiceId) Object.assign(rec, { taxProfileId: '', salesTax: 0 });
+        else Object.assign(rec, { taxProfileId: v.taxProfileId || '', salesTax: Math.max(0, Math.round(draft.salesTax) || 0) });
+        if (rec.salesTax > rec.amount) return NB.ui.fieldError(form, 'salesTax', 'The sales tax is more than the payment.');
         if (!(rec.amount > 0)) return NB.ui.fieldError(form, 'amount', 'Enter the amount you received.');
         if (!Dates.valid(rec.date)) return NB.ui.fieldError(form, 'date', 'Choose the date you were paid.');
         if (rec.fee > rec.amount) return NB.ui.fieldError(form, 'fee', 'The fee is larger than the payment.');

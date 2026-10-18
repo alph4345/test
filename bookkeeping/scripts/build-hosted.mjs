@@ -5,7 +5,7 @@
 //   node bookkeeping/scripts/build-hosted.mjs <out-dir>
 //
 // Publish <out-dir>/index.html as the page and every other file in <out-dir> alongside it,
-// with capabilities: { db: { rules: [{ path: '', read: 'admin', write: 'admin' }] }, user: {}, downloads: true }
+// with capabilities: { db: { rules: [{ path: '', read: 'admin', write: 'admin' }] }, user: {}, downloads: true, assets: {} }
 import { readFileSync, writeFileSync, mkdirSync, cpSync, rmSync } from 'node:fs';
 import { dirname, join, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';

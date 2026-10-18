@@ -306,7 +306,7 @@
     const rows = [['Subtotal', money(t.subtotal)]];
     if (t.discount) rows.push([d.discountType === 'percent' ? 'Discount (' + qty(d.discountPercent) + '%)' : 'Discount', '-' + money(t.discount)]);
     if (t.shipping) rows.push(['Shipping', money(t.shipping)]);
-    if (t.tax || t.taxRate) rows.push([(s.docs.taxLabel || 'Tax') + (t.taxRate ? ' (' + qty(t.taxRate) + '%)' : ''), money(t.tax)]);
+    if (t.tax || t.taxRate) rows.push([NB.sheet.taxLabel(d, s) + (t.taxRate ? ' (' + qty(t.taxRate) + '%)' : ''), money(t.tax)]);
     const isInvoice = kind === 'invoice';
     const showPaid = isInvoice && state && state.paid;
     const totalsH = rows.length * 17 + 30 + (showPaid ? 46 : 0) + (!isInvoice && t.deposit ? 28 : 0);
@@ -467,6 +467,7 @@
     const facts = [];
     if (inv) facts.push(['Applied to', 'Invoice ' + inv.number + (inv.title ? ' · ' + inv.title : '')]);
     if (pay.memo) facts.push(['For', pay.memo]);
+    if (!inv && pay.salesTax > 0) facts.push(['Includes sales tax', money(pay.salesTax)]);
     if (pay.reference) facts.push(['Reference', pay.reference]);
     if (inv && st) {
       facts.push(['Invoice total', money(st.total)]);

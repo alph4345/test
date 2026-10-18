@@ -6,6 +6,17 @@
   const { html, raw, fmt } = NB.ui;
   const { firstName } = NB.util;
 
+  // What a document calls its tax: its own label if it has one, else the business's.
+  function taxLabel(d, s) {
+    return (d && d.taxLabel) || (s && s.docs.taxLabel) || 'Sales tax';
+  }
+
+  // Where a document's tax rate came from, for the app (not printed).
+  function taxSource(d) {
+    const p = NB.store.taxProfile(d.taxProfileId);
+    return p ? p.name : (d.taxLabel ? d.taxLabel + ', ' : 'custom rate, ') + fmt.qty(d.taxRate) + '%';
+  }
+
   function lines(text) {
     return String(text || '').split(/\r?\n/).map((s) => s.trim()).filter(Boolean);
   }
@@ -113,7 +124,7 @@
     const headline = isInvoice
       ? ['Balance due', fmt.money(state ? Math.max(state.balance, 0) : t.total)]
       : [t.deposit ? 'Deposit to start' : 'Estimate total', fmt.money(t.deposit || t.total)];
-    const taxLabel = (s.docs.taxLabel || 'Tax') + (t.taxRate ? ' (' + fmt.qty(t.taxRate) + '%)' : '');
+    const taxText = taxLabel(d, s) + (t.taxRate ? ' (' + fmt.qty(t.taxRate) + '%)' : '');
 
     const rows = (d.items || []).map((it, i) => html`<tr>
       <td><div class="sh-item">${it.description || 'Item'}</div>${it.details ? html`<div class="sh-item-detail">${it.details}</div>` : ''}</td>
@@ -126,7 +137,7 @@
     totalRows.push(['Subtotal', fmt.money(t.subtotal)]);
     if (t.discount) totalRows.push([d.discountType === 'percent' ? 'Discount (' + fmt.qty(d.discountPercent) + '%)' : 'Discount', '−' + fmt.money(t.discount)]);
     if (t.shipping) totalRows.push(['Shipping', fmt.money(t.shipping)]);
-    if (t.tax || t.taxRate) totalRows.push([taxLabel, fmt.money(t.tax)]);
+    if (t.tax || t.taxRate) totalRows.push([taxText, fmt.money(t.tax)]);
 
     let stampEl = '';
     if (isInvoice && state) {
@@ -193,6 +204,7 @@
       <dl class="sh-facts">
         ${inv ? html`<div><dt>Applied to</dt><dd>Invoice ${inv.number}${inv.title ? ' · ' + inv.title : ''}</dd></div>` : ''}
         ${p.memo ? html`<div><dt>For</dt><dd>${p.memo}</dd></div>` : ''}
+        ${!inv && p.salesTax > 0 ? html`<div><dt>Includes sales tax</dt><dd>${fmt.money(p.salesTax)}</dd></div>` : ''}
         ${p.reference ? html`<div><dt>Reference</dt><dd>${p.reference}</dd></div>` : ''}
         ${inv && st ? html`<div><dt>Invoice total</dt><dd>${fmt.money(st.total)}</dd></div>
           <div><dt>Paid to date</dt><dd>${fmt.money(st.paid)}</dd></div>
@@ -272,5 +284,5 @@
     });
   }
 
-  NB.sheet = { documentSheet, receiptSheet, qrSVG, qrMatrix, message, messageDialog, customerAddress, lines };
+  NB.sheet = { documentSheet, receiptSheet, qrSVG, qrMatrix, message, messageDialog, customerAddress, lines, taxLabel, taxSource };
 })(window.NB = window.NB || {});

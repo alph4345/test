@@ -13,17 +13,23 @@
     { route: 'estimates', label: 'Estimates', icon: 'estimate' },
     { route: 'invoices', label: 'Invoices', icon: 'invoice' },
     { route: 'payments', label: 'Payments', icon: 'payment' },
+    { route: 'expenses', label: 'Expenses', icon: 'expense' },
+    { route: 'taxes', label: 'Taxes', icon: 'tax' },
     { route: 'settings', label: 'Settings', icon: 'settings' },
   ];
+  // Phones get four tabs and a More menu for the rest.
+  const TABS = ['dashboard', 'customers', 'invoices', 'expenses'];
 
   const useHash = !NB.env.hosted;
   let route = { name: 'dashboard', params: {} };
   const stack = [];
   let depth = 0;
   let guard = null; // an editor's "has unsaved changes?" check
+  let onDiscard = null; // cleanup when those changes are thrown away
 
-  function setGuard(fn) {
+  function setGuard(fn, discard) {
     guard = fn;
+    onDiscard = discard || null;
   }
 
   // Asks before leaving an editor with unsaved changes. Returns true when it took over.
@@ -37,6 +43,8 @@
     }).then((ok) => {
       if (ok) {
         guard = null;
+        if (onDiscard) { try { onDiscard(); } catch (e) { console.error(e); } }
+        onDiscard = null;
         proceed();
       }
     });
@@ -47,6 +55,7 @@
     if (r.name === 'doc' || r.name === 'doc-edit') return r.params.kind === 'estimate' ? 'estimates' : 'invoices';
     if (r.name === 'customer' || r.name === 'customer-edit') return 'customers';
     if (r.name === 'payment' || r.name === 'payment-edit') return 'payments';
+    if (r.name === 'expense-edit' || r.name === 'trip-edit') return 'expenses';
     return r.name;
   }
 
@@ -71,6 +80,7 @@
   function setRoute(r, keepScroll) {
     route = r;
     guard = null;
+    onDiscard = null;
     closeMenu();
     renderShell();
     renderView(true);
@@ -194,15 +204,27 @@
       { label: 'Estimate', icon: 'estimate', run: () => go('doc-edit', { kind: 'estimate' }) },
       { label: 'Payment', icon: 'payment', run: () => go('payment-edit', {}) },
       { label: 'Customer', icon: 'users', run: () => go('customer-edit', {}) },
+      { sep: true },
+      { label: 'Expense', icon: 'expense', run: () => go('expense-edit', {}) },
+      { label: 'Mileage trip', icon: 'car', run: () => go('trip-edit', {}) },
     ]);
   }
 
   // ---------------------------------------------------------------- shell
   function navHTML(where) {
     const active = section(route);
-    const items = where === 'tabbar' ? NAV.filter((n) => n.route !== 'settings') : NAV;
-    return out(items.map((n) => html`<a href="${href(n.route, {})}" data-go="${n.route}" class="nav-item${n.route === active ? ' is-active' : ''}"
-      ${n.route === active ? raw('aria-current="page"') : ''}>${icon(n.icon)}<span>${n.label}</span></a>`));
+    const items = where === 'tabbar' ? NAV.filter((n) => TABS.includes(n.route)) : NAV;
+    const links = items.map((n) => html`<a href="${href(n.route, {})}" data-go="${n.route}" class="nav-item${n.route === active ? ' is-active' : ''}${n.route === 'expenses' && where === 'rail' ? ' nav-gap' : ''}"
+      ${n.route === active ? raw('aria-current="page"') : ''}>${icon(n.icon)}<span>${n.label}</span></a>`);
+    if (where === 'tabbar') {
+      const moreActive = !TABS.includes(active);
+      links.push(html`<button type="button" class="nav-item${moreActive ? ' is-active' : ''}" data-more-nav aria-haspopup="menu">${icon('more')}<span>More</span></button>`);
+    }
+    return out(links);
+  }
+
+  function moreMenu(anchor) {
+    menu(anchor, NAV.filter((n) => !TABS.includes(n.route)).map((n) => ({ label: n.label, icon: n.icon, run: () => go(n.route, {}) })));
   }
 
   function statusHTML() {
@@ -316,6 +338,11 @@
     const newBtn = e.target.closest('[data-new]');
     if (newBtn) {
       newMenu(newBtn);
+      return;
+    }
+    const moreBtn = e.target.closest('[data-more-nav]');
+    if (moreBtn) {
+      moreMenu(moreBtn);
       return;
     }
     if (e.target.closest('[data-clear-sample]')) {

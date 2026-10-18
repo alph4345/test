@@ -156,6 +156,7 @@
         items: clone(est.items || []).map((it) => Object.assign(it, { id: uid() })),
         discountType: est.discountType || 'none', discountPercent: est.discountPercent || 0, discountAmount: est.discountAmount || 0,
         shipping: est.shipping || 0, taxRate: est.taxRate || 0, taxShipping: !!est.taxShipping,
+        taxProfileId: est.taxProfileId || '', taxLabel: est.taxLabel || '',
         notes: s.docs.invoiceNotes, paymentLink: s.docs.paymentLink || '', internalNotes: '', status: 'draft', estimateId: est.id,
       };
       await NB.store.save('invoices', inv);
@@ -303,6 +304,7 @@
               <header class="card-head"><h2>${isInvoice ? 'Balance' : 'Summary'}</h2></header>
               <dl class="facts">
                 <div><dt>Total</dt><dd>${fmt.money(t.total)}</dd></div>
+                ${t.taxRate ? html`<div><dt>Sales tax</dt><dd>${fmt.money(t.tax)} <span class="muted">(${NB.sheet.taxSource(d)})</span></dd></div>` : ''}
                 ${isInvoice ? html`
                   <div><dt>Paid</dt><dd>${fmt.money(st.paid)}</dd></div>
                   <div class="facts-key"><dt>${st.balance < 0 ? 'Overpaid' : 'Balance due'}</dt><dd>${fmt.money(Math.abs(st.balance))}</dd></div>
@@ -371,13 +373,36 @@
     return { id: uid(), description: '', details: '', qty: 1, unitPrice: 0 };
   }
 
+  // '' = no tax, a profile id, or 'custom' for a rate typed on this document.
+  function taxMode(d) {
+    if (d.taxProfileId && NB.store.taxProfile(d.taxProfileId)) return d.taxProfileId;
+    return Number(d.taxRate) > 0 ? 'custom' : '';
+  }
+
+  function taxOptions(d) {
+    const mode = taxMode(d);
+    const sel = (v) => (mode === v ? raw('selected') : '');
+    return html`<option value="" ${sel('')}>No sales tax</option>
+      ${NB.store.settings().taxProfiles.map((p) => html`<option value="${p.id}" ${sel(p.id)}>${p.name} · ${fmt.qty(p.rate)}%</option>`)}
+      <option value="custom" ${sel('custom')}>Custom rate…</option>`;
+  }
+
+  // The tax profile a new document starts with: the customer's, else the default.
+  function startingTax(s, customerId) {
+    const c = customerId ? NB.store.get('customers', customerId) : null;
+    const p = NB.store.taxProfile((c && c.taxProfileId) || s.docs.defaultTaxProfileId);
+    return p
+      ? { taxProfileId: p.id, taxRate: Number(p.rate) || 0, taxShipping: !!p.taxShipping, taxLabel: '' }
+      : { taxProfileId: '', taxRate: 0, taxShipping: false, taxLabel: '' };
+  }
+
   function newDoc(kind, s, today, customerId) {
     const num = NB.store.peekNumber(kind);
-    const d = {
+    const d = Object.assign({
       id: uid(), number: num.number, seq: num.seq, customerId: customerId || '', title: '', issueDate: today, items: [blankItem()],
-      discountType: 'none', discountPercent: 0, discountAmount: 0, shipping: 0, taxRate: Number(s.docs.taxRate) || 0,
-      taxShipping: !!s.docs.taxShipping, notes: kind === 'invoice' ? s.docs.invoiceNotes : s.docs.estimateNotes, internalNotes: '', status: 'draft',
-    };
+      discountType: 'none', discountPercent: 0, discountAmount: 0, shipping: 0,
+      notes: kind === 'invoice' ? s.docs.invoiceNotes : s.docs.estimateNotes, internalNotes: '', status: 'draft',
+    }, startingTax(s, customerId));
     if (kind === 'invoice') Object.assign(d, { dueDate: Dates.addDays(today, Number(s.docs.invoiceDays) || 0), paymentLink: s.docs.paymentLink || '' });
     else Object.assign(d, { validUntil: Dates.addDays(today, Number(s.docs.estimateDays) || 0), depositPercent: Number(s.docs.depositPercent) || 0 });
     return d;
@@ -524,12 +549,17 @@
                   <dt><label for="doc-shipping">Shipping (${sym})</label></dt>
                   <dd><input id="doc-shipping" class="num" inputmode="decimal" value="${draft.shipping ? fmt.input(draft.shipping) : ''}" placeholder="0.00" autocomplete="off"></dd>
                 </div>
-                <div class="totals-control">
-                  <dt><label for="doc-tax">${s.docs.taxLabel || 'Tax'} (%)</label></dt>
+                <div class="totals-control totals-stack">
+                  <dt><label for="doc-tax-profile">Sales tax</label></dt>
+                  <dd><select id="doc-tax-profile">${taxOptions(draft)}</select></dd>
+                </div>
+                <div class="totals-control" data-custom-tax ${taxMode(draft) === 'custom' ? '' : raw('hidden')}>
+                  <dt><label for="doc-tax">Custom rate (%)</label></dt>
                   <dd><input id="doc-tax" class="num" inputmode="decimal" value="${draft.taxRate ? fmt.qtyInput(draft.taxRate) : ''}" placeholder="0" autocomplete="off"></dd>
                 </div>
+                <p class="totals-note" data-tax-note hidden></p>
                 <div class="totals-check"><label class="check"><input type="checkbox" id="doc-tax-shipping" ${draft.taxShipping ? 'checked' : ''}><span>Charge tax on shipping</span></label></div>
-                <div class="totals-sub"><dt>${s.docs.taxLabel || 'Tax'}</dt><dd data-t="tax"></dd></div>
+                <div class="totals-sub"><dt data-t="tax-label"></dt><dd data-t="tax"></dd></div>
                 <div class="totals-total"><dt>Total</dt><dd data-t="total"></dd></div>
                 ${isInvoice ? (paidSoFar ? html`
                   <div class="totals-sub"><dt>Paid so far</dt><dd>${fmt.money(paidSoFar)}</dd></div>
@@ -576,7 +606,35 @@
         dv.hidden = draft.discountType === 'none' || !draft.discountType;
         dv.placeholder = draft.discountType === 'percent' ? '%' : '0.00';
         root.querySelector('[data-row="discount"]').hidden = !t.discount;
+        set('tax-label', NB.sheet.taxLabel(draft, s) + (t.taxRate ? ' (' + fmt.qty(t.taxRate) + '%)' : ''));
       }
+
+      // The profile note, or a warning when the profile's rate changed after this was made.
+      function syncTax() {
+        const mode = root.querySelector('#doc-tax-profile').value;
+        root.querySelector('[data-custom-tax]').hidden = mode !== 'custom';
+        root.querySelector('#doc-tax-shipping').checked = !!draft.taxShipping;
+        const p = NB.store.taxProfile(draft.taxProfileId);
+        const note = root.querySelector('[data-tax-note]');
+        if (p && Number(p.rate) !== Number(draft.taxRate)) {
+          note.innerHTML = out(html`This ${K.one} keeps ${fmt.qty(draft.taxRate)}%, but ${p.name} is now ${fmt.qty(p.rate)}%.
+            <button type="button" class="linkish" data-act="tax-refresh">Use ${fmt.qty(p.rate)}%</button>`);
+        } else {
+          note.textContent = p && p.note ? p.note : '';
+        }
+        note.hidden = !note.textContent.trim();
+      }
+
+      function applyTax(profileId) {
+        const p = NB.store.taxProfile(profileId);
+        Object.assign(draft, p
+          ? { taxProfileId: p.id, taxRate: Number(p.rate) || 0, taxShipping: !!p.taxShipping, taxLabel: '' }
+          : { taxProfileId: '', taxRate: 0, taxShipping: false, taxLabel: '' });
+        root.querySelector('#doc-tax-profile').innerHTML = out(taxOptions(draft));
+        syncTax();
+        recalc();
+      }
+      let taxTouched = !isNew;
 
       function grow(ta) {
         ta.style.height = 'auto';
@@ -585,6 +643,7 @@
 
       renderItems();
       recalc();
+      syncTax();
       NB.app.setGuard(() => dirty);
 
       root.oninput = (e) => {
@@ -623,6 +682,22 @@
         } else if (el.id === 'doc-tax-shipping') {
           draft.taxShipping = el.checked;
           recalc();
+        } else if (el.id === 'doc-tax-profile') {
+          taxTouched = true;
+          if (el.value === 'custom') {
+            draft.taxProfileId = '';
+            syncTax();
+            const input = root.querySelector('#doc-tax');
+            input.value = draft.taxRate ? fmt.qtyInput(draft.taxRate) : '';
+            input.focus();
+            recalc();
+          } else {
+            applyTax(el.value);
+          }
+        } else if (el.id === 'doc-customer') {
+          draft.customerId = el.value;
+          const c = NB.store.get('customers', el.value);
+          if (!taxTouched && c && c.taxProfileId) applyTax(c.taxProfileId);
         } else if (el.dataset.f === 'description') {
           // Picked something sold before: fill in its price and details if those are still empty.
           const row = el.closest('[data-row]');
@@ -664,6 +739,11 @@
           return;
         }
         const act = b.dataset.act;
+        if (act === 'tax-refresh') {
+          applyTax(draft.taxProfileId);
+          dirty = true;
+          return;
+        }
         if (act === 'add-item') {
           draft.items.push(blankItem());
           renderItems(draft.items.length - 1);
@@ -681,6 +761,7 @@
           if (c) {
             draft.customerId = c.id;
             form.querySelector('#doc-customer').innerHTML = out(customerOptions(c.id));
+            if (!taxTouched && c.taxProfileId) applyTax(c.taxProfileId);
             dirty = true;
           }
         } else if (act === 'cancel') {

@@ -4,13 +4,14 @@
  *   local  — IndexedDB in this browser (self-hosted or opened from disk)
  *   memory — nothing persists (storage blocked); the app says so and nudges toward a backup
  * Every record carries its own `id`. Screens read from the in-memory maps; writes update
- * the maps first, then persist. */
+ * the maps first, then persist. Receipt photos live beside the records: in IndexedDB, or
+ * in the artifact's asset storage when hosted. */
 (function (NB) {
   'use strict';
   const { clone, uid, Dates } = NB.util;
 
-  const COLLS = ['customers', 'estimates', 'invoices', 'payments', 'meta'];
-  const RECORD_COLLS = ['customers', 'estimates', 'invoices', 'payments'];
+  const COLLS = ['customers', 'estimates', 'invoices', 'payments', 'expenses', 'mileage', 'meta'];
+  const RECORD_COLLS = ['customers', 'estimates', 'invoices', 'payments', 'expenses', 'mileage'];
   const ID_RE = /^[A-Za-z0-9_\-.~:@+]{1,200}$/;
 
   // Square's US Free-plan card rates as of January 2026. Editable in Settings.
@@ -24,6 +25,15 @@
     { id: 'other', name: 'Other (Venmo, PayPal, Zelle)', feePercent: 0, feeFixed: 0, feeMin: 0 },
   ];
 
+  // Starting sales tax profiles. Rates depend on where the sale happens, so these are
+  // meant to be edited.
+  const DEFAULT_TAX_PROFILES = [
+    { id: 'oregon', name: 'Oregon (no sales tax)', rate: 0, taxShipping: false,
+      note: 'Oregon has no state or local sales tax.' },
+    { id: 'arizona', name: 'Arizona (state rate only)', rate: 5.6, taxShipping: false,
+      note: 'Arizona’s state rate is 5.6%. Counties and cities add their own, so the full rate is higher (about 8.7% in Tucson). Look up the rate where you sell and update this profile.' },
+  ];
+
   const DEFAULT_SETTINGS = {
     id: 'settings',
     business: { name: 'n0va crafts & creations', owner: '', email: '', phone: '', website: '', social: '', address: '', taxId: '' },
@@ -34,9 +44,8 @@
       paper: 'letter',
       invoiceDays: 14,
       estimateDays: 30,
-      taxRate: 0,
       taxLabel: 'Sales tax',
-      taxShipping: false,
+      defaultTaxProfileId: '',
       depositPercent: 50,
       estimateNotes: 'Each piece is handmade to order, so small variations are part of its charm. Reply to approve this estimate and I will get started as soon as the deposit arrives.',
       invoiceNotes: 'Thank you for your order! Payment is due by the date above.',
@@ -51,6 +60,8 @@
       receipt: { prefix: 'RCT-', start: 1 },
     },
     paymentMethods: DEFAULT_METHODS,
+    taxProfiles: DEFAULT_TAX_PROFILES,
+    mileageRates: NB.tax ? NB.tax.MILEAGE_RATES : [],
   };
 
   // Which collection and field hold each kind of number.
@@ -83,14 +94,45 @@
     return Promise.race([promise, sleep(ms).then(() => fallback)]);
   }
 
+  function blobToDataURL(blob) {
+    return new Promise((resolve, reject) => {
+      const r = new FileReader();
+      r.onload = () => resolve(r.result);
+      r.onerror = () => reject(new Error('A receipt file could not be read.'));
+      r.readAsDataURL(blob);
+    });
+  }
+
+  function dataURLToBlob(dataUrl) {
+    const m = /^data:([^;,]*)(;base64)?,(.*)$/s.exec(dataUrl || '');
+    if (!m) throw new Error('The backup has a damaged receipt file.');
+    const type = m[1] || 'application/octet-stream';
+    if (!m[2]) return new Blob([decodeURIComponent(m[3])], { type });
+    const bin = atob(m[3]);
+    const bytes = new Uint8Array(bin.length);
+    for (let i = 0; i < bin.length; i++) bytes[i] = bin.charCodeAt(i);
+    return new Blob([bytes], { type });
+  }
+
   // ------------------------------------------------------------- backends
 
   function memoryBackend() {
+    const blobs = new Map();
     return {
       kind: 'memory',
       async start() {},
       async put() {},
       async remove() {},
+      files: {
+        async put(blob, name) {
+          const id = uid();
+          blobs.set(id, blob);
+          return { id, name, type: blob.type, size: blob.size };
+        },
+        async get(id) { return blobs.get(id) || null; },
+        async remove(id) { blobs.delete(id); },
+        async clear() { blobs.clear(); },
+      },
     };
   }
 
@@ -98,14 +140,18 @@
     if (!globalThis.indexedDB) throw new Error('IndexedDB is not available');
     const db = await new Promise((resolve, reject) => {
       let req;
-      try { req = indexedDB.open('n0va-books', 1); } catch (e) { reject(e); return; }
+      try { req = indexedDB.open('n0va-books', 2); } catch (e) { reject(e); return; }
       req.onupgradeneeded = () => {
         const d = req.result;
-        COLLS.forEach((c) => { if (!d.objectStoreNames.contains(c)) d.createObjectStore(c, { keyPath: 'id' }); });
+        COLLS.concat(['files']).forEach((c) => { if (!d.objectStoreNames.contains(c)) d.createObjectStore(c, { keyPath: 'id' }); });
       };
-      req.onsuccess = () => resolve(req.result);
+      req.onsuccess = () => {
+        const d = req.result;
+        d.onversionchange = () => d.close(); // let a newer tab upgrade
+        resolve(d);
+      };
       req.onerror = () => reject(req.error || new Error('Could not open the database'));
-      req.onblocked = () => reject(new Error('The database is open in an older tab'));
+      req.onblocked = () => reject(new Error('n0va Books is open in another tab with an older version. Close that tab and reload.'));
     });
     const result = (r) => new Promise((res, rej) => { r.onsuccess = () => res(r.result); r.onerror = () => rej(r.error); });
     const finished = (tx) => new Promise((res, rej) => {
@@ -140,10 +186,45 @@
         await finished(tx);
         if (channel) channel.postMessage({ c });
       },
+      // Receipt files as raw bytes (more portable across browsers than stored Blobs).
+      files: {
+        async put(blob, name) {
+          const id = uid();
+          const data = await blob.arrayBuffer();
+          const tx = db.transaction('files', 'readwrite');
+          tx.objectStore('files').put({ id, name, type: blob.type, size: blob.size, data, createdAt: new Date().toISOString() });
+          await finished(tx);
+          return { id, name, type: blob.type, size: blob.size };
+        },
+        async get(id) {
+          const rec = await result(db.transaction('files', 'readonly').objectStore('files').get(id));
+          return rec ? new Blob([rec.data], { type: rec.type }) : null;
+        },
+        async remove(id) {
+          const tx = db.transaction('files', 'readwrite');
+          tx.objectStore('files').delete(id);
+          await finished(tx);
+        },
+        async clear() {
+          const tx = db.transaction('files', 'readwrite');
+          tx.objectStore('files').clear();
+          await finished(tx);
+        },
+      },
     };
   }
 
-  function cloudBackend(db) {
+  function assetError(e) {
+    const code = e && e.code;
+    if (code === 'too_large') return 'That file is too large. Receipts can be up to 20 MB.';
+    if (code === 'unsupported_type') return 'Use a photo (JPG, PNG, WebP) or a PDF.';
+    if (code === 'quota_or_state') return 'File storage for these books is full. Remove some old receipt photos and try again.';
+    if (code === 'rate_limited') return 'Too many uploads at once. Wait a moment and try again.';
+    if (code === 'upstream_auth') return 'Your sign-in expired. Reload the page and try again.';
+    return (e && e.message) || 'The receipt could not be saved.';
+  }
+
+  function cloudBackend(db, assets) {
     const chains = new Map(); // one write at a time per document
     const queue = (path, fn) => {
       const prev = chains.get(path) || Promise.resolve();
@@ -154,7 +235,7 @@
     };
     const retry = async (fn) => {
       try { return await fn(); } catch (e) {
-        if (e && (e.code === 'unavailable' || e.code === 'resource_exhausted')) {
+        if (e && (e.code === 'unavailable' || e.code === 'resource_exhausted' || e.code === 'store_unavailable')) {
           await sleep(400 + Math.random() * 800);
           return fn();
         }
@@ -190,6 +271,26 @@
       remove(c, id) {
         return queue(c + '/' + id, () => retry(() => db.collection(c).doc(id).delete()));
       },
+      // Saved receipts show in every view; adding or deleting them needs `assets`,
+      // which only the books' editors get.
+      files: {
+        put: assets ? async (blob, name) => {
+          try {
+            const r = await retry(() => assets.upload(blob, blob.type ? { type: blob.type } : undefined));
+            return { id: r.id, name, type: r.contentType, size: r.sizeBytes };
+          } catch (e) {
+            throw new Error(assetError(e));
+          }
+        } : null,
+        async get(id) {
+          const res = await fetch('/_blob/' + id);
+          return res.ok ? res.blob() : null;
+        },
+        url(id) {
+          return '/_blob/' + id;
+        },
+        remove: assets ? async (id) => { await retry(() => assets.delete(id)); } : null,
+      },
     };
   }
 
@@ -214,6 +315,7 @@
     readOnly: false,
     DEFAULT_METHODS,
     DEFAULT_SETTINGS,
+    DEFAULT_TAX_PROFILES,
   };
 
   function emit() {
@@ -254,8 +356,12 @@
     const claude = globalThis.window && window.claude;
     if (claude && typeof claude.use === 'function') {
       const db = await withTimeout(claude.use('db').catch(() => null), 12000, null);
-      if (db) backend = cloudBackend(db);
-      else store.notice = 'cloud-unavailable';
+      if (db) {
+        const assets = await withTimeout(claude.use('assets').catch(() => null), 8000, null);
+        backend = cloudBackend(db, assets);
+      } else {
+        store.notice = 'cloud-unavailable';
+      }
     }
     if (!backend) {
       try { backend = await localBackend(); } catch (e) {
@@ -288,6 +394,8 @@
     estimates: store.all('estimates'),
     invoices: store.all('invoices'),
     payments: store.all('payments'),
+    expenses: store.all('expenses'),
+    mileage: store.all('mileage'),
   });
   store.isEmpty = () => RECORD_COLLS.every((c) => maps[c].size === 0);
 
@@ -354,6 +462,60 @@
     if (errors.length) throw errors[0];
   }
 
+  // ------------------------------------------------------------- receipt files
+
+  const objectUrls = new Map();
+
+  const readable = () => !!(backend && backend.files);
+
+  store.files = {
+    // Whether receipts can be added here (showing saved ones may still work without it).
+    available: () => !!(backend && backend.files && backend.files.put),
+    // Stores a file; resolves {id, name, type, size} to keep on the record.
+    async add(blob, name) {
+      if (!store.files.available()) throw new Error('Receipt files can’t be stored in this window.');
+      store.saving += 1;
+      emit();
+      try {
+        return await backend.files.put(blob, name || 'receipt');
+      } finally {
+        store.saving -= 1;
+        emit();
+      }
+    },
+    // A URL an <img> or link can use (hosted: the asset path; otherwise an object URL).
+    async url(id) {
+      if (!readable() || !id) return null;
+      if (backend.files.url) return backend.files.url(id);
+      if (objectUrls.has(id)) return objectUrls.get(id);
+      const blob = await backend.files.get(id);
+      if (!blob) return null;
+      const u = URL.createObjectURL(blob);
+      objectUrls.set(id, u);
+      return u;
+    },
+    async blob(id) {
+      return readable() && id ? backend.files.get(id) : null;
+    },
+    async remove(id) {
+      if (!readable() || !backend.files.remove || !id) return;
+      try { await backend.files.remove(id); } catch (e) { console.warn('Receipt file not removed', e); }
+      if (objectUrls.has(id)) { URL.revokeObjectURL(objectUrls.get(id)); objectUrls.delete(id); }
+    },
+  };
+
+  const receiptIds = (list) => {
+    const ids = new Set();
+    (list || []).forEach((e) => (e.receipts || []).forEach((r) => r && r.id && ids.add(r.id)));
+    return ids;
+  };
+
+  // Deletes an expense together with its receipt files.
+  store.removeExpense = async function (e) {
+    await erase('expenses', e.id);
+    for (const r of e.receipts || []) await store.files.remove(r.id);
+  };
+
   // ------------------------------------------------------------- settings
 
   // Some systems report tags like "en-US@posix" that Intl rejects; fall back to US English.
@@ -372,6 +534,17 @@
     const saved = maps.meta.get('settings');
     const merged = deepMerge(DEFAULT_SETTINGS, saved || {});
     if (!Array.isArray(merged.paymentMethods) || !merged.paymentMethods.length) merged.paymentMethods = clone(DEFAULT_METHODS);
+    if (!Array.isArray(merged.mileageRates) || !merged.mileageRates.length) merged.mileageRates = clone(DEFAULT_SETTINGS.mileageRates);
+    // Books from before tax profiles kept one default rate: keep it as a profile.
+    if (!saved || !Array.isArray(saved.taxProfiles)) {
+      const oldRate = saved && saved.docs && Number(saved.docs.taxRate);
+      if (oldRate > 0) {
+        merged.taxProfiles = [{ id: 'default-rate', name: saved.docs.taxLabel || 'Sales tax', rate: oldRate, taxShipping: !!saved.docs.taxShipping, note: '' }]
+          .concat(clone(DEFAULT_TAX_PROFILES));
+        if (!saved.docs.defaultTaxProfileId) merged.docs.defaultTaxProfileId = 'default-rate';
+      }
+    }
+    if (!Array.isArray(merged.taxProfiles)) merged.taxProfiles = clone(DEFAULT_TAX_PROFILES);
     merged.docs.locale = usableLocale(merged.docs.locale || (globalThis.navigator && navigator.language));
     settingsCache = merged;
     settingsVersion = version;
@@ -384,13 +557,23 @@
     const saved = maps.meta.get('settings') || { id: 'settings' };
     const next = deepMerge(saved, patch);
     next.id = 'settings';
-    if (patch && Array.isArray(patch.paymentMethods)) next.paymentMethods = clone(patch.paymentMethods);
+    ['paymentMethods', 'taxProfiles', 'mileageRates'].forEach((k) => {
+      if (patch && Array.isArray(patch[k])) next[k] = clone(patch[k]);
+    });
     return store.save('meta', next);
   };
 
   store.method = function (id) {
     return store.settings().paymentMethods.find((m) => m.id === id) || null;
   };
+
+  store.taxProfile = function (id) {
+    return id ? store.settings().taxProfiles.find((p) => p.id === id) || null : null;
+  };
+
+  // Per-year figures for the tax summary (inventory counts, home studio).
+  store.taxYearInputs = (year) => maps.meta.get('taxyear-' + year) || {};
+  store.saveTaxYearInputs = (year, values) => store.save('meta', Object.assign({}, store.taxYearInputs(year), values, { id: 'taxyear-' + year }));
 
   // ------------------------------------------------------------- logo
 
@@ -454,7 +637,7 @@
   store.loadSample = async function (onProgress) {
     const sample = NB.sample.build(Dates.today(), store.settings());
     const ops = [];
-    RECORD_COLLS.forEach((c) => sample[c].forEach((rec) => ops.push(() => store.save(c, rec))));
+    RECORD_COLLS.forEach((c) => (sample[c] || []).forEach((rec) => ops.push(() => store.save(c, rec))));
     await bulk(ops, onProgress);
     const counters = Object.assign({ id: 'counters' }, maps.meta.get('counters') || {});
     Object.keys(NUMBERED).forEach((k) => { counters[k] = Math.max(counters[k] || 0, maxSeq(k)); });
@@ -463,17 +646,25 @@
 
   store.clearSample = async function (onProgress) {
     const ops = [];
-    RECORD_COLLS.forEach((c) => store.all(c).filter((d) => d.sample).forEach((d) => ops.push(() => erase(c, d.id))));
+    RECORD_COLLS.forEach((c) => store.all(c).filter((d) => d.sample).forEach((d) => {
+      ops.push(() => (c === 'expenses' ? store.removeExpense(d) : erase(c, d.id)));
+    }));
     await bulk(ops, onProgress);
     await resetCounters();
   };
 
   // ------------------------------------------------------------- backup
 
-  store.exportData = function () {
+  // Everything in one object; receipt files ride along as data URLs.
+  store.exportData = async function () {
     const data = {};
     COLLS.forEach((c) => { data[c] = store.all(c); });
-    return { app: 'n0va-books', format: 1, exportedAt: new Date().toISOString(), data };
+    const files = [];
+    for (const id of receiptIds(data.expenses)) {
+      const blob = await store.files.blob(id).catch(() => null);
+      if (blob) files.push({ id, type: blob.type, dataUrl: await blobToDataURL(blob) });
+    }
+    return { app: 'n0va-books', format: 2, exportedAt: new Date().toISOString(), data, files };
   };
 
   store.readBackup = function (json) {
@@ -489,26 +680,59 @@
       });
       counts[c] = list.length;
     });
+    const files = json.files || [];
+    if (!Array.isArray(files) || files.some((f) => !isObj(f) || typeof f.id !== 'string' || !/^data:/.test(f.dataUrl || ''))) {
+      throw new Error('The backup is damaged: its receipt files are unreadable.');
+    }
+    counts.files = files.length;
     return counts;
   };
 
-  // Replace everything with the backup's contents.
+  // Replace everything with the backup's contents. Resolves how many receipt files
+  // couldn't be stored here (their expenses are restored without them).
   store.importData = async function (json, onProgress) {
     store.readBackup(json);
+    const current = receiptIds(store.all('expenses'));
+    // Receipt files: keep ones already here, store the rest and note their new ids.
+    const idMap = new Map();
+    let missingFiles = 0;
+    for (const f of json.files || []) {
+      if (current.has(f.id)) { idMap.set(f.id, f.id); continue; }
+      try {
+        const saved = await store.files.add(dataURLToBlob(f.dataUrl), 'receipt');
+        idMap.set(f.id, saved.id);
+      } catch (e) {
+        console.warn('Receipt file not restored', e);
+        missingFiles += 1;
+      }
+    }
+    const incoming = {};
+    COLLS.forEach((c) => { incoming[c] = (json.data[c] || []).map(clone); });
+    incoming.expenses.forEach((e) => {
+      e.receipts = (e.receipts || [])
+        .filter((r) => r && (idMap.has(r.id) || current.has(r.id)))
+        .map((r) => Object.assign(r, { id: idMap.get(r.id) || r.id }));
+    });
     const ops = [];
     COLLS.forEach((c) => {
-      const incoming = json.data[c] || [];
-      const keep = new Set(incoming.map((d) => d.id));
+      const keep = new Set(incoming[c].map((d) => d.id));
       store.all(c).forEach((d) => { if (!keep.has(d.id)) ops.push(() => erase(c, d.id)); });
-      incoming.forEach((d) => ops.push(() => write(c, clone(d))));
+      incoming[c].forEach((d) => ops.push(() => write(c, d)));
     });
     await bulk(ops, onProgress);
+    // Files nothing points at any more.
+    const still = receiptIds(incoming.expenses);
+    for (const id of current) if (!still.has(id)) await store.files.remove(id);
+    return { missingFiles };
   };
 
   store.eraseAll = async function (onProgress) {
+    const files = receiptIds(store.all('expenses'));
     const ops = [];
     COLLS.forEach((c) => store.all(c).forEach((d) => ops.push(() => erase(c, d.id))));
     await bulk(ops, onProgress);
+    for (const id of files) await store.files.remove(id);
+    if (backend.files && backend.files.clear) await backend.files.clear();
   };
 
   NB.store = store;

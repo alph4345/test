@@ -9,7 +9,7 @@
   const listState = { q: '', archived: false };
 
   function blankCustomer() {
-    return { name: '', company: '', email: '', phone: '', social: '', address1: '', address2: '', city: '', region: '', postal: '', country: '', tags: [], notes: '', archived: false };
+    return { name: '', company: '', email: '', phone: '', social: '', address1: '', address2: '', city: '', region: '', postal: '', country: '', tags: [], notes: '', archived: false, taxProfileId: '' };
   }
 
   function tagsFrom(text) {
@@ -174,10 +174,11 @@
           <aside class="split-side">
             <section class="card">
               <header class="card-head"><h2>Contact</h2>${link('customer-edit', { id: c.id }, 'Edit', 'class="card-link"')}</header>
-              ${c.email || c.phone || c.social || address.length ? html`<div class="contact">
+              ${c.email || c.phone || c.social || address.length || NB.store.taxProfile(c.taxProfileId) ? html`<div class="contact">
                 ${contactRow('mail', 'Email', c.email, { copy: c.email, href: selfHosted && c.email ? 'mailto:' + c.email : '' })}
                 ${contactRow('phone', 'Phone', c.phone, { copy: c.phone, href: selfHosted && c.phone ? 'tel:' + c.phone.replace(/[^\d+]/g, '') : '' })}
                 ${contactRow('at', 'Social', c.social, { copy: c.social })}
+                ${NB.store.taxProfile(c.taxProfileId) ? contactRow('receipt', 'Sales tax', NB.store.taxProfile(c.taxProfileId).name + ' · ' + fmt.qty(NB.store.taxProfile(c.taxProfileId).rate) + '%') : ''}
                 ${address.length ? contactRow('pin', 'Address', out(address.map((l) => html`<span class="line">${l}</span>`)), { multiline: true, copy: [c.name].concat(address).join('\n') }) : ''}
               </div>` : html`<p class="muted small">No contact details yet. ${link('customer-edit', { id: c.id }, 'Add them')}</p>`}
             </section>
@@ -286,6 +287,12 @@
           ${f('postal', 'ZIP or postal code', v.postal, { extra: 'autocomplete="off"' })}
         </div>
         ${f('country', 'Country (if not local)', v.country, { extra: 'autocomplete="off"' })}
+        <label class="field"><span>Sales tax profile</span>
+          <select name="taxProfileId" id="cust-taxProfileId">
+            <option value="">Use the default</option>
+            ${NB.store.settings().taxProfiles.map((p) => html`<option value="${p.id}" ${p.id === v.taxProfileId ? raw('selected') : ''}>${p.name} · ${fmt.qty(p.rate)}%</option>`)}
+          </select>
+          <span class="hint">New estimates and invoices for this customer start with it.</span></label>
         ${f('tags', 'Tags', (v.tags || []).join(', '), { extra: 'autocomplete="off" placeholder="wholesale, market regular"' })}
         <label class="field field-wide"><span>Notes (only you see these)</span>
           <textarea name="notes" id="cust-notes" rows="4" placeholder="Sizes, allergies, favourite colours, where you met">${v.notes || ''}</textarea></label>`}
@@ -304,6 +311,7 @@
       Object.assign(out, {
         social: v.social.trim(), address1: v.address1.trim(), address2: v.address2.trim(), city: v.city.trim(),
         region: v.region.trim(), postal: v.postal.trim(), country: v.country.trim(), tags: tagsFrom(v.tags), notes: v.notes.trim(),
+        taxProfileId: v.taxProfileId || '',
       });
     }
     return out;

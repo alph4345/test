@@ -199,7 +199,8 @@
       if (st.key === 'overdue') { overdue += st.balance; overdueCount += 1; }
     });
     const monthPays = data.payments.filter((p) => Dates.month(p.date) === thisMonth);
-    const yearPays = data.payments.filter((p) => String(p.date).slice(0, 4) === year);
+    // Same math as the Taxes page: income less sales tax, fees, costs and write-offs.
+    const ty = NB.tax.taxYear(data, year, { inputs: NB.store.taxYearInputs(year), mileageRates: s.mileageRates });
     const sumOf = (list, k) => list.reduce((a, p) => a + (Math.round(p[k]) || 0), 0);
     const months = NB.calc.monthly(data.payments, thisMonth, 12);
     const rows = attention(data, ix, today);
@@ -237,9 +238,9 @@
           <p class="kpi-sub">${fmt.money(sumOf(monthPays, 'fee'))} fees · ${fmt.money(sumOf(monthPays, 'amount') - sumOf(monthPays, 'fee'))} net</p>
         </div>
         <div class="kpi">
-          <p class="kpi-label">Received in ${year}</p>
-          <p class="kpi-value">${fmt.money(sumOf(yearPays, 'amount'))}</p>
-          <p class="kpi-sub">${plural(yearPays.length, 'payment')} · ${fmt.money(sumOf(yearPays, 'fee'))} fees</p>
+          <p class="kpi-label">Profit so far in ${year}</p>
+          <p class="kpi-value">${ty.netProfit < 0 ? '−' : ''}${fmt.money(Math.abs(ty.netProfit))}</p>
+          <p class="kpi-sub">${fmt.money(ty.received)} in · ${fmt.money(ty.received - ty.netProfit)} out · ${link('taxes', {}, 'Taxes')}</p>
         </div>
       </section>
 

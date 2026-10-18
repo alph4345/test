@@ -15,7 +15,7 @@
 
   // ---------------------------------------------------------------- backups & exports
   async function downloadBackup() {
-    const json = JSON.stringify(NB.store.exportData(), null, 1);
+    const json = JSON.stringify(await NB.store.exportData(), null, 1);
     const ok = await NB.ui.saveFile('n0va-books-backup-' + Dates.today() + '.json', json, 'application/json');
     if (ok) {
       NB.ui.prefs.set('lastBackup', Dates.today());
@@ -61,6 +61,8 @@
         { label: 'Invoice', value: (d) => (NB.store.get('invoices', d.invoiceId) || {}).number || '' },
       ]);
     }
+    if (kind === 'expenses') return NB.expenses.expensesCSV(data.expenses);
+    if (kind === 'mileage') return NB.expenses.mileageCSV(data.mileage);
     return NB.payments.exportCSV(data.payments.slice().sort((a, b) => b.date.localeCompare(a.date)));
   }
 
@@ -214,9 +216,6 @@
         <label class="field"><span>Invoices are due after (days)</span><input name="invoiceDays" id="set-invoice-days" class="num" inputmode="numeric" value="${d.invoiceDays}"></label>
         <label class="field"><span>Estimates are valid for (days)</span><input name="estimateDays" id="set-estimate-days" class="num" inputmode="numeric" value="${d.estimateDays}"></label>
         <label class="field"><span>Deposit asked on estimates (%)</span><input name="depositPercent" id="set-deposit" class="num" inputmode="decimal" value="${fmt.qtyInput(d.depositPercent)}"></label>
-        <label class="field"><span>Tax name</span><input name="taxLabel" id="set-tax-label" value="${d.taxLabel}" placeholder="Sales tax, GST, VAT" autocomplete="off"></label>
-        <label class="field"><span>Default tax rate (%)</span><input name="taxRate" id="set-tax-rate" class="num" inputmode="decimal" value="${fmt.qtyInput(d.taxRate)}"></label>
-        <label class="check field-wide"><input type="checkbox" name="taxShipping" id="set-tax-shipping" ${d.taxShipping ? 'checked' : ''}><span>Charge tax on shipping by default</span></label>
       </div>
       <h3 class="form-sub">Numbering</h3>
       <p class="hint">Numbers only go up, so a number is never used twice. To start at 1001, set the next number to 1001.</p>
@@ -260,6 +259,69 @@
     </form>`;
   }
 
+  function profileRow(p, i) {
+    return html`<div class="profile-row" data-profile="${i}">
+      <label class="field profile-name"><span>Name</span>
+        <input data-pf="name" value="${p.name}" placeholder="Arizona: Tucson" autocomplete="off" aria-label="Profile ${i + 1} name"></label>
+      <label class="field"><span>Rate (%)</span>
+        <input data-pf="rate" class="num" inputmode="decimal" value="${fmt.qtyInput(p.rate)}" autocomplete="off" aria-label="Profile ${i + 1} rate"></label>
+      <label class="check profile-ship"><input type="checkbox" data-pf="taxShipping" ${p.taxShipping ? 'checked' : ''}><span>Tax shipping</span></label>
+      <button type="button" class="btn btn-icon btn-quiet btn-sm" data-act="profile-remove" aria-label="Remove ${p.name || 'this profile'}">${icon('x')}</button>
+      <label class="field profile-note"><span>Note to yourself</span>
+        <input data-pf="note" value="${p.note || ''}" placeholder="Where it applies, when you last checked the rate" autocomplete="off" aria-label="Profile ${i + 1} note"></label>
+    </div>`;
+  }
+
+  function defaultProfileOptions(list, selected) {
+    return html`<option value="">No sales tax</option>
+      ${list.map((p) => html`<option value="${p.id}" ${p.id === selected ? raw('selected') : ''}>${p.name || 'Unnamed profile'}</option>`)}`;
+  }
+
+  function taxSection(s) {
+    return html`<form class="card form" id="set-tax" data-section="tax" novalidate>
+      <header class="card-head"><h2>Sales tax profiles</h2><p class="card-sub">Saved rates to pick on estimates, invoices and market sales</p></header>
+      <p class="hint">The rate depends on where you make the sale. Arizona adds county and city rates on top of its 5.6% state rate; Oregon has no sales tax. Check your state’s rate lookup and update these when rates change. Documents you already made keep the rate they were made with.</p>
+      <div class="profiles" data-profiles>${s.taxProfiles.map(profileRow)}</div>
+      <div class="form-grid tax-defaults">
+        <label class="field"><span>Use on new estimates and invoices</span>
+          <select name="defaultTaxProfileId" id="set-default-profile">${defaultProfileOptions(s.taxProfiles, s.docs.defaultTaxProfileId)}</select>
+          <span class="hint">A customer’s own profile is used first.</span></label>
+        <label class="field"><span>Name printed on documents</span>
+          <input name="taxLabel" id="set-tax-label" value="${s.docs.taxLabel}" placeholder="Sales tax" autocomplete="off">
+          <span class="hint">Shown next to the tax amount, as in “Sales tax (8.7%)”.</span></label>
+      </div>
+      <div class="form-actions form-actions-split">
+        <button type="button" class="btn btn-quiet btn-sm" data-act="profile-add">${icon('plus')}<span>Add profile</span></button>
+        <button type="submit" class="btn btn-primary">Save tax profiles</button>
+      </div>
+    </form>`;
+  }
+
+  function rateRow(r, i) {
+    return html`<div class="rate-row" data-rate="${i}">
+      <label class="field"><span>Starting</span><input type="date" data-rf="from" value="${r.from}" aria-label="Rate ${i + 1} start date"></label>
+      <label class="field"><span>Cents per mile</span>
+        <input data-rf="cents" class="num" inputmode="decimal" value="${fmt.qtyInput(r.cents)}" autocomplete="off" aria-label="Rate ${i + 1} cents per mile"></label>
+      <button type="button" class="btn btn-icon btn-quiet btn-sm" data-act="rate-remove" aria-label="Remove the rate starting ${r.from}">${icon('x')}</button>
+    </div>`;
+  }
+
+  function mileageSection(s) {
+    const rates = s.mileageRates.slice().sort((a, b) => b.from.localeCompare(a.from));
+    return html`<form class="card form" id="set-mileage" data-section="mileage" novalidate>
+      <header class="card-head"><h2>Mileage rates</h2><p class="card-sub">The IRS standard rate for business driving</p></header>
+      <p class="hint">Each rate applies from its date until the next one. For 2026 the IRS set 72.5¢ a mile, then raised it to 76¢ from July 1. Add a line when the IRS announces a new rate, usually in December.</p>
+      <div class="rates" data-rates>${rates.map(rateRow)}</div>
+      <div class="form-actions form-actions-split">
+        <div class="btn-row">
+          <button type="button" class="btn btn-quiet btn-sm" data-act="rate-add">${icon('plus')}<span>Add rate</span></button>
+          <button type="button" class="btn btn-quiet btn-sm" data-act="rate-reset">${icon('undo')}<span>Reset to IRS rates</span></button>
+        </div>
+        <button type="submit" class="btn btn-primary">Save mileage rates</button>
+      </div>
+    </form>`;
+  }
+
   function dataSection() {
     const st = NB.store;
     const counts = st.snapshot();
@@ -270,10 +332,10 @@
         ? html`${icon('device')}<p>Your books are saved in this browser on this device. Clearing the browser's site data deletes them, so download a backup regularly and keep it somewhere safe, like a cloud drive.</p>`
         : html`${icon('alert')}<p><strong>Nothing is being saved.</strong> This browser is blocking storage. Download a backup before closing the tab.</p>`;
     return html`<section class="card" id="set-data" data-section="data">
-      <header class="card-head"><h2>Backup and your data</h2><p class="card-sub">${plural(counts.customers.length, 'customer')} · ${plural(counts.estimates.length, 'estimate')} · ${plural(counts.invoices.length, 'invoice')} · ${plural(counts.payments.length, 'payment')}</p></header>
+      <header class="card-head"><h2>Backup and your data</h2><p class="card-sub">${plural(counts.customers.length, 'customer')} · ${plural(counts.invoices.length, 'invoice')} · ${plural(counts.payments.length, 'payment')} · ${plural(counts.expenses.length, 'expense')} · ${plural(counts.mileage.length, 'trip')}</p></header>
       <div class="where">${where}</div>
       <div class="data-actions">
-        <div class="data-action"><div><strong>Download a backup</strong><p>One file with everything: customers, documents, payments, settings and logo.${last ? ' Last backup on this device: ' + fmt.date(last) + '.' : ''}</p></div>
+        <div class="data-action"><div><strong>Download a backup</strong><p>One file with everything: customers, documents, payments, expenses, trips, receipt photos, settings and logo.${last ? ' Last backup on this device: ' + fmt.date(last) + '.' : ''}</p></div>
           <button type="button" class="btn btn-primary btn-sm" data-act="backup">${icon('download')}<span>Download backup</span></button></div>
         <div class="data-action"><div><strong>Restore from a backup</strong><p>Replaces everything here with the contents of a backup file.</p></div>
           <input type="file" id="restore-file" accept="application/json,.json" hidden>
@@ -284,12 +346,14 @@
             <button type="button" class="btn btn-quiet btn-sm" data-csv="estimates">Estimates</button>
             <button type="button" class="btn btn-quiet btn-sm" data-csv="invoices">Invoices</button>
             <button type="button" class="btn btn-quiet btn-sm" data-csv="payments">Payments</button>
+            <button type="button" class="btn btn-quiet btn-sm" data-csv="expenses">Expenses</button>
+            <button type="button" class="btn btn-quiet btn-sm" data-csv="mileage">Mileage log</button>
           </div></div>
-        <div class="data-action"><div><strong>Sample data</strong><p>${st.hasSample() ? 'Example customers and documents are loaded.' : 'Load example customers, estimates, invoices and payments to explore.'}</p></div>
+        <div class="data-action"><div><strong>Sample data</strong><p>${st.hasSample() ? 'Example customers, documents, payments and expenses are loaded.' : 'Load example customers, estimates, invoices, payments and expenses to explore.'}</p></div>
           ${st.hasSample()
             ? html`<button type="button" class="btn btn-quiet btn-sm" data-clear-sample>Remove sample data</button>`
             : html`<button type="button" class="btn btn-quiet btn-sm" data-act="sample">${icon('spark')}<span>Load sample data</span></button>`}</div>
-        <div class="data-action data-danger"><div><strong>Erase everything</strong><p>Deletes all customers, documents, payments and settings in this copy of the app.</p></div>
+        <div class="data-action data-danger"><div><strong>Erase everything</strong><p>Deletes all customers, documents, payments, expenses, receipt photos and settings in this copy of the app.</p></div>
           <button type="button" class="btn btn-danger btn-sm" data-act="erase">${icon('trash')}<span>Erase everything</span></button></div>
       </div>
     </section>`;
@@ -297,7 +361,8 @@
 
   // ---------------------------------------------------------------- page
   function sectionNav() {
-    const items = [['set-business', 'Business details'], ['set-brand', 'Logo and colors'], ['set-docs', 'Estimates and invoices'], ['set-methods', 'Payment methods'], ['set-data', 'Backup and data']];
+    const items = [['set-business', 'Business details'], ['set-brand', 'Logo and colors'], ['set-docs', 'Estimates and invoices'], ['set-tax', 'Sales tax profiles'],
+      ['set-methods', 'Payment methods'], ['set-mileage', 'Mileage rates'], ['set-data', 'Backup and data']];
     return html`<nav class="settings-nav" aria-label="Settings sections">${items.map((i) => html`<button type="button" data-jump="${i[0]}">${i[1]}</button>`)}</nav>`;
   }
 
@@ -315,7 +380,9 @@
             ${businessSection(s)}
             ${brandSection(s, logo)}
             ${docsSection(s)}
+            ${taxSection(s)}
             ${methodsSection(s)}
+            ${mileageSection(s)}
             <div data-data-section>${dataSection()}</div>
           </div>
         </div>
@@ -332,6 +399,21 @@
   function bind(root) {
     const brandForm = root.querySelector('#set-brand');
     let methods = clone(NB.store.settings().paymentMethods);
+    let profiles = clone(NB.store.settings().taxProfiles);
+    let rates = clone(NB.store.settings().mileageRates).sort((a, b) => b.from.localeCompare(a.from));
+    const renderProfiles = () => {
+      root.querySelector('[data-profiles]').innerHTML = out(profiles.map(profileRow));
+      refreshDefault();
+    };
+    const refreshDefault = () => {
+      const sel = root.querySelector('#set-default-profile');
+      const keep = sel.value;
+      sel.innerHTML = out(defaultProfileOptions(profiles, keep));
+      sel.value = profiles.some((p) => p.id === keep) ? keep : '';
+    };
+    const renderRates = () => {
+      root.querySelector('[data-rates]').innerHTML = out(rates.map(rateRow));
+    };
 
     const brandState = () => {
       const s = clone(NB.store.settings());
@@ -366,6 +448,19 @@
         refreshPreview();
       }
       if (el.closest('#set-docs') && /-(prefix|next)$/.test(el.id)) refreshSamples();
+      const prow = el.closest('[data-profile]');
+      if (prow && el.dataset.pf && el.dataset.pf !== 'taxShipping') {
+        const pr = profiles[+prow.dataset.profile];
+        if (el.dataset.pf === 'rate') pr.rate = Math.max(0, NB.ui.num(el.value));
+        else pr[el.dataset.pf] = el.value;
+        if (el.dataset.pf === 'name') refreshDefault();
+      }
+      const rrow = el.closest('[data-rate]');
+      if (rrow && el.dataset.rf) {
+        const r = rates[+rrow.dataset.rate];
+        if (el.dataset.rf === 'cents') r.cents = Math.max(0, NB.ui.num(el.value));
+        else r.from = el.value;
+      }
       const row = el.closest('[data-method]');
       if (row && el.dataset.mf) {
         const m = methods[+row.dataset.method];
@@ -378,6 +473,10 @@
 
     root.onchange = async (e) => {
       const el = e.target;
+      if (el.dataset && el.dataset.pf === 'taxShipping') {
+        profiles[+el.closest('[data-profile]').dataset.profile].taxShipping = el.checked;
+        return;
+      }
       if (el.name === 'swatch') {
         root.querySelector('#set-color').value = el.value;
         root.querySelector('#set-color-picker').value = el.value;
@@ -435,6 +534,26 @@
           NB.ui.toast('Logo removed');
           NB.views.settings.render(root);
         });
+      } else if (act === 'profile-add') {
+        profiles.push({ id: uid(), name: '', rate: 0, taxShipping: false, note: '' });
+        renderProfiles();
+        const names = root.querySelectorAll('[data-profile] [data-pf="name"]');
+        names[names.length - 1].focus();
+      } else if (act === 'profile-remove') {
+        profiles.splice(+b.closest('[data-profile]').dataset.profile, 1);
+        renderProfiles();
+      } else if (act === 'rate-add') {
+        rates.unshift({ from: Dates.today(), cents: rates.length ? rates[0].cents : 0 });
+        renderRates();
+        root.querySelector('[data-rate="0"] [data-rf="cents"]').focus();
+      } else if (act === 'rate-remove') {
+        if (rates.length <= 1) { NB.ui.toast('Keep at least one mileage rate.'); return; }
+        rates.splice(+b.closest('[data-rate]').dataset.rate, 1);
+        renderRates();
+      } else if (act === 'rate-reset') {
+        rates = clone(NB.tax.MILEAGE_RATES).sort((a, c) => c.from.localeCompare(a.from));
+        renderRates();
+        NB.ui.toast('IRS rates restored. Save to keep them.');
       } else if (act === 'method-add') {
         methods.push({ id: uid(), name: '', feePercent: 0, feeFixed: 0, feeMin: 0 });
         renderMethods();
@@ -520,7 +639,6 @@
               invoiceDays: Math.max(0, parseInt(v.invoiceDays, 10) || 0),
               estimateDays: Math.max(0, parseInt(v.estimateDays, 10) || 0),
               depositPercent: Math.min(100, Math.max(0, NB.ui.num(v.depositPercent))),
-              taxLabel: v.taxLabel.trim() || 'Tax', taxRate: Math.max(0, NB.ui.num(v.taxRate)), taxShipping: !!v.taxShipping,
               estimateNotes: v.estimateNotes.trim(), invoiceNotes: v.invoiceNotes.trim(),
               paymentInstructions: v.paymentInstructions.trim(), paymentLink: v.paymentLink.trim(), receiptNote: v.receiptNote.trim(),
             },
@@ -530,6 +648,38 @@
           NB.ui.toast(capped.length ? 'Saved. Some next numbers stay higher because those numbers were already used.' : 'Document settings saved');
           NB.views.settings.render(root);
           root.querySelector('#set-docs').scrollIntoView({ block: 'start' });
+        });
+      } else if (section === 'tax') {
+        for (let i = 0; i < profiles.length; i++) {
+          const p = profiles[i];
+          p.name = (p.name || '').trim();
+          p.note = (p.note || '').trim();
+          const nameEl = root.querySelectorAll('[data-profile] [data-pf="name"]')[i];
+          if (!p.name) { NB.ui.toast('Give every tax profile a name.', 'error'); nameEl.focus(); return; }
+          if (!(p.rate >= 0 && p.rate <= 25)) {
+            NB.ui.toast(p.name + ': use a rate between 0% and 25%.', 'error');
+            root.querySelectorAll('[data-profile] [data-pf="rate"]')[i].focus();
+            return;
+          }
+        }
+        await NB.ui.busy(button, async () => {
+          const def = profiles.some((p) => p.id === v.defaultTaxProfileId) ? v.defaultTaxProfileId : '';
+          await NB.store.saveSettings({ taxProfiles: profiles, docs: { defaultTaxProfileId: def, taxLabel: (v.taxLabel || '').trim() || 'Sales tax' } });
+          NB.ui.toast('Tax profiles saved');
+        });
+      } else if (section === 'mileage') {
+        const seen = new Set();
+        for (let i = 0; i < rates.length; i++) {
+          const r = rates[i];
+          const at = (f) => root.querySelectorAll('[data-rate] [data-rf="' + f + '"]')[i];
+          if (!Dates.valid(r.from)) { NB.ui.toast('Choose a start date for every rate.', 'error'); at('from').focus(); return; }
+          if (seen.has(r.from)) { NB.ui.toast('Two rates start on ' + fmt.date(r.from) + '. Keep one.', 'error'); at('from').focus(); return; }
+          if (!(r.cents > 0 && r.cents < 500)) { NB.ui.toast('Use cents per mile, like 72.5.', 'error'); at('cents').focus(); return; }
+          seen.add(r.from);
+        }
+        await NB.ui.busy(button, async () => {
+          await NB.store.saveSettings({ mileageRates: rates.slice().sort((a, c) => a.from.localeCompare(c.from)) });
+          NB.ui.toast('Mileage rates saved');
         });
       } else if (section === 'methods') {
         const clean = methods.map((m) => Object.assign(m, { name: (m.name || '').trim() }));
@@ -565,16 +715,17 @@
     }
     const ok = await NB.ui.confirm({
       title: 'Restore this backup?',
-      message: 'It has ' + plural(counts.customers, 'customer') + ', ' + plural(counts.estimates, 'estimate') + ', ' + plural(counts.invoices, 'invoice') + ' and ' +
-        plural(counts.payments, 'payment') + (json.exportedAt ? ', saved ' + fmt.date(String(json.exportedAt).slice(0, 10)) : '') +
+      message: 'It has ' + plural(counts.customers, 'customer') + ', ' + plural(counts.estimates, 'estimate') + ', ' + plural(counts.invoices, 'invoice') + ', ' +
+        plural(counts.payments, 'payment') + ', ' + plural(counts.expenses, 'expense') + ' and ' + plural(counts.mileage, 'trip') + (json.exportedAt ? ', saved ' + fmt.date(String(json.exportedAt).slice(0, 10)) : '') +
         '. Everything currently here will be replaced.',
       confirm: 'Replace with backup',
       danger: true,
     });
     if (!ok) return;
     await NB.ui.busy(null, async () => {
-      await NB.store.importData(json);
-      NB.ui.toast('Backup restored');
+      const { missingFiles } = await NB.store.importData(json);
+      NB.ui.toast(missingFiles ? 'Backup restored, but ' + plural(missingFiles, 'receipt file') + ' couldn’t be stored here' : 'Backup restored',
+        missingFiles ? 'error' : undefined);
       NB.views.settings.render(root);
     });
   }
