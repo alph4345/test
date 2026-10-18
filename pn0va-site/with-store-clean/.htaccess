@@ -51,14 +51,15 @@ RewriteRule ^shop/?$            /store       [R=301,L]
 ErrorDocument 404 /
 
 # Security headers. Nothing on this site is meant to be shown inside another
-# site's page, and it uses no camera, microphone or location.
+# site's page, and it uses no camera or microphone. Location only for the
+# Caches page's Near me, on this site alone (and the browser asks first).
 <IfModule mod_headers.c>
   Header always set X-Content-Type-Options "nosniff"
   Header always set Referrer-Policy "strict-origin-when-cross-origin"
   # stops another site loading the store invisibly and steering clicks
   Header always set X-Frame-Options "SAMEORIGIN"
   Header always set Content-Security-Policy "frame-ancestors 'self'"
-  Header always set Permissions-Policy "camera=(), microphone=(), geolocation=()"
+  Header always set Permissions-Policy "camera=(), microphone=(), geolocation=(self)"
   # With HTTPS forced (above), also uncomment this so browsers refuse plain
   # HTTP for a year, even on a first click from a public Wi-Fi network.
   # Header always set Strict-Transport-Security "max-age=31536000"

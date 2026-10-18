@@ -70,6 +70,9 @@ SITE_URL = "https://pn0va.com"
 # favicon.ico / favicon.svg / apple-touch-icon.png / og-image.png, cut from the
 # logo by tools/make-icons.js. Committed, so the build never needs Node for them.
 ICONS = ROOT / "_source/icons"
+# The test kit's phone view (python build.py --test-kit): never in a build
+# for upload. See add_test_kit().
+TEST_KIT = ROOT / "_source/test-kit"
 
 # What each page says about itself in search results and link previews:
 # (clean URL path, description). {store} only reads out on the store build.
@@ -869,7 +872,7 @@ WORLD_HTML = """
     <div class="dw-sortbar">
       <label for="dw-sort">Sort</label>
       <select id="dw-sort">
-        <option value="number">Number</option>
+        <option value="number">Number (default)</option>
         <option value="newest">Newest</option>
         <option value="name">Name</option>
         <option value="city">City</option>
@@ -877,6 +880,8 @@ WORLD_HTML = """
         <option value="country">Country</option>
         <option value="near">Near me</option>
       </select>
+      <button class="dw-sortreset" id="dw-sortreset" type="button" hidden
+              title="Back to the default order, by number">Reset</button>
       <p class="dw-sortnote" id="dw-sortnote" role="status"></p>
     </div>
     <div class="dp-panel__body" id="dw-rows"></div>
@@ -958,6 +963,19 @@ html:not(.js) .dw-shell, html.js:not([data-view="world"]) .dw-shell{ display:non
 .dw-sortbar select:hover{ border-color:var(--pn-red); color:var(--pn-signal); }
 .dw-sortbar select:focus-visible{ outline:2px solid var(--pn-focus); outline-offset:2px; }
 .dw-sortbar option{ background:#000; color:var(--pn-ink); }
+/* another order chosen: the menu lit, and RESET beside it, one step back
+   to the default, by number */
+.dw-sortbar select.is-sorted{ border-color:var(--pn-red); color:var(--pn-signal); }
+.dw-sortreset{
+  display:inline-flex; align-items:center; gap:7px; min-height:30px; padding:0 10px; cursor:pointer;
+  font:inherit; font-size:9px; letter-spacing:.12em; text-transform:uppercase; color:var(--pn-ink);
+  background:#000; border:1px solid var(--pn-red-50); border-radius:var(--pn-radius-sm);
+  transition:border-color var(--pn-dur-state) ease, color var(--pn-dur-state) ease;
+}
+.dw-sortreset[hidden]{ display:none; }
+.dw-sortreset::before{ content:"\00d7"; font-size:12px; line-height:1; color:var(--pn-red); }
+.dw-sortreset:hover{ border-color:var(--pn-red); color:var(--pn-signal); }
+.dw-sortreset:focus-visible{ outline:2px solid var(--pn-focus); outline-offset:2px; }
 .dw-sortnote{
   flex:1 1 100%; margin:0;
   font-family:var(--pn-face-body); font-size:11.5px; line-height:1.4; color:var(--pn-ink-muted);
@@ -989,7 +1007,7 @@ html:not(.js) .dw-shell, html.js:not([data-view="world"]) .dw-shell{ display:non
 }
 /* pointed at: marked; chosen: lit, with the bar down its side */
 .dw-row:hover{ background:var(--pn-red-07); color:var(--pn-ink); }
-.dw-row, .dw-sortbar select{ -webkit-tap-highlight-color:transparent; }   /* the row's own colours, not a blue flash */
+.dw-row, .dw-sortbar select, .dw-sortreset{ -webkit-tap-highlight-color:transparent; }   /* the row's own colours, not a blue flash */
 .dw-row[aria-current="true"]{ background:var(--pn-red-20); color:var(--pn-signal); }
 .dw-item:has(> .dw-row[aria-current="true"])::before{
   content:""; position:absolute; left:0; top:0; bottom:0; width:3px; background:var(--pn-red); z-index:1;
@@ -1262,7 +1280,7 @@ html.dw-ready .dp-shell{ grid-template-columns:minmax(0,1fr); }
   .dw-line{ -webkit-line-clamp:1; }
   .dw-list .dw-help{ display:none; }          /* the opened row says what to do */
   .dw-sortbar{ padding:6px 10px; }
-  .dw-sortbar select{ min-height:40px; font-size:10px; }
+  .dw-sortbar select, .dw-sortreset{ min-height:40px; font-size:10px; }
   .dw-zoom{ left:10px; top:10px; }
   .dw-open{ min-height:40px; }
   /* The cache's screen: no strip of caches above the bar now, so the cache
@@ -1470,6 +1488,10 @@ def build(with_shop: bool):
             html = html.replace('<script src="https://code.createjs.com/1.0.0/createjs.min.js"></script>',
                                 '<script src="vendor/createjs-1.0.0.min.js?v=' + VER + '"></script>')
             html = keyboard_start(html)
+        if page == "about.html":
+            # the status card's SITE list names the store only where there is one
+            html = (html.replace("<li data-store>", "<li>") if with_shop else
+                    re.sub(r"\n\s*<li data-store>.*?</li>", "", html, flags=re.S))
         # tokens must load before anything that uses them
         if "tokens.css" not in html:
             html = re.sub(r'(\n\s*<link rel="stylesheet")',
@@ -2329,14 +2351,15 @@ RewriteRule ^shop/?$            /store       [R=301,L]
 ErrorDocument 404 /
 
 # Security headers. Nothing on this site is meant to be shown inside another
-# site's page, and it uses no camera, microphone or location.
+# site's page, and it uses no camera or microphone. Location only for the
+# Caches page's Near me, on this site alone (and the browser asks first).
 <IfModule mod_headers.c>
   Header always set X-Content-Type-Options "nosniff"
   Header always set Referrer-Policy "strict-origin-when-cross-origin"
   # stops another site loading the store invisibly and steering clicks
   Header always set X-Frame-Options "SAMEORIGIN"
   Header always set Content-Security-Policy "frame-ancestors 'self'"
-  Header always set Permissions-Policy "camera=(), microphone=(), geolocation=()"
+  Header always set Permissions-Policy "camera=(), microphone=(), geolocation=(self)"
   # With HTTPS forced (above), also uncomment this so browsers refuse plain
   # HTTP for a year, even on a first click from a public Wi-Fi network.
   # Header always set Strict-Transport-Security "max-age=31536000"
@@ -2382,7 +2405,7 @@ def build_clean(flat: pathlib.Path, with_shop: bool) -> pathlib.Path:
 
     pages = ["blog", "projects", "caches", "about"] + (["store"] if with_shop else [])
     assets = ("style.css", "page-style.css", "drops.css", "reader.css", "tokens.css",
-              "script.js", "page-script.js", "reader.js", "drops.js", "store.js",
+              "script.js", "page-script.js", "reader.js", "drops.js", "store.js", "about.js",
               "drops-map.js", "drops-world.js", "favicon.ico", "favicon.svg", "apple-touch-icon.png")
 
     def rootify(html: str) -> str:
@@ -2493,6 +2516,33 @@ def stamp_assets(folder: pathlib.Path):
     for html in folder.rglob("*.html"):
         text = html.read_text(encoding="utf-8")
         html.write_text(photos.sub(photo_list, img.sub(sub, pat.sub(sub, text))), encoding="utf-8", newline=NL)
+
+
+def add_test_kit(folder: pathlib.Path, clean: bool):
+    """The test kit's PHONE VIEW, for the demo kit only (python build.py
+    --test-kit), never for the site that is uploaded: a page that shows the
+    site in a phone-sized frame on a desktop (phone-view, from
+    _source/test-kit/), and a switch to it at the top right of every page."""
+    root = "/" if clean else ""
+    page = (TEST_KIT / "phone-view.html").read_text(encoding="utf-8")
+    page = page.replace("{ROOT}", root).replace("{HOME}", "/" if clean else "index.html")
+    if clean:
+        (folder / "phone-view").mkdir(exist_ok=True)
+        (folder / "phone-view" / "index.html").write_text(page, encoding="utf-8", newline=NL)
+        pages = [folder / "index.html"] + sorted(folder.glob("*/index.html"))
+    else:
+        (folder / "phone-view.html").write_text(page, encoding="utf-8", newline=NL)
+        pages = sorted(folder.glob("*.html"))
+    (folder / "test-kit.js").write_text((TEST_KIT / "test-kit.js").read_text(encoding="utf-8"),
+                                        encoding="utf-8", newline=NL)
+    tag = (f'<script src="{root}test-kit.js?v=0" data-phone="'
+           + ("/phone-view" if clean else "phone-view.html") + '" defer></script>\n</body>')
+    for f in pages:
+        if f.name == "phone-view.html" or f.parent.name == "phone-view":
+            continue
+        html = f.read_text(encoding="utf-8")
+        if "</body>" in html and "test-kit.js" not in html:
+            f.write_text(html.replace("</body>", tag, 1), encoding="utf-8", newline=NL)
 
 
 def check_js(folder: pathlib.Path):
@@ -2612,6 +2662,7 @@ def check_brand_drops() -> None:
 
 
 if __name__ == "__main__":
+    test_kit = "--test-kit" in sys.argv[1:]
     check_brand_drops()
     ensure_map()
     for flag in (True, False):
@@ -2619,6 +2670,11 @@ if __name__ == "__main__":
         check_js(d)
         stamp_assets(d)
         c = build_clean(d, flag)
+        if test_kit:                     # after the clean copy, so each gets its own
+            add_test_kit(d, clean=False)
+            check_js(d)
+            stamp_assets(d)
+            add_test_kit(c, clean=True)
         check_js(c)
         stamp_assets(c)
         print(f"  built {d.name:11s} {len(list(d.rglob('*'))):3d} files"
@@ -2626,4 +2682,7 @@ if __name__ == "__main__":
     print("\n  -clean       = pn0va.com/caches URLs: the one you upload")
     print("  flat builds  = open by double-clicking (no street map)")
     print("  preview      = double-click PREVIEW.cmd, or  python tools/preview.py")
+    if test_kit:
+        print("\n  TEST KIT: every page has PHONE VIEW (phone-view). Do not upload this build:")
+        print("  run  python build.py  again for the site.")
     check_map()

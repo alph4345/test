@@ -710,6 +710,19 @@ html:not(.js) .dw-shell, html.js:not([data-view="world"]) .dw-shell{ display:non
 .dw-sortbar select:hover{ border-color:var(--pn-red); color:var(--pn-signal); }
 .dw-sortbar select:focus-visible{ outline:2px solid var(--pn-focus); outline-offset:2px; }
 .dw-sortbar option{ background:#000; color:var(--pn-ink); }
+/* another order chosen: the menu lit, and RESET beside it, one step back
+   to the default, by number */
+.dw-sortbar select.is-sorted{ border-color:var(--pn-red); color:var(--pn-signal); }
+.dw-sortreset{
+  display:inline-flex; align-items:center; gap:7px; min-height:30px; padding:0 10px; cursor:pointer;
+  font:inherit; font-size:9px; letter-spacing:.12em; text-transform:uppercase; color:var(--pn-ink);
+  background:#000; border:1px solid var(--pn-red-50); border-radius:var(--pn-radius-sm);
+  transition:border-color var(--pn-dur-state) ease, color var(--pn-dur-state) ease;
+}
+.dw-sortreset[hidden]{ display:none; }
+.dw-sortreset::before{ content:" d7"; font-size:12px; line-height:1; color:var(--pn-red); }
+.dw-sortreset:hover{ border-color:var(--pn-red); color:var(--pn-signal); }
+.dw-sortreset:focus-visible{ outline:2px solid var(--pn-focus); outline-offset:2px; }
 .dw-sortnote{
   flex:1 1 100%; margin:0;
   font-family:var(--pn-face-body); font-size:11.5px; line-height:1.4; color:var(--pn-ink-muted);
@@ -741,7 +754,7 @@ html:not(.js) .dw-shell, html.js:not([data-view="world"]) .dw-shell{ display:non
 }
 /* pointed at: marked; chosen: lit, with the bar down its side */
 .dw-row:hover{ background:var(--pn-red-07); color:var(--pn-ink); }
-.dw-row, .dw-sortbar select{ -webkit-tap-highlight-color:transparent; }   /* the row's own colours, not a blue flash */
+.dw-row, .dw-sortbar select, .dw-sortreset{ -webkit-tap-highlight-color:transparent; }   /* the row's own colours, not a blue flash */
 .dw-row[aria-current="true"]{ background:var(--pn-red-20); color:var(--pn-signal); }
 .dw-item:has(> .dw-row[aria-current="true"])::before{
   content:""; position:absolute; left:0; top:0; bottom:0; width:3px; background:var(--pn-red); z-index:1;
@@ -1014,7 +1027,7 @@ html.dw-ready .dp-shell{ grid-template-columns:minmax(0,1fr); }
   .dw-line{ -webkit-line-clamp:1; }
   .dw-list .dw-help{ display:none; }          /* the opened row says what to do */
   .dw-sortbar{ padding:6px 10px; }
-  .dw-sortbar select{ min-height:40px; font-size:10px; }
+  .dw-sortbar select, .dw-sortreset{ min-height:40px; font-size:10px; }
   .dw-zoom{ left:10px; top:10px; }
   .dw-open{ min-height:40px; }
   /* The cache's screen: no strip of caches above the bar now, so the cache

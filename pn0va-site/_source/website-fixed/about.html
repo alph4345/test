@@ -19,31 +19,94 @@
     </ul>
   </nav>
 
-  <main id="windows" class="single-screen">
-  <!-- smaller window first: the operator's portrait -->
-  <div id="window-right" class="text-window" data-fly="left">
-    <h2>The Operator</h2>
-    <img class="about-portrait" src="images/about/portrait-placeholder.svg" alt="Portrait of the site's owner">
-    <p class="geo-caption">P_N0VA // EST. 2023</p>
-  </div>
+  <!-- ============================================================
+       THE OPERATOR'S STATUS CARD — a JRPG character card: portrait,
+       name and class at the top; a command menu whose hand points
+       at what the text window below shows (BIO, SKILLS, SITE); the
+       level in the box on its corner.
+       To change it, edit the words below:
+         the portrait   images/about/portrait-placeholder.svg (or
+                        your own image, about 300 x 340)
+         the orbs       one per skill; title="" is what each says
+                        when pointed at
+         a command      its button (data-help: the line shown in
+                        the bar while it is chosen) and its section
+         the level      data-since: the year it began; the page
+                        counts the years since
+       ============================================================ -->
+  <main id="windows" class="status-screen">
+  <article class="status" data-fly="bottom" aria-labelledby="st-name">
 
-  <div id="window-left" class="text-window" data-fly="bottom">
-    <h2>About Me</h2>
-    <p>Welcome! I'm a creative developer and storyteller.</p>
-    <p>This site showcases my work in web development, projects, and geocaching adventures.</p>
-    <p>Feel free to explore and get in touch!</p>
+    <div class="st-top">
+      <figure class="st-portrait st-win">
+        <img src="images/about/portrait-placeholder.svg" alt="Portrait of P_N0VA">
+      </figure>
+      <div class="st-id">
+        <h1 class="st-name" id="st-name">P_N0VA<span>, The Operator</span></h1>
+        <p class="st-est"><span class="st-k">Est.</span> <b>2023</b>
+          <span class="st-orbs" role="list" aria-label="Skills">
+            <i class="st-orb st-orb--red" role="listitem" title="Web Development"></i>
+            <i class="st-orb st-orb--bone" role="listitem" title="Creative Writing"></i>
+            <i class="st-orb st-orb--taupe" role="listitem" title="Comic Art"></i>
+            <i class="st-orb st-orb--ash" role="listitem" title="Game Design"></i>
+          </span>
+        </p>
+        <p class="st-class">Creative Developer</p>
+        <p class="st-kinds">Writer Artist Designer</p>
+      </div>
+    </div>
 
-    <h3>Skills &amp; Tools</h3>
-    <ul>
-      <li>Web Development</li>
-      <li>Creative Writing</li>
-      <li>Comic Art</li>
-      <li>Game Design</li>
-    </ul>
-    <p>Always learning and creating new things!</p>
-  </div>
+    <div class="st-cmd">
+      <p class="st-help st-win" id="st-help">Who runs this site</p>
+      <div class="st-menu st-win" role="tablist" aria-label="About P_N0VA" aria-orientation="vertical">
+        <button type="button" role="tab" id="st-t-bio" aria-controls="st-bio" aria-selected="true"
+                data-help="Who runs this site">Bio</button>
+        <button type="button" role="tab" id="st-t-skills" aria-controls="st-skills" aria-selected="false"
+                data-help="What P_N0VA does">Skills</button>
+        <button type="button" role="tab" id="st-t-site" aria-controls="st-site" aria-selected="false"
+                data-help="What is on this site">Site</button>
+      </div>
+      <span class="st-hand" aria-hidden="true"><svg viewBox="0 0 34 20" width="34" height="20">
+        <path d="M2 5.5h6.5v11H2z" fill="#B0A49B" stroke="#000" stroke-width="1.4"/>
+        <path d="M8.5 4.5c2.6-1.6 5.2-2.2 7.6-1.4l1.3.6h12.3c1.6 0 2.6 1 2.6 2.3s-1 2.3-2.6 2.3h-8.4
+                 c1.2.3 1.9 1.1 1.9 2.1 0 1.1-.9 2-2.1 2h-.4c1 .4 1.6 1.1 1.6 2 0 1.1-.9 1.9-2.1 1.9h-.6
+                 c.7.4 1.1 1 1.1 1.7 0 1-.9 1.8-2.1 1.8h-6.7c-1.6 0-3-.7-4.2-1.7z"
+              fill="#FFFFFF" stroke="#000" stroke-width="1.4" stroke-linejoin="round"/>
+        <path d="M21.3 9.4h-6.1M20.5 13.4h-5.2M18.8 17.1h-3.6" stroke="#7A716B" stroke-width="1.1" fill="none"/>
+      </svg></span>
+    </div>
+
+    <div class="st-text st-win">
+      <section class="st-panel" id="st-bio" role="tabpanel" aria-labelledby="st-t-bio">
+        <p>Welcome! I'm a creative developer and storyteller.</p>
+        <p>This site showcases my work in web development, projects, and geocaching adventures.</p>
+        <p>Feel free to explore and get in touch!</p>
+      </section>
+      <section class="st-panel" id="st-skills" role="tabpanel" aria-labelledby="st-t-skills">
+        <ul>
+          <li>Web Development</li>
+          <li>Creative Writing</li>
+          <li>Comic Art</li>
+          <li>Game Design</li>
+        </ul>
+        <p>Always learning and creating new things!</p>
+      </section>
+      <section class="st-panel" id="st-site" role="tabpanel" aria-labelledby="st-t-site">
+        <ul class="st-links">
+          <li><a href="blog.html">Blog</a><span>Posts on development, creative projects and building this site.</span></li>
+          <li><a href="projects.html">Projects</a><span>Web, animation and game experiments.</span></li>
+          <li><a href="caches.html">Caches</a><span>Small things hidden in plain sight at sites around the world.</span></li>
+          <li data-store><a href="store.html">Store</a><span>Handmade pins, keychains and art plates.</span></li>
+        </ul>
+      </section>
+      <p class="st-stat st-win"><span class="st-k">LV</span><b data-since="2023">03</b></p>
+    </div>
+
+    <p class="st-credit">P_N0VA // pn0va.com</p>
+  </article>
   </main>
 
   <script src="page-script.js?v=20260706a"></script>
+  <script src="about.js?v=20260706a"></script>
 </body>
 </html>

@@ -1195,3 +1195,420 @@ html:not(.js) .sub-page + .sub-page h2
   .edge-nudge { animation: none; }
   .edge-hint { animation: none; opacity: 0; }
 }
+
+/* ---------------------------------------------------------- */
+/* About: the operator's status card                           */
+/* A JRPG character card: the portrait and the name, class     */
+/* and skill orbs at the top; a command menu whose hand points */
+/* at what the text window shows (about.js), the help bar      */
+/* beside it saying what that is; the level in a box on the    */
+/* text window's corner. Windows in the old menu style: a      */
+/* bevelled light frame round a red-to-black fill.             */
+/* ---------------------------------------------------------- */
+
+#windows.status-screen
+{
+  display: block;
+  padding: 84px 16px 40px;
+}
+
+.status,
+.st-win
+{
+  background: linear-gradient(172deg, #330904 0%, #1A0402 48%, #070101 100%);
+  border: 3px solid;
+  border-color: #D9D1CA #8F857F #6F6661 #C9BFB7;
+  border-radius: 4px;
+  box-shadow: 0 0 0 2px #000, inset 0 0 0 1px rgba(0, 0, 0, 0.85);
+}
+
+.status
+{
+  position: relative;
+  max-width: 760px;
+  margin: 0 auto;
+  padding: 22px 22px 16px;
+  color: var(--pn-ink);
+  box-shadow: 0 0 0 2px #000, 0 0 34px rgba(255, 22, 9, 0.35), inset 0 0 0 1px rgba(0, 0, 0, 0.85);
+}
+
+/* the portrait, and who it is */
+.st-top
+{
+  display: grid;
+  grid-template-columns: minmax(0, 34%) minmax(0, 1fr);
+  gap: 26px;
+  align-items: start;
+}
+
+.st-portrait
+{
+  margin: 0;
+  padding: 0;
+  aspect-ratio: 30 / 34;
+  overflow: hidden;
+  background: #000;
+}
+
+.st-portrait img
+{
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.st-id p { margin: 0; }
+
+.st-name
+{
+  margin: 6px 0 20px;
+  font-size: 20px;
+  line-height: 1.45;
+  font-weight: 400;
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
+  color: var(--pn-ink-strong);
+  text-shadow: 3px 3px 0 #000;
+}
+
+.st-k
+{
+  font-size: 11px;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--pn-red);
+}
+
+.st-est
+{
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px 14px;
+  margin-bottom: 20px !important;
+}
+
+.st-est b
+{
+  font-weight: 400;
+  font-size: 36px;
+  line-height: 1;
+  color: var(--pn-red);
+  text-shadow: 0 0 10px rgba(255, 22, 9, 0.5), 3px 3px 0 #000;
+}
+
+/* the skills, as orbs of glass */
+.st-orbs
+{
+  display: inline-flex;
+  gap: 6px;
+}
+
+.st-orb
+{
+  --orb: var(--pn-red);
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  border: 2px solid #4A4441;
+  background: radial-gradient(circle at 34% 30%, #FFFFFF 0 9%, transparent 26%),
+              radial-gradient(circle at 50% 55%, var(--orb) 0%, #000 100%);
+  box-shadow: 0 0 0 1px #000, 0 0 8px rgba(255, 22, 9, 0.25);
+}
+
+.st-orb--bone  { --orb: var(--pn-linen); }
+.st-orb--taupe { --orb: var(--pn-taupe); }
+.st-orb--ash   { --orb: var(--pn-ash); }
+
+.st-class
+{
+  font-size: 15px;
+  line-height: 1.7;
+  color: var(--pn-red);
+  text-shadow: 0 0 8px rgba(255, 22, 9, 0.45);
+}
+
+.st-kinds
+{
+  font-size: 14px;
+  line-height: 1.8;
+  word-spacing: 0.5em;
+  color: var(--pn-ink);
+}
+
+/* the commands: the help bar, the menu, and the hand between */
+.st-cmd
+{
+  position: relative;
+  display: flex;
+  align-items: center;
+  margin: -26px 0 0;          /* the menu up beside the portrait, the bar under it */
+}
+
+.st-help
+{
+  flex: 1 1 auto;
+  min-width: 0;
+  display: flex;
+  align-items: center;
+  min-height: 56px;
+  margin: 0 -10px 0 0;
+  padding: 10px 40px 10px 18px;
+  font-size: 11px;
+  line-height: 1.6;
+  letter-spacing: 0.06em;
+  color: var(--pn-red);
+  text-shadow: 0 0 8px rgba(255, 22, 9, 0.45);
+}
+
+.st-menu
+{
+  position: relative;
+  z-index: 1;
+  flex: 0 0 auto;
+  display: flex;
+  flex-direction: column;
+  min-width: 190px;
+  padding: 10px 18px 10px 22px;
+}
+
+.st-menu [role="tab"]
+{
+  display: block;
+  padding: 7px 4px 6px;
+  font: inherit;
+  font-size: 14px;
+  line-height: 1.5;
+  letter-spacing: 0.06em;
+  text-align: left;
+  color: var(--pn-ink-faint);
+  background: none;
+  border: 0;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.st-menu [role="tab"]:hover { color: var(--pn-ink); }
+
+.st-menu [role="tab"][aria-selected="true"]
+{
+  color: var(--pn-ink-strong);
+  text-shadow: 0 0 10px rgba(255, 255, 255, 0.35);
+}
+
+.st-menu [role="tab"]:focus-visible
+{
+  outline: 2px solid var(--pn-focus);
+  outline-offset: 2px;
+}
+
+/* the hand: at the chosen command (about.js puts it there), and the
+   pointing gloved hand of the old menus, nodding at it */
+.st-hand
+{
+  position: absolute;
+  z-index: 2;
+  left: -999px;
+  top: 0;
+  width: 62px;
+  pointer-events: none;
+  filter: drop-shadow(2px 2px 0 #000);
+  transition: top 0.12s ease;
+  animation: st-nod 0.8s steps(1, end) infinite;
+}
+
+.st-hand svg
+{
+  display: block;
+  width: 100%;
+  height: auto;
+}
+
+@keyframes st-nod
+{
+  0%   { translate: 0 0; }
+  50%  { translate: -4px 0; }
+}
+
+/* the text window, one part at a time once about.js is running: all of
+   them in the one place, the others unseen, so the window is as tall as
+   the tallest and nothing moves as they change */
+.st-text
+{
+  position: relative;
+  margin-top: 18px;
+  min-height: 180px;
+  padding: 20px 24px 40px;
+}
+
+.st-live .st-text { display: grid; }
+
+.st-live .st-panel { grid-area: 1 / 1; }
+
+.st-live .st-panel[hidden]
+{
+  display: block;
+  visibility: hidden;
+}
+
+.st-panel p
+{
+  margin: 0 0 12px;
+  font-family: Arial, Helvetica, sans-serif;
+  font-size: 15px;
+  line-height: 1.65;
+  color: var(--pn-ink);
+}
+
+.st-panel ul
+{
+  margin: 0 0 14px;
+  padding: 0;
+  list-style: none;
+}
+
+.st-panel li
+{
+  padding: 8px 0 7px;
+  font-size: 12px;
+  line-height: 1.6;
+  border-bottom: 1px solid rgba(255, 22, 9, 0.3);
+}
+
+.st-panel li::before
+{
+  content: "\25B8";
+  margin-right: 12px;
+  color: var(--pn-red);
+}
+
+.st-links li
+{
+  display: grid;
+  grid-template-columns: auto 110px minmax(0, 1fr);
+  align-items: baseline;
+  column-gap: 0;
+}
+
+.st-links li::before { margin-right: 12px; }
+
+.st-links a
+{
+  color: var(--pn-ink-strong);
+  text-decoration: none;
+}
+
+.st-links a:hover { color: var(--pn-red); }
+
+.st-links a:focus-visible
+{
+  outline: 2px solid var(--pn-focus);
+  outline-offset: 2px;
+}
+
+.st-links span
+{
+  font-family: Arial, Helvetica, sans-serif;
+  font-size: 13.5px;
+  line-height: 1.5;
+  color: var(--pn-ink-muted);
+}
+
+/* no JavaScript: every part, one under another */
+.status:not(.st-live) .st-panel + .st-panel
+{
+  margin-top: 14px;
+  padding-top: 14px;
+  border-top: 1px solid rgba(255, 22, 9, 0.3);
+}
+
+.status:not(.st-live) .st-hand { display: none; }
+
+/* the level, in a box on the text window's corner */
+.st-stat
+{
+  position: absolute;
+  right: 18px;
+  bottom: -26px;
+  display: flex;
+  align-items: baseline;
+  gap: 10px;
+  margin: 0;
+  padding: 10px 16px 9px;
+}
+
+.st-stat b
+{
+  font-weight: 400;
+  font-size: 28px;
+  line-height: 1;
+  color: var(--pn-ink-strong);
+  text-shadow: 3px 3px 0 #000;
+}
+
+.st-credit
+{
+  margin: 26px 0 0;
+  padding-right: 150px;
+  font-size: 8px;
+  line-height: 1.6;
+  letter-spacing: 0.14em;
+  color: var(--pn-red);
+}
+
+@media screen and (max-width: 700px)
+{
+  #windows.status-screen { padding: 64px 10px 28px; }
+
+  .status { padding: 14px 12px 12px; }
+
+  .st-top { grid-template-columns: minmax(0, 38%) minmax(0, 1fr); gap: 12px; }
+
+  .st-name { margin: 0 0 10px; font-size: 11px; line-height: 1.6; text-shadow: 2px 2px 0 #000; }
+
+  .st-k { font-size: 8px; }
+
+  .st-est { gap: 6px 8px; margin-bottom: 10px !important; }
+
+  .st-est b { font-size: 20px; }
+
+  .st-orbs { gap: 4px; }
+
+  .st-orb { width: 17px; height: 17px; border-width: 1.5px; }
+
+  .st-class { font-size: 9px; line-height: 1.6; }
+
+  .st-kinds { font-size: 9px; word-spacing: 0.3em; }
+
+  .st-cmd { margin-top: 14px; }       /* the name and class fill the column here */
+
+  .st-help { min-height: 46px; padding: 8px 30px 8px 12px; font-size: 8.5px; }
+
+  .st-menu { min-width: 0; padding: 6px 12px 6px 16px; }
+
+  .st-menu [role="tab"] { padding: 6px 4px 5px; font-size: 11px; }
+
+  .st-hand { width: 44px; }
+
+  .st-text { margin-top: 14px; min-height: 0; padding: 14px 14px 36px; }
+
+  .st-panel p { font-size: 14px; }
+
+  .st-panel li { font-size: 10px; }
+
+  .st-links li { grid-template-columns: auto minmax(0, 1fr); row-gap: 3px; }
+
+  .st-links span { grid-column: 2; font-size: 13px; }
+
+  .st-stat { right: 12px; bottom: -22px; padding: 8px 12px 7px; }
+
+  .st-stat b { font-size: 20px; }
+
+  .st-credit { margin-top: 22px; padding-right: 110px; font-size: 7px; }
+}
+
+@media (prefers-reduced-motion: reduce)
+{
+  .st-hand { animation: none; transition: none; }
+}

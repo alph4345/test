@@ -1,0 +1,152 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex">
+<title>P_N0VA — PHONE VIEW (TEST KIT)</title>
+<!-- ==========================================================================
+     TEST KIT ONLY (python build.py --test-kit): the site in a phone-sized
+     frame, on a desktop. Its width, height and layout are a phone's; touch
+     is the mouse (a drag is a swipe). The size buttons, TURN SIDEWAYS,
+     ACTUAL SIZE (the frame at 100%, scrolled, where the window is too short
+     for it; otherwise it is scaled down to fit) and the frame's address,
+     which this page keeps in its own after the #, so a reload stays where
+     it was. DESKTOP VIEW opens the same page full size.
+     ========================================================================== -->
+<style>
+@font-face{
+  font-family:'Press Start 2P';
+  src:url('{ROOT}fonts/press-start-2p-latin-400-normal.woff2') format('woff2');
+  font-weight:400; font-style:normal; font-display:block;
+}
+:root{
+  --red:#FF1609; --red-50:rgba(255,22,9,.5); --red-20:rgba(255,22,9,.2);
+  --linen:#E8E2DC; --taupe:#B0A49B; --ash:#7A716B; --slate:#3A3532; --ember:#0A0000;
+}
+*{ box-sizing:border-box; }
+html, body{ height:100%; margin:0; }
+body{
+  display:flex; flex-direction:column; background:#000; color:var(--linen);
+  font:9px/1.4 'Press Start 2P', ui-monospace, monospace; letter-spacing:.1em; text-transform:uppercase;
+}
+.bar{
+  display:flex; flex-wrap:wrap; align-items:center; gap:8px 14px; padding:10px 14px;
+  background:var(--ember); border-bottom:2px solid var(--red);
+}
+.bar h1{ margin:0; font-size:10px; font-weight:400; letter-spacing:.16em; color:var(--red); }
+.bar h1 small{ margin-left:8px; font-size:7px; color:var(--ash); }
+.group{ display:flex; flex-wrap:wrap; gap:6px; }
+button, .back{
+  font:inherit; letter-spacing:inherit; text-transform:inherit; color:var(--linen); text-decoration:none;
+  background:#000; border:1px solid var(--red-50); border-radius:3px; padding:8px 10px 7px; cursor:pointer;
+}
+button:hover, .back:hover{ border-color:var(--red); color:#fff; }
+button[aria-pressed="true"]{ background:var(--red); border-color:var(--red); color:#000; }
+button:focus-visible, .back:focus-visible{ outline:2px solid #fff; outline-offset:2px; }
+.back{ display:inline-flex; align-items:center; gap:8px; }
+.back::before{ content:""; border-top:5px solid transparent; border-bottom:5px solid transparent; border-right:7px solid var(--red); }
+.where{ flex:1 1 260px; min-width:0; display:flex; align-items:center; gap:10px; color:var(--ash); }
+.where output{
+  flex:1 1 auto; min-width:0; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;
+  padding:8px 9px 7px; border:1px solid var(--slate); border-radius:3px; background:#000;
+  text-transform:none; color:var(--linen);
+}
+.stage{
+  flex:1 1 auto; min-height:0; display:flex; overflow:auto; padding:20px;
+  background:radial-gradient(circle at 50% 42%, rgba(255,22,9,.10), transparent 62%), #000;
+}
+/* auto margins: centred, and where it is bigger than the stage (ACTUAL
+   SIZE on a short window) from its top, scrolled */
+.holder{ position:relative; flex:0 0 auto; margin:auto; }
+.device{
+  position:absolute; left:0; top:0; transform-origin:0 0; padding:14px; border-radius:38px;
+  background:#120F0E; border:2px solid var(--slate); box-shadow:0 0 0 1px #000, 0 0 40px var(--red-20);
+}
+.screen{ display:block; border:0; border-radius:24px; background:#000; }
+</style>
+</head>
+<body>
+<header class="bar">
+  <a class="back" id="back" href="{HOME}">Desktop view</a>
+  <h1 title="The site at a phone's size, with its phone layout. The mouse stands in for a finger: drag across a photo to swipe it.">Phone view<small>test kit only</small></h1>
+  <div class="group" role="group" aria-label="Screen size" id="sizes">
+    <button type="button" data-w="390" data-h="844">Phone</button>
+    <button type="button" data-w="360" data-h="740">Small</button>
+    <button type="button" data-w="430" data-h="932">Large</button>
+    <button type="button" data-w="768" data-h="1024">Tablet</button>
+  </div>
+  <button type="button" id="turn" aria-pressed="false">Turn sideways</button>
+  <button type="button" id="actual" aria-pressed="false">Actual size</button>
+  <div class="where"><output id="where">/</output><button type="button" id="reload">Reload</button><span id="scale"></span></div>
+</header>
+<main class="stage" id="stage">
+  <div class="holder" id="holder"><div class="device" id="device"><iframe class="screen" id="screen" title="The page at a phone's size"></iframe></div></div>
+</main>
+<script>
+(function () {
+  "use strict";
+  var base = new URL(".", location.href).href, home = "{HOME}";
+  var $ = function (id) { return document.getElementById(id); };
+  var screen = $("screen"), device = $("device"), holder = $("holder"), stage = $("stage");
+  var where = $("where"), scale = $("scale"), back = $("back"), turn = $("turn"), actual = $("actual");
+  var sizes = [].slice.call(document.querySelectorAll("#sizes button"));
+
+  /* the size last chosen, kept in this browser (nothing if it can't) */
+  var kept = {};
+  try { kept = JSON.parse(localStorage.getItem("pn0va-phone-view") || "{}") || {}; } catch (e) {}
+  var size = sizes.filter(function (b) { return b.textContent === kept.size; })[0] || sizes[0];
+  var turned = kept.turned === true, full = kept.full === true;
+  function keep() {
+    try { localStorage.setItem("pn0va-phone-view", JSON.stringify({ size: size.textContent, turned: turned, full: full })); } catch (e) {}
+  }
+
+  /* the frame at the chosen size, scaled down whole if the window is
+     smaller, or at 100% (ACTUAL SIZE), the stage scrolling */
+  function fit() {
+    var w = +size.getAttribute("data-w"), h = +size.getAttribute("data-h");
+    if (turned) { var t = w; w = h; h = t; }
+    screen.style.width = w + "px";
+    screen.style.height = h + "px";
+    var dw = w + 32, dh = h + 32;                  /* its bezel: 14px and a 2px edge a side */
+    var s = full ? 1 : Math.min(1, (stage.clientWidth - 40) / dw, (stage.clientHeight - 40) / dh);
+    device.style.transform = "scale(" + s + ")";
+    holder.style.width = Math.round(dw * s) + "px";
+    holder.style.height = Math.round(dh * s) + "px";
+    scale.textContent = w + "x" + h + (s < 1 ? " at " + Math.round(s * 100) + "%" : "");
+    sizes.forEach(function (b) { b.setAttribute("aria-pressed", String(b === size)); });
+    turn.setAttribute("aria-pressed", String(turned));
+    actual.setAttribute("aria-pressed", String(full));
+  }
+  sizes.forEach(function (b) { b.addEventListener("click", function () { size = b; keep(); fit(); }); });
+  turn.addEventListener("click", function () { turned = !turned; keep(); fit(); });
+  actual.addEventListener("click", function () { full = !full; keep(); fit(); });
+  window.addEventListener("resize", fit);
+
+  /* where the frame is: shown, kept after this page's # (so a reload stays
+     there), and DESKTOP VIEW's way to the same page full size */
+  var last = null;
+  function track() {
+    var href;
+    try { href = screen.contentWindow.location.href; } catch (e) { return; }
+    if (!href || href === last || href.indexOf(base) !== 0) return;
+    last = href;
+    var rel = href.slice(base.length);
+    if (/^phone-view(\.html)?([?#\/]|$)/.test(rel)) { screen.src = home === "/" ? base : base + home; return; }
+    where.textContent = "/" + rel;
+    back.href = href;
+    history.replaceState(null, "", "#" + rel);
+  }
+  screen.addEventListener("load", track);
+  setInterval(track, 300);                     /* a page's own address changes, too */
+  $("reload").addEventListener("click", function () {
+    try { screen.contentWindow.location.reload(); } catch (e) { screen.src = screen.src; }
+  });
+
+  var start = location.hash.slice(1);
+  screen.src = start ? base + start : (home === "/" ? base : base + home);
+  fit();
+})();
+</script>
+</body>
+</html>

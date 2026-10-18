@@ -27,8 +27,8 @@
 
 <link rel="stylesheet" href="vendor/leaflet/leaflet.css?v=ec929f11">
 <link rel="stylesheet" href="tokens.css?v=cf68e78a">
-<link rel="stylesheet" href="page-style.css?v=5fcc7f2f">
-<link rel="stylesheet" href="drops.css?v=6402a319">
+<link rel="stylesheet" href="page-style.css?v=4619abf8">
+<link rel="stylesheet" href="drops.css?v=65f7d11e">
 <style>
 /* Self-hosted faces — no Google Fonts request, no CDN failure mode. */
 @font-face{
@@ -247,7 +247,7 @@
     <div class="dw-sortbar">
       <label for="dw-sort">Sort</label>
       <select id="dw-sort">
-        <option value="number">Number</option>
+        <option value="number">Number (default)</option>
         <option value="newest">Newest</option>
         <option value="name">Name</option>
         <option value="city">City</option>
@@ -255,6 +255,8 @@
         <option value="country">Country</option>
         <option value="near">Near me</option>
       </select>
+      <button class="dw-sortreset" id="dw-sortreset" type="button" hidden
+              title="Back to the default order, by number">Reset</button>
       <p class="dw-sortnote" id="dw-sortnote" role="status"></p>
     </div>
     <div class="dp-panel__body" id="dw-rows"></div>
@@ -465,11 +467,11 @@
 <script src="vendor/leaflet/leaflet.js?v=5a640ff8"></script>
 <script src="vendor/protomaps-leaflet/protomaps-leaflet.js?v=9d8eec24"></script>
 <script src="drops-map.js?v=c472e168" data-map="maps/drops.pmtiles?v=0a2d46bf"></script>
-<script src="drops.js?v=1febb3cc"></script>
+<script src="drops.js?v=e69b648f"></script>
 <script src="vendor/world/d3-array.min.js?v=08cb6252"></script>
 <script src="vendor/world/d3-geo.min.js?v=b7604723"></script>
 <script src="vendor/world/topojson-client.min.js?v=bc057598"></script>
-<script src="drops-world.js?v=db41e2bd" data-world="maps/world/" data-world-v="42189bc6" data-landmarks="maps/landmarks.json?v=a9e7a54f"></script>
+<script src="drops-world.js?v=9eed1c99" data-world="maps/world/" data-world-v="42189bc6" data-landmarks="maps/landmarks.json?v=a9e7a54f"></script>
 <script src="page-script.js?v=3515bd0b"></script>
 </body>
 </html>

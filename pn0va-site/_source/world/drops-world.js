@@ -273,12 +273,15 @@
 
   /* --- the list's order ----------------------------------------------------- */
   // By number unless asked otherwise (the menu over the list): the newest
-  // first, by name, under headings by city, state or country (each cache's
+  // first, by name, under headings by city, state or country (each site's
   // data-city, data-state and data-country), or nearest first, from where
   // the visitor is: the browser asks them, and where they are goes nowhere
-  // but into this sum. A cache keeps its index (rowBtns, mores, sel); only
-  // where its row stands changes, and the arrows walk the rows as they stand.
+  // but into this sum. Any other order lights the menu and shows RESET
+  // beside it, back to the default. A site keeps its index (rowBtns, mores,
+  // sel); only where its row stands changes, and the arrows walk the rows
+  // as they stand.
   var sortBox = document.getElementById("dw-sort"), sortNote = document.getElementById("dw-sortnote");
+  var sortReset = document.getElementById("dw-sortreset");
   var order = list.map(function (d) { return d.i; }), sorted = "number", here = null;
   function text(a, b) { return a.localeCompare(b, undefined, { sensitivity: "base", numeric: true }); }
   function num(d) { var v = parseInt(d.n, 10); return isFinite(v) ? v : Infinity; }
@@ -336,14 +339,22 @@
       rows.appendChild(rowBtns[d.i].parentNode);
     });
     rows.classList.toggle("is-near", how === "near");
+    markSort();
     if (sel >= 0 && rowBtns[sel]) reveal(rowBtns[sel].parentNode);
   }
   function say(words) { if (sortNote) sortNote.textContent = words || ""; }
+  // the menu lit and RESET shown while another order than the default is
+  // chosen (Near me too, while the browser finds where the visitor is)
+  function markSort() {
+    var off = !!sortBox && sortBox.value !== "number";
+    if (sortBox) sortBox.classList.toggle("is-sorted", off);
+    if (sortReset) sortReset.hidden = !off;
+  }
   // Nearest first: where the visitor is, once (the browser asks them); then
   // each row says how far. Not allowed, or not found: the order stays.
   function nearMe() {
     if (here) { arrange("near"); say(""); return; }
-    if (!navigator.geolocation) { say("This browser can't say where you are."); sortBox.value = sorted; return; }
+    if (!navigator.geolocation) { say("This browser can't say where you are."); sortBox.value = sorted; markSort(); return; }
     say("Finding where you are\u2026");
     navigator.geolocation.getCurrentPosition(function (p) {
       here = { lat: p.coords.latitude, lng: p.coords.longitude };
@@ -356,14 +367,19 @@
     }, function (err) {
       say(err && err.code === 1 ? "Location not allowed: the list stays as it was."
                                 : "Couldn't find where you are: the list stays as it was.");
-      if (sortBox.value === "near") sortBox.value = sorted;
+      if (sortBox.value === "near") { sortBox.value = sorted; markSort(); }
     }, { timeout: 15000, maximumAge: 600000 });
   }
   if (sortBox) {
     sortBox.value = "number";               // a reload starts in order again
     sortBox.addEventListener("change", function () {
-      if (sortBox.value === "near") nearMe();
+      if (sortBox.value === "near") { markSort(); nearMe(); }
       else { say(""); arrange(sortBox.value); }
+    });
+    // RESET: the default again, the keyboard back on the menu
+    if (sortReset) sortReset.addEventListener("click", function () {
+      sortBox.value = "number"; say(""); arrange("number");
+      sortBox.focus();
     });
   }
   arrange("number");

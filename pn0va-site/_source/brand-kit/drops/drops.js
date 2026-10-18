@@ -478,6 +478,7 @@
         for (var i = 0; i < k; i++)
           shots.push({ src: photos[i] || "", name: names.length > 1 ? names[i] || "" : names[0] || "" });
         shown = 0; whose = n || "";
+        /* the arrows only where there is more than one to turn to */
         o.prev.hidden = o.next.hidden = shots.length < 2;
         draw();
       },

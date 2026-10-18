@@ -54,6 +54,11 @@ and the two rules redirected each other forever.
 of `.htaccess` (and the `Strict-Transport-Security` line). It ships switched off
 only because forcing HTTPS on a site with no certificate takes the site down.
 
+Its security headers let nothing on the site use the camera or microphone,
+and location only for the Caches page's own **Near me**, which the browser
+still asks about first. (Until 2026.10.18 they forbade location outright,
+so Near me could never work on the server, only in the preview.)
+
 ### The street map
 
 The street map is **served by the site itself**. Carto began answering
@@ -150,9 +155,11 @@ screens.
     and `data-country`), or **Near me**: nearest first, each row saying
     how far, in miles in the US and UK and kilometres elsewhere. The
     browser asks before it says where you are, and that stays in the
-    page; refused or not found, the list stays as it was and says why. A
-    reload starts in number order again, and the arrow keys go down the
-    list as it is shown.
+    page; refused or not found, the list stays as it was and says why.
+    The menu names the default, **Number (default)**; while another
+    order is chosen the menu is lit and **RESET** sits beside it, one
+    click back to the default. A reload starts in number order again,
+    and the arrow keys go down the list as it is shown.
   - **Choose a site in the list** (a click, Enter, or the arrow keys down
     it) and the globe flies in to it, the site in the middle, close enough
     to see its city and the streets around it (64x where the street map
@@ -218,10 +225,11 @@ screens.
     its head keeps the OpenStreetMap link and drops the coordinates.
 
 **The photos.** A site's photos and what is inside a cache work alike.
-The arrows on the photo and a swipe across it go through them, earliest
-first and round again from the last, and so do the left and right arrow
-keys once the photo or an arrow has the focus (Tab to it, or click an
-arrow). A site's photo has its date on it, and with more than one the
+Where there is more than one, arrows at the photo's sides and a swipe
+across it go through them, earliest first and round again from the last,
+and so do the left and right arrow keys once the photo or an arrow has
+the focus (Tab to it, or click an arrow); with one, or none, there are no
+arrows. A site's photo has its date on it, and with more than one the
 window's head counts them (2/3); a photo of what is inside has the
 thing's name under it (or the date, for a thing with no name), and the
 count beside that. The photo itself opens
@@ -409,6 +417,76 @@ from before, does the same.)
 
 Cache 001's log says it was recovered on 2026.06.28, but it is not marked:
 add `data-found="2026.06.28"` to it if it should show.
+
+### The About page: a status card
+
+The About page is one window in the style of an old JRPG's character
+card: the portrait at its top left; beside it the name (**P_N0VA, THE
+OPERATOR**), the year it began with an orb for each skill (point at one
+for its name), the class (**Creative Developer**) and its kinds; under
+those a command menu, **BIO**, **SKILLS** and **SITE**, with the pointing
+hand of the old menus at the one chosen and the bar beside it saying what
+it is; then the text window, showing the chosen part; and **LV**, the
+years since it began, in the box on the text window's corner.
+
+- **Choose a command** with a click, or the arrow keys once the menu has
+  the focus (Home and End go to the ends). Only the text window changes,
+  and it keeps its height, so nothing jumps.
+- **SITE** lists the site's pages, the store only in the build that has
+  one.
+- On a phone the card is the width of the screen, the portrait and the
+  name still side by side.
+- With JavaScript off every part shows, one under another; with reduced
+  motion the hand keeps still.
+
+It is all in `_source/website-fixed/about.html`, and the comment at the top
+of the card says what is what: the portrait is
+`images/about/portrait-placeholder.svg` (put your own, about 300 x 340, in
+`_source/website-fixed/images/about/` and change the name); each orb's
+`title` is the skill it stands for; a command is a button (its
+`data-help` is the bar's line) and the section it opens; `data-since` is
+the year the level counts from. `about.js` runs the menu, and the card's
+styles are at the end of `page-style.css`. The words are still the
+placeholders from before (they still say "geocaching adventures"):
+rewrite them as you like.
+
+### The test kit's phone view
+
+`python build.py --test-kit` builds the site with a **PHONE VIEW** switch
+at the top right of every page (on a desktop window 1200px wide or more).
+It opens the page in a phone-sized frame, with the phone layout, to see it
+without a phone: **Phone** (390x844), **Small**, **Large** and
+**Tablet**; **Turn sideways**; **Actual size** (100%, the frame's area
+scrolling, where the window is too short for the phone; otherwise it is
+scaled down to fit); **Reload**; the frame's address, kept after the
+page's own `#` so a reload stays there; and **Desktop view**, the same
+page full size. The mouse stands in for a finger: drag across a photo to
+swipe it.
+
+Only the demo kit is built that way. **Never upload a build made with
+`--test-kit`**: run `python build.py` again for the site. A plain build
+has no trace of it; its parts are in `_source/test-kit/`.
+
+## 2026.10.18 update
+
+- **The About page is a status card**, after the JRPG card you sent:
+  portrait, name, year and skill orbs, class; a command menu (BIO,
+  SKILLS, SITE) with a pointing hand; one part at a time in the text
+  window; LV in a box on its corner. See *The About page*.
+- **Sort has a way back.** The menu names its default, **Number
+  (default)**, and while any other order is chosen it is lit and
+  **RESET** sits beside it: one click back to the list by number.
+- **Near me works on the server.** The site's security headers forbade
+  location outright, so a browser refused Near me on the real host (it
+  only worked in the preview). They now allow it for the site itself;
+  the browser still asks first.
+- **The demo kit's TEST POINT** (site 04) holds the test caches with
+  several things inside, so the arrows on what is inside are easy to
+  find: 006 four (three photos; the key tag has none yet, so the
+  placeholder shows its name) and 004 two. The arrows show only where
+  there is more than one thing (or photo) to turn to.
+- **The demo kit has PHONE VIEW** (see *The test kit's phone view*); the
+  site and its other kits do not.
 
 ## 2026.10.17 update
 
@@ -1071,6 +1149,35 @@ turning at about 60 frames a second on a desktop and 47 on a phone · two
 builds in a row byte-identical · every page at 1440 and 390px, JavaScript
 on and off: no console errors, failed requests, sideways scrolling or
 outside requests.
+
+**2026.10.18**, clean and flat builds and the test copy built as the test
+kit, desktop and phone: Sort: the default named in its menu, RESET shown
+and the menu lit with any other order, one click on RESET back to the
+list by number (no headings or distances, RESET gone, the keyboard on the
+menu), the menu's own Number the same, Near me allowed (by distance,
+RESET there) and refused (the order it was, a note why), RESET a 40px
+target on a phone; the server rules letting the page ask where the
+visitor is · the arrows on the photos only with more than one to turn to:
+TEST POINT's cache 006, four things, each named under its photo, the key
+tag on the placeholder, round from the last to the first by the arrows,
+the arrow keys, a drag and a tap on a phone; 004's two; one thing or one
+photo, no arrows and no count · PHONE VIEW on every page of the test kit
+at 1200px and wider, clear of the nav's links, none narrower: the page in
+a 390x844 frame with its phone layout and no scrollbar taking width;
+Small, Large, Tablet, Turn sideways and Actual size; the address kept
+through clicks inside and a reload; Desktop view; the phone scaled down
+whole, or at 100% and scrolled, in a 1350x561 window; no trace of it in
+any file of the four real builds · the About status card at 11 widths
+from 320 to 1920px: nothing sideways, the hand, menu and level box inside
+the card, the words clear of the box, the card as tall for each command;
+the hand on the chosen command; clicks, the arrow keys, Home and End; LV
+the years since 2023; SITE's links (the store only where there is one);
+JavaScript off, every part; reduced motion, the hand still · every
+earlier suite run again on both builds and the test copy · two builds
+byte-identical · the three preview kits, each served by its own preview,
+PHONE VIEW only in the demo kit · every page at 1440 and 390px,
+JavaScript on and off: no console errors, failed requests, sideways
+scrolling or outside requests.
 
 **2026.10.17**, clean and flat builds and the test copy (eight caches at
 one site, most with two or three things inside, found caches, a site with
